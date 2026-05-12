@@ -145,9 +145,9 @@ const OverviewTab = ({ metrics, memberships, commById, tiersById, profilesById }
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-2 gap-3">
-        <MetricCard icon={Users} label="Members" value={metrics.totalMembers} hint="active across all communities" />
-        <MetricCard icon={IndianRupee} label="MRR" value={`₹${metrics.mrr.toLocaleString('en-IN')}`} hint="recurring monthly revenue" />
-        <MetricCard icon={TrendingUp} label="Total revenue" value={`₹${metrics.lifetime.toLocaleString('en-IN')}`} hint="active member value" />
+        <MetricCard icon={Users} label="Total members" value={metrics.totalMembers} hint="active across all communities" />
+        <MetricCard icon={IndianRupee} label="Paying members" value={metrics.payingMembers} hint="on a paid tier" />
+        <MetricCard icon={TrendingUp} label="Total revenue" value={`₹${metrics.lifetime.toLocaleString('en-IN')}`} hint="from paid memberships" />
         <MetricCard icon={Layers} label="Communities" value={metrics.liveCommunities}
           hint={`${metrics.pending} pending • ${metrics.totalCommunities} total`} />
       </div>
