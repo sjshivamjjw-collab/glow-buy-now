@@ -27,7 +27,8 @@ export const useCommunityMembership = (communityId: string | null | undefined) =
       supabase.from('communities' as any).select('creator_id').eq('id', communityId).maybeSingle(),
       supabase.from('community_tiers' as any).select('id, name, description, kind, price_inr, sort_order')
         .eq('community_id', communityId).eq('is_active', true).order('sort_order'),
-      supabase.from('memberships' as any).select('tier_id, status')
+      supabase.from('memberships' as any)
+        .select('tier_id, status, razorpay_payment_id, razorpay_subscription_id, current_period_end')
         .eq('community_id', communityId).eq('user_id', userId).eq('status', 'active').maybeSingle(),
       supabase.from('community_moderators' as any).select('id')
         .eq('community_id', communityId).eq('user_id', userId).maybeSingle(),
