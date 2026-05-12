@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useCommunityMembership } from '@/hooks/useCommunityMembership';
-import { ArrowLeft, MessageSquare, Calendar, FileBox, Loader2, Sparkles } from 'lucide-react';
+import { ArrowLeft, MessageSquare, Calendar, FileBox, Loader2, Sparkles, X } from 'lucide-react';
 import { ChatPanel } from '@/components/community/ChatPanel';
 import { EventsPanel } from '@/components/community/EventsPanel';
 import { ResourcesPanel } from '@/components/community/ResourcesPanel';
@@ -74,6 +74,20 @@ const CommunityRoomPage = () => {
     ? tiers.filter(t => t.sort_order > tierLevel).sort((a, b) => a.sort_order - b.sort_order)[0]
     : null;
 
+  // Throttle the upgrade nudge: show at most once per 24h per community
+  const dismissKey = community ? `upgradeBannerSeen:${community.id}` : '';
+  const [showUpgrade, setShowUpgrade] = useState(false);
+  useEffect(() => {
+    if (!upgradeTier || !dismissKey) { setShowUpgrade(false); return; }
+    const last = Number(localStorage.getItem(dismissKey) || 0);
+    setShowUpgrade(Date.now() - last > 24 * 60 * 60 * 1000);
+  }, [upgradeTier?.id, dismissKey]);
+
+  const dismissUpgrade = () => {
+    if (dismissKey) localStorage.setItem(dismissKey, String(Date.now()));
+    setShowUpgrade(false);
+  };
+
   return (
     <div className="min-h-screen bg-background max-w-lg mx-auto px-4 pt-4 pb-24">
       <div className="flex items-center gap-3 mb-3">
@@ -88,10 +102,9 @@ const CommunityRoomPage = () => {
         </div>
       </div>
 
-      {upgradeTier && (
-        <button onClick={() => navigate(`/c/${slug}`)}
-          className="w-full mb-4 flex items-center justify-between gap-3 px-4 py-2.5 rounded-2xl bg-gradient-to-r from-amber-500/15 via-primary/15 to-pink-500/15 border border-amber-500/30 text-left hover:opacity-90 transition">
-          <div className="flex items-center gap-2 min-w-0">
+      {upgradeTier && showUpgrade && (
+        <div className="w-full mb-4 flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-gradient-to-r from-amber-500/15 via-primary/15 to-pink-500/15 border border-amber-500/30">
+          <button onClick={() => navigate(`/c/${slug}`)} className="flex items-center gap-2 min-w-0 flex-1 text-left">
             <Sparkles className="w-4 h-4 text-amber-600 shrink-0" />
             <div className="min-w-0">
               <div className="text-sm font-bold text-foreground truncate">Upgrade to {upgradeTier.name}</div>
@@ -103,9 +116,11 @@ const CommunityRoomPage = () => {
                   : 'Free'} · unlock premium channels & resources
               </div>
             </div>
-          </div>
-          <span className="text-xs font-bold text-amber-700 shrink-0">View</span>
-        </button>
+          </button>
+          <button onClick={dismissUpgrade} className="p-1.5 rounded-lg hover:bg-background/50 shrink-0" aria-label="Dismiss">
+            <X className="w-4 h-4 text-muted-foreground" />
+          </button>
+        </div>
       )}
 
       <div className="grid grid-cols-3 gap-1 p-1 bg-card border border-border rounded-2xl mb-5">
