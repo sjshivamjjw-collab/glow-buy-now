@@ -374,19 +374,6 @@ const CreateCommunityPage = () => {
                         INR
                       </div>
                     </div>
-                    <div className="flex flex-wrap gap-1.5">
-                      {PRICE_SUGGESTIONS.map(p => (
-                        <button
-                          key={p}
-                          type="button"
-                          onClick={() => updateTier(t.id, { price_inr: String(p) })}
-                          className="px-2.5 py-1 rounded-md bg-secondary text-foreground text-xs font-medium hover:bg-secondary/70"
-                        >
-                          ₹{p}
-                        </button>
-                      ))}
-                    </div>
-
                     {t.kind === 'paid_monthly' && (
                       <>
                         <div className="pt-1">
@@ -410,40 +397,40 @@ const CreateCommunityPage = () => {
                         </div>
 
                         <div className="pt-1">
-                          <p className="text-[11px] font-semibold text-muted-foreground mb-1.5">Free trial</p>
-                          <div className="flex items-center gap-2">
-                            <div className="relative flex-1">
-                              <input
-                                value={t.trial_days}
-                                onChange={e => updateTier(t.id, { trial_days: e.target.value.replace(/[^0-9]/g, '').slice(0, 3) })}
-                                placeholder="0"
-                                inputMode="numeric"
-                                className="w-full px-3 py-2.5 rounded-lg bg-secondary text-foreground text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/30"
-                              />
-                            </div>
-                            <div className="px-3 py-2.5 rounded-lg bg-secondary text-foreground text-sm font-semibold">
-                              days
-                            </div>
-                          </div>
-                          <div className="flex flex-wrap gap-1.5 mt-1.5">
+                          <div className="flex items-center justify-between mb-1.5">
+                            <p className="text-[11px] font-semibold text-muted-foreground">Free trial</p>
                             <button
                               type="button"
-                              onClick={() => updateTier(t.id, { trial_days: '0' })}
-                              className="px-2.5 py-1 rounded-md bg-secondary text-foreground text-xs font-medium hover:bg-secondary/70"
+                              role="switch"
+                              aria-checked={Number(t.trial_days) > 0}
+                              onClick={() => updateTier(t.id, { trial_days: Number(t.trial_days) > 0 ? '0' : '7' })}
+                              className={`relative h-5 w-9 rounded-full transition-colors ${
+                                Number(t.trial_days) > 0 ? 'bg-primary' : 'bg-secondary'
+                              }`}
                             >
-                              No trial
+                              <span
+                                className={`absolute top-0.5 h-4 w-4 rounded-full bg-background shadow transition-transform ${
+                                  Number(t.trial_days) > 0 ? 'translate-x-4' : 'translate-x-0.5'
+                                }`}
+                              />
                             </button>
-                            {TRIAL_SUGGESTIONS.map(d => (
-                              <button
-                                key={d}
-                                type="button"
-                                onClick={() => updateTier(t.id, { trial_days: String(d) })}
-                                className="px-2.5 py-1 rounded-md bg-secondary text-foreground text-xs font-medium hover:bg-secondary/70"
-                              >
-                                {d} days
-                              </button>
-                            ))}
                           </div>
+                          {Number(t.trial_days) > 0 && (
+                            <div className="flex items-center gap-2">
+                              <div className="relative flex-1">
+                                <input
+                                  value={t.trial_days}
+                                  onChange={e => updateTier(t.id, { trial_days: e.target.value.replace(/[^0-9]/g, '').slice(0, 3) })}
+                                  placeholder="0"
+                                  inputMode="numeric"
+                                  className="w-full px-3 py-2.5 rounded-lg bg-secondary text-foreground text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/30"
+                                />
+                              </div>
+                              <div className="px-3 py-2.5 rounded-lg bg-secondary text-foreground text-sm font-semibold">
+                                days
+                              </div>
+                            </div>
+                          )}
                         </div>
                       </>
                     )}
