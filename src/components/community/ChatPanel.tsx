@@ -508,21 +508,33 @@ const ChannelManager = ({ communityId, channels, tiers, onClose, onChanged }: {
 
         <div className="space-y-2">
           {channels.map(c => (
-            <div key={c.id} className="flex items-center gap-2 p-2 rounded-xl bg-background border border-border">
-              <Hash className="w-4 h-4 text-muted-foreground shrink-0" />
-              <span className="flex-1 text-sm font-medium text-foreground truncate">{c.name}</span>
-              <select value={c.required_tier_level} onChange={e => setTier(c.id, Number(e.target.value))}
-                className="px-2 py-1 rounded-lg bg-card border border-border text-xs">
-                <option value={0}>All members</option>
-                {tiers.filter(t => t.sort_order > 0).map(t => (
-                  <option key={t.id} value={t.sort_order}>{t.name}+</option>
-                ))}
-              </select>
-              {channels.length > 1 && (
-                <button onClick={() => remove(c.id)} className="p-1.5 text-muted-foreground hover:text-destructive">
-                  <Trash2 className="w-3.5 h-3.5" />
-                </button>
-              )}
+            <div key={c.id} className="p-3 rounded-xl bg-background border border-border space-y-2">
+              <div className="flex items-center gap-2">
+                <Hash className="w-4 h-4 text-muted-foreground shrink-0" />
+                <span className="flex-1 text-sm font-semibold text-foreground truncate">{c.name}</span>
+                {channels.length > 1 && (
+                  <button onClick={() => remove(c.id)} className="p-1.5 text-muted-foreground hover:text-destructive">
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
+                )}
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <label className="text-[10px] uppercase tracking-wide text-muted-foreground font-semibold col-span-2 -mb-1">Visible to</label>
+                <select value={c.required_tier_level} onChange={e => setTier(c.id, Number(e.target.value))}
+                  className="px-2 py-1.5 rounded-lg bg-card border border-border text-xs col-span-2">
+                  <option value={0}>All members</option>
+                  {tiers.filter(t => t.sort_order > 0).map(t => (
+                    <option key={t.id} value={t.sort_order}>{t.name} and above</option>
+                  ))}
+                </select>
+                <label className="text-[10px] uppercase tracking-wide text-muted-foreground font-semibold col-span-2 -mb-1 mt-1">Who can post</label>
+                <select value={c.post_permission} onChange={e => setPerm(c.id, e.target.value as Channel['post_permission'])}
+                  className="px-2 py-1.5 rounded-lg bg-card border border-border text-xs col-span-2">
+                  <option value="all_members">Everyone in this channel</option>
+                  <option value="moderators">Moderators only</option>
+                  <option value="creator_only">Creator only (announcements)</option>
+                </select>
+              </div>
             </div>
           ))}
         </div>
