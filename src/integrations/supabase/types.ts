@@ -224,6 +224,132 @@ export type Database = {
         }
         Relationships: []
       }
+      community_chat_messages: {
+        Row: {
+          body: string
+          community_id: string
+          created_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          body: string
+          community_id: string
+          created_at?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          body?: string
+          community_id?: string
+          created_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      community_event_rsvps: {
+        Row: {
+          created_at: string
+          event_id: string
+          id: string
+          status: Database["public"]["Enums"]["event_rsvp_status"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          event_id: string
+          id?: string
+          status?: Database["public"]["Enums"]["event_rsvp_status"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          event_id?: string
+          id?: string
+          status?: Database["public"]["Enums"]["event_rsvp_status"]
+          user_id?: string
+        }
+        Relationships: []
+      }
+      community_events: {
+        Row: {
+          community_id: string
+          cover_url: string | null
+          created_at: string
+          created_by: string
+          description: string | null
+          ends_at: string | null
+          id: string
+          location_url: string | null
+          starts_at: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          community_id: string
+          cover_url?: string | null
+          created_at?: string
+          created_by: string
+          description?: string | null
+          ends_at?: string | null
+          id?: string
+          location_url?: string | null
+          starts_at: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          community_id?: string
+          cover_url?: string | null
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          ends_at?: string | null
+          id?: string
+          location_url?: string | null
+          starts_at?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      community_resources: {
+        Row: {
+          community_id: string
+          created_at: string
+          created_by: string
+          description: string | null
+          file_size: number | null
+          id: string
+          kind: Database["public"]["Enums"]["resource_kind"]
+          title: string
+          url: string
+        }
+        Insert: {
+          community_id: string
+          created_at?: string
+          created_by: string
+          description?: string | null
+          file_size?: number | null
+          id?: string
+          kind: Database["public"]["Enums"]["resource_kind"]
+          title: string
+          url: string
+        }
+        Update: {
+          community_id?: string
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          file_size?: number | null
+          id?: string
+          kind?: Database["public"]["Enums"]["resource_kind"]
+          title?: string
+          url?: string
+        }
+        Relationships: []
+      }
       community_tiers: {
         Row: {
           community_id: string
@@ -932,11 +1058,16 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_active_community_member: {
+        Args: { _community_id: string; _user_id: string }
+        Returns: boolean
+      }
     }
     Enums: {
       app_role: "admin" | "creator" | "shopper"
       application_status: "pending" | "approved" | "rejected"
       community_approval_status: "pending" | "approved" | "rejected"
+      event_rsvp_status: "going" | "maybe" | "declined"
       livestream_status: "scheduled" | "live" | "ended"
       membership_source: "free" | "razorpay_sub" | "razorpay_order"
       membership_status: "active" | "pending" | "expired" | "cancelled"
@@ -948,6 +1079,7 @@ export type Database = {
         | "cancelled"
         | "return_initiated"
         | "return_completed"
+      resource_kind: "file" | "link"
       tier_kind: "free" | "paid_monthly" | "paid_one_time"
     }
     CompositeTypes: {
@@ -1079,6 +1211,7 @@ export const Constants = {
       app_role: ["admin", "creator", "shopper"],
       application_status: ["pending", "approved", "rejected"],
       community_approval_status: ["pending", "approved", "rejected"],
+      event_rsvp_status: ["going", "maybe", "declined"],
       livestream_status: ["scheduled", "live", "ended"],
       membership_source: ["free", "razorpay_sub", "razorpay_order"],
       membership_status: ["active", "pending", "expired", "cancelled"],
@@ -1091,6 +1224,7 @@ export const Constants = {
         "return_initiated",
         "return_completed",
       ],
+      resource_kind: ["file", "link"],
       tier_kind: ["free", "paid_monthly", "paid_one_time"],
     },
   },
