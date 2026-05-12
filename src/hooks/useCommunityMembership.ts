@@ -16,23 +16,27 @@ export const useCommunityMembership = (communityId: string | null | undefined) =
   const [loading, setLoading] = useState(true);
   const [isMember, setIsMember] = useState(false);
   const [isCreator, setIsCreator] = useState(false);
+  const [isModerator, setIsModerator] = useState(false);
   const [tiers, setTiers] = useState<TierInfo[]>([]);
   const [tierLevel, setTierLevel] = useState<number>(-1); // -1 = no membership; creators get Infinity
   const [currentTier, setCurrentTier] = useState<TierInfo | null>(null);
 
   const refresh = async () => {
     if (!communityId || !userId) { setLoading(false); return; }
-    const [{ data: c }, { data: t }, { data: m }] = await Promise.all([
+    const [{ data: c }, { data: t }, { data: m }, { data: mod }] = await Promise.all([
       supabase.from('communities' as any).select('creator_id').eq('id', communityId).maybeSingle(),
       supabase.from('community_tiers' as any).select('id, name, description, kind, price_inr, sort_order')
         .eq('community_id', communityId).eq('is_active', true).order('sort_order'),
       supabase.from('memberships' as any).select('tier_id, status')
         .eq('community_id', communityId).eq('user_id', userId).eq('status', 'active').maybeSingle(),
+      supabase.from('community_moderators' as any).select('id')
+        .eq('community_id', communityId).eq('user_id', userId).maybeSingle(),
     ]);
     const tierList = ((t as any[]) || []) as TierInfo[];
     setTiers(tierList);
     const creator = (c as any)?.creator_id === userId;
     setIsCreator(creator);
+    setIsModerator(creator || !!mod);
     setIsMember(creator || !!m);
     if (creator) {
       setTierLevel(Number.POSITIVE_INFINITY);
@@ -57,5 +61,5 @@ export const useCommunityMembership = (communityId: string | null | undefined) =
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [communityId, userId]);
 
-  return { isMember, isCreator, loading, tiers, tierLevel, currentTier, refresh };
+  return { isMember, isCreator, isModerator, loading, tiers, tierLevel, currentTier, refresh };
 };
