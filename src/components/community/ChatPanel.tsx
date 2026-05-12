@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { Send, Loader2, Trash2, Paperclip, Image as ImageIcon, BarChart3, X, Plus, Check, FileText, Download, Hash, Lock, Settings, Sparkles } from 'lucide-react';
+import { Send, Loader2, Trash2, Paperclip, Image as ImageIcon, BarChart3, X, Plus, Check, FileText, Download, Hash, Lock, Settings, Sparkles, Shield, ShieldCheck, Search, UserPlus } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { format, isToday, isYesterday } from 'date-fns';
 import type { TierInfo } from '@/hooks/useCommunityMembership';
@@ -29,6 +29,7 @@ interface Channel {
   description: string | null;
   required_tier_level: number;
   sort_order: number;
+  post_permission: 'all_members' | 'moderators' | 'creator_only';
 }
 interface PollVote { message_id: string; user_id: string; option_index: number }
 
@@ -49,12 +50,13 @@ const slugify = (s: string) => s.toLowerCase().trim().replace(/[^a-z0-9\s-]/g, '
 interface Props {
   communityId: string;
   isCreator: boolean;
+  isModerator: boolean;
   tierLevel: number;
   tiers: TierInfo[];
   slug: string;
 }
 
-export const ChatPanel = ({ communityId, isCreator, tierLevel, tiers, slug }: Props) => {
+export const ChatPanel = ({ communityId, isCreator, isModerator, tierLevel, tiers, slug }: Props) => {
   const { userId, userName, userAvatar } = useAuth();
   const { toast } = useToast();
   const [channels, setChannels] = useState<Channel[]>([]);
@@ -68,12 +70,31 @@ export const ChatPanel = ({ communityId, isCreator, tierLevel, tiers, slug }: Pr
   const [showPoll, setShowPoll] = useState(false);
   const [showAttach, setShowAttach] = useState(false);
   const [showChannelMgr, setShowChannelMgr] = useState(false);
+  const [showModMgr, setShowModMgr] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const imageRef = useRef<HTMLInputElement>(null);
 
   const activeChannel = channels.find(c => c.id === activeChannelId) || null;
   const canAccessActive = !activeChannel || isCreator || tierLevel >= activeChannel.required_tier_level;
+
+  // Posting permission for the active channel
+  const canPostInActive = !activeChannel ? false : (
+    isCreator
+      ? true
+      : activeChannel.post_permission === 'creator_only'
+        ? false
+        : activeChannel.post_permission === 'moderators'
+          ? isModerator
+          : true
+  );
+  const postRestrictionLabel = !activeChannel ? '' : (
+    activeChannel.post_permission === 'creator_only'
+      ? 'Only the creator can post in this channel.'
+      : activeChannel.post_permission === 'moderators'
+        ? 'Only moderators can post in this channel.'
+        : ''
+  );
 
   // Load channels
   const loadChannels = async () => {
@@ -163,6 +184,7 @@ export const ChatPanel = ({ communityId, isCreator, tierLevel, tiers, slug }: Pr
   const send = async () => {
     const body = text.trim();
     if (!body || !userId || !activeChannelId) return;
+    if (!canPostInActive) { toast({ title: 'Posting disabled', description: postRestrictionLabel, variant: 'destructive' }); return; }
     setSending(true);
     const { error } = await supabase.from('community_chat_messages' as any).insert({
       community_id: communityId, channel_id: activeChannelId, user_id: userId, body, kind: 'text',
@@ -253,10 +275,16 @@ export const ChatPanel = ({ communityId, isCreator, tierLevel, tiers, slug }: Pr
           );
         })}
         {isCreator && (
-          <button onClick={() => setShowChannelMgr(true)}
-            className="shrink-0 inline-flex items-center gap-1 px-2.5 py-1.5 rounded-full text-xs font-semibold bg-card border border-dashed border-border text-muted-foreground">
-            <Settings className="w-3 h-3" /> Manage
-          </button>
+          <>
+            <button onClick={() => setShowChannelMgr(true)}
+              className="shrink-0 inline-flex items-center gap-1 px-2.5 py-1.5 rounded-full text-xs font-semibold bg-card border border-dashed border-border text-muted-foreground">
+              <Settings className="w-3 h-3" /> Channels
+            </button>
+            <button onClick={() => setShowModMgr(true)}
+              className="shrink-0 inline-flex items-center gap-1 px-2.5 py-1.5 rounded-full text-xs font-semibold bg-card border border-dashed border-border text-muted-foreground">
+              <ShieldCheck className="w-3 h-3" /> Mods
+            </button>
+          </>
         )}
       </div>
 
@@ -353,6 +381,14 @@ export const ChatPanel = ({ communityId, isCreator, tierLevel, tiers, slug }: Pr
             })}
           </div>
 
+          {!canPostInActive ? (
+            <div className="pt-3 mt-2 border-t border-border">
+              <div className="flex items-center gap-2 px-3 py-3 rounded-2xl bg-muted/60 border border-border text-xs text-muted-foreground">
+                <Lock className="w-3.5 h-3.5 shrink-0" />
+                <span>{postRestrictionLabel || 'You cannot post in this channel.'}</span>
+              </div>
+            </div>
+          ) : (
           <div className="pt-3 mt-2 border-t border-border">
             <div className="flex items-end gap-2">
               <div className="relative">
@@ -395,6 +431,7 @@ export const ChatPanel = ({ communityId, isCreator, tierLevel, tiers, slug }: Pr
               </button>
             </div>
           </div>
+          )}
         </>
       )}
 
@@ -404,6 +441,12 @@ export const ChatPanel = ({ communityId, isCreator, tierLevel, tiers, slug }: Pr
           communityId={communityId} channels={channels} tiers={tiers}
           onClose={() => setShowChannelMgr(false)}
           onChanged={loadChannels}
+        />
+      )}
+      {showModMgr && (
+        <ModeratorManager
+          communityId={communityId}
+          onClose={() => setShowModMgr(false)}
         />
       )}
     </div>
@@ -449,6 +492,12 @@ const ChannelManager = ({ communityId, channels, tiers, onClose, onChanged }: {
     else onChanged();
   };
 
+  const setPerm = async (id: string, perm: Channel['post_permission']) => {
+    const { error } = await supabase.from('community_channels' as any).update({ post_permission: perm }).eq('id', id);
+    if (error) toast({ title: 'Update failed', description: error.message, variant: 'destructive' });
+    else onChanged();
+  };
+
   return (
     <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur flex items-end md:items-center justify-center p-4" onClick={onClose}>
       <div className="w-full max-w-md bg-card border border-border rounded-3xl p-5 space-y-3 max-h-[85vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
@@ -459,21 +508,33 @@ const ChannelManager = ({ communityId, channels, tiers, onClose, onChanged }: {
 
         <div className="space-y-2">
           {channels.map(c => (
-            <div key={c.id} className="flex items-center gap-2 p-2 rounded-xl bg-background border border-border">
-              <Hash className="w-4 h-4 text-muted-foreground shrink-0" />
-              <span className="flex-1 text-sm font-medium text-foreground truncate">{c.name}</span>
-              <select value={c.required_tier_level} onChange={e => setTier(c.id, Number(e.target.value))}
-                className="px-2 py-1 rounded-lg bg-card border border-border text-xs">
-                <option value={0}>All members</option>
-                {tiers.filter(t => t.sort_order > 0).map(t => (
-                  <option key={t.id} value={t.sort_order}>{t.name}+</option>
-                ))}
-              </select>
-              {channels.length > 1 && (
-                <button onClick={() => remove(c.id)} className="p-1.5 text-muted-foreground hover:text-destructive">
-                  <Trash2 className="w-3.5 h-3.5" />
-                </button>
-              )}
+            <div key={c.id} className="p-3 rounded-xl bg-background border border-border space-y-2">
+              <div className="flex items-center gap-2">
+                <Hash className="w-4 h-4 text-muted-foreground shrink-0" />
+                <span className="flex-1 text-sm font-semibold text-foreground truncate">{c.name}</span>
+                {channels.length > 1 && (
+                  <button onClick={() => remove(c.id)} className="p-1.5 text-muted-foreground hover:text-destructive">
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
+                )}
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <label className="text-[10px] uppercase tracking-wide text-muted-foreground font-semibold col-span-2 -mb-1">Visible to</label>
+                <select value={c.required_tier_level} onChange={e => setTier(c.id, Number(e.target.value))}
+                  className="px-2 py-1.5 rounded-lg bg-card border border-border text-xs col-span-2">
+                  <option value={0}>All members</option>
+                  {tiers.filter(t => t.sort_order > 0).map(t => (
+                    <option key={t.id} value={t.sort_order}>{t.name} and above</option>
+                  ))}
+                </select>
+                <label className="text-[10px] uppercase tracking-wide text-muted-foreground font-semibold col-span-2 -mb-1 mt-1">Who can post</label>
+                <select value={c.post_permission} onChange={e => setPerm(c.id, e.target.value as Channel['post_permission'])}
+                  className="px-2 py-1.5 rounded-lg bg-card border border-border text-xs col-span-2">
+                  <option value="all_members">Everyone in this channel</option>
+                  <option value="moderators">Moderators only</option>
+                  <option value="creator_only">Creator only (announcements)</option>
+                </select>
+              </div>
             </div>
           ))}
         </div>
@@ -576,6 +637,122 @@ const PollDialog = ({ onClose, onSubmit }: { onClose: () => void; onSubmit: (q: 
           className="mt-5 w-full py-3 rounded-2xl bg-primary text-primary-foreground font-semibold disabled:opacity-50">
           Post poll
         </button>
+      </div>
+    </div>
+  );
+};
+
+interface MemberRow {
+  user_id: string;
+  name: string | null;
+  username: string | null;
+  avatar_url: string | null;
+  is_mod: boolean;
+}
+
+const ModeratorManager = ({ communityId, onClose }: { communityId: string; onClose: () => void }) => {
+  const { toast } = useToast();
+  const [loading, setLoading] = useState(true);
+  const [members, setMembers] = useState<MemberRow[]>([]);
+  const [query, setQuery] = useState('');
+  const [busy, setBusy] = useState<string | null>(null);
+
+  const load = async () => {
+    setLoading(true);
+    const [{ data: mems }, { data: mods }] = await Promise.all([
+      supabase.from('memberships' as any).select('user_id').eq('community_id', communityId).eq('status', 'active'),
+      supabase.from('community_moderators' as any).select('user_id').eq('community_id', communityId),
+    ]);
+    const memberIds = Array.from(new Set(((mems as any[]) || []).map(m => m.user_id)));
+    const modIds = new Set(((mods as any[]) || []).map(m => m.user_id));
+    if (!memberIds.length) { setMembers([]); setLoading(false); return; }
+    const { data: profs } = await supabase.from('profiles').select('id, name, username, avatar_url').in('id', memberIds);
+    const rows: MemberRow[] = (profs || []).map((p: any) => ({
+      user_id: p.id, name: p.name, username: p.username, avatar_url: p.avatar_url, is_mod: modIds.has(p.id),
+    }));
+    rows.sort((a, b) => (Number(b.is_mod) - Number(a.is_mod)) || (a.name || a.username || '').localeCompare(b.name || b.username || ''));
+    setMembers(rows);
+    setLoading(false);
+  };
+
+  useEffect(() => { load(); /* eslint-disable-next-line */ }, [communityId]);
+
+  const toggleMod = async (m: MemberRow) => {
+    setBusy(m.user_id);
+    if (m.is_mod) {
+      const { error } = await supabase.from('community_moderators' as any).delete()
+        .eq('community_id', communityId).eq('user_id', m.user_id);
+      if (error) toast({ title: 'Could not remove', description: error.message, variant: 'destructive' });
+    } else {
+      const { error } = await supabase.from('community_moderators' as any).insert({
+        community_id: communityId, user_id: m.user_id,
+      });
+      if (error) toast({ title: 'Could not promote', description: error.message, variant: 'destructive' });
+    }
+    setBusy(null);
+    await load();
+  };
+
+  const filtered = members.filter(m => {
+    if (!query.trim()) return true;
+    const q = query.toLowerCase();
+    return (m.name || '').toLowerCase().includes(q) || (m.username || '').toLowerCase().includes(q);
+  });
+
+  return (
+    <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur flex items-end md:items-center justify-center p-4" onClick={onClose}>
+      <div className="w-full max-w-md bg-card border border-border rounded-3xl p-5 space-y-3 max-h-[85vh] flex flex-col" onClick={e => e.stopPropagation()}>
+        <div className="flex items-center justify-between">
+          <div>
+            <h3 className="text-lg font-bold text-foreground flex items-center gap-2">
+              <ShieldCheck className="w-5 h-5 text-primary" /> Moderators
+            </h3>
+            <p className="text-xs text-muted-foreground">Promote members to post in moderator-only channels.</p>
+          </div>
+          <button onClick={onClose} className="p-1 text-muted-foreground"><X className="w-5 h-5" /></button>
+        </div>
+
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <input value={query} onChange={e => setQuery(e.target.value)} placeholder="Search members…"
+            className="w-full pl-9 pr-3 py-2 rounded-xl bg-background border border-border text-sm" />
+        </div>
+
+        <div className="flex-1 overflow-y-auto space-y-1.5 -mx-1 px-1">
+          {loading ? (
+            <div className="flex justify-center py-10"><Loader2 className="w-5 h-5 animate-spin text-muted-foreground" /></div>
+          ) : filtered.length === 0 ? (
+            <p className="text-center text-sm text-muted-foreground py-10">No members yet.</p>
+          ) : filtered.map(m => {
+            const display = m.name || m.username || 'Member';
+            return (
+              <div key={m.user_id} className="flex items-center gap-3 p-2 rounded-xl bg-background border border-border">
+                {m.avatar_url ? (
+                  <img src={m.avatar_url} className="w-9 h-9 rounded-full object-cover" alt="" />
+                ) : (
+                  <div className="w-9 h-9 rounded-full bg-secondary flex items-center justify-center text-sm font-bold text-muted-foreground">
+                    {display.slice(0, 1).toUpperCase()}
+                  </div>
+                )}
+                <div className="flex-1 min-w-0">
+                  <div className="text-sm font-semibold text-foreground truncate flex items-center gap-1.5">
+                    {display}
+                    {m.is_mod && <Shield className="w-3.5 h-3.5 text-primary" />}
+                  </div>
+                  {m.username && <div className="text-[11px] text-muted-foreground truncate">@{m.username}</div>}
+                </div>
+                <button onClick={() => toggleMod(m)} disabled={busy === m.user_id}
+                  className={`shrink-0 px-3 py-1.5 rounded-lg text-xs font-semibold transition disabled:opacity-50 ${
+                    m.is_mod
+                      ? 'bg-muted text-foreground hover:bg-muted/70'
+                      : 'bg-primary text-primary-foreground hover:opacity-90'
+                  }`}>
+                  {busy === m.user_id ? '…' : m.is_mod ? 'Remove' : (<span className="inline-flex items-center gap-1"><UserPlus className="w-3 h-3" />Make mod</span>)}
+                </button>
+              </div>
+            );
+          })}
+        </div>
       </div>
     </div>
   );
