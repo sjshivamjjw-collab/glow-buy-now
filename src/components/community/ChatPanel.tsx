@@ -641,3 +641,119 @@ const PollDialog = ({ onClose, onSubmit }: { onClose: () => void; onSubmit: (q: 
     </div>
   );
 };
+
+interface MemberRow {
+  user_id: string;
+  name: string | null;
+  username: string | null;
+  avatar_url: string | null;
+  is_mod: boolean;
+}
+
+const ModeratorManager = ({ communityId, onClose }: { communityId: string; onClose: () => void }) => {
+  const { toast } = useToast();
+  const [loading, setLoading] = useState(true);
+  const [members, setMembers] = useState<MemberRow[]>([]);
+  const [query, setQuery] = useState('');
+  const [busy, setBusy] = useState<string | null>(null);
+
+  const load = async () => {
+    setLoading(true);
+    const [{ data: mems }, { data: mods }] = await Promise.all([
+      supabase.from('memberships' as any).select('user_id').eq('community_id', communityId).eq('status', 'active'),
+      supabase.from('community_moderators' as any).select('user_id').eq('community_id', communityId),
+    ]);
+    const memberIds = Array.from(new Set(((mems as any[]) || []).map(m => m.user_id)));
+    const modIds = new Set(((mods as any[]) || []).map(m => m.user_id));
+    if (!memberIds.length) { setMembers([]); setLoading(false); return; }
+    const { data: profs } = await supabase.from('profiles').select('id, name, username, avatar_url').in('id', memberIds);
+    const rows: MemberRow[] = (profs || []).map((p: any) => ({
+      user_id: p.id, name: p.name, username: p.username, avatar_url: p.avatar_url, is_mod: modIds.has(p.id),
+    }));
+    rows.sort((a, b) => (Number(b.is_mod) - Number(a.is_mod)) || (a.name || a.username || '').localeCompare(b.name || b.username || ''));
+    setMembers(rows);
+    setLoading(false);
+  };
+
+  useEffect(() => { load(); /* eslint-disable-next-line */ }, [communityId]);
+
+  const toggleMod = async (m: MemberRow) => {
+    setBusy(m.user_id);
+    if (m.is_mod) {
+      const { error } = await supabase.from('community_moderators' as any).delete()
+        .eq('community_id', communityId).eq('user_id', m.user_id);
+      if (error) toast({ title: 'Could not remove', description: error.message, variant: 'destructive' });
+    } else {
+      const { error } = await supabase.from('community_moderators' as any).insert({
+        community_id: communityId, user_id: m.user_id,
+      });
+      if (error) toast({ title: 'Could not promote', description: error.message, variant: 'destructive' });
+    }
+    setBusy(null);
+    await load();
+  };
+
+  const filtered = members.filter(m => {
+    if (!query.trim()) return true;
+    const q = query.toLowerCase();
+    return (m.name || '').toLowerCase().includes(q) || (m.username || '').toLowerCase().includes(q);
+  });
+
+  return (
+    <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur flex items-end md:items-center justify-center p-4" onClick={onClose}>
+      <div className="w-full max-w-md bg-card border border-border rounded-3xl p-5 space-y-3 max-h-[85vh] flex flex-col" onClick={e => e.stopPropagation()}>
+        <div className="flex items-center justify-between">
+          <div>
+            <h3 className="text-lg font-bold text-foreground flex items-center gap-2">
+              <ShieldCheck className="w-5 h-5 text-primary" /> Moderators
+            </h3>
+            <p className="text-xs text-muted-foreground">Promote members to post in moderator-only channels.</p>
+          </div>
+          <button onClick={onClose} className="p-1 text-muted-foreground"><X className="w-5 h-5" /></button>
+        </div>
+
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <input value={query} onChange={e => setQuery(e.target.value)} placeholder="Search members…"
+            className="w-full pl-9 pr-3 py-2 rounded-xl bg-background border border-border text-sm" />
+        </div>
+
+        <div className="flex-1 overflow-y-auto space-y-1.5 -mx-1 px-1">
+          {loading ? (
+            <div className="flex justify-center py-10"><Loader2 className="w-5 h-5 animate-spin text-muted-foreground" /></div>
+          ) : filtered.length === 0 ? (
+            <p className="text-center text-sm text-muted-foreground py-10">No members yet.</p>
+          ) : filtered.map(m => {
+            const display = m.name || m.username || 'Member';
+            return (
+              <div key={m.user_id} className="flex items-center gap-3 p-2 rounded-xl bg-background border border-border">
+                {m.avatar_url ? (
+                  <img src={m.avatar_url} className="w-9 h-9 rounded-full object-cover" alt="" />
+                ) : (
+                  <div className="w-9 h-9 rounded-full bg-secondary flex items-center justify-center text-sm font-bold text-muted-foreground">
+                    {display.slice(0, 1).toUpperCase()}
+                  </div>
+                )}
+                <div className="flex-1 min-w-0">
+                  <div className="text-sm font-semibold text-foreground truncate flex items-center gap-1.5">
+                    {display}
+                    {m.is_mod && <Shield className="w-3.5 h-3.5 text-primary" />}
+                  </div>
+                  {m.username && <div className="text-[11px] text-muted-foreground truncate">@{m.username}</div>}
+                </div>
+                <button onClick={() => toggleMod(m)} disabled={busy === m.user_id}
+                  className={`shrink-0 px-3 py-1.5 rounded-lg text-xs font-semibold transition disabled:opacity-50 ${
+                    m.is_mod
+                      ? 'bg-muted text-foreground hover:bg-muted/70'
+                      : 'bg-primary text-primary-foreground hover:opacity-90'
+                  }`}>
+                  {busy === m.user_id ? '…' : m.is_mod ? 'Remove' : (<span className="inline-flex items-center gap-1"><UserPlus className="w-3 h-3" />Make mod</span>)}
+                </button>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+};
