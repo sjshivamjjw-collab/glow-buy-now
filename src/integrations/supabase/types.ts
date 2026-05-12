@@ -231,6 +231,7 @@ export type Database = {
           description: string | null
           id: string
           name: string
+          post_permission: string
           required_tier_level: number
           slug: string
           sort_order: number
@@ -241,6 +242,7 @@ export type Database = {
           description?: string | null
           id?: string
           name: string
+          post_permission?: string
           required_tier_level?: number
           slug: string
           sort_order?: number
@@ -251,6 +253,7 @@ export type Database = {
           description?: string | null
           id?: string
           name?: string
+          post_permission?: string
           required_tier_level?: number
           slug?: string
           sort_order?: number
@@ -400,6 +403,27 @@ export type Database = {
           starts_at?: string
           title?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      community_moderators: {
+        Row: {
+          community_id: string
+          created_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          community_id: string
+          created_at?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          community_id?: string
+          created_at?: string
+          id?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -1116,6 +1140,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      can_post_in_channel: {
+        Args: { _channel_id: string; _community_id: string; _user_id: string }
+        Returns: boolean
+      }
       decrement_product_stock: {
         Args: { _product_id: string; _qty: number }
         Returns: boolean
@@ -1159,6 +1187,10 @@ export type Database = {
         Returns: boolean
       }
       is_active_community_member: {
+        Args: { _community_id: string; _user_id: string }
+        Returns: boolean
+      }
+      is_community_moderator: {
         Args: { _community_id: string; _user_id: string }
         Returns: boolean
       }
