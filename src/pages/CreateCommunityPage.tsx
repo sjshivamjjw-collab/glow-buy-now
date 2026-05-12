@@ -29,7 +29,7 @@ const newId = () => Math.random().toString(36).slice(2, 10);
 
 const CreateCommunityPage = () => {
   const navigate = useNavigate();
-  const { userId } = useAuth();
+  const { userId, isCreator, refreshRoles } = useAuth();
   const { toast } = useToast();
 
   const [name, setName] = useState('');
@@ -92,6 +92,18 @@ const CreateCommunityPage = () => {
     }
 
     setSaving(true);
+
+    // Ensure the user has the creator role before inserting (RLS requires it).
+    if (!isCreator) {
+      const { error: rcErr } = await supabase.rpc('become_creator' as any);
+      if (rcErr) {
+        setSaving(false);
+        toast({ title: 'Could not enable creator mode', description: rcErr.message, variant: 'destructive' });
+        return;
+      }
+      await refreshRoles();
+    }
+
     const slug = `${slugify(name)}-${Math.random().toString(36).slice(2, 6)}`;
     const cleanOutcomes = outcomes.map(o => o.trim()).filter(Boolean);
     const cleanSocial: Record<string, string> = {};
