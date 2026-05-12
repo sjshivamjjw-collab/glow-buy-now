@@ -143,6 +143,9 @@ const CommunityDetailPage = () => {
 
   const social = community.social_links || {};
   const isMember = membership?.status === 'active';
+  const currentTier = isMember ? tiers.find((t: any) => t.id === membership.tier_id) : null;
+  const currentLevel = currentTier?.sort_order ?? -1;
+  const upgradeTiers = isMember ? tiers.filter((t: any) => t.sort_order > currentLevel) : [];
 
   return (
     <div className="min-h-screen bg-background max-w-lg mx-auto pb-24">
