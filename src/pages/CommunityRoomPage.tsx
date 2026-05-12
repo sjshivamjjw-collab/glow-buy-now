@@ -69,16 +69,8 @@ const CommunityRoomPage = () => {
   }
 
   if (!isMember) {
-    return (
-      <div className="min-h-screen bg-background max-w-lg mx-auto px-4 pt-10 text-center space-y-4">
-        <h1 className="text-xl font-bold text-foreground">Members only</h1>
-        <p className="text-sm text-muted-foreground">Join this community to access chat, events, and resources.</p>
-        <button onClick={() => navigate(`/c/${slug}`)}
-          className="px-5 py-2.5 rounded-xl bg-primary text-primary-foreground font-semibold text-sm">
-          View community
-        </button>
-      </div>
-    );
+    navigate(`/c/${slug}`, { replace: true });
+    return null;
   }
 
   const tabs: { key: Tab; label: string; icon: typeof MessageSquare }[] = [
