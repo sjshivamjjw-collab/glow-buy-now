@@ -68,7 +68,7 @@ const CreateCommunityPage = () => {
   };
 
   const addTier = () =>
-    setTiers(prev => [...prev, { id: newId(), name: '', description: '', kind: 'paid_monthly', price_inr: '' }]);
+    setTiers(prev => [...prev, { id: newId(), name: '', description: '', kind: 'paid_monthly', price_inr: '', post_permission: 'all_members' }]);
   const removeTier = (id: string) => setTiers(prev => prev.filter(t => t.id !== id));
   const updateTier = (id: string, patch: Partial<TierDraft>) =>
     setTiers(prev => prev.map(t => t.id === id ? { ...t, ...patch } : t));
