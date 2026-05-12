@@ -86,7 +86,7 @@ const DiscoverPage = () => {
               <button
                 key={c.id}
                 onClick={() => navigate(`/c/${c.slug}`)}
-                className="w-full text-left rounded-2xl overflow-hidden bg-card border border-border hover:border-primary/50 transition-colors"
+                className="w-full rounded-2xl overflow-hidden bg-card border border-border hover:border-primary/50 transition-colors text-left"
               >
                 {c.cover_url ? (
                   <div className="aspect-[21/9] bg-secondary overflow-hidden max-h-32">
