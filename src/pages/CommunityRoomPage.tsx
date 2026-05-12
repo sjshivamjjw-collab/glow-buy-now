@@ -85,6 +85,7 @@ const CommunityRoomPage = () => {
     { key: 'chat', label: 'Chat', icon: MessageSquare },
     { key: 'events', label: 'Events', icon: Calendar },
     { key: 'resources', label: 'Resources', icon: FileBox },
+    { key: 'plans', label: 'Plans', icon: Crown },
   ];
 
   return (
