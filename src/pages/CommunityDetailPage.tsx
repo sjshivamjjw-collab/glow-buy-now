@@ -3,14 +3,10 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
-import { ArrowLeft, Loader2, Users, Check, ExternalLink, Globe, Youtube, Instagram } from 'lucide-react';
-
-declare global {
-  interface Window { Razorpay?: any; }
-}
+import { ArrowLeft, Loader2, Users, Check, Globe, Play, Camera } from 'lucide-react';
 
 const loadRazorpay = (): Promise<boolean> => new Promise(resolve => {
-  if (window.Razorpay) return resolve(true);
+  if ((window as any).Razorpay) return resolve(true);
   const script = document.createElement('script');
   script.src = 'https://checkout.razorpay.com/v1/checkout.js';
   script.onload = () => resolve(true);
