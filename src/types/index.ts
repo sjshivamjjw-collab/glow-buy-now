@@ -1,103 +1,63 @@
-export type UserRole = 'seller' | 'shopper' | 'admin';
+export type UserRole = 'creator' | 'shopper' | 'admin';
 
-export interface User {
+export interface Community {
   id: string;
-  email: string;
+  creator_id: string;
+  slug: string;
   name: string;
-  avatar: string;
-  role: UserRole;
+  description: string | null;
+  cover_url: string | null;
+  intro_video_url: string | null;
+  key_outcomes: string[];
+  social_links: SocialLinks;
+  is_published: boolean;
+  member_count: number;
+  created_at: string;
+  updated_at: string;
 }
 
-export interface SellerProfile extends User {
-  role: 'seller';
-  storeName: string;
-  bio: string;
-  categories: string[];
-  followers: number;
-  rating: number;
+export interface SocialLinks {
+  youtube?: string;
+  instagram?: string;
+  x?: string;
+  website?: string;
 }
 
-export interface ShopperProfile extends User {
-  role: 'shopper';
-  savedAddresses: Address[];
-  paymentMethods: PaymentMethod[];
-}
+export type TierKind = 'free' | 'paid_monthly' | 'paid_one_time';
 
-export interface Address {
+export interface CommunityTier {
   id: string;
+  community_id: string;
   name: string;
-  street: string;
-  city: string;
-  state: string;
-  zip: string;
-  country: string;
+  description: string | null;
+  kind: TierKind;
+  price_inr: number | null;
+  razorpay_plan_id: string | null;
+  sort_order: number;
+  is_active: boolean;
 }
 
-export interface PaymentMethod {
-  id: string;
-  type: 'card';
-  last4: string;
-  brand: string;
-  expMonth: number;
-  expYear: number;
-}
+export type MembershipStatus = 'active' | 'pending' | 'expired' | 'cancelled';
+export type MembershipSource = 'free' | 'razorpay_sub' | 'razorpay_order';
 
-export interface Product {
+export interface Membership {
   id: string;
-  sellerId: string;
-  title: string;
-  description: string;
-  price: number;
-  originalPrice?: number;
-  inventory: number;
-  images: string[];
-  category: string;
-  createdAt: string;
-}
-
-export interface Livestream {
-  id: string;
-  sellerId: string;
-  sellerName: string;
-  sellerAvatar: string;
-  title: string;
-  description: string;
-  thumbnailUrl: string;
-  status: 'live' | 'scheduled' | 'ended';
-  viewerCount: number;
-  scheduledAt?: string;
-  startedAt?: string;
-  products: Product[];
-  featuredProductId?: string;
-  category: string;
-}
-
-export type OrderStatus = 'pending' | 'paid' | 'shipped' | 'delivered';
-
-export interface Order {
-  id: string;
-  buyerId: string;
-  sellerId: string;
-  product: Product;
-  quantity: number;
-  totalPrice: number;
-  status: OrderStatus;
-  shippingAddress: Address;
-  createdAt: string;
-}
-
-export interface ChatMessage {
-  id: string;
-  userId: string;
-  userName: string;
-  userAvatar: string;
-  message: string;
-  timestamp: string;
+  user_id: string;
+  community_id: string;
+  tier_id: string;
+  status: MembershipStatus;
+  source: MembershipSource;
+  razorpay_subscription_id: string | null;
+  razorpay_payment_id: string | null;
+  razorpay_order_id: string | null;
+  started_at: string | null;
+  current_period_end: string | null;
+  cancelled_at: string | null;
 }
 
 export interface Notification {
   id: string;
-  type: 'live' | 'order' | 'reminder';
+  type: string;
   title: string;
   message: string;
   read: boolean;

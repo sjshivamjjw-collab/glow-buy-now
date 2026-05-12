@@ -10,7 +10,7 @@ interface AuthState {
   userId: string | null;
   userName: string | null;
   userAvatar: string | null;
-  isSeller: boolean;
+  isCreator: boolean;
   isAdmin: boolean;
   phone: string | null;
   loading: boolean;
@@ -28,6 +28,8 @@ interface AuthContextType extends AuthState {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+const STORAGE_KEY = 'livecart_auth';
+
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [state, setState] = useState<AuthState>({
     isAuthenticated: false,
@@ -35,53 +37,47 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     userId: null,
     userName: null,
     userAvatar: null,
-    isSeller: false,
+    isCreator: false,
     isAdmin: false,
     phone: null,
     loading: true,
     onboardingCompleted: false,
   });
 
-  // Check persisted session on mount
   useEffect(() => {
     let mounted = true;
-
     const restoreSession = async () => {
-      const saved = localStorage.getItem('livecart_auth');
+      const saved = localStorage.getItem(STORAGE_KEY);
       if (!saved) {
         if (mounted) setState(prev => ({ ...prev, loading: false }));
         return;
       }
-
       try {
         const parsed = JSON.parse(saved);
         const { data: { session } } = await supabase.auth.getSession();
         if (session?.user?.id && session.user.id === parsed.userId) {
           if (mounted) setState({ ...parsed, loading: false });
         } else {
-          localStorage.removeItem('livecart_auth');
+          localStorage.removeItem(STORAGE_KEY);
           if (mounted) setState(prev => ({ ...prev, loading: false }));
         }
       } catch {
-        localStorage.removeItem('livecart_auth');
+        localStorage.removeItem(STORAGE_KEY);
         if (mounted) setState(prev => ({ ...prev, loading: false }));
       }
     };
-
     restoreSession();
-    return () => {
-      mounted = false;
-    };
+    return () => { mounted = false; };
   }, []);
 
   const login = (userId: string, phone: string, roles: string[], profile: any) => {
     const normalizedPhone = phone.startsWith('+') ? phone : `+91${phone}`;
     const isAdmin = normalizedPhone === ADMIN_PHONE || roles.includes('admin');
-    const isSeller = roles.includes('seller') || isAdmin;
+    const isCreator = roles.includes('creator') || isAdmin;
 
     let primaryRole: UserRole = 'shopper';
     if (isAdmin) primaryRole = 'admin';
-    else if (isSeller) primaryRole = 'seller';
+    else if (isCreator) primaryRole = 'creator';
 
     const newState: AuthState = {
       isAuthenticated: true,
@@ -89,7 +85,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       userId,
       userName: profile?.name || (isAdmin ? 'Admin' : null),
       userAvatar: profile?.avatar_url || null,
-      isSeller,
+      isCreator,
       isAdmin,
       phone: normalizedPhone,
       loading: false,
@@ -97,7 +93,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     };
 
     setState(newState);
-    localStorage.setItem('livecart_auth', JSON.stringify(newState));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(newState));
   };
 
   const logout = () => {
@@ -107,21 +103,21 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       userId: null,
       userName: null,
       userAvatar: null,
-      isSeller: false,
+      isCreator: false,
       isAdmin: false,
       phone: null,
       loading: false,
       onboardingCompleted: false,
     };
     setState(newState);
-    localStorage.removeItem('livecart_auth');
+    localStorage.removeItem(STORAGE_KEY);
     supabase.auth.signOut();
   };
 
   const completeOnboarding = () => {
     setState(prev => {
       const updated = { ...prev, onboardingCompleted: true };
-      localStorage.setItem('livecart_auth', JSON.stringify(updated));
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
       return updated;
     });
   };
@@ -129,7 +125,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const setRole = (role: UserRole) => {
     setState(prev => {
       const updated = { ...prev, role };
-      localStorage.setItem('livecart_auth', JSON.stringify(updated));
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
       return updated;
     });
   };
@@ -141,28 +137,25 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         ...(updates.name !== undefined ? { userName: updates.name } : {}),
         ...(updates.avatar_url !== undefined ? { userAvatar: updates.avatar_url } : {}),
       };
-      localStorage.setItem('livecart_auth', JSON.stringify(updated));
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
       return updated;
     });
   };
 
-  // Re-fetch roles from DB and update cached auth (used after seller approval, etc.)
   const refreshRoles = async () => {
     setState(prev => {
       if (!prev.userId) return prev;
-      // fire async, don't block
       (async () => {
         const { data } = await supabase.from('user_roles').select('role').eq('user_id', prev.userId!);
         const roles = (data || []).map(r => r.role as string);
         const isAdmin = prev.isAdmin || roles.includes('admin');
-        const isSeller = roles.includes('seller') || isAdmin;
+        const isCreator = roles.includes('creator') || isAdmin;
         let primaryRole: UserRole = prev.role || 'shopper';
         if (isAdmin) primaryRole = 'admin';
-        else if (isSeller && primaryRole === 'shopper') primaryRole = 'seller';
-
+        else if (isCreator && primaryRole === 'shopper') primaryRole = 'creator';
         setState(p => {
-          const updated = { ...p, isSeller, isAdmin, role: primaryRole };
-          localStorage.setItem('livecart_auth', JSON.stringify(updated));
+          const updated = { ...p, isCreator, isAdmin, role: primaryRole };
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
           return updated;
         });
       })();
