@@ -136,8 +136,11 @@ const CreateCommunityPage = () => {
     }
 
     setSaving(false);
-    toast({ title: 'Community published!' });
-    navigate(`/c/${slug}`);
+    toast({
+      title: 'Submitted for review',
+      description: 'Your community will go live once an admin approves it.',
+    });
+    navigate('/creator');
   };
 
   return (
