@@ -6,6 +6,8 @@ import { useToast } from '@/hooks/use-toast';
 import { ArrowLeft, Plus, Trash2, Image as ImageIcon, Video, Loader2, Globe, IndianRupee, RefreshCw, Zap } from 'lucide-react';
 
 const PRICE_SUGGESTIONS = [99, 299, 499, 999];
+const TENURE_OPTIONS = [1, 2, 3, 6, 12];
+const TRIAL_SUGGESTIONS = [3, 7, 14, 30];
 
 type PostPerm = 'all_members' | 'moderators' | 'creator_only';
 
@@ -16,6 +18,8 @@ interface TierDraft {
   kind: 'free' | 'paid_monthly' | 'paid_one_time';
   price_inr: string;
   post_permission: PostPerm;
+  billing_period_months: number;
+  trial_days: string;
 }
 
 const slugify = (s: string) =>
@@ -35,7 +39,7 @@ const CreateCommunityPage = () => {
   const [outcomes, setOutcomes] = useState<string[]>(['']);
   const [social, setSocial] = useState({ youtube: '', instagram: '', x: '', website: '' });
   const [tiers, setTiers] = useState<TierDraft[]>([
-    { id: newId(), name: 'Free', description: 'Get a taste of the community.', kind: 'free', price_inr: '', post_permission: 'all_members' },
+    { id: newId(), name: 'Free', description: 'Get a taste of the community.', kind: 'free', price_inr: '', post_permission: 'all_members', billing_period_months: 1, trial_days: '' },
   ]);
   const [uploadingCover, setUploadingCover] = useState(false);
   const [uploadingVideo, setUploadingVideo] = useState(false);
@@ -70,7 +74,7 @@ const CreateCommunityPage = () => {
   };
 
   const addTier = () =>
-    setTiers(prev => [...prev, { id: newId(), name: '', description: '', kind: 'paid_monthly', price_inr: '', post_permission: 'all_members' }]);
+    setTiers(prev => [...prev, { id: newId(), name: '', description: '', kind: 'paid_monthly', price_inr: '', post_permission: 'all_members', billing_period_months: 1, trial_days: '' }]);
   const removeTier = (id: string) => setTiers(prev => prev.filter(t => t.id !== id));
   const updateTier = (id: string, patch: Partial<TierDraft>) =>
     setTiers(prev => prev.map(t => t.id === id ? { ...t, ...patch } : t));
@@ -121,6 +125,8 @@ const CreateCommunityPage = () => {
       description: t.description.trim() || null,
       kind: t.kind,
       price_inr: t.kind === 'free' ? null : Number(t.price_inr),
+      billing_period_months: t.kind === 'paid_monthly' ? (t.billing_period_months || 1) : 1,
+      trial_days: t.kind === 'paid_monthly' ? (Number(t.trial_days) || 0) : 0,
       sort_order: idx,
       is_active: true,
     }));
@@ -322,9 +328,16 @@ const CreateCommunityPage = () => {
                       <p className="text-base font-bold text-foreground">
                         ₹{t.price_inr || '0'}
                         <span className="text-xs font-medium text-muted-foreground ml-1">
-                          {t.kind === 'paid_monthly' ? '/ month' : 'one-time'}
+                          {t.kind === 'paid_monthly'
+                            ? (t.billing_period_months === 1 ? '/ month' : `every ${t.billing_period_months} months`)
+                            : 'one-time'}
                         </span>
                       </p>
+                      {t.kind === 'paid_monthly' && Number(t.trial_days) > 0 && (
+                        <span className="text-[11px] font-semibold text-primary">
+                          {t.trial_days}-day free trial
+                        </span>
+                      )}
                     </div>
                     <div className="grid grid-cols-2 gap-2">
                       <button
@@ -373,6 +386,67 @@ const CreateCommunityPage = () => {
                         </button>
                       ))}
                     </div>
+
+                    {t.kind === 'paid_monthly' && (
+                      <>
+                        <div className="pt-1">
+                          <p className="text-[11px] font-semibold text-muted-foreground mb-1.5">Billing tenure</p>
+                          <div className="flex flex-wrap gap-1.5">
+                            {TENURE_OPTIONS.map(m => (
+                              <button
+                                key={m}
+                                type="button"
+                                onClick={() => updateTier(t.id, { billing_period_months: m })}
+                                className={`px-2.5 py-1 rounded-md text-xs font-semibold transition-colors ${
+                                  t.billing_period_months === m
+                                    ? 'bg-primary text-primary-foreground'
+                                    : 'bg-secondary text-foreground hover:bg-secondary/70'
+                                }`}
+                              >
+                                {m === 1 ? '1 month' : `${m} months`}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+
+                        <div className="pt-1">
+                          <p className="text-[11px] font-semibold text-muted-foreground mb-1.5">Free trial</p>
+                          <div className="flex items-center gap-2">
+                            <div className="relative flex-1">
+                              <input
+                                value={t.trial_days}
+                                onChange={e => updateTier(t.id, { trial_days: e.target.value.replace(/[^0-9]/g, '').slice(0, 3) })}
+                                placeholder="0"
+                                inputMode="numeric"
+                                className="w-full px-3 py-2.5 rounded-lg bg-secondary text-foreground text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/30"
+                              />
+                            </div>
+                            <div className="px-3 py-2.5 rounded-lg bg-secondary text-foreground text-sm font-semibold">
+                              days
+                            </div>
+                          </div>
+                          <div className="flex flex-wrap gap-1.5 mt-1.5">
+                            <button
+                              type="button"
+                              onClick={() => updateTier(t.id, { trial_days: '0' })}
+                              className="px-2.5 py-1 rounded-md bg-secondary text-foreground text-xs font-medium hover:bg-secondary/70"
+                            >
+                              No trial
+                            </button>
+                            {TRIAL_SUGGESTIONS.map(d => (
+                              <button
+                                key={d}
+                                type="button"
+                                onClick={() => updateTier(t.id, { trial_days: String(d) })}
+                                className="px-2.5 py-1 rounded-md bg-secondary text-foreground text-xs font-medium hover:bg-secondary/70"
+                              >
+                                {d} days
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      </>
+                    )}
                   </div>
                 )}
 
