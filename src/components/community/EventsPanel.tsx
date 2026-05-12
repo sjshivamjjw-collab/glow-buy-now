@@ -2,7 +2,9 @@ import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
-import { Calendar, Plus, MapPin, Loader2, Trash2, Pencil, X, ExternalLink } from 'lucide-react';
+import { Calendar, Plus, MapPin, Loader2, Trash2, Pencil, X, ExternalLink, Lock, Sparkles } from 'lucide-react';
+import type { TierInfo } from '@/hooks/useCommunityMembership';
+import { TierLockOverlay } from './TierLockOverlay';
 
 interface EventRow {
   id: string;
@@ -13,13 +15,13 @@ interface EventRow {
   ends_at: string | null;
   location_url: string | null;
   cover_url: string | null;
+  required_tier_level: number;
 }
 
 const fmt = (iso: string) => {
   const d = new Date(iso);
   return d.toLocaleString('en-IN', { weekday: 'short', day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' });
 };
-
 const toLocalInput = (iso?: string | null) => {
   if (!iso) return '';
   const d = new Date(iso);
@@ -27,7 +29,11 @@ const toLocalInput = (iso?: string | null) => {
   return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
 };
 
-export const EventsPanel = ({ communityId, isCreator }: { communityId: string; isCreator: boolean }) => {
+interface Props {
+  communityId: string; isCreator: boolean; tierLevel: number; tiers: TierInfo[]; slug: string;
+}
+
+export const EventsPanel = ({ communityId, isCreator, tierLevel, tiers, slug }: Props) => {
   const { userId } = useAuth();
   const { toast } = useToast();
   const [events, setEvents] = useState<EventRow[]>([]);
@@ -35,7 +41,7 @@ export const EventsPanel = ({ communityId, isCreator }: { communityId: string; i
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState<EventRow | null>(null);
-  const [form, setForm] = useState({ title: '', description: '', starts_at: '', ends_at: '', location_url: '' });
+  const [form, setForm] = useState({ title: '', description: '', starts_at: '', ends_at: '', location_url: '', required_tier_level: 0 });
   const [saving, setSaving] = useState(false);
 
   const load = async () => {
@@ -59,7 +65,7 @@ export const EventsPanel = ({ communityId, isCreator }: { communityId: string; i
 
   const openNew = () => {
     setEditing(null);
-    setForm({ title: '', description: '', starts_at: '', ends_at: '', location_url: '' });
+    setForm({ title: '', description: '', starts_at: '', ends_at: '', location_url: '', required_tier_level: 0 });
     setShowForm(true);
   };
   const openEdit = (e: EventRow) => {
@@ -68,24 +74,21 @@ export const EventsPanel = ({ communityId, isCreator }: { communityId: string; i
       title: e.title, description: e.description || '',
       starts_at: toLocalInput(e.starts_at), ends_at: toLocalInput(e.ends_at),
       location_url: e.location_url || '',
+      required_tier_level: e.required_tier_level || 0,
     });
     setShowForm(true);
   };
 
   const save = async () => {
-    if (!form.title.trim() || !form.starts_at) {
-      toast({ title: 'Title and start time required', variant: 'destructive' });
-      return;
-    }
+    if (!form.title.trim() || !form.starts_at) { toast({ title: 'Title and start time required', variant: 'destructive' }); return; }
     setSaving(true);
     const payload: any = {
-      community_id: communityId,
-      created_by: userId,
-      title: form.title.trim(),
-      description: form.description.trim() || null,
+      community_id: communityId, created_by: userId,
+      title: form.title.trim(), description: form.description.trim() || null,
       starts_at: new Date(form.starts_at).toISOString(),
       ends_at: form.ends_at ? new Date(form.ends_at).toISOString() : null,
       location_url: form.location_url.trim() || null,
+      required_tier_level: form.required_tier_level,
     };
     const { error } = editing
       ? await supabase.from('community_events' as any).update(payload).eq('id', editing.id)
@@ -121,6 +124,15 @@ export const EventsPanel = ({ communityId, isCreator }: { communityId: string; i
   const upcoming = events.filter(e => new Date(e.starts_at).getTime() >= now);
   const past = events.filter(e => new Date(e.starts_at).getTime() < now);
 
+  const renderCard = (e: EventRow, past?: boolean) => {
+    const locked = !isCreator && tierLevel < (e.required_tier_level || 0);
+    return (
+      <EventCard key={e.id} e={e} rsvp={rsvps[e.id]} setRsvp={setRsvp}
+        isCreator={isCreator} onEdit={() => openEdit(e)} onDelete={() => remove(e.id)}
+        past={past} locked={locked} tiers={tiers} slug={slug} />
+    );
+  };
+
   return (
     <div className="space-y-4">
       {isCreator && (
@@ -142,19 +154,13 @@ export const EventsPanel = ({ communityId, isCreator }: { communityId: string; i
           {upcoming.length > 0 && (
             <div className="space-y-3">
               <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Upcoming</h3>
-              {upcoming.map(e => (
-                <EventCard key={e.id} e={e} rsvp={rsvps[e.id]} setRsvp={setRsvp}
-                  isCreator={isCreator} onEdit={() => openEdit(e)} onDelete={() => remove(e.id)} />
-              ))}
+              {upcoming.map(e => renderCard(e))}
             </div>
           )}
           {past.length > 0 && (
             <div className="space-y-3 opacity-60">
               <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Past</h3>
-              {past.map(e => (
-                <EventCard key={e.id} e={e} rsvp={rsvps[e.id]} setRsvp={setRsvp}
-                  isCreator={isCreator} onEdit={() => openEdit(e)} onDelete={() => remove(e.id)} past />
-              ))}
+              {past.map(e => renderCard(e, true))}
             </div>
           )}
         </>
@@ -183,6 +189,16 @@ export const EventsPanel = ({ communityId, isCreator }: { communityId: string; i
             <input value={form.location_url} onChange={e => setForm({ ...form, location_url: e.target.value })}
               placeholder="Meeting link or location URL (optional)"
               className="w-full px-3 py-2.5 rounded-xl bg-background border border-border text-sm" />
+            <label className="block text-xs text-muted-foreground">
+              Who can attend?
+              <select value={form.required_tier_level} onChange={e => setForm({ ...form, required_tier_level: Number(e.target.value) })}
+                className="w-full mt-1 px-3 py-2.5 rounded-xl bg-background border border-border text-sm">
+                <option value={0}>All members</option>
+                {tiers.filter(t => t.sort_order > 0).map(t => (
+                  <option key={t.id} value={t.sort_order}>{t.name} and above</option>
+                ))}
+              </select>
+            </label>
             <button onClick={save} disabled={saving}
               className="w-full py-3 rounded-2xl bg-primary text-primary-foreground font-semibold text-sm disabled:opacity-50">
               {saving ? 'Saving…' : (editing ? 'Save changes' : 'Schedule event')}
@@ -194,14 +210,22 @@ export const EventsPanel = ({ communityId, isCreator }: { communityId: string; i
   );
 };
 
-const EventCard = ({ e, rsvp, setRsvp, isCreator, onEdit, onDelete, past }: {
+const EventCard = ({ e, rsvp, setRsvp, isCreator, onEdit, onDelete, past, locked, tiers, slug }: {
   e: EventRow; rsvp?: string; setRsvp: (id: string, s: 'going'|'maybe'|'declined') => void;
-  isCreator: boolean; onEdit: () => void; onDelete: () => void; past?: boolean;
+  isCreator: boolean; onEdit: () => void; onDelete: () => void; past?: boolean; locked: boolean;
+  tiers: TierInfo[]; slug: string;
 }) => (
-  <div className="p-4 rounded-2xl bg-card border border-border space-y-3">
+  <div className={`p-4 rounded-2xl bg-card border border-border space-y-3 ${locked ? 'relative overflow-hidden' : ''}`}>
     <div className="flex items-start justify-between gap-2">
       <div className="flex-1 min-w-0">
-        <h4 className="font-semibold text-foreground">{e.title}</h4>
+        <div className="flex items-center gap-1.5">
+          <h4 className="font-semibold text-foreground">{e.title}</h4>
+          {e.required_tier_level > 0 && (
+            <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-amber-500/10 text-amber-700 text-[10px] font-bold uppercase tracking-wide">
+              <Sparkles className="w-2.5 h-2.5" /> Premium
+            </span>
+          )}
+        </div>
         <p className="text-xs text-muted-foreground mt-0.5">{fmt(e.starts_at)}{e.ends_at ? ` → ${fmt(e.ends_at)}` : ''}</p>
       </div>
       {isCreator && (
@@ -212,21 +236,29 @@ const EventCard = ({ e, rsvp, setRsvp, isCreator, onEdit, onDelete, past }: {
       )}
     </div>
     {e.description && <p className="text-sm text-foreground/80 whitespace-pre-wrap">{e.description}</p>}
-    {e.location_url && (
-      <a href={e.location_url} target="_blank" rel="noreferrer"
-        className="inline-flex items-center gap-1.5 text-xs text-primary font-semibold">
-        <MapPin className="w-3.5 h-3.5" /> Join / Location <ExternalLink className="w-3 h-3" />
-      </a>
-    )}
-    {!past && (
-      <div className="flex gap-2 pt-1">
-        {(['going','maybe','declined'] as const).map(s => (
-          <button key={s} onClick={() => setRsvp(e.id, s)}
-            className={`flex-1 py-1.5 rounded-xl text-xs font-semibold capitalize border ${
-              rsvp === s ? 'bg-primary text-primary-foreground border-primary' : 'bg-background text-muted-foreground border-border'
-            }`}>{s === 'declined' ? "Can't go" : s}</button>
-        ))}
-      </div>
+
+    {locked ? (
+      <TierLockOverlay compact requiredLevel={e.required_tier_level} tiers={tiers} slug={slug}
+        label="RSVP & link" />
+    ) : (
+      <>
+        {e.location_url && (
+          <a href={e.location_url} target="_blank" rel="noreferrer"
+            className="inline-flex items-center gap-1.5 text-xs text-primary font-semibold">
+            <MapPin className="w-3.5 h-3.5" /> Join / Location <ExternalLink className="w-3 h-3" />
+          </a>
+        )}
+        {!past && (
+          <div className="flex gap-2 pt-1">
+            {(['going','maybe','declined'] as const).map(s => (
+              <button key={s} onClick={() => setRsvp(e.id, s)}
+                className={`flex-1 py-1.5 rounded-xl text-xs font-semibold capitalize border ${
+                  rsvp === s ? 'bg-primary text-primary-foreground border-primary' : 'bg-background text-muted-foreground border-border'
+                }`}>{s === 'declined' ? "Can't go" : s}</button>
+            ))}
+          </div>
+        )}
+      </>
     )}
   </div>
 );

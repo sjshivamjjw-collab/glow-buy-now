@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useCommunityMembership } from '@/hooks/useCommunityMembership';
-import { ArrowLeft, MessageSquare, Calendar, FileBox, Loader2 } from 'lucide-react';
+import { ArrowLeft, MessageSquare, Calendar, FileBox, Loader2, Sparkles } from 'lucide-react';
 import { ChatPanel } from '@/components/community/ChatPanel';
 import { EventsPanel } from '@/components/community/EventsPanel';
 import { ResourcesPanel } from '@/components/community/ResourcesPanel';
@@ -15,7 +15,7 @@ const CommunityRoomPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [community, setCommunity] = useState<{ id: string; name: string } | null>(null);
   const [loadingCommunity, setLoadingCommunity] = useState(true);
-  const { isMember, isCreator, loading: loadingMembership } = useCommunityMembership(community?.id);
+  const { isMember, isCreator, loading: loadingMembership, tiers, tierLevel, currentTier } = useCommunityMembership(community?.id);
   const initialTab = (searchParams.get('tab') as Tab) || 'chat';
   const [tab, setTab] = useState<Tab>(initialTab);
 
@@ -69,17 +69,44 @@ const CommunityRoomPage = () => {
     { key: 'resources', label: 'Resources', icon: FileBox },
   ];
 
+  // Find a higher tier than the user's current level (members only)
+  const upgradeTier = !isCreator
+    ? tiers.filter(t => t.sort_order > tierLevel).sort((a, b) => a.sort_order - b.sort_order)[0]
+    : null;
+
   return (
     <div className="min-h-screen bg-background max-w-lg mx-auto px-4 pt-4 pb-24">
-      <div className="flex items-center gap-3 mb-4">
+      <div className="flex items-center gap-3 mb-3">
         <button onClick={() => navigate(`/c/${slug}`)} className="p-2 rounded-xl bg-card border border-border">
           <ArrowLeft className="w-5 h-5 text-foreground" />
         </button>
         <div className="flex-1 min-w-0">
           <h1 className="text-lg font-bold text-foreground truncate">{community.name}</h1>
-          <p className="text-xs text-muted-foreground">{isCreator ? 'You host this' : 'Member'}</p>
+          <p className="text-xs text-muted-foreground">
+            {isCreator ? 'You host this' : currentTier ? `${currentTier.name} member` : 'Member'}
+          </p>
         </div>
       </div>
+
+      {upgradeTier && (
+        <button onClick={() => navigate(`/c/${slug}`)}
+          className="w-full mb-4 flex items-center justify-between gap-3 px-4 py-2.5 rounded-2xl bg-gradient-to-r from-amber-500/15 via-primary/15 to-pink-500/15 border border-amber-500/30 text-left hover:opacity-90 transition">
+          <div className="flex items-center gap-2 min-w-0">
+            <Sparkles className="w-4 h-4 text-amber-600 shrink-0" />
+            <div className="min-w-0">
+              <div className="text-sm font-bold text-foreground truncate">Upgrade to {upgradeTier.name}</div>
+              <div className="text-[11px] text-muted-foreground truncate">
+                {upgradeTier.kind === 'paid_monthly'
+                  ? `₹${Number(upgradeTier.price_inr).toLocaleString()} / month`
+                  : upgradeTier.kind === 'paid_one_time'
+                  ? `₹${Number(upgradeTier.price_inr).toLocaleString()} one-time`
+                  : 'Free'} · unlock premium channels & resources
+              </div>
+            </div>
+          </div>
+          <span className="text-xs font-bold text-amber-700 shrink-0">View</span>
+        </button>
+      )}
 
       <div className="grid grid-cols-3 gap-1 p-1 bg-card border border-border rounded-2xl mb-5">
         {tabs.map(({ key, label, icon: Icon }) => (
@@ -92,9 +119,9 @@ const CommunityRoomPage = () => {
         ))}
       </div>
 
-      {tab === 'chat' && <ChatPanel communityId={community.id} isCreator={isCreator} />}
-      {tab === 'events' && <EventsPanel communityId={community.id} isCreator={isCreator} />}
-      {tab === 'resources' && <ResourcesPanel communityId={community.id} isCreator={isCreator} />}
+      {tab === 'chat' && <ChatPanel communityId={community.id} isCreator={isCreator} tierLevel={tierLevel} tiers={tiers} slug={slug!} />}
+      {tab === 'events' && <EventsPanel communityId={community.id} isCreator={isCreator} tierLevel={tierLevel} tiers={tiers} slug={slug!} />}
+      {tab === 'resources' && <ResourcesPanel communityId={community.id} isCreator={isCreator} tierLevel={tierLevel} tiers={tiers} slug={slug!} />}
     </div>
   );
 };

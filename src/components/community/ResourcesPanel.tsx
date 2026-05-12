@@ -2,7 +2,9 @@ import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
-import { FileBox, Plus, Link2, FileText, Loader2, Trash2, Download, X, Upload } from 'lucide-react';
+import { FileBox, Plus, Link2, FileText, Loader2, Trash2, Download, X, Upload, Sparkles, Lock } from 'lucide-react';
+import type { TierInfo } from '@/hooks/useCommunityMembership';
+import { TierLockOverlay } from './TierLockOverlay';
 
 interface Resource {
   id: string;
@@ -12,6 +14,7 @@ interface Resource {
   kind: 'file' | 'link';
   url: string;
   file_size: number | null;
+  required_tier_level: number;
   created_at: string;
 }
 
@@ -22,14 +25,18 @@ const fmtSize = (b: number | null) => {
   return `${(b / 1024 / 1024).toFixed(1)} MB`;
 };
 
-export const ResourcesPanel = ({ communityId, isCreator }: { communityId: string; isCreator: boolean }) => {
+interface Props {
+  communityId: string; isCreator: boolean; tierLevel: number; tiers: TierInfo[]; slug: string;
+}
+
+export const ResourcesPanel = ({ communityId, isCreator, tierLevel, tiers, slug }: Props) => {
   const { userId } = useAuth();
   const { toast } = useToast();
   const [resources, setResources] = useState<Resource[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [tab, setTab] = useState<'file' | 'link'>('file');
-  const [form, setForm] = useState({ title: '', description: '', url: '' });
+  const [form, setForm] = useState({ title: '', description: '', url: '', required_tier_level: 0 });
   const [file, setFile] = useState<File | null>(null);
   const [saving, setSaving] = useState(false);
 
@@ -43,7 +50,7 @@ export const ResourcesPanel = ({ communityId, isCreator }: { communityId: string
 
   useEffect(() => { load(); }, [communityId]);
 
-  const reset = () => { setForm({ title: '', description: '', url: '' }); setFile(null); setTab('file'); };
+  const reset = () => { setForm({ title: '', description: '', url: '', required_tier_level: 0 }); setFile(null); setTab('file'); };
 
   const save = async () => {
     if (!form.title.trim()) { toast({ title: 'Title required', variant: 'destructive' }); return; }
@@ -52,6 +59,7 @@ export const ResourcesPanel = ({ communityId, isCreator }: { communityId: string
       community_id: communityId, created_by: userId,
       title: form.title.trim(), description: form.description.trim() || null,
       kind: tab,
+      required_tier_level: form.required_tier_level,
     };
     if (tab === 'file') {
       if (!file) { toast({ title: 'Pick a file', variant: 'destructive' }); setSaving(false); return; }
@@ -97,27 +105,45 @@ export const ResourcesPanel = ({ communityId, isCreator }: { communityId: string
         </div>
       ) : (
         <div className="space-y-2">
-          {resources.map(r => (
-            <div key={r.id} className="p-3 rounded-2xl bg-card border border-border flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
-                {r.kind === 'link' ? <Link2 className="w-5 h-5 text-primary" /> : <FileText className="w-5 h-5 text-primary" />}
+          {resources.map(r => {
+            const locked = !isCreator && tierLevel < (r.required_tier_level || 0);
+            return (
+              <div key={r.id} className="p-3 rounded-2xl bg-card border border-border space-y-2">
+                <div className="flex items-center gap-3">
+                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${locked ? 'bg-amber-500/10 text-amber-600' : 'bg-primary/10 text-primary'}`}>
+                    {locked ? <Lock className="w-5 h-5" /> : r.kind === 'link' ? <Link2 className="w-5 h-5" /> : <FileText className="w-5 h-5" />}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-1.5">
+                      <p className="font-semibold text-sm text-foreground truncate">{r.title}</p>
+                      {r.required_tier_level > 0 && (
+                        <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-amber-500/10 text-amber-700 text-[10px] font-bold uppercase tracking-wide shrink-0">
+                          <Sparkles className="w-2.5 h-2.5" /> Premium
+                        </span>
+                      )}
+                    </div>
+                    {r.description && <p className="text-xs text-muted-foreground truncate">{r.description}</p>}
+                    {r.kind === 'file' && r.file_size && <p className="text-[10px] text-muted-foreground">{fmtSize(r.file_size)}</p>}
+                  </div>
+                  {!locked && (
+                    <a href={r.url} target="_blank" rel="noreferrer" download={r.kind === 'file' ? '' : undefined}
+                      className="p-2 rounded-xl bg-primary/10 text-primary">
+                      {r.kind === 'file' ? <Download className="w-4 h-4" /> : <Link2 className="w-4 h-4" />}
+                    </a>
+                  )}
+                  {isCreator && (
+                    <button onClick={() => remove(r.id)} className="p-2 rounded-xl text-muted-foreground hover:text-destructive">
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  )}
+                </div>
+                {locked && (
+                  <TierLockOverlay compact requiredLevel={r.required_tier_level} tiers={tiers} slug={slug}
+                    label="Resource locked" />
+                )}
               </div>
-              <div className="flex-1 min-w-0">
-                <p className="font-semibold text-sm text-foreground truncate">{r.title}</p>
-                {r.description && <p className="text-xs text-muted-foreground truncate">{r.description}</p>}
-                {r.kind === 'file' && r.file_size && <p className="text-[10px] text-muted-foreground">{fmtSize(r.file_size)}</p>}
-              </div>
-              <a href={r.url} target="_blank" rel="noreferrer" download={r.kind === 'file' ? '' : undefined}
-                className="p-2 rounded-xl bg-primary/10 text-primary">
-                {r.kind === 'file' ? <Download className="w-4 h-4" /> : <Link2 className="w-4 h-4" />}
-              </a>
-              {isCreator && (
-                <button onClick={() => remove(r.id)} className="p-2 rounded-xl text-muted-foreground hover:text-destructive">
-                  <Trash2 className="w-4 h-4" />
-                </button>
-              )}
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
 
@@ -153,6 +179,16 @@ export const ResourcesPanel = ({ communityId, isCreator }: { communityId: string
               <input value={form.url} onChange={e => setForm({ ...form, url: e.target.value })}
                 placeholder="https://…" className="w-full px-3 py-2.5 rounded-xl bg-background border border-border text-sm" />
             )}
+            <label className="block text-xs text-muted-foreground">
+              Who can access?
+              <select value={form.required_tier_level} onChange={e => setForm({ ...form, required_tier_level: Number(e.target.value) })}
+                className="w-full mt-1 px-3 py-2.5 rounded-xl bg-background border border-border text-sm">
+                <option value={0}>All members</option>
+                {tiers.filter(t => t.sort_order > 0).map(t => (
+                  <option key={t.id} value={t.sort_order}>{t.name} and above</option>
+                ))}
+              </select>
+            </label>
             <button onClick={save} disabled={saving}
               className="w-full py-3 rounded-2xl bg-primary text-primary-foreground font-semibold text-sm disabled:opacity-50">
               {saving ? 'Saving…' : 'Add to community'}
