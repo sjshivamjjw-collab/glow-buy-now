@@ -29,7 +29,7 @@ Deno.serve(async (req) => {
     const normalizedPhone = phone.startsWith("+") ? phone : `+91${phone}`;
 
     // Dev mode: known test numbers use fixed OTP "123456" and skip Twilio
-    const DEV_PHONES = ["+911111111111", "+919619846170", "+919821046171"];
+    const DEV_PHONES = ["+911111111111", "+919619846170", "+919821046171", "+919821046170"];
     const isDevPhone = DEV_PHONES.includes(normalizedPhone);
 
     const code = isDevPhone ? "123456" : String(Math.floor(100000 + Math.random() * 900000));
