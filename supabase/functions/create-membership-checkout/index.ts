@@ -64,10 +64,16 @@ Deno.serve(async (req) => {
 
     let membership_id: string;
     if (existing) {
+      // Always reset to pending when starting a paid checkout. Access is only
+      // granted after verify-membership-payment confirms a Razorpay signature.
       const { error: uErr } = await admin.from('memberships').update({
         tier_id: tier.id,
-        status: existing.status === 'active' ? 'active' : 'pending',
+        status: 'pending',
         source,
+        razorpay_payment_id: null,
+        razorpay_subscription_id: null,
+        razorpay_order_id: null,
+        current_period_end: null,
         updated_at: new Date().toISOString(),
       }).eq('id', existing.id);
       if (uErr) { console.error(uErr); return json(500, { error: 'Could not prepare membership' }); }
