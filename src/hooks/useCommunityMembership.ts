@@ -53,7 +53,9 @@ export const useCommunityMembership = (communityId: string | null | undefined) =
   };
 
   useEffect(() => {
-    if (!communityId || !userId) { setLoading(false); return; }
+    // Stay in loading state until we have both ids AND a fetch has completed.
+    // Setting loading=false too early causes consumers to race on isMember=false.
+    if (!communityId || !userId) return;
     setLoading(true);
     let cancelled = false;
     (async () => { if (!cancelled) await refresh(); })();
