@@ -492,6 +492,12 @@ const ChannelManager = ({ communityId, channels, tiers, onClose, onChanged }: {
     else onChanged();
   };
 
+  const setPerm = async (id: string, perm: Channel['post_permission']) => {
+    const { error } = await supabase.from('community_channels' as any).update({ post_permission: perm }).eq('id', id);
+    if (error) toast({ title: 'Update failed', description: error.message, variant: 'destructive' });
+    else onChanged();
+  };
+
   return (
     <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur flex items-end md:items-center justify-center p-4" onClick={onClose}>
       <div className="w-full max-w-md bg-card border border-border rounded-3xl p-5 space-y-3 max-h-[85vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
