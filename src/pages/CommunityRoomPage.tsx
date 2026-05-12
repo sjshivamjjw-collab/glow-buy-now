@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 import { useCommunityMembership } from '@/hooks/useCommunityMembership';
 import { ArrowLeft, MessageSquare, Calendar, FileBox, Loader2, Sparkles, X, Crown } from 'lucide-react';
 import { ChatPanel } from '@/components/community/ChatPanel';
