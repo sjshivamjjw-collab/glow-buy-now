@@ -226,27 +226,77 @@ export type Database = {
       }
       community_chat_messages: {
         Row: {
-          body: string
+          attachment_mime: string | null
+          attachment_name: string | null
+          attachment_size: number | null
+          attachment_url: string | null
+          body: string | null
           community_id: string
           created_at: string
           id: string
+          kind: string
+          poll: Json | null
           user_id: string
         }
         Insert: {
-          body: string
+          attachment_mime?: string | null
+          attachment_name?: string | null
+          attachment_size?: number | null
+          attachment_url?: string | null
+          body?: string | null
           community_id: string
           created_at?: string
           id?: string
+          kind?: string
+          poll?: Json | null
           user_id: string
         }
         Update: {
-          body?: string
+          attachment_mime?: string | null
+          attachment_name?: string | null
+          attachment_size?: number | null
+          attachment_url?: string | null
+          body?: string | null
           community_id?: string
           created_at?: string
           id?: string
+          kind?: string
+          poll?: Json | null
           user_id?: string
         }
         Relationships: []
+      }
+      community_chat_poll_votes: {
+        Row: {
+          created_at: string
+          id: string
+          message_id: string
+          option_index: number
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          message_id: string
+          option_index: number
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          message_id?: string
+          option_index?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "community_chat_poll_votes_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "community_chat_messages"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       community_event_rsvps: {
         Row: {
