@@ -3,7 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
-import { ArrowLeft, Plus, Trash2, Image as ImageIcon, Video, Loader2 } from 'lucide-react';
+import { ArrowLeft, Plus, Trash2, Image as ImageIcon, Video, Loader2, Globe, IndianRupee, RefreshCw, Zap } from 'lucide-react';
+
+const PRICE_SUGGESTIONS = [99, 299, 499, 999];
 
 type PostPerm = 'all_members' | 'moderators' | 'creator_only';
 
