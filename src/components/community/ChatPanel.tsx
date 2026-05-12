@@ -50,12 +50,13 @@ const slugify = (s: string) => s.toLowerCase().trim().replace(/[^a-z0-9\s-]/g, '
 interface Props {
   communityId: string;
   isCreator: boolean;
+  isModerator: boolean;
   tierLevel: number;
   tiers: TierInfo[];
   slug: string;
 }
 
-export const ChatPanel = ({ communityId, isCreator, tierLevel, tiers, slug }: Props) => {
+export const ChatPanel = ({ communityId, isCreator, isModerator, tierLevel, tiers, slug }: Props) => {
   const { userId, userName, userAvatar } = useAuth();
   const { toast } = useToast();
   const [channels, setChannels] = useState<Channel[]>([]);
@@ -69,12 +70,31 @@ export const ChatPanel = ({ communityId, isCreator, tierLevel, tiers, slug }: Pr
   const [showPoll, setShowPoll] = useState(false);
   const [showAttach, setShowAttach] = useState(false);
   const [showChannelMgr, setShowChannelMgr] = useState(false);
+  const [showModMgr, setShowModMgr] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const imageRef = useRef<HTMLInputElement>(null);
 
   const activeChannel = channels.find(c => c.id === activeChannelId) || null;
   const canAccessActive = !activeChannel || isCreator || tierLevel >= activeChannel.required_tier_level;
+
+  // Posting permission for the active channel
+  const canPostInActive = !activeChannel ? false : (
+    isCreator
+      ? true
+      : activeChannel.post_permission === 'creator_only'
+        ? false
+        : activeChannel.post_permission === 'moderators'
+          ? isModerator
+          : true
+  );
+  const postRestrictionLabel = !activeChannel ? '' : (
+    activeChannel.post_permission === 'creator_only'
+      ? 'Only the creator can post in this channel.'
+      : activeChannel.post_permission === 'moderators'
+        ? 'Only moderators can post in this channel.'
+        : ''
+  );
 
   // Load channels
   const loadChannels = async () => {
