@@ -2,12 +2,13 @@ import { useEffect, useState } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useCommunityMembership } from '@/hooks/useCommunityMembership';
-import { ArrowLeft, MessageSquare, Calendar, FileBox, Loader2, Sparkles, X } from 'lucide-react';
+import { ArrowLeft, MessageSquare, Calendar, FileBox, Loader2, Sparkles, X, Crown } from 'lucide-react';
 import { ChatPanel } from '@/components/community/ChatPanel';
 import { EventsPanel } from '@/components/community/EventsPanel';
 import { ResourcesPanel } from '@/components/community/ResourcesPanel';
+import { PlansPanel } from '@/components/community/PlansPanel';
 
-type Tab = 'chat' | 'events' | 'resources';
+type Tab = 'chat' | 'events' | 'resources' | 'plans';
 
 const CommunityRoomPage = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -15,7 +16,7 @@ const CommunityRoomPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [community, setCommunity] = useState<{ id: string; name: string } | null>(null);
   const [loadingCommunity, setLoadingCommunity] = useState(true);
-  const { isMember, isCreator, isModerator, loading: loadingMembership, tiers, tierLevel, currentTier } = useCommunityMembership(community?.id);
+  const { isMember, isCreator, isModerator, loading: loadingMembership, tiers, tierLevel, currentTier, refresh: refreshMembership } = useCommunityMembership(community?.id);
   const initialTab = (searchParams.get('tab') as Tab) || 'chat';
   const [tab, setTab] = useState<Tab>(initialTab);
 
