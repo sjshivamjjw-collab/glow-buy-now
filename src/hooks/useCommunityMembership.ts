@@ -27,7 +27,8 @@ export const useCommunityMembership = (communityId: string | null | undefined) =
       supabase.from('communities' as any).select('creator_id').eq('id', communityId).maybeSingle(),
       supabase.from('community_tiers' as any).select('id, name, description, kind, price_inr, sort_order')
         .eq('community_id', communityId).eq('is_active', true).order('sort_order'),
-      supabase.from('memberships' as any).select('tier_id, status')
+      supabase.from('memberships' as any)
+        .select('tier_id, status, razorpay_payment_id, razorpay_subscription_id, current_period_end')
         .eq('community_id', communityId).eq('user_id', userId).eq('status', 'active').maybeSingle(),
       supabase.from('community_moderators' as any).select('id')
         .eq('community_id', communityId).eq('user_id', userId).maybeSingle(),
@@ -37,14 +38,26 @@ export const useCommunityMembership = (communityId: string | null | undefined) =
     const creator = (c as any)?.creator_id === userId;
     setIsCreator(creator);
     setIsModerator(creator || !!mod);
-    setIsMember(creator || !!m);
+
+    // Mirror DB-side gating in is_active_community_member: a paid tier requires
+    // a verified Razorpay payment/subscription and an unexpired period.
+    let validMembership = false;
+    let memTier: TierInfo | null = null;
+    if (m) {
+      memTier = tierList.find(x => x.id === (m as any).tier_id) || null;
+      const periodOk = !(m as any).current_period_end || new Date((m as any).current_period_end) > new Date();
+      const paidOk = !!(m as any).razorpay_payment_id || !!(m as any).razorpay_subscription_id;
+      const isFree = memTier?.kind === 'free';
+      validMembership = periodOk && (isFree || paidOk);
+    }
+
+    setIsMember(creator || validMembership);
     if (creator) {
       setTierLevel(Number.POSITIVE_INFINITY);
       setCurrentTier(null);
-    } else if (m) {
-      const ct = tierList.find(x => x.id === (m as any).tier_id) || null;
-      setCurrentTier(ct);
-      setTierLevel(ct ? ct.sort_order : 0);
+    } else if (validMembership && memTier) {
+      setCurrentTier(memTier);
+      setTierLevel(memTier.sort_order);
     } else {
       setTierLevel(-1);
       setCurrentTier(null);
