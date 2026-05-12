@@ -64,17 +64,32 @@ const CreatorDashboard = () => {
                     <span>{c.member_count} members</span>
                   </div>
                 </div>
-                <span className={`text-[10px] font-bold px-2 py-1 rounded-full ${c.is_published ? 'bg-success/10 text-success' : 'bg-secondary text-muted-foreground'}`}>
-                  {c.is_published ? 'LIVE' : 'DRAFT'}
-                </span>
+                <div className="flex flex-col items-end gap-1">
+                  <span className={`text-[10px] font-bold px-2 py-1 rounded-full ${
+                    c.approval_status === 'approved' ? 'bg-success/10 text-success' :
+                    c.approval_status === 'rejected' ? 'bg-destructive/10 text-destructive' :
+                    'bg-yellow-500/10 text-yellow-600'
+                  }`}>
+                    {c.approval_status === 'approved' ? (c.is_published ? 'LIVE' : 'DRAFT') :
+                     c.approval_status === 'rejected' ? 'REJECTED' : 'IN REVIEW'}
+                  </span>
+                </div>
               </div>
+              {c.approval_status === 'rejected' && c.rejection_reason && (
+                <div className="mb-3 p-2 rounded-lg bg-destructive/10 border border-destructive/20">
+                  <p className="text-[10px] font-semibold text-destructive mb-0.5">Reason</p>
+                  <p className="text-xs text-foreground">{c.rejection_reason}</p>
+                </div>
+              )}
               <div className="flex gap-2">
                 <button onClick={() => navigate(`/c/${c.slug}`)}
                   className="flex-1 py-2 rounded-xl bg-secondary text-foreground text-sm font-semibold">View</button>
-                <button onClick={() => togglePublish(c)}
-                  className="px-3 py-2 rounded-xl bg-secondary text-foreground text-sm font-semibold flex items-center gap-1">
-                  {c.is_published ? <><EyeOff className="w-4 h-4" /> Unpublish</> : <><Eye className="w-4 h-4" /> Publish</>}
-                </button>
+                {c.approval_status === 'approved' && (
+                  <button onClick={() => togglePublish(c)}
+                    className="px-3 py-2 rounded-xl bg-secondary text-foreground text-sm font-semibold flex items-center gap-1">
+                    {c.is_published ? <><EyeOff className="w-4 h-4" /> Unpublish</> : <><Eye className="w-4 h-4" /> Publish</>}
+                  </button>
+                )}
               </div>
             </div>
           ))}

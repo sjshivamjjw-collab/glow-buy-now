@@ -166,6 +166,7 @@ export type Database = {
       }
       communities: {
         Row: {
+          approval_status: Database["public"]["Enums"]["community_approval_status"]
           cover_url: string | null
           created_at: string
           creator_id: string
@@ -176,11 +177,15 @@ export type Database = {
           key_outcomes: string[]
           member_count: number
           name: string
+          rejection_reason: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
           slug: string
           social_links: Json
           updated_at: string
         }
         Insert: {
+          approval_status?: Database["public"]["Enums"]["community_approval_status"]
           cover_url?: string | null
           created_at?: string
           creator_id: string
@@ -191,11 +196,15 @@ export type Database = {
           key_outcomes?: string[]
           member_count?: number
           name: string
+          rejection_reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
           slug: string
           social_links?: Json
           updated_at?: string
         }
         Update: {
+          approval_status?: Database["public"]["Enums"]["community_approval_status"]
           cover_url?: string | null
           created_at?: string
           creator_id?: string
@@ -206,6 +215,9 @@ export type Database = {
           key_outcomes?: string[]
           member_count?: number
           name?: string
+          rejection_reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
           slug?: string
           social_links?: Json
           updated_at?: string
@@ -924,6 +936,7 @@ export type Database = {
     Enums: {
       app_role: "admin" | "creator" | "shopper"
       application_status: "pending" | "approved" | "rejected"
+      community_approval_status: "pending" | "approved" | "rejected"
       livestream_status: "scheduled" | "live" | "ended"
       membership_source: "free" | "razorpay_sub" | "razorpay_order"
       membership_status: "active" | "pending" | "expired" | "cancelled"
@@ -1065,6 +1078,7 @@ export const Constants = {
     Enums: {
       app_role: ["admin", "creator", "shopper"],
       application_status: ["pending", "approved", "rejected"],
+      community_approval_status: ["pending", "approved", "rejected"],
       livestream_status: ["scheduled", "live", "ended"],
       membership_source: ["free", "razorpay_sub", "razorpay_order"],
       membership_status: ["active", "pending", "expired", "cancelled"],
