@@ -159,7 +159,7 @@ const CommunityDetailPage = () => {
             <span className="text-5xl font-extrabold text-primary/40">{community.name[0]}</span>
           </div>
         )}
-        <button onClick={() => navigate(-1)}
+        <button onClick={() => navigate('/', { replace: true })}
           className="absolute top-4 left-4 p-2 rounded-xl bg-card/90 backdrop-blur border border-border">
           <ArrowLeft className="w-5 h-5 text-foreground" />
         </button>
