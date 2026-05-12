@@ -384,6 +384,67 @@ const CreateCommunityPage = () => {
                         </button>
                       ))}
                     </div>
+
+                    {t.kind === 'paid_monthly' && (
+                      <>
+                        <div className="pt-1">
+                          <p className="text-[11px] font-semibold text-muted-foreground mb-1.5">Billing tenure</p>
+                          <div className="flex flex-wrap gap-1.5">
+                            {TENURE_OPTIONS.map(m => (
+                              <button
+                                key={m}
+                                type="button"
+                                onClick={() => updateTier(t.id, { billing_period_months: m })}
+                                className={`px-2.5 py-1 rounded-md text-xs font-semibold transition-colors ${
+                                  t.billing_period_months === m
+                                    ? 'bg-primary text-primary-foreground'
+                                    : 'bg-secondary text-foreground hover:bg-secondary/70'
+                                }`}
+                              >
+                                {m === 1 ? '1 month' : `${m} months`}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+
+                        <div className="pt-1">
+                          <p className="text-[11px] font-semibold text-muted-foreground mb-1.5">Free trial</p>
+                          <div className="flex items-center gap-2">
+                            <div className="relative flex-1">
+                              <input
+                                value={t.trial_days}
+                                onChange={e => updateTier(t.id, { trial_days: e.target.value.replace(/[^0-9]/g, '').slice(0, 3) })}
+                                placeholder="0"
+                                inputMode="numeric"
+                                className="w-full px-3 py-2.5 rounded-lg bg-secondary text-foreground text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/30"
+                              />
+                            </div>
+                            <div className="px-3 py-2.5 rounded-lg bg-secondary text-foreground text-sm font-semibold">
+                              days
+                            </div>
+                          </div>
+                          <div className="flex flex-wrap gap-1.5 mt-1.5">
+                            <button
+                              type="button"
+                              onClick={() => updateTier(t.id, { trial_days: '0' })}
+                              className="px-2.5 py-1 rounded-md bg-secondary text-foreground text-xs font-medium hover:bg-secondary/70"
+                            >
+                              No trial
+                            </button>
+                            {TRIAL_SUGGESTIONS.map(d => (
+                              <button
+                                key={d}
+                                type="button"
+                                onClick={() => updateTier(t.id, { trial_days: String(d) })}
+                                className="px-2.5 py-1 rounded-md bg-secondary text-foreground text-xs font-medium hover:bg-secondary/70"
+                              >
+                                {d} days
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      </>
+                    )}
                   </div>
                 )}
 
