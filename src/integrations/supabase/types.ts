@@ -468,6 +468,7 @@ export type Database = {
       }
       community_tiers: {
         Row: {
+          billing_period_months: number
           community_id: string
           created_at: string
           description: string | null
@@ -478,9 +479,11 @@ export type Database = {
           price_inr: number | null
           razorpay_plan_id: string | null
           sort_order: number
+          trial_days: number
           updated_at: string
         }
         Insert: {
+          billing_period_months?: number
           community_id: string
           created_at?: string
           description?: string | null
@@ -491,9 +494,11 @@ export type Database = {
           price_inr?: number | null
           razorpay_plan_id?: string | null
           sort_order?: number
+          trial_days?: number
           updated_at?: string
         }
         Update: {
+          billing_period_months?: number
           community_id?: string
           created_at?: string
           description?: string | null
@@ -504,6 +509,7 @@ export type Database = {
           price_inr?: number | null
           razorpay_plan_id?: string | null
           sort_order?: number
+          trial_days?: number
           updated_at?: string
         }
         Relationships: [
