@@ -11,7 +11,7 @@ const BottomNav = () => {
 
   const tabs = [
     { icon: Compass, label: 'Discover', path: '/' },
-    { icon: Users, label: 'Mine', path: '/mine' },
+    { icon: Users, label: 'My communities', path: '/mine' },
     ...(isCreator ? [{ icon: LayoutDashboard, label: 'Creator', path: '/creator' }] : []),
     { icon: Bell, label: 'Alerts', path: '/notifications', badge: unreadCount },
     { icon: User, label: 'Profile', path: '/profile' },
