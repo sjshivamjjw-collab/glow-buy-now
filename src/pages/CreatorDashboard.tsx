@@ -76,7 +76,9 @@ const CreatorDashboard = () => {
     const totalMembers = active.length;
     let mrr = 0;
     let lifetime = 0;
-    active.forEach(m => {
+    // Only count actual paid memberships (Razorpay), not free joins
+    const paid = active.filter(m => m.source === 'razorpay_sub' || m.source === 'razorpay_order');
+    paid.forEach(m => {
       const t = tiersById[m.tier_id];
       if (!t) return;
       const price = Number(t.price_inr || 0);
