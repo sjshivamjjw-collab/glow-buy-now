@@ -102,6 +102,32 @@ const AdminPanelPage = () => {
   const pendingCancellations = cancellationRequests.filter(c => c.status === 'pending').length;
   const pendingReturns = returnRequests.filter(r => r.status === 'pending').length;
   const liveNow = livestreams.filter(s => s.status === 'live').length;
+  const pendingCommunities = communities.filter(c => c.approval_status === 'pending').length;
+
+  const filteredCommunities = useMemo(() =>
+    communityFilter === 'all' ? communities : communities.filter(c => c.approval_status === communityFilter),
+    [communities, communityFilter]);
+
+  const handleApproveCommunity = async (id: string) => {
+    const { error } = await supabase.from('communities' as any).update({
+      approval_status: 'approved', reviewed_by: userId, reviewed_at: new Date().toISOString(),
+    }).eq('id', id);
+    if (error) { toast({ title: 'Failed', description: error.message, variant: 'destructive' }); return; }
+    setCommunities(prev => prev.map(c => c.id === id ? { ...c, approval_status: 'approved' } : c));
+    toast({ title: 'Community approved ✅' });
+  };
+
+  const handleRejectCommunity = async (id: string) => {
+    if (!communityRejectReason.trim()) { toast({ title: 'Please provide a reason', variant: 'destructive' }); return; }
+    const { error } = await supabase.from('communities' as any).update({
+      approval_status: 'rejected', rejection_reason: communityRejectReason,
+      reviewed_by: userId, reviewed_at: new Date().toISOString(),
+    }).eq('id', id);
+    if (error) { toast({ title: 'Failed', description: error.message, variant: 'destructive' }); return; }
+    setCommunities(prev => prev.map(c => c.id === id ? { ...c, approval_status: 'rejected', rejection_reason: communityRejectReason } : c));
+    setRejectingCommunityId(null); setCommunityRejectReason('');
+    toast({ title: 'Community rejected' });
+  };
 
   const filteredOrders = useMemo(() => {
     return orders.filter(order => {
