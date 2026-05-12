@@ -5,12 +5,15 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { ArrowLeft, Plus, Trash2, Image as ImageIcon, Video, Loader2 } from 'lucide-react';
 
+type PostPerm = 'all_members' | 'moderators' | 'creator_only';
+
 interface TierDraft {
   id: string;
   name: string;
   description: string;
   kind: 'free' | 'paid_monthly' | 'paid_one_time';
   price_inr: string;
+  post_permission: PostPerm;
 }
 
 const slugify = (s: string) =>
