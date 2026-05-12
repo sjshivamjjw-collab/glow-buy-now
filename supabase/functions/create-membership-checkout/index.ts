@@ -60,7 +60,7 @@ Deno.serve(async (req) => {
       .eq('community_id', tier.community_id)
       .maybeSingle();
 
-    const source = tier.kind === 'paid_monthly' ? 'paid_subscription' : 'paid_one_time';
+    const source = tier.kind === 'paid_monthly' ? 'razorpay_sub' : 'razorpay_order';
 
     let membership_id: string;
     if (existing) {
