@@ -51,6 +51,32 @@ const CommunityRoomPage = () => {
     setShowUpgrade(false);
   };
 
+  // Auto-join free tier when a non-member lands here (e.g. from Discover)
+  const { userId } = useAuth();
+  const autoJoinRef = useRef(false);
+  useEffect(() => {
+    if (loadingCommunity || loadingMembership) return;
+    if (!community || !userId || isMember || isCreator || autoJoinRef.current) return;
+    const freeTier = tiers.find(t => t.kind === 'free');
+    if (!freeTier) {
+      navigate(`/c/${slug}`, { replace: true });
+      return;
+    }
+    autoJoinRef.current = true;
+    (async () => {
+      const { error } = await supabase.from('memberships' as any).insert({
+        user_id: userId, community_id: community.id, tier_id: freeTier.id,
+        status: 'active', source: 'free', started_at: new Date().toISOString(),
+      });
+      if (error) {
+        autoJoinRef.current = false;
+        navigate(`/c/${slug}`, { replace: true });
+        return;
+      }
+      await refreshMembership();
+    })();
+  }, [loadingCommunity, loadingMembership, community, userId, isMember, isCreator, tiers, slug]);
+
   const loading = loadingCommunity || loadingMembership;
 
   if (loading) {
@@ -70,8 +96,11 @@ const CommunityRoomPage = () => {
   }
 
   if (!isMember) {
-    navigate(`/c/${slug}`, { replace: true });
-    return null;
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+      </div>
+    );
   }
 
   const tabs: { key: Tab; label: string; icon: typeof MessageSquare }[] = [
