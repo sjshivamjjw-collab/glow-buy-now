@@ -38,14 +38,26 @@ export const useCommunityMembership = (communityId: string | null | undefined) =
     const creator = (c as any)?.creator_id === userId;
     setIsCreator(creator);
     setIsModerator(creator || !!mod);
-    setIsMember(creator || !!m);
+
+    // Mirror DB-side gating in is_active_community_member: a paid tier requires
+    // a verified Razorpay payment/subscription and an unexpired period.
+    let validMembership = false;
+    let memTier: TierInfo | null = null;
+    if (m) {
+      memTier = tierList.find(x => x.id === (m as any).tier_id) || null;
+      const periodOk = !(m as any).current_period_end || new Date((m as any).current_period_end) > new Date();
+      const paidOk = !!(m as any).razorpay_payment_id || !!(m as any).razorpay_subscription_id;
+      const isFree = memTier?.kind === 'free';
+      validMembership = periodOk && (isFree || paidOk);
+    }
+
+    setIsMember(creator || validMembership);
     if (creator) {
       setTierLevel(Number.POSITIVE_INFINITY);
       setCurrentTier(null);
-    } else if (m) {
-      const ct = tierList.find(x => x.id === (m as any).tier_id) || null;
-      setCurrentTier(ct);
-      setTierLevel(ct ? ct.sort_order : 0);
+    } else if (validMembership && memTier) {
+      setCurrentTier(memTier);
+      setTierLevel(memTier.sort_order);
     } else {
       setTierLevel(-1);
       setCurrentTier(null);
