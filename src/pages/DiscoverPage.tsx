@@ -86,31 +86,31 @@ const DiscoverPage = () => {
               <button
                 key={c.id}
                 onClick={() => navigate(`/c/${c.slug}`)}
-                className="w-full rounded-2xl overflow-hidden bg-card border border-border hover:border-primary/50 transition-colors text-left"
+                className="w-full text-left rounded-2xl overflow-hidden bg-card border border-border hover:border-primary/50 transition-colors"
               >
                 {c.cover_url ? (
-                  <div className="aspect-[21/9] bg-secondary overflow-hidden max-h-20">
+                  <div className="aspect-[21/9] bg-secondary overflow-hidden max-h-32">
                     <img src={c.cover_url} alt={c.name} className="w-full h-full object-cover" />
                   </div>
                 ) : (
-                  <div className="aspect-[21/9] max-h-20 bg-gradient-to-br from-primary/20 via-accent/10 to-secondary flex items-center justify-center">
-                    <span className="text-xl font-extrabold text-primary/40">{c.name[0]}</span>
+                  <div className="aspect-[21/9] max-h-32 bg-gradient-to-br from-primary/20 via-accent/10 to-secondary flex items-center justify-center">
+                    <span className="text-2xl font-extrabold text-primary/40">{c.name[0]}</span>
                   </div>
                 )}
-                <div className="p-2.5">
-                  <h3 className="font-bold text-foreground text-sm mb-0.5">{c.name}</h3>
-                  {c.description && <p className="text-xs text-muted-foreground line-clamp-1 mb-2">{c.description}</p>}
-                  <div className="flex items-center justify-between text-[11px]">
-                    <div className="flex items-center gap-1.5 text-muted-foreground">
+                <div className="p-4">
+                  <h3 className="font-bold text-foreground text-base mb-1">{c.name}</h3>
+                  {c.description && <p className="text-sm text-muted-foreground line-clamp-2 mb-3">{c.description}</p>}
+                  <div className="flex items-center justify-between text-xs">
+                    <div className="flex items-center gap-2 text-muted-foreground">
                       {creator?.avatar_url ? (
-                        <img src={creator.avatar_url} className="w-4 h-4 rounded-full object-cover" alt="" />
+                        <img src={creator.avatar_url} className="w-5 h-5 rounded-full object-cover" alt="" />
                       ) : (
-                        <div className="w-4 h-4 rounded-full bg-secondary" />
+                        <div className="w-5 h-5 rounded-full bg-secondary" />
                       )}
                       <span>{creator?.name || creator?.username || 'Creator'}</span>
                     </div>
                     <div className="flex items-center gap-1 text-muted-foreground">
-                      <Users className="w-3 h-3" />
+                      <Users className="w-3.5 h-3.5" />
                       <span>{c.member_count}</span>
                     </div>
                   </div>
