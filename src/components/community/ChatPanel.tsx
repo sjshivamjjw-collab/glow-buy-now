@@ -381,6 +381,14 @@ export const ChatPanel = ({ communityId, isCreator, isModerator, tierLevel, tier
             })}
           </div>
 
+          {!canPostInActive ? (
+            <div className="pt-3 mt-2 border-t border-border">
+              <div className="flex items-center gap-2 px-3 py-3 rounded-2xl bg-muted/60 border border-border text-xs text-muted-foreground">
+                <Lock className="w-3.5 h-3.5 shrink-0" />
+                <span>{postRestrictionLabel || 'You cannot post in this channel.'}</span>
+              </div>
+            </div>
+          ) : (
           <div className="pt-3 mt-2 border-t border-border">
             <div className="flex items-end gap-2">
               <div className="relative">
@@ -423,6 +431,7 @@ export const ChatPanel = ({ communityId, isCreator, isModerator, tierLevel, tier
               </button>
             </div>
           </div>
+          )}
         </>
       )}
 
