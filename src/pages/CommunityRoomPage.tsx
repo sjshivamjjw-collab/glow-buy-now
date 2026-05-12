@@ -15,7 +15,7 @@ const CommunityRoomPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [community, setCommunity] = useState<{ id: string; name: string } | null>(null);
   const [loadingCommunity, setLoadingCommunity] = useState(true);
-  const { isMember, isCreator, loading: loadingMembership, tiers, tierLevel, currentTier } = useCommunityMembership(community?.id);
+  const { isMember, isCreator, isModerator, loading: loadingMembership, tiers, tierLevel, currentTier } = useCommunityMembership(community?.id);
   const initialTab = (searchParams.get('tab') as Tab) || 'chat';
   const [tab, setTab] = useState<Tab>(initialTab);
 
