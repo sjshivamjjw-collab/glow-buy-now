@@ -74,20 +74,19 @@ const CreatorDashboard = () => {
   const metrics = useMemo(() => {
     const active = memberships.filter(m => m.status === 'active');
     const totalMembers = active.length;
-    let mrr = 0;
+    // A "paying" member = active membership with an actual Razorpay payment/subscription id recorded
+    const paying = active.filter(m =>
+      !!m.razorpay_payment_id || !!m.razorpay_subscription_id || !!m.razorpay_order_id
+    );
     let lifetime = 0;
-    // Only count actual paid memberships (Razorpay), not free joins
-    const paid = active.filter(m => m.source === 'razorpay_sub' || m.source === 'razorpay_order');
-    paid.forEach(m => {
+    paying.forEach(m => {
       const t = tiersById[m.tier_id];
       if (!t) return;
-      const price = Number(t.price_inr || 0);
-      if (t.kind === 'paid_monthly') mrr += price;
-      lifetime += price;
+      lifetime += Number(t.price_inr || 0);
     });
     const liveCommunities = communities.filter(c => c.is_published && c.approval_status === 'approved').length;
     const pending = communities.filter(c => c.approval_status === 'pending').length;
-    return { totalMembers, mrr, lifetime, liveCommunities, pending, totalCommunities: communities.length };
+    return { totalMembers, payingMembers: paying.length, lifetime, liveCommunities, pending, totalCommunities: communities.length };
   }, [memberships, tiersById, communities]);
 
   const togglePublish = async (c: any) => {
@@ -146,9 +145,9 @@ const OverviewTab = ({ metrics, memberships, commById, tiersById, profilesById }
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-2 gap-3">
-        <MetricCard icon={Users} label="Members" value={metrics.totalMembers} hint="active across all communities" />
-        <MetricCard icon={IndianRupee} label="MRR" value={`₹${metrics.mrr.toLocaleString('en-IN')}`} hint="recurring monthly revenue" />
-        <MetricCard icon={TrendingUp} label="Total revenue" value={`₹${metrics.lifetime.toLocaleString('en-IN')}`} hint="active member value" />
+        <MetricCard icon={Users} label="Total members" value={metrics.totalMembers} hint="active across all communities" />
+        <MetricCard icon={IndianRupee} label="Paying members" value={metrics.payingMembers} hint="on a paid tier" />
+        <MetricCard icon={TrendingUp} label="Total revenue" value={`₹${metrics.lifetime.toLocaleString('en-IN')}`} hint="from paid memberships" />
         <MetricCard icon={Layers} label="Communities" value={metrics.liveCommunities}
           hint={`${metrics.pending} pending • ${metrics.totalCommunities} total`} />
       </div>
