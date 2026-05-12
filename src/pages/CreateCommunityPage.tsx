@@ -130,6 +130,19 @@ const CreateCommunityPage = () => {
       return;
     }
 
+    // Auto-create one chat channel per tier with the chosen post permission
+    const channelRows = (insertedTiers as any[] || []).map((tier, idx) => ({
+      community_id: (community as any).id,
+      name: `${tier.name} chat`,
+      slug: `${slugify(tier.name)}-chat`,
+      required_tier_level: tier.sort_order ?? idx,
+      sort_order: tier.sort_order ?? idx,
+      post_permission: validTiers[idx]?.post_permission ?? 'all_members',
+    }));
+    if (channelRows.length) {
+      await supabase.from('community_channels' as any).insert(channelRows);
+    }
+
     // Create Razorpay plans for monthly tiers (best-effort, non-blocking)
     const monthlyIds = (insertedTiers as any[] || []).filter(t => t.kind === 'paid_monthly').map(t => t.id);
     if (monthlyIds.length) {
