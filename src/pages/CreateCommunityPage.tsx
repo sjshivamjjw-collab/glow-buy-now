@@ -272,6 +272,29 @@ const CreateCommunityPage = () => {
                     </div>
                   )}
                 </div>
+                <div>
+                  <p className="text-[11px] font-semibold text-muted-foreground mb-1.5">Who can post in this tier's chat</p>
+                  <div className="grid grid-cols-3 gap-1.5">
+                    {([
+                      { v: 'all_members', label: 'Everyone' },
+                      { v: 'moderators', label: 'Moderators' },
+                      { v: 'creator_only', label: 'Admin only' },
+                    ] as { v: PostPerm; label: string }[]).map(opt => (
+                      <button
+                        key={opt.v}
+                        type="button"
+                        onClick={() => updateTier(t.id, { post_permission: opt.v })}
+                        className={`px-2 py-2 rounded-lg text-xs font-semibold transition-colors ${
+                          t.post_permission === opt.v
+                            ? 'bg-primary text-primary-foreground'
+                            : 'bg-secondary text-foreground hover:bg-secondary/70'
+                        }`}
+                      >
+                        {opt.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
               </div>
             ))}
             <button onClick={addTier} className="flex items-center gap-1 text-primary text-sm font-semibold">
