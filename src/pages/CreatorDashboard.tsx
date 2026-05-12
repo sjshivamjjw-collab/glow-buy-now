@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { Plus, Loader2, Users, Eye, EyeOff } from 'lucide-react';
+import { Plus, Loader2, Users, Eye, EyeOff, Pencil } from 'lucide-react';
 
 const CreatorDashboard = () => {
   const navigate = useNavigate();
