@@ -29,6 +29,7 @@ interface Channel {
   description: string | null;
   required_tier_level: number;
   sort_order: number;
+  post_permission: 'all_members' | 'moderators' | 'creator_only';
 }
 interface PollVote { message_id: string; user_id: string; option_index: number }
 
