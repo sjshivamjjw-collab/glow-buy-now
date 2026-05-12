@@ -10,7 +10,7 @@ const BottomNav = () => {
   const tabs = [
     { icon: Compass, label: 'Discover', path: '/' },
     { icon: Users, label: 'My communities', path: '/mine' },
-    { icon: Plus, label: 'New', path: '/communities/new' },
+    { icon: Plus, label: 'Start New', path: '/communities/new' },
     ...(isCreator ? [{ icon: LayoutDashboard, label: 'Creator', path: '/creator' }] : []),
     { icon: User, label: 'Profile', path: '/profile' },
   ];
