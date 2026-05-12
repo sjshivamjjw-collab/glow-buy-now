@@ -44,7 +44,7 @@ const MyCommunitiesPage = () => {
             const c = r.communities;
             if (!c) return null;
             return (
-              <button key={r.id} onClick={() => navigate(`/c/${c.slug}`)}
+              <button key={r.id} onClick={() => navigate(`/c/${c.slug}/room`)}
                 className="w-full text-left p-4 rounded-2xl bg-card border border-border flex items-center gap-3">
                 {c.cover_url ? (
                   <img src={c.cover_url} className="w-14 h-14 rounded-xl object-cover" alt="" />

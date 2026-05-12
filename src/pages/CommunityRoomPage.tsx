@@ -2,12 +2,13 @@ import { useEffect, useState } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useCommunityMembership } from '@/hooks/useCommunityMembership';
-import { ArrowLeft, MessageSquare, Calendar, FileBox, Loader2, Sparkles, X } from 'lucide-react';
+import { ArrowLeft, MessageSquare, Calendar, FileBox, Loader2, Sparkles, X, Crown } from 'lucide-react';
 import { ChatPanel } from '@/components/community/ChatPanel';
 import { EventsPanel } from '@/components/community/EventsPanel';
 import { ResourcesPanel } from '@/components/community/ResourcesPanel';
+import { PlansPanel } from '@/components/community/PlansPanel';
 
-type Tab = 'chat' | 'events' | 'resources';
+type Tab = 'chat' | 'events' | 'resources' | 'plans';
 
 const CommunityRoomPage = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -15,7 +16,7 @@ const CommunityRoomPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [community, setCommunity] = useState<{ id: string; name: string } | null>(null);
   const [loadingCommunity, setLoadingCommunity] = useState(true);
-  const { isMember, isCreator, isModerator, loading: loadingMembership, tiers, tierLevel, currentTier } = useCommunityMembership(community?.id);
+  const { isMember, isCreator, isModerator, loading: loadingMembership, tiers, tierLevel, currentTier, refresh: refreshMembership } = useCommunityMembership(community?.id);
   const initialTab = (searchParams.get('tab') as Tab) || 'chat';
   const [tab, setTab] = useState<Tab>(initialTab);
 
@@ -68,22 +69,15 @@ const CommunityRoomPage = () => {
   }
 
   if (!isMember) {
-    return (
-      <div className="min-h-screen bg-background max-w-lg mx-auto px-4 pt-10 text-center space-y-4">
-        <h1 className="text-xl font-bold text-foreground">Members only</h1>
-        <p className="text-sm text-muted-foreground">Join this community to access chat, events, and resources.</p>
-        <button onClick={() => navigate(`/c/${slug}`)}
-          className="px-5 py-2.5 rounded-xl bg-primary text-primary-foreground font-semibold text-sm">
-          View community
-        </button>
-      </div>
-    );
+    navigate(`/c/${slug}`, { replace: true });
+    return null;
   }
 
   const tabs: { key: Tab; label: string; icon: typeof MessageSquare }[] = [
     { key: 'chat', label: 'Chat', icon: MessageSquare },
     { key: 'events', label: 'Events', icon: Calendar },
     { key: 'resources', label: 'Resources', icon: FileBox },
+    { key: 'plans', label: 'Plans', icon: Crown },
   ];
 
   return (
@@ -121,7 +115,7 @@ const CommunityRoomPage = () => {
         </div>
       )}
 
-      <div className="grid grid-cols-3 gap-1 p-1 bg-card border border-border rounded-2xl mb-5">
+      <div className="grid grid-cols-4 gap-1 p-1 bg-card border border-border rounded-2xl mb-5">
         {tabs.map(({ key, label, icon: Icon }) => (
           <button key={key} onClick={() => setTab(key)}
             className={`py-2 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors ${
@@ -135,6 +129,7 @@ const CommunityRoomPage = () => {
       {tab === 'chat' && <ChatPanel communityId={community.id} isCreator={isCreator} isModerator={isModerator} tierLevel={tierLevel} tiers={tiers} slug={slug!} />}
       {tab === 'events' && <EventsPanel communityId={community.id} isCreator={isCreator} tierLevel={tierLevel} tiers={tiers} slug={slug!} />}
       {tab === 'resources' && <ResourcesPanel communityId={community.id} isCreator={isCreator} tierLevel={tierLevel} tiers={tiers} slug={slug!} />}
+      {tab === 'plans' && <PlansPanel communityId={community.id} communityName={community.name} tiers={tiers} currentTier={currentTier} isCreator={isCreator} onJoined={refreshMembership} />}
     </div>
   );
 };

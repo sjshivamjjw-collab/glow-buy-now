@@ -85,7 +85,7 @@ const DiscoverPage = () => {
             return (
               <button
                 key={c.id}
-                onClick={() => navigate(`/c/${c.slug}`)}
+                onClick={() => navigate(`/c/${c.slug}/room`)}
                 className="w-full text-left rounded-2xl overflow-hidden bg-card border border-border hover:border-primary/50 transition-colors"
               >
                 {c.cover_url ? (
