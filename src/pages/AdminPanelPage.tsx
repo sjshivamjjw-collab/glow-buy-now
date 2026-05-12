@@ -68,7 +68,7 @@ const AdminPanelPage = () => {
         supabase.from('cancellation_requests').select('*, orders(id, total_amount, status, buyer_id, seller_id), profiles:requested_by(name, phone)').order('created_at', { ascending: false }),
         supabase.from('return_requests').select('*, orders(id, total_amount, status, buyer_id, seller_id), profiles:requested_by(name, phone)').order('created_at', { ascending: false }),
         supabase.from('livestreams').select('*').order('created_at', { ascending: false }),
-        supabase.from('user_roles').select('user_id').eq('role', 'seller'),
+        supabase.from('user_roles').select('user_id').eq('role', 'creator'),
       ]);
 
       if (appsRes.data) setApplications(appsRes.data);

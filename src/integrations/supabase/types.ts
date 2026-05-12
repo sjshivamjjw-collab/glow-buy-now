@@ -164,6 +164,104 @@ export type Database = {
         }
         Relationships: []
       }
+      communities: {
+        Row: {
+          cover_url: string | null
+          created_at: string
+          creator_id: string
+          description: string | null
+          id: string
+          intro_video_url: string | null
+          is_published: boolean
+          key_outcomes: string[]
+          member_count: number
+          name: string
+          slug: string
+          social_links: Json
+          updated_at: string
+        }
+        Insert: {
+          cover_url?: string | null
+          created_at?: string
+          creator_id: string
+          description?: string | null
+          id?: string
+          intro_video_url?: string | null
+          is_published?: boolean
+          key_outcomes?: string[]
+          member_count?: number
+          name: string
+          slug: string
+          social_links?: Json
+          updated_at?: string
+        }
+        Update: {
+          cover_url?: string | null
+          created_at?: string
+          creator_id?: string
+          description?: string | null
+          id?: string
+          intro_video_url?: string | null
+          is_published?: boolean
+          key_outcomes?: string[]
+          member_count?: number
+          name?: string
+          slug?: string
+          social_links?: Json
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      community_tiers: {
+        Row: {
+          community_id: string
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean
+          kind: Database["public"]["Enums"]["tier_kind"]
+          name: string
+          price_inr: number | null
+          razorpay_plan_id: string | null
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          community_id: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          kind: Database["public"]["Enums"]["tier_kind"]
+          name: string
+          price_inr?: number | null
+          razorpay_plan_id?: string | null
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          community_id?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          kind?: Database["public"]["Enums"]["tier_kind"]
+          name?: string
+          price_inr?: number | null
+          razorpay_plan_id?: string | null
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "community_tiers_community_id_fkey"
+            columns: ["community_id"]
+            isOneToOne: false
+            referencedRelation: "communities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       follows: {
         Row: {
           created_at: string
@@ -241,6 +339,72 @@ export type Database = {
           viewer_count?: number
         }
         Relationships: []
+      }
+      memberships: {
+        Row: {
+          cancelled_at: string | null
+          community_id: string
+          created_at: string
+          current_period_end: string | null
+          id: string
+          razorpay_order_id: string | null
+          razorpay_payment_id: string | null
+          razorpay_subscription_id: string | null
+          source: Database["public"]["Enums"]["membership_source"]
+          started_at: string | null
+          status: Database["public"]["Enums"]["membership_status"]
+          tier_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          cancelled_at?: string | null
+          community_id: string
+          created_at?: string
+          current_period_end?: string | null
+          id?: string
+          razorpay_order_id?: string | null
+          razorpay_payment_id?: string | null
+          razorpay_subscription_id?: string | null
+          source: Database["public"]["Enums"]["membership_source"]
+          started_at?: string | null
+          status?: Database["public"]["Enums"]["membership_status"]
+          tier_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          cancelled_at?: string | null
+          community_id?: string
+          created_at?: string
+          current_period_end?: string | null
+          id?: string
+          razorpay_order_id?: string | null
+          razorpay_payment_id?: string | null
+          razorpay_subscription_id?: string | null
+          source?: Database["public"]["Enums"]["membership_source"]
+          started_at?: string | null
+          status?: Database["public"]["Enums"]["membership_status"]
+          tier_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "memberships_community_id_fkey"
+            columns: ["community_id"]
+            isOneToOne: false
+            referencedRelation: "communities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "memberships_tier_id_fkey"
+            columns: ["tier_id"]
+            isOneToOne: false
+            referencedRelation: "community_tiers"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       notifications: {
         Row: {
@@ -713,6 +877,7 @@ export type Database = {
     }
     Functions: {
       admin_revoke_seller: { Args: { _user_id: string }; Returns: boolean }
+      become_creator: { Args: never; Returns: boolean }
       decrement_product_stock: {
         Args: { _product_id: string; _qty: number }
         Returns: boolean
@@ -757,9 +922,11 @@ export type Database = {
       }
     }
     Enums: {
-      app_role: "admin" | "seller" | "shopper"
+      app_role: "admin" | "creator" | "shopper"
       application_status: "pending" | "approved" | "rejected"
       livestream_status: "scheduled" | "live" | "ended"
+      membership_source: "free" | "razorpay_sub" | "razorpay_order"
+      membership_status: "active" | "pending" | "expired" | "cancelled"
       order_status:
         | "pending"
         | "confirmed"
@@ -768,6 +935,7 @@ export type Database = {
         | "cancelled"
         | "return_initiated"
         | "return_completed"
+      tier_kind: "free" | "paid_monthly" | "paid_one_time"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -895,9 +1063,11 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["admin", "seller", "shopper"],
+      app_role: ["admin", "creator", "shopper"],
       application_status: ["pending", "approved", "rejected"],
       livestream_status: ["scheduled", "live", "ended"],
+      membership_source: ["free", "razorpay_sub", "razorpay_order"],
+      membership_status: ["active", "pending", "expired", "cancelled"],
       order_status: [
         "pending",
         "confirmed",
@@ -907,6 +1077,7 @@ export const Constants = {
         "return_initiated",
         "return_completed",
       ],
+      tier_kind: ["free", "paid_monthly", "paid_one_time"],
     },
   },
 } as const
