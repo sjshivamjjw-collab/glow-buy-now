@@ -50,11 +50,6 @@ const CommunityDetailPage = () => {
       setCreator(prof);
       setMembership(mem);
       setLoading(false);
-
-      // If the viewer is already an active member, take them straight into the community room.
-      if (mem && (mem as any).status === 'active') {
-        navigate(`/c/${(c as any).slug}/room`, { replace: true });
-      }
     };
     load();
   }, [slug, userId, navigate]);
