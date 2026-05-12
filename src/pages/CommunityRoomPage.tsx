@@ -32,6 +32,23 @@ const CommunityRoomPage = () => {
 
   useEffect(() => { setSearchParams({ tab }, { replace: true }); }, [tab]);
 
+  // Throttle the upgrade nudge: show at most once per 24h per community
+  const dismissKey = community ? `upgradeBannerSeen:${community.id}` : '';
+  const [showUpgrade, setShowUpgrade] = useState(false);
+  const upgradeTier = community && !isCreator
+    ? tiers.filter(t => t.sort_order > tierLevel).sort((a, b) => a.sort_order - b.sort_order)[0]
+    : null;
+  useEffect(() => {
+    if (!upgradeTier || !dismissKey) { setShowUpgrade(false); return; }
+    const last = Number(localStorage.getItem(dismissKey) || 0);
+    setShowUpgrade(Date.now() - last > 24 * 60 * 60 * 1000);
+  }, [upgradeTier?.id, dismissKey]);
+
+  const dismissUpgrade = () => {
+    if (dismissKey) localStorage.setItem(dismissKey, String(Date.now()));
+    setShowUpgrade(false);
+  };
+
   const loading = loadingCommunity || loadingMembership;
 
   if (loading) {
@@ -68,25 +85,6 @@ const CommunityRoomPage = () => {
     { key: 'events', label: 'Events', icon: Calendar },
     { key: 'resources', label: 'Resources', icon: FileBox },
   ];
-
-  // Find a higher tier than the user's current level (members only)
-  const upgradeTier = !isCreator
-    ? tiers.filter(t => t.sort_order > tierLevel).sort((a, b) => a.sort_order - b.sort_order)[0]
-    : null;
-
-  // Throttle the upgrade nudge: show at most once per 24h per community
-  const dismissKey = community ? `upgradeBannerSeen:${community.id}` : '';
-  const [showUpgrade, setShowUpgrade] = useState(false);
-  useEffect(() => {
-    if (!upgradeTier || !dismissKey) { setShowUpgrade(false); return; }
-    const last = Number(localStorage.getItem(dismissKey) || 0);
-    setShowUpgrade(Date.now() - last > 24 * 60 * 60 * 1000);
-  }, [upgradeTier?.id, dismissKey]);
-
-  const dismissUpgrade = () => {
-    if (dismissKey) localStorage.setItem(dismissKey, String(Date.now()));
-    setShowUpgrade(false);
-  };
 
   return (
     <div className="min-h-screen bg-background max-w-lg mx-auto px-4 pt-4 pb-24">
