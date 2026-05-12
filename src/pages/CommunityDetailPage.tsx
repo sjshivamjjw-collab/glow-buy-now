@@ -143,6 +143,9 @@ const CommunityDetailPage = () => {
 
   const social = community.social_links || {};
   const isMember = membership?.status === 'active';
+  const currentTier = isMember ? tiers.find((t: any) => t.id === membership.tier_id) : null;
+  const currentLevel = currentTier?.sort_order ?? -1;
+  const upgradeTiers = isMember ? tiers.filter((t: any) => t.sort_order > currentLevel) : [];
 
   return (
     <div className="min-h-screen bg-background max-w-lg mx-auto pb-24">
@@ -212,36 +215,41 @@ const CommunityDetailPage = () => {
           </div>
         )}
 
-        {isMember ? (
+        {isMember && (
           <button onClick={() => navigate(`/c/${community.slug}/room`)}
-            className="w-full py-4 rounded-2xl bg-primary text-primary-foreground font-bold mb-3">
+            className="w-full py-4 rounded-2xl bg-primary text-primary-foreground font-bold mb-4">
             Enter community
           </button>
-        ) : (
-          <div className="space-y-3 mb-6">
-            <h2 className="text-sm font-bold text-foreground uppercase tracking-wide">Choose a tier</h2>
-            {tiers.length === 0 && <p className="text-sm text-muted-foreground">No tiers available yet.</p>}
-            {tiers.map(t => (
-              <div key={t.id} className="p-4 rounded-2xl bg-card border border-border">
+        )}
+
+        <div className="space-y-3 mb-6">
+          <h2 className="text-sm font-bold text-foreground uppercase tracking-wide">
+            {isMember ? (upgradeTiers.length ? 'Upgrade your tier' : 'Your tier') : 'Choose a tier'}
+          </h2>
+          {tiers.length === 0 && <p className="text-sm text-muted-foreground">No tiers available yet.</p>}
+          {tiers.map((t: any) => {
+            const isCurrent = isMember && t.id === membership.tier_id;
+            const isLower = isMember && t.sort_order < currentLevel;
+            return (
+              <div key={t.id} className={`p-4 rounded-2xl border ${isCurrent ? 'bg-primary/5 border-primary' : 'bg-card border-border'} ${isLower ? 'opacity-50' : ''}`}>
                 <div className="flex items-baseline justify-between mb-1">
-                  <h3 className="font-bold text-foreground">{t.name}</h3>
+                  <h3 className="font-bold text-foreground">{t.name} {isCurrent && <span className="ml-1 text-[10px] uppercase tracking-wide text-primary">Current</span>}</h3>
                   <span className="font-extrabold text-foreground">
                     {t.kind === 'free' ? 'Free' : `₹${Number(t.price_inr).toLocaleString()}`}
                     {t.kind === 'paid_monthly' && <span className="text-xs font-normal text-muted-foreground"> / mo</span>}
                   </span>
                 </div>
                 {t.description && <p className="text-sm text-muted-foreground mb-3">{t.description}</p>}
-                <button
-                  onClick={() => handleJoin(t)}
-                  disabled={joining === t.id}
-                  className="w-full py-2.5 rounded-xl bg-primary text-primary-foreground font-semibold text-sm disabled:opacity-50"
-                >
-                  {joining === t.id ? 'Processing…' : t.kind === 'free' ? 'Join free' : t.kind === 'paid_monthly' ? 'Subscribe' : 'Buy access'}
-                </button>
+                {!isCurrent && !isLower && (
+                  <button onClick={() => handleJoin(t)} disabled={joining === t.id}
+                    className="w-full py-2.5 rounded-xl bg-primary text-primary-foreground font-semibold text-sm disabled:opacity-50">
+                    {joining === t.id ? 'Processing…' : isMember ? `Upgrade to ${t.name}` : t.kind === 'free' ? 'Join free' : t.kind === 'paid_monthly' ? 'Subscribe' : 'Buy access'}
+                  </button>
+                )}
               </div>
-            ))}
-          </div>
-        )}
+            );
+          })}
+        </div>
       </div>
     </div>
   );

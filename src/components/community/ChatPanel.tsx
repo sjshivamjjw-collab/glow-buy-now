@@ -1,14 +1,17 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { Send, Loader2, Trash2, Paperclip, Image as ImageIcon, BarChart3, X, Plus, Check, FileText, Download } from 'lucide-react';
+import { Send, Loader2, Trash2, Paperclip, Image as ImageIcon, BarChart3, X, Plus, Check, FileText, Download, Hash, Lock, Settings, Sparkles } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { format, isToday, isYesterday } from 'date-fns';
+import type { TierInfo } from '@/hooks/useCommunityMembership';
+import { TierLockOverlay } from './TierLockOverlay';
 
 type MsgKind = 'text' | 'image' | 'file' | 'poll';
 interface Msg {
   id: string;
   user_id: string;
+  channel_id: string;
   body: string | null;
   created_at: string;
   kind: MsgKind;
@@ -18,6 +21,14 @@ interface Msg {
   attachment_size: number | null;
   poll: { question: string; options: string[] } | null;
   author?: { name: string | null; username: string | null; avatar_url: string | null } | null;
+}
+interface Channel {
+  id: string;
+  name: string;
+  slug: string;
+  description: string | null;
+  required_tier_level: number;
+  sort_order: number;
 }
 interface PollVote { message_id: string; user_id: string; option_index: number }
 
@@ -33,10 +44,21 @@ const formatSize = (b?: number | null) => {
   return `${(b / 1024 / 1024).toFixed(1)} MB`;
 };
 const dayLabel = (d: Date) => isToday(d) ? 'Today' : isYesterday(d) ? 'Yesterday' : format(d, 'MMM d, yyyy');
+const slugify = (s: string) => s.toLowerCase().trim().replace(/[^a-z0-9\s-]/g, '').replace(/\s+/g, '-').slice(0, 40);
 
-export const ChatPanel = ({ communityId, isCreator }: { communityId: string; isCreator: boolean }) => {
+interface Props {
+  communityId: string;
+  isCreator: boolean;
+  tierLevel: number;
+  tiers: TierInfo[];
+  slug: string;
+}
+
+export const ChatPanel = ({ communityId, isCreator, tierLevel, tiers, slug }: Props) => {
   const { userId, userName, userAvatar } = useAuth();
   const { toast } = useToast();
+  const [channels, setChannels] = useState<Channel[]>([]);
+  const [activeChannelId, setActiveChannelId] = useState<string | null>(null);
   const [messages, setMessages] = useState<Msg[]>([]);
   const [votes, setVotes] = useState<PollVote[]>([]);
   const [text, setText] = useState('');
@@ -45,9 +67,26 @@ export const ChatPanel = ({ communityId, isCreator }: { communityId: string; isC
   const [uploading, setUploading] = useState(false);
   const [showPoll, setShowPoll] = useState(false);
   const [showAttach, setShowAttach] = useState(false);
+  const [showChannelMgr, setShowChannelMgr] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const imageRef = useRef<HTMLInputElement>(null);
+
+  const activeChannel = channels.find(c => c.id === activeChannelId) || null;
+  const canAccessActive = !activeChannel || isCreator || tierLevel >= activeChannel.required_tier_level;
+
+  // Load channels
+  const loadChannels = async () => {
+    const { data } = await supabase.from('community_channels' as any)
+      .select('*').eq('community_id', communityId).order('sort_order').order('created_at');
+    const list = ((data as any[]) || []) as Channel[];
+    setChannels(list);
+    if (list.length && !list.find(c => c.id === activeChannelId)) {
+      setActiveChannelId(list[0].id);
+    }
+  };
+
+  useEffect(() => { loadChannels(); }, [communityId]);
 
   const fetchAuthors = async (userIds: string[]) => {
     if (!userIds.length) return {};
@@ -57,14 +96,18 @@ export const ChatPanel = ({ communityId, isCreator }: { communityId: string; isC
     return map;
   };
 
+  // Load messages for active channel
   useEffect(() => {
+    if (!activeChannelId) { setMessages([]); return; }
     let cancelled = false;
     (async () => {
       setLoading(true);
+      if (!canAccessActive) { setMessages([]); setLoading(false); return; }
       const { data } = await supabase
         .from('community_chat_messages' as any)
         .select('*')
         .eq('community_id', communityId)
+        .eq('channel_id', activeChannelId)
         .order('created_at', { ascending: true })
         .limit(200);
       if (cancelled) return;
@@ -76,19 +119,25 @@ export const ChatPanel = ({ communityId, isCreator }: { communityId: string; isC
       if (pollIds.length) {
         const { data: v } = await supabase.from('community_chat_poll_votes' as any).select('*').in('message_id', pollIds);
         if (!cancelled) setVotes((v as any) || []);
+      } else {
+        setVotes([]);
       }
       setLoading(false);
     })();
 
-    const channel = supabase
-      .channel(`community-chat-${communityId}-${Math.random().toString(36).slice(2)}`)
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'community_chat_messages', filter: `community_id=eq.${communityId}` },
+    if (!canAccessActive) return;
+
+    const ch = supabase
+      .channel(`community-chat-${communityId}-${activeChannelId}-${Math.random().toString(36).slice(2)}`)
+      .on('postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'community_chat_messages', filter: `channel_id=eq.${activeChannelId}` },
         async (payload: any) => {
           const row = payload.new;
           const authors = await fetchAuthors([row.user_id]);
           setMessages(prev => prev.some(m => m.id === row.id) ? prev : [...prev, { ...row, author: authors[row.user_id] || null }]);
         })
-      .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'community_chat_messages', filter: `community_id=eq.${communityId}` },
+      .on('postgres_changes',
+        { event: 'DELETE', schema: 'public', table: 'community_chat_messages', filter: `channel_id=eq.${activeChannelId}` },
         (payload: any) => setMessages(prev => prev.filter(m => m.id !== payload.old.id)))
       .on('postgres_changes', { event: '*', schema: 'public', table: 'community_chat_poll_votes' },
         (payload: any) => {
@@ -104,8 +153,8 @@ export const ChatPanel = ({ communityId, isCreator }: { communityId: string; isC
         })
       .subscribe();
 
-    return () => { cancelled = true; supabase.removeChannel(channel); };
-  }, [communityId]);
+    return () => { cancelled = true; supabase.removeChannel(ch); };
+  }, [activeChannelId, canAccessActive, communityId]);
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' });
@@ -113,10 +162,10 @@ export const ChatPanel = ({ communityId, isCreator }: { communityId: string; isC
 
   const send = async () => {
     const body = text.trim();
-    if (!body || !userId) return;
+    if (!body || !userId || !activeChannelId) return;
     setSending(true);
     const { error } = await supabase.from('community_chat_messages' as any).insert({
-      community_id: communityId, user_id: userId, body, kind: 'text',
+      community_id: communityId, channel_id: activeChannelId, user_id: userId, body, kind: 'text',
     });
     setSending(false);
     if (error) { toast({ title: 'Could not send', description: error.message, variant: 'destructive' }); return; }
@@ -129,7 +178,7 @@ export const ChatPanel = ({ communityId, isCreator }: { communityId: string; isC
   };
 
   const uploadAndSend = async (file: File, kind: 'image' | 'file') => {
-    if (!userId) return;
+    if (!userId || !activeChannelId) return;
     if (file.size > 25 * 1024 * 1024) { toast({ title: 'File too large', description: 'Max 25 MB', variant: 'destructive' }); return; }
     setUploading(true); setShowAttach(false);
     const ext = file.name.split('.').pop() || 'bin';
@@ -138,7 +187,7 @@ export const ChatPanel = ({ communityId, isCreator }: { communityId: string; isC
     if (upErr) { setUploading(false); toast({ title: 'Upload failed', description: upErr.message, variant: 'destructive' }); return; }
     const { data: pub } = supabase.storage.from('community-media').getPublicUrl(path);
     const { error } = await supabase.from('community_chat_messages' as any).insert({
-      community_id: communityId, user_id: userId, kind,
+      community_id: communityId, channel_id: activeChannelId, user_id: userId, kind,
       attachment_url: pub.publicUrl, attachment_name: file.name, attachment_mime: file.type, attachment_size: file.size,
     });
     setUploading(false);
@@ -146,9 +195,9 @@ export const ChatPanel = ({ communityId, isCreator }: { communityId: string; isC
   };
 
   const sendPoll = async (question: string, options: string[]) => {
-    if (!userId) return;
+    if (!userId || !activeChannelId) return;
     const { error } = await supabase.from('community_chat_messages' as any).insert({
-      community_id: communityId, user_id: userId, kind: 'poll',
+      community_id: communityId, channel_id: activeChannelId, user_id: userId, kind: 'poll',
       poll: { question, options },
     });
     if (error) toast({ title: 'Could not create poll', description: error.message, variant: 'destructive' });
@@ -167,12 +216,9 @@ export const ChatPanel = ({ communityId, isCreator }: { communityId: string; isC
     }
   };
 
-  // Group messages by day with consecutive author bubbling
   const grouped = useMemo(() => {
     const out: Array<{ type: 'day'; label: string } | { type: 'msg'; msg: Msg; showHeader: boolean }> = [];
-    let lastDay = '';
-    let lastUser = '';
-    let lastTime = 0;
+    let lastDay = ''; let lastUser = ''; let lastTime = 0;
     messages.forEach(m => {
       const d = new Date(m.created_at);
       const day = format(d, 'yyyy-MM-dd');
@@ -189,140 +235,269 @@ export const ChatPanel = ({ communityId, isCreator }: { communityId: string; isC
   }, [messages]);
 
   return (
-    <div className="flex flex-col h-[calc(100vh-220px)] min-h-[420px]">
-      <div ref={scrollRef} className="flex-1 overflow-y-auto px-1 space-y-1">
-        {loading ? (
-          <div className="flex justify-center py-12"><Loader2 className="w-5 h-5 animate-spin text-muted-foreground" /></div>
-        ) : messages.length === 0 ? (
-          <div className="text-center text-sm text-muted-foreground py-12">Be the first to say hi 👋</div>
-        ) : grouped.map((item, idx) => {
-          if (item.type === 'day') {
-            return (
-              <div key={`day-${idx}`} className="flex items-center gap-2 py-3">
-                <div className="flex-1 h-px bg-border" />
-                <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground px-2">{item.label}</span>
-                <div className="flex-1 h-px bg-border" />
-              </div>
-            );
-          }
-          const m = item.msg;
-          const mine = m.user_id === userId;
-          const name = mine ? (userName || 'You') : (m.author?.name || m.author?.username || 'Member');
-          const avatar = mine ? userAvatar : m.author?.avatar_url;
-          const canDelete = mine || isCreator;
-          const time = format(new Date(m.created_at), 'h:mm a');
-          const accent = colorFor(m.user_id);
-
+    <div className="flex flex-col h-[calc(100vh-260px)] min-h-[420px]">
+      {/* Channel pills */}
+      <div className="flex items-center gap-1.5 mb-3 overflow-x-auto pb-1 scrollbar-thin">
+        {channels.map(c => {
+          const locked = !isCreator && tierLevel < c.required_tier_level;
+          const active = c.id === activeChannelId;
           return (
-            <div key={m.id} className={`flex gap-2.5 group px-1 ${item.showHeader ? 'pt-2' : 'pt-0.5'}`}>
-              <div className="w-9 shrink-0">
-                {item.showHeader ? (
-                  <div className="w-9 h-9 rounded-full flex items-center justify-center overflow-hidden ring-2 ring-background shadow-sm" style={{ background: accent }}>
-                    {avatar ? <img src={avatar} alt={name} className="w-full h-full object-cover" /> :
-                      <span className="text-xs font-bold text-white">{name.slice(0,1).toUpperCase()}</span>}
-                  </div>
-                ) : (
-                  <span className="opacity-0 group-hover:opacity-100 text-[10px] text-muted-foreground block text-right pr-1 pt-1">{time}</span>
-                )}
-              </div>
-              <div className="flex-1 min-w-0">
-                {item.showHeader && (
-                  <div className="flex items-baseline gap-2 mb-0.5">
-                    <span className="text-sm font-semibold text-foreground" style={{ color: mine ? undefined : accent }}>{name}</span>
-                    {mine && <span className="text-[10px] uppercase tracking-wide text-primary font-bold">You</span>}
-                    <span className="text-[11px] text-muted-foreground">{time}</span>
-                  </div>
-                )}
-                <div className="flex items-start gap-2">
-                  <div className="min-w-0 max-w-[85%]">
-                    {m.kind === 'text' && (
-                      <div className="text-sm text-foreground leading-relaxed whitespace-pre-wrap break-words">{m.body}</div>
-                    )}
-                    {m.kind === 'image' && m.attachment_url && (
-                      <a href={m.attachment_url} target="_blank" rel="noreferrer" className="block rounded-xl overflow-hidden border border-border max-w-xs hover:opacity-90 transition">
-                        <img src={m.attachment_url} alt={m.attachment_name || 'image'} className="w-full h-auto object-cover max-h-80" />
-                      </a>
-                    )}
-                    {m.kind === 'file' && m.attachment_url && (
-                      <a href={m.attachment_url} target="_blank" rel="noreferrer"
-                        className="inline-flex items-center gap-3 px-3 py-2.5 rounded-xl bg-card border border-border hover:bg-muted transition max-w-sm">
-                        <div className="w-9 h-9 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">
-                          <FileText className="w-4 h-4" />
-                        </div>
-                        <div className="min-w-0 flex-1">
-                          <div className="text-sm font-medium text-foreground truncate">{m.attachment_name}</div>
-                          <div className="text-[11px] text-muted-foreground">{formatSize(m.attachment_size)}</div>
-                        </div>
-                        <Download className="w-4 h-4 text-muted-foreground" />
-                      </a>
-                    )}
-                    {m.kind === 'poll' && m.poll && (
-                      <PollCard message={m} votes={votes.filter(v => v.message_id === m.id)} userId={userId} onVote={(i) => vote(m.id, i)} />
-                    )}
-                  </div>
-                  {canDelete && (
-                    <button onClick={() => remove(m.id)}
-                      className="opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded text-muted-foreground hover:text-destructive">
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
-                  )}
-                </div>
-              </div>
-            </div>
+            <button key={c.id} onClick={() => setActiveChannelId(c.id)}
+              className={`shrink-0 inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-semibold transition ${
+                active ? 'bg-primary text-primary-foreground' : 'bg-card border border-border text-muted-foreground hover:text-foreground'
+              }`}>
+              {locked ? <Lock className="w-3 h-3" /> : <Hash className="w-3 h-3" />}
+              {c.name}
+              {c.required_tier_level > 0 && <Sparkles className="w-3 h-3 text-amber-500" />}
+            </button>
           );
         })}
-      </div>
-
-      <div className="pt-3 mt-2 border-t border-border">
-        <div className="flex items-end gap-2">
-          <div className="relative">
-            <button
-              onClick={() => setShowAttach(v => !v)}
-              disabled={uploading}
-              className="w-11 h-11 rounded-full bg-muted hover:bg-muted/70 text-foreground flex items-center justify-center disabled:opacity-50"
-              aria-label="Attach"
-            >
-              {uploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className={`w-5 h-5 transition-transform ${showAttach ? 'rotate-45' : ''}`} />}
-            </button>
-            {showAttach && (
-              <div className="absolute bottom-full left-0 mb-2 bg-popover border border-border rounded-2xl shadow-lg p-1.5 w-48 z-10 animate-in fade-in slide-in-from-bottom-2">
-                <button onClick={() => imageRef.current?.click()} className="w-full flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-muted text-sm text-foreground">
-                  <div className="w-8 h-8 rounded-lg bg-pink-500/10 text-pink-500 flex items-center justify-center"><ImageIcon className="w-4 h-4" /></div>
-                  Photo
-                </button>
-                <button onClick={() => fileRef.current?.click()} className="w-full flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-muted text-sm text-foreground">
-                  <div className="w-8 h-8 rounded-lg bg-blue-500/10 text-blue-500 flex items-center justify-center"><Paperclip className="w-4 h-4" /></div>
-                  File
-                </button>
-                <button onClick={() => { setShowAttach(false); setShowPoll(true); }} className="w-full flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-muted text-sm text-foreground">
-                  <div className="w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-500 flex items-center justify-center"><BarChart3 className="w-4 h-4" /></div>
-                  Poll
-                </button>
-              </div>
-            )}
-          </div>
-          <input ref={imageRef} type="file" accept="image/*" className="hidden"
-            onChange={e => { const f = e.target.files?.[0]; if (f) uploadAndSend(f, 'image'); e.currentTarget.value=''; }} />
-          <input ref={fileRef} type="file" className="hidden"
-            onChange={e => { const f = e.target.files?.[0]; if (f) uploadAndSend(f, 'file'); e.currentTarget.value=''; }} />
-
-          <div className="flex-1 flex items-end bg-card border border-border rounded-3xl px-4 py-2 focus-within:ring-2 focus-within:ring-primary">
-            <textarea
-              value={text} onChange={e => setText(e.target.value)}
-              onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); } }}
-              placeholder="Message the community…"
-              maxLength={2000} rows={1}
-              className="flex-1 bg-transparent text-sm text-foreground focus:outline-none resize-none max-h-32 leading-6"
-            />
-          </div>
-          <button onClick={send} disabled={sending || !text.trim()}
-            className="w-11 h-11 rounded-full bg-primary text-primary-foreground flex items-center justify-center disabled:opacity-40 hover:opacity-90 transition shadow-md">
-            {sending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+        {isCreator && (
+          <button onClick={() => setShowChannelMgr(true)}
+            className="shrink-0 inline-flex items-center gap-1 px-2.5 py-1.5 rounded-full text-xs font-semibold bg-card border border-dashed border-border text-muted-foreground">
+            <Settings className="w-3 h-3" /> Manage
           </button>
-        </div>
+        )}
       </div>
+
+      {!canAccessActive && activeChannel ? (
+        <div className="flex-1 flex items-center justify-center">
+          <TierLockOverlay
+            requiredLevel={activeChannel.required_tier_level}
+            tiers={tiers} slug={slug}
+            label={`#${activeChannel.name} is for higher-tier members.`}
+          />
+        </div>
+      ) : (
+        <>
+          <div ref={scrollRef} className="flex-1 overflow-y-auto px-1 space-y-1">
+            {loading ? (
+              <div className="flex justify-center py-12"><Loader2 className="w-5 h-5 animate-spin text-muted-foreground" /></div>
+            ) : messages.length === 0 ? (
+              <div className="text-center text-sm text-muted-foreground py-12">Be the first to say hi 👋</div>
+            ) : grouped.map((item, idx) => {
+              if (item.type === 'day') {
+                return (
+                  <div key={`day-${idx}`} className="flex items-center gap-2 py-3">
+                    <div className="flex-1 h-px bg-border" />
+                    <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground px-2">{item.label}</span>
+                    <div className="flex-1 h-px bg-border" />
+                  </div>
+                );
+              }
+              const m = item.msg;
+              const mine = m.user_id === userId;
+              const name = mine ? (userName || 'You') : (m.author?.name || m.author?.username || 'Member');
+              const avatar = mine ? userAvatar : m.author?.avatar_url;
+              const canDelete = mine || isCreator;
+              const time = format(new Date(m.created_at), 'h:mm a');
+              const accent = colorFor(m.user_id);
+
+              return (
+                <div key={m.id} className={`flex gap-2.5 group px-1 ${item.showHeader ? 'pt-2' : 'pt-0.5'}`}>
+                  <div className="w-9 shrink-0">
+                    {item.showHeader ? (
+                      <div className="w-9 h-9 rounded-full flex items-center justify-center overflow-hidden ring-2 ring-background shadow-sm" style={{ background: accent }}>
+                        {avatar ? <img src={avatar} alt={name} className="w-full h-full object-cover" /> :
+                          <span className="text-xs font-bold text-white">{name.slice(0,1).toUpperCase()}</span>}
+                      </div>
+                    ) : (
+                      <span className="opacity-0 group-hover:opacity-100 text-[10px] text-muted-foreground block text-right pr-1 pt-1">{time}</span>
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    {item.showHeader && (
+                      <div className="flex items-baseline gap-2 mb-0.5">
+                        <span className="text-sm font-semibold text-foreground" style={{ color: mine ? undefined : accent }}>{name}</span>
+                        {mine && <span className="text-[10px] uppercase tracking-wide text-primary font-bold">You</span>}
+                        <span className="text-[11px] text-muted-foreground">{time}</span>
+                      </div>
+                    )}
+                    <div className="flex items-start gap-2">
+                      <div className="min-w-0 max-w-[85%]">
+                        {m.kind === 'text' && (
+                          <div className="text-sm text-foreground leading-relaxed whitespace-pre-wrap break-words">{m.body}</div>
+                        )}
+                        {m.kind === 'image' && m.attachment_url && (
+                          <a href={m.attachment_url} target="_blank" rel="noreferrer" className="block rounded-xl overflow-hidden border border-border max-w-xs hover:opacity-90 transition">
+                            <img src={m.attachment_url} alt={m.attachment_name || 'image'} className="w-full h-auto object-cover max-h-80" />
+                          </a>
+                        )}
+                        {m.kind === 'file' && m.attachment_url && (
+                          <a href={m.attachment_url} target="_blank" rel="noreferrer"
+                            className="inline-flex items-center gap-3 px-3 py-2.5 rounded-xl bg-card border border-border hover:bg-muted transition max-w-sm">
+                            <div className="w-9 h-9 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                              <FileText className="w-4 h-4" />
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <div className="text-sm font-medium text-foreground truncate">{m.attachment_name}</div>
+                              <div className="text-[11px] text-muted-foreground">{formatSize(m.attachment_size)}</div>
+                            </div>
+                            <Download className="w-4 h-4 text-muted-foreground" />
+                          </a>
+                        )}
+                        {m.kind === 'poll' && m.poll && (
+                          <PollCard message={m} votes={votes.filter(v => v.message_id === m.id)} userId={userId} onVote={(i) => vote(m.id, i)} />
+                        )}
+                      </div>
+                      {canDelete && (
+                        <button onClick={() => remove(m.id)}
+                          className="opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded text-muted-foreground hover:text-destructive">
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          <div className="pt-3 mt-2 border-t border-border">
+            <div className="flex items-end gap-2">
+              <div className="relative">
+                <button onClick={() => setShowAttach(v => !v)} disabled={uploading}
+                  className="w-11 h-11 rounded-full bg-muted hover:bg-muted/70 text-foreground flex items-center justify-center disabled:opacity-50">
+                  {uploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className={`w-5 h-5 transition-transform ${showAttach ? 'rotate-45' : ''}`} />}
+                </button>
+                {showAttach && (
+                  <div className="absolute bottom-full left-0 mb-2 bg-popover border border-border rounded-2xl shadow-lg p-1.5 w-48 z-10 animate-in fade-in slide-in-from-bottom-2">
+                    <button onClick={() => imageRef.current?.click()} className="w-full flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-muted text-sm text-foreground">
+                      <div className="w-8 h-8 rounded-lg bg-pink-500/10 text-pink-500 flex items-center justify-center"><ImageIcon className="w-4 h-4" /></div>
+                      Photo
+                    </button>
+                    <button onClick={() => fileRef.current?.click()} className="w-full flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-muted text-sm text-foreground">
+                      <div className="w-8 h-8 rounded-lg bg-blue-500/10 text-blue-500 flex items-center justify-center"><Paperclip className="w-4 h-4" /></div>
+                      File
+                    </button>
+                    <button onClick={() => { setShowAttach(false); setShowPoll(true); }} className="w-full flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-muted text-sm text-foreground">
+                      <div className="w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-500 flex items-center justify-center"><BarChart3 className="w-4 h-4" /></div>
+                      Poll
+                    </button>
+                  </div>
+                )}
+              </div>
+              <input ref={imageRef} type="file" accept="image/*" className="hidden"
+                onChange={e => { const f = e.target.files?.[0]; if (f) uploadAndSend(f, 'image'); e.currentTarget.value=''; }} />
+              <input ref={fileRef} type="file" className="hidden"
+                onChange={e => { const f = e.target.files?.[0]; if (f) uploadAndSend(f, 'file'); e.currentTarget.value=''; }} />
+
+              <div className="flex-1 flex items-end bg-card border border-border rounded-3xl px-4 py-2 focus-within:ring-2 focus-within:ring-primary">
+                <textarea value={text} onChange={e => setText(e.target.value)}
+                  onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); } }}
+                  placeholder={activeChannel ? `Message #${activeChannel.name}…` : 'Message…'}
+                  maxLength={2000} rows={1}
+                  className="flex-1 bg-transparent text-sm text-foreground focus:outline-none resize-none max-h-32 leading-6" />
+              </div>
+              <button onClick={send} disabled={sending || !text.trim()}
+                className="w-11 h-11 rounded-full bg-primary text-primary-foreground flex items-center justify-center disabled:opacity-40 hover:opacity-90 transition shadow-md">
+                {sending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+              </button>
+            </div>
+          </div>
+        </>
+      )}
 
       {showPoll && <PollDialog onClose={() => setShowPoll(false)} onSubmit={sendPoll} />}
+      {showChannelMgr && (
+        <ChannelManager
+          communityId={communityId} channels={channels} tiers={tiers}
+          onClose={() => setShowChannelMgr(false)}
+          onChanged={loadChannels}
+        />
+      )}
+    </div>
+  );
+};
+
+const ChannelManager = ({ communityId, channels, tiers, onClose, onChanged }: {
+  communityId: string; channels: Channel[]; tiers: TierInfo[];
+  onClose: () => void; onChanged: () => void;
+}) => {
+  const { toast } = useToast();
+  const [name, setName] = useState('');
+  const [requiredLevel, setRequiredLevel] = useState<number>(0);
+  const [saving, setSaving] = useState(false);
+
+  const add = async () => {
+    if (!name.trim()) return;
+    setSaving(true);
+    const { error } = await supabase.from('community_channels' as any).insert({
+      community_id: communityId,
+      name: name.trim(),
+      slug: `${slugify(name)}-${Math.random().toString(36).slice(2, 5)}`,
+      required_tier_level: requiredLevel,
+      sort_order: channels.length,
+    });
+    setSaving(false);
+    if (error) { toast({ title: 'Could not add channel', description: error.message, variant: 'destructive' }); return; }
+    setName(''); setRequiredLevel(0);
+    onChanged();
+  };
+
+  const remove = async (id: string) => {
+    if (!confirm('Delete this channel? All its messages will be removed.')) return;
+    await supabase.from('community_chat_messages' as any).delete().eq('channel_id', id);
+    const { error } = await supabase.from('community_channels' as any).delete().eq('id', id);
+    if (error) toast({ title: 'Could not delete', description: error.message, variant: 'destructive' });
+    else onChanged();
+  };
+
+  const setTier = async (id: string, lvl: number) => {
+    const { error } = await supabase.from('community_channels' as any).update({ required_tier_level: lvl }).eq('id', id);
+    if (error) toast({ title: 'Update failed', description: error.message, variant: 'destructive' });
+    else onChanged();
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur flex items-end md:items-center justify-center p-4" onClick={onClose}>
+      <div className="w-full max-w-md bg-card border border-border rounded-3xl p-5 space-y-3 max-h-[85vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+        <div className="flex items-center justify-between">
+          <h3 className="text-lg font-bold text-foreground">Channels</h3>
+          <button onClick={onClose} className="p-1 text-muted-foreground"><X className="w-5 h-5" /></button>
+        </div>
+
+        <div className="space-y-2">
+          {channels.map(c => (
+            <div key={c.id} className="flex items-center gap-2 p-2 rounded-xl bg-background border border-border">
+              <Hash className="w-4 h-4 text-muted-foreground shrink-0" />
+              <span className="flex-1 text-sm font-medium text-foreground truncate">{c.name}</span>
+              <select value={c.required_tier_level} onChange={e => setTier(c.id, Number(e.target.value))}
+                className="px-2 py-1 rounded-lg bg-card border border-border text-xs">
+                <option value={0}>All members</option>
+                {tiers.filter(t => t.sort_order > 0).map(t => (
+                  <option key={t.id} value={t.sort_order}>{t.name}+</option>
+                ))}
+              </select>
+              {channels.length > 1 && (
+                <button onClick={() => remove(c.id)} className="p-1.5 text-muted-foreground hover:text-destructive">
+                  <Trash2 className="w-3.5 h-3.5" />
+                </button>
+              )}
+            </div>
+          ))}
+        </div>
+
+        <div className="border-t border-border pt-3 space-y-2">
+          <p className="text-xs font-semibold text-muted-foreground uppercase">Add channel</p>
+          <input value={name} onChange={e => setName(e.target.value)} placeholder="e.g. Premium VIP"
+            className="w-full px-3 py-2.5 rounded-xl bg-background border border-border text-sm" />
+          <select value={requiredLevel} onChange={e => setRequiredLevel(Number(e.target.value))}
+            className="w-full px-3 py-2.5 rounded-xl bg-background border border-border text-sm">
+            <option value={0}>Open to all members</option>
+            {tiers.filter(t => t.sort_order > 0).map(t => (
+              <option key={t.id} value={t.sort_order}>{t.name} and above</option>
+            ))}
+          </select>
+          <button onClick={add} disabled={saving || !name.trim()}
+            className="w-full py-2.5 rounded-xl bg-primary text-primary-foreground font-semibold text-sm disabled:opacity-50">
+            {saving ? 'Adding…' : 'Add channel'}
+          </button>
+          {tiers.filter(t => t.sort_order > 0).length === 0 && (
+            <p className="text-[11px] text-muted-foreground">Add paid tiers to your community to gate channels.</p>
+          )}
+        </div>
+      </div>
     </div>
   );
 };

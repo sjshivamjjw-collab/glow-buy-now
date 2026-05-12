@@ -2,31 +2,60 @@ import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 
+export interface TierInfo {
+  id: string;
+  name: string;
+  description: string | null;
+  kind: 'free' | 'paid_monthly' | 'paid_one_time';
+  price_inr: number | null;
+  sort_order: number;
+}
+
 export const useCommunityMembership = (communityId: string | null | undefined) => {
   const { userId } = useAuth();
   const [loading, setLoading] = useState(true);
   const [isMember, setIsMember] = useState(false);
   const [isCreator, setIsCreator] = useState(false);
+  const [tiers, setTiers] = useState<TierInfo[]>([]);
+  const [tierLevel, setTierLevel] = useState<number>(-1); // -1 = no membership; creators get Infinity
+  const [currentTier, setCurrentTier] = useState<TierInfo | null>(null);
+
+  const refresh = async () => {
+    if (!communityId || !userId) { setLoading(false); return; }
+    const [{ data: c }, { data: t }, { data: m }] = await Promise.all([
+      supabase.from('communities' as any).select('creator_id').eq('id', communityId).maybeSingle(),
+      supabase.from('community_tiers' as any).select('id, name, description, kind, price_inr, sort_order')
+        .eq('community_id', communityId).eq('is_active', true).order('sort_order'),
+      supabase.from('memberships' as any).select('tier_id, status')
+        .eq('community_id', communityId).eq('user_id', userId).eq('status', 'active').maybeSingle(),
+    ]);
+    const tierList = ((t as any[]) || []) as TierInfo[];
+    setTiers(tierList);
+    const creator = (c as any)?.creator_id === userId;
+    setIsCreator(creator);
+    setIsMember(creator || !!m);
+    if (creator) {
+      setTierLevel(Number.POSITIVE_INFINITY);
+      setCurrentTier(null);
+    } else if (m) {
+      const ct = tierList.find(x => x.id === (m as any).tier_id) || null;
+      setCurrentTier(ct);
+      setTierLevel(ct ? ct.sort_order : 0);
+    } else {
+      setTierLevel(-1);
+      setCurrentTier(null);
+    }
+    setLoading(false);
+  };
 
   useEffect(() => {
-    if (!communityId || !userId) {
-      setLoading(false);
-      return;
-    }
+    if (!communityId || !userId) { setLoading(false); return; }
+    setLoading(true);
     let cancelled = false;
-    (async () => {
-      const [{ data: c }, { data: m }] = await Promise.all([
-        supabase.from('communities').select('creator_id').eq('id', communityId).maybeSingle(),
-        supabase.from('memberships').select('id').eq('community_id', communityId).eq('user_id', userId).eq('status', 'active').maybeSingle(),
-      ]);
-      if (cancelled) return;
-      const creator = c?.creator_id === userId;
-      setIsCreator(creator);
-      setIsMember(creator || !!m);
-      setLoading(false);
-    })();
+    (async () => { if (!cancelled) await refresh(); })();
     return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [communityId, userId]);
 
-  return { isMember, isCreator, loading };
+  return { isMember, isCreator, loading, tiers, tierLevel, currentTier, refresh };
 };
