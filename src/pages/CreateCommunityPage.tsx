@@ -326,9 +326,16 @@ const CreateCommunityPage = () => {
                       <p className="text-base font-bold text-foreground">
                         ₹{t.price_inr || '0'}
                         <span className="text-xs font-medium text-muted-foreground ml-1">
-                          {t.kind === 'paid_monthly' ? '/ month' : 'one-time'}
+                          {t.kind === 'paid_monthly'
+                            ? (t.billing_period_months === 1 ? '/ month' : `every ${t.billing_period_months} months`)
+                            : 'one-time'}
                         </span>
                       </p>
+                      {t.kind === 'paid_monthly' && Number(t.trial_days) > 0 && (
+                        <span className="text-[11px] font-semibold text-primary">
+                          {t.trial_days}-day free trial
+                        </span>
+                      )}
                     </div>
                     <div className="grid grid-cols-2 gap-2">
                       <button
