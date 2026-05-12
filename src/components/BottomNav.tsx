@@ -1,19 +1,17 @@
-import { Compass, Users, Bell, User, LayoutDashboard } from 'lucide-react';
+import { Compass, Users, User, LayoutDashboard, Plus } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { useNotifications } from '@/hooks/useNotifications';
 
 const BottomNav = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { isCreator } = useAuth();
-  const { unreadCount } = useNotifications();
 
   const tabs = [
     { icon: Compass, label: 'Discover', path: '/' },
     { icon: Users, label: 'My communities', path: '/mine' },
+    { icon: Plus, label: 'New', path: '/communities/new' },
     ...(isCreator ? [{ icon: LayoutDashboard, label: 'Creator', path: '/creator' }] : []),
-    { icon: Bell, label: 'Alerts', path: '/notifications', badge: unreadCount },
     { icon: User, label: 'Profile', path: '/profile' },
   ];
 
