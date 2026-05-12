@@ -71,25 +71,47 @@ Deno.serve(async (req) => {
     });
 
     if (createErr) {
-      if (createErr.message?.includes("already been registered")) {
-        // User exists — find them via profiles table
+      if (createErr.message?.includes("already been registered") || createErr.message?.includes("already exists")) {
+        // User exists — look them up via auth admin by email
+        let foundUserId: string | null = null;
         const phoneVariants = [normalizedPhone, normalizedPhone.replace("+", "")];
+
+        // Try profiles table first (fast path)
         const { data: existingProfile } = await supabase
           .from("profiles")
           .select("id")
           .in("phone", phoneVariants)
           .maybeSingle();
 
-        if (!existingProfile) {
+        if (existingProfile) {
+          foundUserId = existingProfile.id;
+        } else {
+          // Fallback: page through auth users to find by email
+          for (let page = 1; page <= 20 && !foundUserId; page++) {
+            const { data: list, error: listErr } = await supabase.auth.admin.listUsers({ page, perPage: 200 });
+            if (listErr) break;
+            const match = list.users.find((u) => u.email === fakeEmail || u.phone === normalizedPhone || u.phone === normalizedPhone.replace("+", ""));
+            if (match) foundUserId = match.id;
+            if (!list.users.length || list.users.length < 200) break;
+          }
+        }
+
+        if (!foundUserId) {
           return new Response(JSON.stringify({ error: "User not found" }), {
             status: 500,
             headers: { ...corsHeaders, "Content-Type": "application/json" },
           });
         }
-        userId = existingProfile.id;
+        userId = foundUserId;
+
+        // Ensure profile row exists so future logins use the fast path
+        await supabase.from("profiles").upsert(
+          { id: userId, phone: normalizedPhone },
+          { onConflict: "id" }
+        );
 
         // Rotate password to a fresh random value for this login
-        await supabase.auth.admin.updateUserById(userId, { password: newPassword });
+        await supabase.auth.admin.updateUserById(userId, { password: newPassword, email: fakeEmail });
       } else {
         console.error("Create user error:", createErr);
         return new Response(JSON.stringify({ error: "Failed to create user" }), {
