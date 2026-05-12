@@ -123,7 +123,7 @@ const CommunityRoomPage = () => {
         </div>
       )}
 
-      <div className="grid grid-cols-3 gap-1 p-1 bg-card border border-border rounded-2xl mb-5">
+      <div className="grid grid-cols-4 gap-1 p-1 bg-card border border-border rounded-2xl mb-5">
         {tabs.map(({ key, label, icon: Icon }) => (
           <button key={key} onClick={() => setTab(key)}
             className={`py-2 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors ${
@@ -137,6 +137,7 @@ const CommunityRoomPage = () => {
       {tab === 'chat' && <ChatPanel communityId={community.id} isCreator={isCreator} isModerator={isModerator} tierLevel={tierLevel} tiers={tiers} slug={slug!} />}
       {tab === 'events' && <EventsPanel communityId={community.id} isCreator={isCreator} tierLevel={tierLevel} tiers={tiers} slug={slug!} />}
       {tab === 'resources' && <ResourcesPanel communityId={community.id} isCreator={isCreator} tierLevel={tierLevel} tiers={tiers} slug={slug!} />}
+      {tab === 'plans' && <PlansPanel communityId={community.id} communityName={community.name} tiers={tiers} currentTier={currentTier} isCreator={isCreator} onJoined={refreshMembership} />}
     </div>
   );
 };
