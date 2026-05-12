@@ -84,6 +84,10 @@ const CreatorDashboard = () => {
               <div className="flex gap-2">
                 <button onClick={() => navigate(`/c/${c.slug}`)}
                   className="flex-1 py-2 rounded-xl bg-secondary text-foreground text-sm font-semibold">View</button>
+                <button onClick={() => navigate(`/communities/${c.id}/edit`)}
+                  className="px-3 py-2 rounded-xl bg-secondary text-foreground text-sm font-semibold flex items-center gap-1">
+                  <Pencil className="w-4 h-4" /> Edit
+                </button>
                 {c.approval_status === 'approved' && (
                   <button onClick={() => togglePublish(c)}
                     className="px-3 py-2 rounded-xl bg-secondary text-foreground text-sm font-semibold flex items-center gap-1">
