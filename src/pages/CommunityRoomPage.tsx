@@ -114,7 +114,7 @@ const CommunityRoomPage = () => {
   return (
     <div className="min-h-screen bg-background max-w-lg mx-auto px-4 pt-4 pb-24">
       <div className="flex items-center gap-3 mb-3">
-        <button onClick={() => navigate('/')} className="p-2 rounded-xl bg-card border border-border">
+        <button onClick={() => navigate('/', { replace: true })} className="p-2 rounded-xl bg-card border border-border">
           <ArrowLeft className="w-5 h-5 text-foreground" />
         </button>
         <div className="flex-1 min-w-0">
