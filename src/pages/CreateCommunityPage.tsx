@@ -399,7 +399,9 @@ const CreateCommunityPage = () => {
                     ))}
                   </div>
                 </div>
-            ))}
+              </div>
+              );
+            })}
             <button onClick={addTier} className="flex items-center gap-1 text-primary text-sm font-semibold">
               <Plus className="w-4 h-4" /> Add tier
             </button>
