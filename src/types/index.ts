@@ -1,4 +1,9 @@
-export type UserRole = 'creator' | 'shopper' | 'admin';
+export type UserRole = 'creator' | 'shopper' | 'admin' | 'seller';
+
+// Legacy types — kept as `any` for dormant shopping pages still in the codebase
+export type Livestream = any;
+export type ChatMessage = any;
+export type Product = any;
 
 export interface Community {
   id: string;
