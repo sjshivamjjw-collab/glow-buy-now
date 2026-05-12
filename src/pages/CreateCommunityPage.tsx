@@ -5,12 +5,15 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { ArrowLeft, Plus, Trash2, Image as ImageIcon, Video, Loader2 } from 'lucide-react';
 
+type PostPerm = 'all_members' | 'moderators' | 'creator_only';
+
 interface TierDraft {
   id: string;
   name: string;
   description: string;
   kind: 'free' | 'paid_monthly' | 'paid_one_time';
   price_inr: string;
+  post_permission: PostPerm;
 }
 
 const slugify = (s: string) =>
@@ -30,7 +33,7 @@ const CreateCommunityPage = () => {
   const [outcomes, setOutcomes] = useState<string[]>(['']);
   const [social, setSocial] = useState({ youtube: '', instagram: '', x: '', website: '' });
   const [tiers, setTiers] = useState<TierDraft[]>([
-    { id: newId(), name: 'Free', description: 'Get a taste of the community.', kind: 'free', price_inr: '' },
+    { id: newId(), name: 'Free', description: 'Get a taste of the community.', kind: 'free', price_inr: '', post_permission: 'all_members' },
   ]);
   const [uploadingCover, setUploadingCover] = useState(false);
   const [uploadingVideo, setUploadingVideo] = useState(false);
@@ -65,7 +68,7 @@ const CreateCommunityPage = () => {
   };
 
   const addTier = () =>
-    setTiers(prev => [...prev, { id: newId(), name: '', description: '', kind: 'paid_monthly', price_inr: '' }]);
+    setTiers(prev => [...prev, { id: newId(), name: '', description: '', kind: 'paid_monthly', price_inr: '', post_permission: 'all_members' }]);
   const removeTier = (id: string) => setTiers(prev => prev.filter(t => t.id !== id));
   const updateTier = (id: string, patch: Partial<TierDraft>) =>
     setTiers(prev => prev.map(t => t.id === id ? { ...t, ...patch } : t));
@@ -125,6 +128,19 @@ const CreateCommunityPage = () => {
       setSaving(false);
       toast({ title: 'Could not save tiers', description: tErr.message, variant: 'destructive' });
       return;
+    }
+
+    // Auto-create one chat channel per tier with the chosen post permission
+    const channelRows = (insertedTiers as any[] || []).map((tier, idx) => ({
+      community_id: (community as any).id,
+      name: `${tier.name} chat`,
+      slug: `${slugify(tier.name)}-chat`,
+      required_tier_level: tier.sort_order ?? idx,
+      sort_order: tier.sort_order ?? idx,
+      post_permission: validTiers[idx]?.post_permission ?? 'all_members',
+    }));
+    if (channelRows.length) {
+      await supabase.from('community_channels' as any).insert(channelRows);
     }
 
     // Create Razorpay plans for monthly tiers (best-effort, non-blocking)
@@ -268,6 +284,29 @@ const CreateCommunityPage = () => {
                         className="w-full pl-7 pr-3 py-2 rounded-lg bg-secondary text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" />
                     </div>
                   )}
+                </div>
+                <div>
+                  <p className="text-[11px] font-semibold text-muted-foreground mb-1.5">Who can post in this tier's chat</p>
+                  <div className="grid grid-cols-3 gap-1.5">
+                    {([
+                      { v: 'all_members', label: 'Everyone' },
+                      { v: 'moderators', label: 'Moderators' },
+                      { v: 'creator_only', label: 'Admin only' },
+                    ] as { v: PostPerm; label: string }[]).map(opt => (
+                      <button
+                        key={opt.v}
+                        type="button"
+                        onClick={() => updateTier(t.id, { post_permission: opt.v })}
+                        className={`px-2 py-2 rounded-lg text-xs font-semibold transition-colors ${
+                          t.post_permission === opt.v
+                            ? 'bg-primary text-primary-foreground'
+                            : 'bg-secondary text-foreground hover:bg-secondary/70'
+                        }`}
+                      >
+                        {opt.label}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               </div>
             ))}
