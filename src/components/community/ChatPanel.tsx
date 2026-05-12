@@ -184,6 +184,7 @@ export const ChatPanel = ({ communityId, isCreator, isModerator, tierLevel, tier
   const send = async () => {
     const body = text.trim();
     if (!body || !userId || !activeChannelId) return;
+    if (!canPostInActive) { toast({ title: 'Posting disabled', description: postRestrictionLabel, variant: 'destructive' }); return; }
     setSending(true);
     const { error } = await supabase.from('community_chat_messages' as any).insert({
       community_id: communityId, channel_id: activeChannelId, user_id: userId, body, kind: 'text',
