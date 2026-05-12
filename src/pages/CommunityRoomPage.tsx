@@ -32,6 +32,23 @@ const CommunityRoomPage = () => {
 
   useEffect(() => { setSearchParams({ tab }, { replace: true }); }, [tab]);
 
+  // Throttle the upgrade nudge: show at most once per 24h per community
+  const dismissKey = community ? `upgradeBannerSeen:${community.id}` : '';
+  const [showUpgrade, setShowUpgrade] = useState(false);
+  const upgradeTier = community && !isCreator
+    ? tiers.filter(t => t.sort_order > tierLevel).sort((a, b) => a.sort_order - b.sort_order)[0]
+    : null;
+  useEffect(() => {
+    if (!upgradeTier || !dismissKey) { setShowUpgrade(false); return; }
+    const last = Number(localStorage.getItem(dismissKey) || 0);
+    setShowUpgrade(Date.now() - last > 24 * 60 * 60 * 1000);
+  }, [upgradeTier?.id, dismissKey]);
+
+  const dismissUpgrade = () => {
+    if (dismissKey) localStorage.setItem(dismissKey, String(Date.now()));
+    setShowUpgrade(false);
+  };
+
   const loading = loadingCommunity || loadingMembership;
 
   if (loading) {
