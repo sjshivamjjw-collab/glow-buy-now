@@ -125,6 +125,8 @@ const CreateCommunityPage = () => {
       description: t.description.trim() || null,
       kind: t.kind,
       price_inr: t.kind === 'free' ? null : Number(t.price_inr),
+      billing_period_months: t.kind === 'paid_monthly' ? (t.billing_period_months || 1) : 1,
+      trial_days: t.kind === 'paid_monthly' ? (Number(t.trial_days) || 0) : 0,
       sort_order: idx,
       is_active: true,
     }));
