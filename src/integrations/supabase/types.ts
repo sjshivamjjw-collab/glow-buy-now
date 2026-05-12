@@ -224,6 +224,39 @@ export type Database = {
         }
         Relationships: []
       }
+      community_channels: {
+        Row: {
+          community_id: string
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+          required_tier_level: number
+          slug: string
+          sort_order: number
+        }
+        Insert: {
+          community_id: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+          required_tier_level?: number
+          slug: string
+          sort_order?: number
+        }
+        Update: {
+          community_id?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+          required_tier_level?: number
+          slug?: string
+          sort_order?: number
+        }
+        Relationships: []
+      }
       community_chat_messages: {
         Row: {
           attachment_mime: string | null
@@ -231,6 +264,7 @@ export type Database = {
           attachment_size: number | null
           attachment_url: string | null
           body: string | null
+          channel_id: string
           community_id: string
           created_at: string
           id: string
@@ -244,6 +278,7 @@ export type Database = {
           attachment_size?: number | null
           attachment_url?: string | null
           body?: string | null
+          channel_id: string
           community_id: string
           created_at?: string
           id?: string
@@ -257,6 +292,7 @@ export type Database = {
           attachment_size?: number | null
           attachment_url?: string | null
           body?: string | null
+          channel_id?: string
           community_id?: string
           created_at?: string
           id?: string
@@ -332,6 +368,7 @@ export type Database = {
           ends_at: string | null
           id: string
           location_url: string | null
+          required_tier_level: number
           starts_at: string
           title: string
           updated_at: string
@@ -345,6 +382,7 @@ export type Database = {
           ends_at?: string | null
           id?: string
           location_url?: string | null
+          required_tier_level?: number
           starts_at: string
           title: string
           updated_at?: string
@@ -358,6 +396,7 @@ export type Database = {
           ends_at?: string | null
           id?: string
           location_url?: string | null
+          required_tier_level?: number
           starts_at?: string
           title?: string
           updated_at?: string
@@ -373,6 +412,7 @@ export type Database = {
           file_size: number | null
           id: string
           kind: Database["public"]["Enums"]["resource_kind"]
+          required_tier_level: number
           title: string
           url: string
         }
@@ -384,6 +424,7 @@ export type Database = {
           file_size?: number | null
           id?: string
           kind: Database["public"]["Enums"]["resource_kind"]
+          required_tier_level?: number
           title: string
           url: string
         }
@@ -395,6 +436,7 @@ export type Database = {
           file_size?: number | null
           id?: string
           kind?: Database["public"]["Enums"]["resource_kind"]
+          required_tier_level?: number
           title?: string
           url?: string
         }
@@ -1066,6 +1108,14 @@ export type Database = {
     Functions: {
       admin_revoke_seller: { Args: { _user_id: string }; Returns: boolean }
       become_creator: { Args: never; Returns: boolean }
+      can_access_community_tier: {
+        Args: {
+          _community_id: string
+          _required_level: number
+          _user_id: string
+        }
+        Returns: boolean
+      }
       decrement_product_stock: {
         Args: { _product_id: string; _qty: number }
         Returns: boolean
@@ -1111,6 +1161,10 @@ export type Database = {
       is_active_community_member: {
         Args: { _community_id: string; _user_id: string }
         Returns: boolean
+      }
+      user_community_tier_level: {
+        Args: { _community_id: string; _user_id: string }
+        Returns: number
       }
     }
     Enums: {
