@@ -443,6 +443,12 @@ export const ChatPanel = ({ communityId, isCreator, isModerator, tierLevel, tier
           onChanged={loadChannels}
         />
       )}
+      {showModMgr && (
+        <ModeratorManager
+          communityId={communityId}
+          onClose={() => setShowModMgr(false)}
+        />
+      )}
     </div>
   );
 };
