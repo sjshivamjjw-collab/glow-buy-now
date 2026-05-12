@@ -29,7 +29,7 @@ const newId = () => Math.random().toString(36).slice(2, 10);
 
 const CreateCommunityPage = () => {
   const navigate = useNavigate();
-  const { userId } = useAuth();
+  const { userId, isCreator, refreshRoles } = useAuth();
   const { toast } = useToast();
 
   const [name, setName] = useState('');
