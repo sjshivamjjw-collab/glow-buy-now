@@ -84,7 +84,7 @@ const CommunityDetailPage = () => {
           body: { tier_id: tier.id },
         });
         if (error || !data) throw error || new Error('No data');
-        const rzp = new window.Razorpay({
+        const rzp = new (window as any).Razorpay({
           key: data.key_id,
           name: community.name,
           description: tier.name,
@@ -205,8 +205,8 @@ const CommunityDetailPage = () => {
 
         {(social.youtube || social.instagram || social.x || social.website) && (
           <div className="flex items-center gap-2 mb-6">
-            {social.youtube && <a href={social.youtube} target="_blank" rel="noopener noreferrer" className="p-2 rounded-xl bg-secondary"><Youtube className="w-4 h-4" /></a>}
-            {social.instagram && <a href={social.instagram} target="_blank" rel="noopener noreferrer" className="p-2 rounded-xl bg-secondary"><Instagram className="w-4 h-4" /></a>}
+            {social.youtube && <a href={social.youtube} target="_blank" rel="noopener noreferrer" className="p-2 rounded-xl bg-secondary text-xs font-bold"><Play className="w-4 h-4" /></a>}
+            {social.instagram && <a href={social.instagram} target="_blank" rel="noopener noreferrer" className="p-2 rounded-xl bg-secondary"><Camera className="w-4 h-4" /></a>}
             {social.x && <a href={social.x} target="_blank" rel="noopener noreferrer" className="p-2 rounded-xl bg-secondary text-xs font-bold">X</a>}
             {social.website && <a href={social.website} target="_blank" rel="noopener noreferrer" className="p-2 rounded-xl bg-secondary"><Globe className="w-4 h-4" /></a>}
           </div>
