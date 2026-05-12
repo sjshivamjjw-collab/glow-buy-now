@@ -74,7 +74,7 @@ Deno.serve(async (req) => {
 
     const { error: uErr } = await admin.from('memberships').update({
       status: 'active',
-      source: tier?.kind === 'paid_monthly' ? 'paid_subscription' : 'paid_one_time',
+      source: tier?.kind === 'paid_monthly' ? 'razorpay_sub' : 'razorpay_order',
       razorpay_payment_id,
       razorpay_order_id,
       started_at: now.toISOString(),
