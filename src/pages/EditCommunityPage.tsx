@@ -70,6 +70,7 @@ const EditCommunityPage = () => {
       setOutcomes((community.key_outcomes && community.key_outcomes.length) ? community.key_outcomes : ['']);
       const s = community.social_links || {};
       setSocial({ youtube: s.youtube || '', instagram: s.instagram || '', x: s.x || '', website: s.website || '' });
+      setAttachments(Array.isArray(community.info_attachments) ? community.info_attachments : []);
 
       const { data: tierRows } = await supabase
         .from('community_tiers' as any).select('*').eq('community_id', communityId).order('sort_order');
