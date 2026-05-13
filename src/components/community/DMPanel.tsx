@@ -227,10 +227,9 @@ const DMThreadView = ({ thread, other, communityId, onBack }: {
     const path = `dm/${communityId}/${userId}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
     const { error: upErr } = await supabase.storage.from('community-media').upload(path, file, { contentType: file.type });
     if (upErr) { setUploading(false); toast({ title: 'Upload failed', description: upErr.message, variant: 'destructive' }); return; }
-    const { data: pub } = supabase.storage.from('community-media').getPublicUrl(path);
     const { error } = await supabase.from('community_dm_messages' as any).insert({
       thread_id: thread.id, community_id: communityId, sender_id: userId, recipient_id: other.id, kind,
-      attachment_url: pub.publicUrl, attachment_name: file.name, attachment_mime: file.type, attachment_size: file.size,
+      attachment_url: path, attachment_name: file.name, attachment_mime: file.type, attachment_size: file.size,
       body: null,
     });
     setUploading(false);
