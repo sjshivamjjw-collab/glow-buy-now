@@ -352,17 +352,39 @@ const CreateCommunityPage = () => {
           </div>
         </div>
 
-        {/* Social links */}
+        {/* Social links — opt-in */}
         <div>
-          <label className="text-xs font-semibold text-muted-foreground mb-2 block">Social links</label>
-          <div className="space-y-2">
-            {(['youtube', 'instagram', 'x', 'website'] as const).map(k => (
-              <input key={k} value={(social as any)[k]} onChange={e => setSocial(prev => ({ ...prev, [k]: e.target.value }))}
-                placeholder={k === 'website' ? 'Website URL' : `${k.charAt(0).toUpperCase() + k.slice(1)} URL`}
-                className="w-full px-4 py-2.5 rounded-xl bg-secondary text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 text-sm" />
-            ))}
-          </div>
+          <label className="text-xs font-semibold text-muted-foreground mb-2 block">Social links (optional)</label>
+          {(() => {
+            const ALL = ['youtube', 'instagram', 'x', 'website'] as const;
+            const labels: Record<string, string> = { youtube: 'YouTube', instagram: 'Instagram', x: 'X (Twitter)', website: 'Website' };
+            const active = ALL.filter(k => k in social);
+            const remaining = ALL.filter(k => !(k in social));
+            return (
+              <div className="space-y-2">
+                {active.map(k => (
+                  <div key={k} className="flex items-center gap-2">
+                    <input value={(social as any)[k] ?? ''} onChange={e => setSocial(prev => ({ ...prev, [k]: e.target.value }))}
+                      placeholder={`${labels[k]} URL`}
+                      className="flex-1 px-4 py-2.5 rounded-xl bg-secondary text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 text-sm" />
+                    <button type="button" onClick={() => setSocial(prev => { const n: any = { ...prev }; delete n[k]; return n; })}
+                      className="p-2 rounded-xl bg-secondary text-muted-foreground hover:text-destructive">
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                ))}
+                {remaining.length > 0 && (
+                  <select value="" onChange={e => { if (e.target.value) setSocial(prev => ({ ...prev, [e.target.value]: '' })); }}
+                    className="w-full px-4 py-2.5 rounded-xl bg-secondary text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/30">
+                    <option value="">+ Add a social link…</option>
+                    {remaining.map(k => <option key={k} value={k}>{labels[k]}</option>)}
+                  </select>
+                )}
+              </div>
+            );
+          })()}
         </div>
+
 
         {/* Pricing tiers — simplified */}
         <div className="space-y-4">
