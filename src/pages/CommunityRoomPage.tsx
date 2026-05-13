@@ -128,6 +128,11 @@ const CommunityRoomPage = () => {
             {isCreator ? 'You host this' : currentTier ? `${currentTier.name} member` : 'Member'}
           </p>
         </div>
+        <button onClick={() => navigate(`/c/${slug}`)}
+          className="px-3 py-2 rounded-xl bg-card border border-border text-xs font-semibold text-foreground"
+          aria-label="Know more about community">
+          Know more
+        </button>
         <button onClick={() => shareCommunity({ slug: slug!, name: community.name, toast })}
           className="p-2 rounded-xl bg-card border border-border" aria-label="Share community">
           <Share2 className="w-5 h-5 text-foreground" />
