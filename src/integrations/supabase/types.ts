@@ -361,6 +361,86 @@ export type Database = {
           },
         ]
       }
+      community_dm_messages: {
+        Row: {
+          attachment_mime: string | null
+          attachment_name: string | null
+          attachment_size: number | null
+          attachment_url: string | null
+          body: string | null
+          community_id: string
+          created_at: string
+          id: string
+          kind: string
+          recipient_id: string
+          sender_id: string
+          thread_id: string
+        }
+        Insert: {
+          attachment_mime?: string | null
+          attachment_name?: string | null
+          attachment_size?: number | null
+          attachment_url?: string | null
+          body?: string | null
+          community_id: string
+          created_at?: string
+          id?: string
+          kind?: string
+          recipient_id: string
+          sender_id: string
+          thread_id: string
+        }
+        Update: {
+          attachment_mime?: string | null
+          attachment_name?: string | null
+          attachment_size?: number | null
+          attachment_url?: string | null
+          body?: string | null
+          community_id?: string
+          created_at?: string
+          id?: string
+          kind?: string
+          recipient_id?: string
+          sender_id?: string
+          thread_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "community_dm_messages_thread_id_fkey"
+            columns: ["thread_id"]
+            isOneToOne: false
+            referencedRelation: "community_dm_threads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      community_dm_threads: {
+        Row: {
+          community_id: string
+          created_at: string
+          id: string
+          last_message_at: string | null
+          user_a: string
+          user_b: string
+        }
+        Insert: {
+          community_id: string
+          created_at?: string
+          id?: string
+          last_message_at?: string | null
+          user_a: string
+          user_b: string
+        }
+        Update: {
+          community_id?: string
+          created_at?: string
+          id?: string
+          last_message_at?: string | null
+          user_a?: string
+          user_b?: string
+        }
+        Relationships: []
+      }
       community_event_rsvps: {
         Row: {
           created_at: string
@@ -1244,6 +1324,10 @@ export type Database = {
           name: string
           username: string
         }[]
+      }
+      get_or_create_dm_thread: {
+        Args: { _community_id: string; _other_user_id: string }
+        Returns: string
       }
       get_seller_public_profile: {
         Args: { _seller_id: string }
