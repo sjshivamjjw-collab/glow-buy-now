@@ -23,6 +23,7 @@ const CommunityRoomPage = () => {
   const { isMember, isCreator, isAdmin, loading: loadingMembership, tiers, tierLevel, currentTier, refresh: refreshMembership } = useCommunityMembership(community?.id);
   const initialTab = (searchParams.get('tab') as Tab) || 'chat';
   const [tab, setTab] = useState<Tab>(initialTab);
+  const { toast } = useToast();
 
   useEffect(() => {
     if (!slug) return;
