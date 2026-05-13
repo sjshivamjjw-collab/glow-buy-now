@@ -1,11 +1,13 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { Send, Loader2, Trash2, Paperclip, Image as ImageIcon, BarChart3, X, Plus, Check, FileText, Download, Hash, Lock, Settings, Sparkles, Shield, ShieldCheck, Search, UserPlus, Pencil } from 'lucide-react';
+import { Send, Loader2, Trash2, Paperclip, Image as ImageIcon, BarChart3, X, Plus, Check, FileText, Download, Hash, Lock, Settings, Sparkles, Shield, ShieldCheck, Search, UserPlus, Pencil, MessageCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { format, isToday, isYesterday } from 'date-fns';
 import type { TierInfo } from '@/hooks/useCommunityMembership';
 import { TierLockOverlay } from './TierLockOverlay';
+import { DMPanel } from './DMPanel';
 
 type MsgKind = 'text' | 'image' | 'file' | 'poll';
 interface Msg {
@@ -59,6 +61,17 @@ interface Props {
 export const ChatPanel = ({ communityId, isCreator, isAdmin, tierLevel, tiers, slug }: Props) => {
   const { userId, userName, userAvatar } = useAuth();
   const { toast } = useToast();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const dmParam = searchParams.get('dm');
+  const [dmMode, setDmMode] = useState<boolean>(!!dmParam);
+  useEffect(() => { if (dmParam) setDmMode(true); }, [dmParam]);
+
+  const setDmUserParam = (uid: string | null) => {
+    const next = new URLSearchParams(searchParams);
+    if (uid) next.set('dm', uid); else next.delete('dm');
+    setSearchParams(next, { replace: true });
+  };
+
   const [channels, setChannels] = useState<Channel[]>([]);
   const [activeChannelId, setActiveChannelId] = useState<string | null>(null);
   const [messages, setMessages] = useState<Msg[]>([]);
@@ -273,8 +286,21 @@ export const ChatPanel = ({ communityId, isCreator, isAdmin, tierLevel, tiers, s
 
   return (
     <div className="flex flex-col h-[calc(100vh-260px)] min-h-[420px]">
+      {dmMode ? (
+        <DMPanel
+          communityId={communityId}
+          initialUserId={dmParam}
+          onClose={() => { setDmMode(false); setDmUserParam(null); }}
+          onOpenChange={(uid) => setDmUserParam(uid)}
+        />
+      ) : (
+      <>
       {/* Channel pills */}
       <div className="flex items-center gap-1.5 mb-3 overflow-x-auto pb-1 scrollbar-thin">
+        <button onClick={() => { setDmMode(true); }}
+          className="shrink-0 inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-semibold bg-gradient-to-r from-primary/15 to-pink-500/15 border border-primary/30 text-primary">
+          <MessageCircle className="w-3 h-3" /> DMs
+        </button>
         {channels.map(c => {
           const locked = !isCreator && tierLevel < c.required_tier_level;
           const active = c.id === activeChannelId;
@@ -340,10 +366,14 @@ export const ChatPanel = ({ communityId, isCreator, isAdmin, tierLevel, tiers, s
                 <div key={m.id} className={`flex gap-2.5 group px-1 ${item.showHeader ? 'pt-2' : 'pt-0.5'}`}>
                   <div className="w-9 shrink-0">
                     {item.showHeader ? (
-                      <div className="w-9 h-9 rounded-full flex items-center justify-center overflow-hidden ring-2 ring-background shadow-sm" style={{ background: accent }}>
+                      <button
+                        onClick={() => { if (!mine) { setDmUserParam(m.user_id); setDmMode(true); } }}
+                        disabled={mine}
+                        className={`w-9 h-9 rounded-full flex items-center justify-center overflow-hidden ring-2 ring-background shadow-sm ${mine ? '' : 'cursor-pointer hover:ring-primary'}`}
+                        style={{ background: accent }} title={mine ? '' : `Message ${name}`}>
                         {avatar ? <img src={avatar} alt={name} className="w-full h-full object-cover" /> :
                           <span className="text-xs font-bold text-white">{name.slice(0,1).toUpperCase()}</span>}
-                      </div>
+                      </button>
                     ) : (
                       <span className="opacity-0 group-hover:opacity-100 text-[10px] text-muted-foreground block text-right pr-1 pt-1">{time}</span>
                     )}
@@ -351,7 +381,13 @@ export const ChatPanel = ({ communityId, isCreator, isAdmin, tierLevel, tiers, s
                   <div className="flex-1 min-w-0">
                     {item.showHeader && (
                       <div className="flex items-baseline gap-2 mb-0.5 flex-wrap">
-                        <span className="text-sm font-semibold text-foreground" style={{ color: mine ? undefined : accent }}>{name}</span>
+                        {mine ? (
+                          <span className="text-sm font-semibold text-foreground">{name}</span>
+                        ) : (
+                          <button onClick={() => { setDmUserParam(m.user_id); setDmMode(true); }}
+                            className="text-sm font-semibold hover:underline focus:underline focus:outline-none" style={{ color: accent }}
+                            title={`Message ${name}`}>{name}</button>
+                        )}
                         {mine && <span className="text-[10px] uppercase tracking-wide text-primary font-bold">You</span>}
                         {(m.user_id === creatorId || adminIds.has(m.user_id)) && (
                           <span className="text-[9px] uppercase tracking-wide font-bold px-1.5 py-0.5 rounded bg-yellow-400/20 text-yellow-700 dark:text-yellow-400 inline-flex items-center gap-0.5">
@@ -468,6 +504,8 @@ export const ChatPanel = ({ communityId, isCreator, isAdmin, tierLevel, tiers, s
           communityId={communityId}
           onClose={() => setShowAdminMgr(false)}
         />
+      )}
+      </>
       )}
     </div>
   );
