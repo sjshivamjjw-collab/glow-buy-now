@@ -353,11 +353,7 @@ export const ChatPanel = ({ communityId, isCreator, isAdmin, tierLevel, tiers, s
                       <div className="flex items-baseline gap-2 mb-0.5 flex-wrap">
                         <span className="text-sm font-semibold text-foreground" style={{ color: mine ? undefined : accent }}>{name}</span>
                         {mine && <span className="text-[10px] uppercase tracking-wide text-primary font-bold">You</span>}
-                        {m.user_id === creatorId ? (
-                          <span className="text-[9px] uppercase tracking-wide font-bold px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-600 inline-flex items-center gap-0.5">
-                            <ShieldCheck className="w-2.5 h-2.5" /> Creator
-                          </span>
-                        ) : adminIds.has(m.user_id) && (
+                        {(m.user_id === creatorId || adminIds.has(m.user_id)) && (
                           <span className="text-[9px] uppercase tracking-wide font-bold px-1.5 py-0.5 rounded bg-primary/10 text-primary inline-flex items-center gap-0.5">
                             <Shield className="w-2.5 h-2.5" /> Admin
                           </span>
