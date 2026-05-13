@@ -25,7 +25,7 @@ const DiscoverPage = () => {
     const load = async () => {
       const { data } = await supabase
         .from('communities' as any)
-        .select('id, slug, name, description, cover_url, member_count, creator_id')
+        .select('id, slug, name, description, cover_url, member_count, creator_id, social_links')
         .eq('is_published', true)
         .eq('approval_status', 'approved')
         .order('member_count', { ascending: false })
