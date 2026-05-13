@@ -124,6 +124,23 @@ const EditCommunityPage = () => {
     setUploadingVideo(false);
     if (url) setIntroVideoUrl(url);
   };
+  const onAttachments = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    if (!files.length || !userId) return;
+    setUploadingAttachment(true);
+    const uploaded: InfoAttachment[] = [];
+    for (const f of files) {
+      const ext = f.name.split('.').pop() || 'bin';
+      const path = `${userId}/info-${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+      const { error } = await supabase.storage.from('community-media').upload(path, f);
+      if (error) { toast({ title: `Upload failed: ${f.name}`, description: error.message, variant: 'destructive' }); continue; }
+      const { data } = supabase.storage.from('community-media').getPublicUrl(path);
+      uploaded.push({ url: data.publicUrl, name: f.name, mime: f.type, size: f.size });
+    }
+    setAttachments(prev => [...prev, ...uploaded]);
+    setUploadingAttachment(false);
+    e.target.value = '';
+  };
 
   const addTier = () =>
     setTiers(prev => [...prev, {
