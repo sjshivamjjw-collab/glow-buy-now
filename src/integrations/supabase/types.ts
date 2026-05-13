@@ -224,6 +224,27 @@ export type Database = {
         }
         Relationships: []
       }
+      community_admins: {
+        Row: {
+          community_id: string
+          created_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          community_id: string
+          created_at?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          community_id?: string
+          created_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       community_channels: {
         Row: {
           community_id: string
@@ -403,27 +424,6 @@ export type Database = {
           starts_at?: string
           title?: string
           updated_at?: string
-        }
-        Relationships: []
-      }
-      community_moderators: {
-        Row: {
-          community_id: string
-          created_at: string
-          id: string
-          user_id: string
-        }
-        Insert: {
-          community_id: string
-          created_at?: string
-          id?: string
-          user_id: string
-        }
-        Update: {
-          community_id?: string
-          created_at?: string
-          id?: string
-          user_id?: string
         }
         Relationships: []
       }
@@ -1196,7 +1196,7 @@ export type Database = {
         Args: { _community_id: string; _user_id: string }
         Returns: boolean
       }
-      is_community_moderator: {
+      is_community_admin: {
         Args: { _community_id: string; _user_id: string }
         Returns: boolean
       }
