@@ -333,7 +333,7 @@ const DateTimePicker = ({ date, time, onDate, onTime }: {
     <select value={time} onChange={e => onTime(e.target.value)}
       className="px-3 py-2.5 rounded-xl bg-background border border-border text-sm">
       <option value="">Pick time</option>
-      {TIME_OPTIONS.map(t => <option key={t} value={t}>{t}</option>)}
+      {TIME_OPTIONS.map(t => <option key={t} value={t}>{fmt12(t)}</option>)}
     </select>
   </div>
 );
