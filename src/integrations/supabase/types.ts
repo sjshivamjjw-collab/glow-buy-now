@@ -466,6 +466,36 @@ export type Database = {
         }
         Relationships: []
       }
+      community_reviews: {
+        Row: {
+          body: string | null
+          community_id: string
+          created_at: string
+          id: string
+          rating: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          body?: string | null
+          community_id: string
+          created_at?: string
+          id?: string
+          rating: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          body?: string | null
+          community_id?: string
+          created_at?: string
+          id?: string
+          rating?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       community_tiers: {
         Row: {
           billing_period_months: number
