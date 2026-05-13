@@ -29,10 +29,14 @@ Deno.serve(async (req) => {
     const normalizedPhone = phone.startsWith("+") ? phone : `+91${phone}`;
 
     // Dev mode: known test numbers use fixed OTP "123456" and skip Twilio
-    // Demo phones for shopper/seller flows only. The admin phone is intentionally
-    // NOT included — admin must always receive a real Twilio SMS to prevent
-    // anyone from logging in as admin with a known static OTP.
-    const DEV_PHONES = ["+911111111111", "+919821046171"];
+    // Demo/admin phones bypass Twilio and use fixed OTP "123456" (per user request).
+    const DEV_PHONES = [
+      "+911111111111",
+      "+919619846170", // admin
+      "+919821046171",
+      "+919821046170",
+      "+919082036638",
+    ];
     const isDevPhone = DEV_PHONES.includes(normalizedPhone);
 
     const code = isDevPhone ? "123456" : String(Math.floor(100000 + Math.random() * 900000));
