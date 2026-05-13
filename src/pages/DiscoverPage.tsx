@@ -163,8 +163,8 @@ const DiscoverPage = () => {
                 <div
                   role="button"
                   tabIndex={0}
-                  onClick={() => navigate(`/c/${c.slug}`)}
-                  onKeyDown={(e) => { if (e.key === 'Enter') navigate(`/c/${c.slug}`); }}
+                  onClick={() => navigate(`/c/${c.slug}/room?tab=chat`)}
+                  onKeyDown={(e) => { if (e.key === 'Enter') navigate(`/c/${c.slug}/room?tab=chat`); }}
                   className="cursor-pointer"
                 >
                   {c.cover_url ? (
