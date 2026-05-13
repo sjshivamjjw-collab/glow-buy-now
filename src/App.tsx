@@ -11,6 +11,7 @@ import CommunityDetailPage from "@/pages/CommunityDetailPage";
 import CreateCommunityPage from "@/pages/CreateCommunityPage";
 import EditCommunityPage from "@/pages/EditCommunityPage";
 import CreatorDashboard from "@/pages/CreatorDashboard";
+import CreatorInsightsPage from "@/pages/CreatorInsightsPage";
 import MyCommunitiesPage from "@/pages/MyCommunitiesPage";
 import CommunityRoomPage from "@/pages/CommunityRoomPage";
 import ProfilePage from "@/pages/ProfilePage";
@@ -84,6 +85,7 @@ const AppRoutes = () => {
               <Route path="/communities/new" element={<CreateCommunityPage />} />
               <Route path="/communities/:id/edit" element={<EditCommunityPage />} />
               <Route path="/creator" element={<CreatorDashboard />} />
+              <Route path="/creator/insights" element={<CreatorInsightsPage />} />
               <Route path="/mine" element={<MyCommunitiesPage />} />
               <Route path="/notifications" element={<NotificationsPage />} />
               <Route path="/profile" element={<ProfilePage />} />
