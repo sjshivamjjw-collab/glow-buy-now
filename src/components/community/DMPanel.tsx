@@ -298,12 +298,14 @@ const DMThreadView = ({ thread, other, communityId, onBack }: {
                   }`}>{m.body}</div>
                 )}
                 {m.kind === 'image' && m.attachment_url && (
-                  <a href={m.attachment_url} target="_blank" rel="noreferrer" className="block rounded-2xl overflow-hidden border border-border max-w-xs">
-                    <img src={m.attachment_url} alt={m.attachment_name || 'image'} className="w-full h-auto object-cover max-h-72" />
-                  </a>
+                  <SignedLink bucket="community-media" src={m.attachment_url}
+                    className="block rounded-2xl overflow-hidden border border-border max-w-xs">
+                    <SignedImage bucket="community-media" src={m.attachment_url}
+                      alt={m.attachment_name || 'image'} className="w-full h-auto object-cover max-h-72" />
+                  </SignedLink>
                 )}
                 {m.kind === 'file' && m.attachment_url && (
-                  <a href={m.attachment_url} target="_blank" rel="noreferrer"
+                  <SignedLink bucket="community-media" src={m.attachment_url} download={m.attachment_name || undefined}
                     className={`inline-flex items-center gap-3 px-3 py-2.5 rounded-2xl border border-border hover:bg-muted transition max-w-xs ${mine ? 'bg-primary/10' : 'bg-card'}`}>
                     <div className="w-9 h-9 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">
                       <FileText className="w-4 h-4" />
@@ -313,7 +315,7 @@ const DMThreadView = ({ thread, other, communityId, onBack }: {
                       <div className="text-[11px] text-muted-foreground">{formatSize(m.attachment_size)}</div>
                     </div>
                     <Download className="w-4 h-4 text-muted-foreground" />
-                  </a>
+                  </SignedLink>
                 )}
                 <div className="flex items-center gap-1.5 mt-0.5 px-1">
                   <span className="text-[10px] text-muted-foreground">{time}</span>
