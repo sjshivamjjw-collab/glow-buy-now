@@ -95,7 +95,7 @@ const ProfilePage = () => {
             <div className="flex-1">
               <h2 className="text-lg font-bold text-foreground">{displayName}</h2>
               {displayUsername && <p className="text-muted-foreground text-sm">@{displayUsername}</p>}
-              <p className="text-muted-foreground text-xs capitalize mt-0.5">{role}</p>
+              <p className="text-muted-foreground text-xs capitalize mt-0.5">{role === 'shopper' ? 'Member' : role}</p>
             </div>
           ) : (
             <div className="flex-1" />

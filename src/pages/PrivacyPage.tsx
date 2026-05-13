@@ -10,7 +10,7 @@ const PrivacyPage = () => (
 
     <h2>1. Information We Collect</h2>
     <ul>
-      <li><strong>Account information:</strong> mobile number, name, profile photo (avatar), and selected role (shopper/seller).</li>
+      <li><strong>Account information:</strong> mobile number, name, profile photo (avatar), and selected role (member/seller).</li>
       <li><strong>Seller information:</strong> store name, bio, categories, and seller application details.</li>
       <li><strong>Order information:</strong> items ordered, quantities, prices, shipping address, contact phone, and payment method.</li>
       <li><strong>Usage data:</strong> livestream viewing, chat messages, follows, ratings, and notifications.</li>

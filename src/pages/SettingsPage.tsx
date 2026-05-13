@@ -81,7 +81,7 @@ const SettingsPage = () => {
           </div>
           <div className="px-5 py-4">
             <p className="text-xs text-muted-foreground">Role</p>
-            <p className="text-sm font-semibold text-foreground capitalize">{role}</p>
+            <p className="text-sm font-semibold text-foreground capitalize">{role === 'shopper' ? 'Member' : role}</p>
           </div>
         </div>
       </div>
