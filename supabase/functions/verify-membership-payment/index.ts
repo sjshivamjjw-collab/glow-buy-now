@@ -52,6 +52,22 @@ Deno.serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
     );
 
+    // Verify the Razorpay order was originally created for THIS user and THIS tier.
+    // Without this check, an attacker could pay for a cheap tier and activate an expensive one.
+    const { data: intent, error: piErr } = await admin
+      .from('payment_intents')
+      .select('user_id, tier_id')
+      .eq('razorpay_order_id', razorpay_order_id)
+      .maybeSingle();
+    if (piErr || !intent) {
+      console.error('payment_intent lookup failed', piErr);
+      return json(400, { error: 'Unknown payment order' });
+    }
+    if (intent.user_id !== user.id || intent.tier_id !== tier_id) {
+      console.error('payment intent mismatch', { intent, user_id: user.id, tier_id });
+      return json(400, { error: 'Payment does not match selected plan' });
+    }
+
     const { data: tier, error: tErr } = await admin
       .from('community_tiers')
       .select('id, community_id, kind, billing_period_months, is_active')
