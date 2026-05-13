@@ -1,8 +1,7 @@
 import LegalPageLayout from '@/components/LegalPageLayout';
-import { Mail, Phone, MapPin, Clock } from 'lucide-react';
+import { Mail, MapPin, Clock } from 'lucide-react';
 
 const SUPPORT_EMAIL = 'shivam@ripple-shop.com';
-const SUPPORT_PHONE = '+91 96198 46170';
 const ADDRESS_LINE = 'Mumbai, Maharashtra, India';
 
 const ContactPage = () => (
@@ -23,19 +22,6 @@ const ContactPage = () => (
         <div>
           <p className="text-xs text-muted-foreground">Email</p>
           <p className="text-sm font-semibold text-foreground">{SUPPORT_EMAIL}</p>
-        </div>
-      </a>
-
-      <a
-        href={`tel:${SUPPORT_PHONE.replace(/\s/g, '')}`}
-        className="flex items-center gap-3 p-4 rounded-2xl bg-card border border-border hover:border-primary transition-colors"
-      >
-        <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
-          <Phone className="w-5 h-5 text-primary" />
-        </div>
-        <div>
-          <p className="text-xs text-muted-foreground">Phone</p>
-          <p className="text-sm font-semibold text-foreground">{SUPPORT_PHONE}</p>
         </div>
       </a>
 
