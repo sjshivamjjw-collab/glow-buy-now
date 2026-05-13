@@ -3,7 +3,7 @@ import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useCommunityMembership } from '@/hooks/useCommunityMembership';
-import { ArrowLeft, MessageSquare, Calendar, FileBox, Loader2, Sparkles, X, Crown, Share2, Info } from 'lucide-react';
+import { ArrowLeft, MessageSquare, Calendar, FileBox, Loader2, Sparkles, X, Crown, Share2, Info, MessageCircle } from 'lucide-react';
 import { shareCommunity } from '@/lib/shareCommunity';
 import { useToast } from '@/hooks/use-toast';
 import { ChatPanel } from '@/components/community/ChatPanel';
