@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { ArrowLeft, Send, Loader2, Paperclip, Image as ImageIcon, Plus, FileText, Download, Trash2, Search, MessageSquarePlus, Users } from 'lucide-react';
+import { SignedImage, SignedLink } from '@/components/SignedMedia';
 import { format, isToday, isYesterday } from 'date-fns';
 
 const colorFor = (id: string) => {
