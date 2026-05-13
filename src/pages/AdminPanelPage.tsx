@@ -45,6 +45,10 @@ const AdminPanelPage = () => {
   const [returnRequests, setReturnRequests] = useState<any[]>([]);
   const [livestreams, setLivestreams] = useState<any[]>([]);
   const [communities, setCommunities] = useState<any[]>([]);
+  const [disputes, setDisputes] = useState<any[]>([]);
+  const [resolvingDispute, setResolvingDispute] = useState<any | null>(null);
+  const [disputeAction, setDisputeAction] = useState<'resolved' | 'rejected'>('resolved');
+  const [disputeNotes, setDisputeNotes] = useState('');
   const [communityFilter, setCommunityFilter] = useState<string>('pending');
   const [rejectingCommunityId, setRejectingCommunityId] = useState<string | null>(null);
   const [communityRejectReason, setCommunityRejectReason] = useState('');
