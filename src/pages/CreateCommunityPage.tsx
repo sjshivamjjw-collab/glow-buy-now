@@ -380,6 +380,17 @@ const CreateCommunityPage = () => {
                   </button>
                 </div>
 
+                <div>
+                  <p className="text-[11px] font-semibold text-muted-foreground mb-1.5">What's included in this plan</p>
+                  <textarea
+                    value={t.description}
+                    onChange={e => updatePaidTier(t.id, { description: e.target.value })}
+                    placeholder="e.g. Weekly live calls, exclusive content, private chat access"
+                    rows={3}
+                    className="w-full px-3 py-2 rounded-lg bg-secondary text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 resize-none"
+                  />
+                </div>
+
                 <div className="grid grid-cols-2 gap-2">
                   <button
                     type="button"
