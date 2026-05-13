@@ -114,6 +114,7 @@ const DiscoverPage = () => {
   };
 
   const filtered = communities.filter(c => {
+    if (userId && c.creator_id === userId) return false;
     if (!query.trim()) return true;
     const q = query.toLowerCase();
     return c.name.toLowerCase().includes(q) || (c.description || '').toLowerCase().includes(q);
