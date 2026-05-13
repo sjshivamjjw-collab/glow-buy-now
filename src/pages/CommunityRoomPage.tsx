@@ -68,8 +68,9 @@ const CommunityRoomPage = () => {
         user_id: userId, community_id: community.id, tier_id: freeTier.id,
         status: 'active', source: 'free', started_at: new Date().toISOString(),
       });
-      // Unique violation = already a member (race). Just refresh.
-      if (error && (error as any).code !== '23505') {
+      if (error) {
+        // Unique violation = a membership row already exists (likely a stale
+        // pending paid one). Send them to the detail page to subscribe/upgrade.
         autoJoinRef.current = false;
         navigate(`/c/${slug}`, { replace: true });
         return;
