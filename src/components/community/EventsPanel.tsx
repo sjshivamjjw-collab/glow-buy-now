@@ -186,9 +186,21 @@ export const EventsPanel = ({ communityId, isCreator, tierLevel, tiers, slug }: 
                 onChange={e => setForm({ ...form, ends_at: e.target.value })}
                 className="w-full mt-1 px-2 py-2 rounded-xl bg-background border border-border text-sm" /></label>
             </div>
-            <input value={form.location_url} onChange={e => setForm({ ...form, location_url: e.target.value })}
-              placeholder="Meeting link or location URL (optional)"
-              className="w-full px-3 py-2.5 rounded-xl bg-background border border-border text-sm" />
+            <div>
+              <input value={form.location_url} onChange={e => setForm({ ...form, location_url: e.target.value })}
+                placeholder="Meeting link or location URL (optional)"
+                className="w-full px-3 py-2.5 rounded-xl bg-background border border-border text-sm" />
+              <button
+                type="button"
+                onClick={() => {
+                  const slug = `livecart-${Math.random().toString(36).slice(2, 8)}-${Math.random().toString(36).slice(2, 6)}`;
+                  setForm({ ...form, location_url: `https://meet.jit.si/${slug}` });
+                  toast({ title: 'Meeting link generated', description: 'Anyone with the link can join — no account needed.' });
+                }}
+                className="mt-2 w-full py-2 rounded-xl bg-secondary text-secondary-foreground text-xs font-semibold flex items-center justify-center gap-1.5 hover:bg-secondary/80">
+                <Video className="w-3.5 h-3.5" /> Generate instant video meeting link
+              </button>
+            </div>
             <label className="block text-xs text-muted-foreground">
               Who can attend?
               <select value={form.required_tier_level} onChange={e => setForm({ ...form, required_tier_level: Number(e.target.value) })}
