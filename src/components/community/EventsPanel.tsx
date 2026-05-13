@@ -35,11 +35,18 @@ interface Props {
 }
 
 // time options every 15 min
+const pad2 = (n: number) => String(n).padStart(2, '0');
 const TIME_OPTIONS = Array.from({ length: 24 * 4 }, (_, i) => {
   const h = Math.floor(i / 4); const m = (i % 4) * 15;
-  const pad = (n: number) => String(n).padStart(2, '0');
-  return `${pad(h)}:${pad(m)}`;
+  return `${pad2(h)}:${pad2(m)}`;
 });
+const fmt12 = (t: string) => {
+  if (!t) return '';
+  const [h, m] = t.split(':').map(Number);
+  const period = h >= 12 ? 'PM' : 'AM';
+  const h12 = h % 12 === 0 ? 12 : h % 12;
+  return `${h12}:${pad2(m)} ${period}`;
+};
 
 const splitDate = (iso?: string | null): { date?: Date; time: string } => {
   if (!iso) return { date: undefined, time: '' };
@@ -326,7 +333,7 @@ const DateTimePicker = ({ date, time, onDate, onTime }: {
     <select value={time} onChange={e => onTime(e.target.value)}
       className="px-3 py-2.5 rounded-xl bg-background border border-border text-sm">
       <option value="">Pick time</option>
-      {TIME_OPTIONS.map(t => <option key={t} value={t}>{t}</option>)}
+      {TIME_OPTIONS.map(t => <option key={t} value={t}>{fmt12(t)}</option>)}
     </select>
   </div>
 );
