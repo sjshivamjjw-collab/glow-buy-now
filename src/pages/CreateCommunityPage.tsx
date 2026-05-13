@@ -12,6 +12,7 @@ type PostPerm = 'all_members' | 'moderators' | 'creator_only';
 interface PaidTierDraft {
   id: string;
   name: string;
+  description: string;
   kind: 'paid_monthly' | 'paid_one_time';
   price_inr: string;
   billing_period_months: number;
@@ -74,7 +75,7 @@ const CreateCommunityPage = () => {
 
   const addPaidTier = () =>
     setPaidTiers(prev => [...prev, {
-      id: newId(), name: '', kind: 'paid_monthly', price_inr: '',
+      id: newId(), name: '', description: '', kind: 'paid_monthly', price_inr: '',
       billing_period_months: 1, trial_enabled: false, trial_days: '7',
       post_permission: 'all_members',
     }]);
@@ -162,7 +163,7 @@ const CreateCommunityPage = () => {
         payload: {
           community_id: (community as any).id,
           name: t.name.trim(),
-          description: null,
+          description: t.description.trim() || null,
           kind: t.kind,
           price_inr: Number(t.price_inr),
           billing_period_months: t.kind === 'paid_monthly' ? (t.billing_period_months || 1) : 1,
@@ -377,6 +378,17 @@ const CreateCommunityPage = () => {
                   <button onClick={() => removePaidTier(t.id)} className="p-2 rounded-lg bg-secondary text-destructive">
                     <Trash2 className="w-4 h-4" />
                   </button>
+                </div>
+
+                <div>
+                  <p className="text-[11px] font-semibold text-muted-foreground mb-1.5">What's included in this plan</p>
+                  <textarea
+                    value={t.description}
+                    onChange={e => updatePaidTier(t.id, { description: e.target.value })}
+                    placeholder="e.g. Weekly live calls, exclusive content, private chat access"
+                    rows={3}
+                    className="w-full px-3 py-2 rounded-lg bg-secondary text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 resize-none"
+                  />
                 </div>
 
                 <div className="grid grid-cols-2 gap-2">
