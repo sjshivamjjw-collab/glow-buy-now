@@ -116,18 +116,10 @@ const CommunityDetailPage = () => {
           handler: async (resp: any) => {
             const { error: vErr } = await supabase.functions.invoke('verify-membership-payment', {
               body: {
-                membership_id: data.membership_id,
-                ...(data.subscription_id
-                  ? {
-                      razorpay_payment_id: resp.razorpay_payment_id,
-                      razorpay_subscription_id: data.subscription_id,
-                      razorpay_signature: resp.razorpay_signature,
-                    }
-                  : {
-                      razorpay_payment_id: resp.razorpay_payment_id,
-                      razorpay_order_id: data.order_id,
-                      razorpay_signature: resp.razorpay_signature,
-                    }),
+                tier_id: tier.id,
+                razorpay_payment_id: resp.razorpay_payment_id,
+                razorpay_order_id: data.order_id,
+                razorpay_signature: resp.razorpay_signature,
               },
             });
             if (vErr) {
