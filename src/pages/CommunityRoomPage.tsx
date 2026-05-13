@@ -162,7 +162,14 @@ const CommunityRoomPage = () => {
       {tab === 'chat' && <ChatPanel communityId={community.id} isCreator={isCreator} isAdmin={isAdmin} tierLevel={tierLevel} tiers={tiers} slug={slug!} />}
       {tab === 'events' && <EventsPanel communityId={community.id} isCreator={isCreator} tierLevel={tierLevel} tiers={tiers} slug={slug!} />}
       {tab === 'resources' && <ResourcesPanel communityId={community.id} isCreator={isCreator} tierLevel={tierLevel} tiers={tiers} slug={slug!} />}
-      {tab === 'plans' && <PlansPanel communityId={community.id} communityName={community.name} tiers={tiers} currentTier={currentTier} isCreator={isCreator} onJoined={refreshMembership} />}
+      {tab === 'plans' && (
+        <>
+          <PlansPanel communityId={community.id} communityName={community.name} tiers={tiers} currentTier={currentTier} isCreator={isCreator} onJoined={refreshMembership} />
+          <div className="mt-8">
+            <ReviewsSection communityId={community.id} isCreator={isCreator} hasMembership={isMember} />
+          </div>
+        </>
+      )}
     </div>
   );
 };
