@@ -263,6 +263,12 @@ const CommunityDetailPage = () => {
             );
           })}
         </div>
+
+        <ReviewsSection
+          communityId={community.id}
+          isCreator={!!userId && userId === community.creator_id}
+          hasMembership={!!membership}
+        />
       </div>
     </div>
   );
