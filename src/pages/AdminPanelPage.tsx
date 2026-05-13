@@ -320,8 +320,8 @@ const AdminPanelPage = () => {
         </div>
       )}
 
-      <Tabs defaultValue={pendingCommunities > 0 ? 'communities' : 'applications'} className="w-full">
-        <TabsList className="w-full grid grid-cols-7 mb-4">
+      <Tabs defaultValue={pendingCommunities > 0 ? 'communities' : pendingDisputes > 0 ? 'disputes' : 'applications'} className="w-full">
+        <TabsList className="w-full grid grid-cols-8 mb-4">
           <TabsTrigger value="communities" className="text-xs px-1 relative">
             Comm
             {pendingCommunities > 0 && (
@@ -346,6 +346,14 @@ const AdminPanelPage = () => {
             {pendingReturns > 0 && (
               <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-blue-600 text-white text-[9px] font-bold flex items-center justify-center">
                 {pendingReturns}
+              </span>
+            )}
+          </TabsTrigger>
+          <TabsTrigger value="disputes" className="text-xs px-1 relative">
+            Disputes
+            {pendingDisputes > 0 && (
+              <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-destructive text-destructive-foreground text-[9px] font-bold flex items-center justify-center">
+                {pendingDisputes}
               </span>
             )}
           </TabsTrigger>
