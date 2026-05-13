@@ -11,6 +11,7 @@ import CommunityDetailPage from "@/pages/CommunityDetailPage";
 import CreateCommunityPage from "@/pages/CreateCommunityPage";
 import EditCommunityPage from "@/pages/EditCommunityPage";
 import CreatorDashboard from "@/pages/CreatorDashboard";
+import CreatorInsightsPage from "@/pages/CreatorInsightsPage";
 import MyCommunitiesPage from "@/pages/MyCommunitiesPage";
 import CommunityRoomPage from "@/pages/CommunityRoomPage";
 import ProfilePage from "@/pages/ProfilePage";
