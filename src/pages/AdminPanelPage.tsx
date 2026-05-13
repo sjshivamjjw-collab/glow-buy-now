@@ -96,6 +96,7 @@ const AdminPanelPage = () => {
         const profilesById = new Map((profilesRes.data || []).map((p: any) => [p.id, p]));
         setCommunities((communitiesRes.data as any[]).map((c: any) => ({ ...c, creator: profilesById.get(c.creator_id) })));
       }
+      if (disputesRes.data) setDisputes(disputesRes.data as any[]);
       setLoading(false);
     };
     load();
@@ -108,6 +109,22 @@ const AdminPanelPage = () => {
   const pendingReturns = returnRequests.filter(r => r.status === 'pending').length;
   const liveNow = livestreams.filter(s => s.status === 'live').length;
   const pendingCommunities = communities.filter(c => c.approval_status === 'pending').length;
+  const pendingDisputes = disputes.filter(d => d.status === 'open').length;
+
+  const handleResolveDispute = async () => {
+    if (!resolvingDispute) return;
+    const { error } = await supabase.from('membership_disputes' as any).update({
+      status: disputeAction,
+      admin_notes: disputeNotes.trim() || null,
+      resolved_by: userId,
+      resolved_at: new Date().toISOString(),
+    }).eq('id', resolvingDispute.id);
+    if (error) { toast({ title: 'Failed', description: error.message, variant: 'destructive' }); return; }
+    setDisputes(prev => prev.map(d => d.id === resolvingDispute.id ? { ...d, status: disputeAction, admin_notes: disputeNotes.trim() || null } : d));
+    setResolvingDispute(null);
+    setDisputeNotes('');
+    toast({ title: `Dispute ${disputeAction}` });
+  };
 
   const filteredCommunities = useMemo(() =>
     communityFilter === 'all' ? communities : communities.filter(c => c.approval_status === communityFilter),
