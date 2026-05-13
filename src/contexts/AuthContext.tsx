@@ -2,8 +2,6 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 import { supabase } from '@/integrations/supabase/client';
 import { UserRole } from '@/types';
 
-const ADMIN_PHONE = '+919619846170';
-
 interface AuthState {
   isAuthenticated: boolean;
   role: UserRole | null;
