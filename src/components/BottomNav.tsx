@@ -1,17 +1,37 @@
 import { Compass, Users, User, LayoutDashboard, Plus } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { useEffect, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
 
 const BottomNav = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { isCreator } = useAuth();
+  const { isCreator, userId } = useAuth();
+  const [hasApprovedCommunity, setHasApprovedCommunity] = useState(false);
+
+  useEffect(() => {
+    if (!isCreator || !userId) {
+      setHasApprovedCommunity(false);
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      const { count } = await supabase
+        .from('communities' as any)
+        .select('id', { count: 'exact', head: true })
+        .eq('creator_id', userId)
+        .eq('approval_status', 'approved');
+      if (!cancelled) setHasApprovedCommunity((count ?? 0) > 0);
+    })();
+    return () => { cancelled = true; };
+  }, [isCreator, userId, location.pathname]);
 
   const tabs = [
     { icon: Compass, label: 'Discover', path: '/' },
     { icon: Users, label: 'My communities', path: '/mine' },
     { icon: Plus, label: 'Start New', path: '/communities/new' },
-    ...(isCreator ? [{ icon: LayoutDashboard, label: 'Creator', path: '/creator' }] : []),
+    ...(isCreator && hasApprovedCommunity ? [{ icon: LayoutDashboard, label: 'Creator', path: '/creator' }] : []),
     { icon: User, label: 'Profile', path: '/profile' },
   ];
 
