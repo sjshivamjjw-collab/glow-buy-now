@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { Send, Loader2, Trash2, Paperclip, Image as ImageIcon, BarChart3, X, Plus, Check, FileText, Download, Hash, Lock, Settings, Sparkles, Shield, ShieldCheck, Search, UserPlus } from 'lucide-react';
+import { Send, Loader2, Trash2, Paperclip, Image as ImageIcon, BarChart3, X, Plus, Check, FileText, Download, Hash, Lock, Settings, Sparkles, Shield, ShieldCheck, Search, UserPlus, Pencil } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { format, isToday, isYesterday } from 'date-fns';
 import type { TierInfo } from '@/hooks/useCommunityMembership';
@@ -498,6 +498,14 @@ const ChannelManager = ({ communityId, channels, tiers, onClose, onChanged }: {
     else onChanged();
   };
 
+  const rename = async (id: string, currentName: string) => {
+    const next = window.prompt('Rename channel', currentName)?.trim();
+    if (!next || next === currentName) return;
+    const { error } = await supabase.from('community_channels' as any).update({ name: next }).eq('id', id);
+    if (error) toast({ title: 'Rename failed', description: error.message, variant: 'destructive' });
+    else onChanged();
+  };
+
   return (
     <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur flex items-end md:items-center justify-center p-4" onClick={onClose}>
       <div className="w-full max-w-md bg-card border border-border rounded-3xl p-5 space-y-3 max-h-[85vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
@@ -512,6 +520,9 @@ const ChannelManager = ({ communityId, channels, tiers, onClose, onChanged }: {
               <div className="flex items-center gap-2">
                 <Hash className="w-4 h-4 text-muted-foreground shrink-0" />
                 <span className="flex-1 text-sm font-semibold text-foreground truncate">{c.name}</span>
+                <button onClick={() => rename(c.id, c.name)} className="p-1.5 text-muted-foreground hover:text-foreground" title="Rename">
+                  <Pencil className="w-3.5 h-3.5" />
+                </button>
                 {channels.length > 1 && (
                   <button onClick={() => remove(c.id)} className="p-1.5 text-muted-foreground hover:text-destructive">
                     <Trash2 className="w-3.5 h-3.5" />
