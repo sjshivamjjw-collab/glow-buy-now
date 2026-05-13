@@ -90,17 +90,17 @@ const DiscoverPage = () => {
                 className="w-full text-left rounded-2xl overflow-hidden bg-card border border-border hover:border-primary/50 transition-colors"
               >
                 {c.cover_url ? (
-                  <div className="aspect-square bg-secondary overflow-hidden">
-                    <img src={c.cover_url} alt={c.name} className="w-full h-full object-cover" />
+                  <div className="aspect-[16/10] bg-secondary overflow-hidden">
+                    <img src={c.cover_url} alt={c.name} className="w-full h-full object-cover object-top" />
                   </div>
                 ) : (
-                  <div className="aspect-square bg-gradient-to-br from-primary/20 via-accent/10 to-secondary flex items-center justify-center">
+                  <div className="aspect-[16/10] bg-gradient-to-br from-primary/20 via-accent/10 to-secondary flex items-center justify-center">
                     <span className="text-3xl font-extrabold text-primary/40">{c.name[0]}</span>
                   </div>
                 )}
                 <div className="p-2.5">
-                  <h3 className="font-bold text-foreground text-sm mb-0.5 line-clamp-1">{c.name}</h3>
-                  {c.description && <p className="text-[11px] text-muted-foreground line-clamp-2 mb-2">{c.description}</p>}
+                  <h3 className="font-bold text-foreground text-sm mb-1 line-clamp-2 leading-snug">{c.name}</h3>
+                  {c.description && <p className="text-[11px] text-muted-foreground line-clamp-3 mb-2 leading-snug">{c.description}</p>}
                   <div className="flex items-center justify-between text-[11px]">
                     <div className="flex items-center gap-1.5 text-muted-foreground min-w-0">
                       {creator?.avatar_url ? (
