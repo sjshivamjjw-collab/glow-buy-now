@@ -61,6 +61,17 @@ interface Props {
 export const ChatPanel = ({ communityId, isCreator, isAdmin, tierLevel, tiers, slug }: Props) => {
   const { userId, userName, userAvatar } = useAuth();
   const { toast } = useToast();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const dmParam = searchParams.get('dm');
+  const [dmMode, setDmMode] = useState<boolean>(!!dmParam);
+  useEffect(() => { if (dmParam) setDmMode(true); }, [dmParam]);
+
+  const setDmUserParam = (uid: string | null) => {
+    const next = new URLSearchParams(searchParams);
+    if (uid) next.set('dm', uid); else next.delete('dm');
+    setSearchParams(next, { replace: true });
+  };
+
   const [channels, setChannels] = useState<Channel[]>([]);
   const [activeChannelId, setActiveChannelId] = useState<string | null>(null);
   const [messages, setMessages] = useState<Msg[]>([]);
