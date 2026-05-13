@@ -186,14 +186,18 @@ const CreateCommunityPage = () => {
       return;
     }
 
-    const channelRows = (insertedTiers as any[] || []).map((tier, idx) => ({
-      community_id: (community as any).id,
-      name: `${tier.name} chat`,
-      slug: `${slugify(tier.name)}-chat`,
-      required_tier_level: tier.sort_order ?? idx,
-      sort_order: tier.sort_order ?? idx,
-      post_permission: ordered[idx]?.post_permission ?? 'all_members',
-    }));
+    const channelRows = (insertedTiers as any[] || []).map((tier, idx) => {
+      const isFree = tier.kind === 'free';
+      const channelName = isFree ? 'General' : `${tier.name} chat`;
+      return {
+        community_id: (community as any).id,
+        name: channelName,
+        slug: isFree ? 'general' : `${slugify(tier.name)}-chat`,
+        required_tier_level: tier.sort_order ?? idx,
+        sort_order: tier.sort_order ?? idx,
+        post_permission: ordered[idx]?.post_permission ?? 'all_members',
+      };
+    });
     if (channelRows.length) {
       await supabase.from('community_channels' as any).insert(channelRows);
     }
@@ -333,7 +337,7 @@ const CreateCommunityPage = () => {
                   className="w-full px-3 py-2 rounded-lg bg-secondary text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 resize-none"
                 />
                 <div>
-                  <p className="text-[11px] font-semibold text-muted-foreground mb-1.5">Who can post in the Free chat</p>
+                  <p className="text-[11px] font-semibold text-muted-foreground mb-1.5">Who can post in the General channel</p>
                   <div className="grid grid-cols-2 gap-1.5">
                     {([
                       { v: 'all_members', label: 'Everyone' },
