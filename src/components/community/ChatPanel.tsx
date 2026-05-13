@@ -236,10 +236,10 @@ export const ChatPanel = ({ communityId, isCreator, isAdmin, tierLevel, tiers, s
     const path = `chat/${communityId}/${userId}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
     const { error: upErr } = await supabase.storage.from('community-media').upload(path, file, { contentType: file.type });
     if (upErr) { setUploading(false); toast({ title: 'Upload failed', description: upErr.message, variant: 'destructive' }); return; }
-    const { data: pub } = supabase.storage.from('community-media').getPublicUrl(path);
+    // Store the storage path; readers resolve a short-lived signed URL on demand.
     const { error } = await supabase.from('community_chat_messages' as any).insert({
       community_id: communityId, channel_id: activeChannelId, user_id: userId, kind,
-      attachment_url: pub.publicUrl, attachment_name: file.name, attachment_mime: file.type, attachment_size: file.size,
+      attachment_url: path, attachment_name: file.name, attachment_mime: file.type, attachment_size: file.size,
     });
     setUploading(false);
     if (error) toast({ title: 'Could not send', description: error.message, variant: 'destructive' });
