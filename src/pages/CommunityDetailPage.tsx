@@ -3,7 +3,8 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
-import { ArrowLeft, Loader2, Users, Check, Globe, Play, Camera } from 'lucide-react';
+import { ArrowLeft, Loader2, Users, Check, Globe, Play, Camera, Share2 } from 'lucide-react';
+import { shareCommunity } from '@/lib/shareCommunity';
 import ReviewsSection from '@/components/community/ReviewsSection';
 
 const loadRazorpay = (): Promise<boolean> => new Promise(resolve => {
@@ -175,6 +176,11 @@ const CommunityDetailPage = () => {
         <button onClick={() => navigate('/', { replace: true })}
           className="absolute top-4 left-4 p-2 rounded-xl bg-card/90 backdrop-blur border border-border">
           <ArrowLeft className="w-5 h-5 text-foreground" />
+        </button>
+        <button onClick={() => shareCommunity({ slug: community.slug, name: community.name, description: community.description, toast })}
+          className="absolute top-4 right-4 p-2 rounded-xl bg-card/90 backdrop-blur border border-border"
+          aria-label="Share community">
+          <Share2 className="w-5 h-5 text-foreground" />
         </button>
       </div>
 

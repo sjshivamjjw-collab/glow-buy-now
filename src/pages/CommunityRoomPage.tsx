@@ -3,7 +3,9 @@ import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useCommunityMembership } from '@/hooks/useCommunityMembership';
-import { ArrowLeft, MessageSquare, Calendar, FileBox, Loader2, Sparkles, X, Crown } from 'lucide-react';
+import { ArrowLeft, MessageSquare, Calendar, FileBox, Loader2, Sparkles, X, Crown, Share2 } from 'lucide-react';
+import { shareCommunity } from '@/lib/shareCommunity';
+import { useToast } from '@/hooks/use-toast';
 import { ChatPanel } from '@/components/community/ChatPanel';
 import { EventsPanel } from '@/components/community/EventsPanel';
 import { ResourcesPanel } from '@/components/community/ResourcesPanel';
@@ -21,6 +23,7 @@ const CommunityRoomPage = () => {
   const { isMember, isCreator, isAdmin, loading: loadingMembership, tiers, tierLevel, currentTier, refresh: refreshMembership } = useCommunityMembership(community?.id);
   const initialTab = (searchParams.get('tab') as Tab) || 'chat';
   const [tab, setTab] = useState<Tab>(initialTab);
+  const { toast } = useToast();
 
   useEffect(() => {
     if (!slug) return;
@@ -125,6 +128,10 @@ const CommunityRoomPage = () => {
             {isCreator ? 'You host this' : currentTier ? `${currentTier.name} member` : 'Member'}
           </p>
         </div>
+        <button onClick={() => shareCommunity({ slug: slug!, name: community.name, toast })}
+          className="p-2 rounded-xl bg-card border border-border" aria-label="Share community">
+          <Share2 className="w-5 h-5 text-foreground" />
+        </button>
       </div>
 
       {upgradeTier && showUpgrade && (
