@@ -172,6 +172,7 @@ export type Database = {
           creator_id: string
           description: string | null
           id: string
+          info_attachments: Json
           intro_video_url: string | null
           is_published: boolean
           key_outcomes: string[]
@@ -191,6 +192,7 @@ export type Database = {
           creator_id: string
           description?: string | null
           id?: string
+          info_attachments?: Json
           intro_video_url?: string | null
           is_published?: boolean
           key_outcomes?: string[]
@@ -210,6 +212,7 @@ export type Database = {
           creator_id?: string
           description?: string | null
           id?: string
+          info_attachments?: Json
           intro_video_url?: string | null
           is_published?: boolean
           key_outcomes?: string[]
