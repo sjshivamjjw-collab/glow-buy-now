@@ -70,10 +70,10 @@ const AuthPage = () => {
 
       // Check if user has seller role and needs role selection
       const hasSeller = roles?.includes('seller');
-      const isAdmin = roles?.includes('admin') || phone === '9619846170';
+      const isAdmin = roles?.includes('admin');
 
       if (isAdmin) {
-        login(user_id, phone, ['admin', ...roles], profile);
+        login(user_id, phone, roles, profile);
         navigate('/');
       } else if (hasSeller) {
         setVerifyData({ user_id, roles, profile });
