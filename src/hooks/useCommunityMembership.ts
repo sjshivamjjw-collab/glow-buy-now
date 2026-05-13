@@ -16,7 +16,7 @@ export const useCommunityMembership = (communityId: string | null | undefined) =
   const [loading, setLoading] = useState(true);
   const [isMember, setIsMember] = useState(false);
   const [isCreator, setIsCreator] = useState(false);
-  const [isModerator, setIsModerator] = useState(false);
+  const [isAdmin, setIsModerator] = useState(false);
   const [tiers, setTiers] = useState<TierInfo[]>([]);
   const [tierLevel, setTierLevel] = useState<number>(-1); // -1 = no membership; creators get Infinity
   const [currentTier, setCurrentTier] = useState<TierInfo | null>(null);
@@ -30,7 +30,7 @@ export const useCommunityMembership = (communityId: string | null | undefined) =
       supabase.from('memberships' as any)
         .select('tier_id, status, razorpay_payment_id, razorpay_subscription_id, current_period_end')
         .eq('community_id', communityId).eq('user_id', userId).eq('status', 'active').maybeSingle(),
-      supabase.from('community_moderators' as any).select('id')
+      supabase.from('community_admins' as any).select('id')
         .eq('community_id', communityId).eq('user_id', userId).maybeSingle(),
     ]);
     const tierList = ((t as any[]) || []) as TierInfo[];
@@ -76,5 +76,5 @@ export const useCommunityMembership = (communityId: string | null | undefined) =
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [communityId, userId]);
 
-  return { isMember, isCreator, isModerator, loading, tiers, tierLevel, currentTier, refresh };
+  return { isMember, isCreator, isAdmin, loading, tiers, tierLevel, currentTier, refresh };
 };
