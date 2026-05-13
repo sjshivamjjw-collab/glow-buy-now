@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { Plus, Loader2, Users, Eye, EyeOff, Pencil, BarChart3, ChevronRight } from 'lucide-react';
+import { Plus, Loader2, Users, Eye, EyeOff, Pencil, IndianRupee, TrendingUp, Layers } from 'lucide-react';
 
 type Community = any;
 type Tier = any;
@@ -12,7 +12,7 @@ type Profile = { id: string; name: string | null; username: string | null; avata
 const CreatorDashboard = () => {
   const navigate = useNavigate();
   const { userId } = useAuth();
-  const [tab, setTab] = useState<'communities' | 'members'>('communities');
+  const [tab, setTab] = useState<'overview' | 'communities' | 'members'>('overview');
   const [communities, setCommunities] = useState<Community[]>([]);
   const [tiers, setTiers] = useState<Tier[]>([]);
   const [memberships, setMemberships] = useState<Membership[]>([]);
@@ -71,14 +71,23 @@ const CreatorDashboard = () => {
     return m;
   }, [communities]);
 
-  const summary = useMemo(() => {
+  const metrics = useMemo(() => {
     const active = memberships.filter(m => m.status === 'active');
+    const totalMembers = active.length;
+    // A "paying" member = active membership with an actual Razorpay payment/subscription id recorded
     const paying = active.filter(m =>
       !!m.razorpay_payment_id || !!m.razorpay_subscription_id || !!m.razorpay_order_id
     );
-    const lifetime = paying.reduce((s, m) => s + Number(tiersById[m.tier_id]?.price_inr || 0), 0);
-    return { totalMembers: active.length, payingMembers: paying.length, lifetime };
-  }, [memberships, tiersById]);
+    let lifetime = 0;
+    paying.forEach(m => {
+      const t = tiersById[m.tier_id];
+      if (!t) return;
+      lifetime += Number(t.price_inr || 0);
+    });
+    const liveCommunities = communities.filter(c => c.is_published && c.approval_status === 'approved').length;
+    const pending = communities.filter(c => c.approval_status === 'pending').length;
+    return { totalMembers, payingMembers: paying.length, lifetime, liveCommunities, pending, totalCommunities: communities.length };
+  }, [memberships, tiersById, communities]);
 
   const togglePublish = async (c: any) => {
     const { error } = await supabase.from('communities' as any).update({ is_published: !c.is_published }).eq('id', c.id);
@@ -95,25 +104,8 @@ const CreatorDashboard = () => {
         </button>
       </div>
 
-      {/* Insights entry: dashboard now lives on its own page */}
-      <button
-        onClick={() => navigate('/creator/insights')}
-        className="w-full mb-4 p-4 rounded-2xl border border-border bg-gradient-to-br from-primary/10 via-card to-card text-left flex items-center gap-3 hover:border-primary/40 transition"
-      >
-        <div className="w-10 h-10 rounded-xl bg-primary/15 flex items-center justify-center">
-          <BarChart3 className="w-5 h-5 text-primary" />
-        </div>
-        <div className="flex-1 min-w-0">
-          <p className="text-sm font-bold text-foreground">Insights</p>
-          <p className="text-[11px] text-muted-foreground truncate">
-            {summary.totalMembers} members · {summary.payingMembers} paying · ₹{summary.lifetime.toLocaleString('en-IN')} earned
-          </p>
-        </div>
-        <ChevronRight className="w-4 h-4 text-muted-foreground" />
-      </button>
-
       <div className="flex gap-1 p-1 mb-4 rounded-xl bg-secondary">
-        {(['communities', 'members'] as const).map(t => (
+        {(['overview', 'communities', 'members'] as const).map(t => (
           <button key={t} onClick={() => setTab(t)}
             className={`flex-1 py-2 rounded-lg text-xs font-semibold capitalize transition ${
               tab === t ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground'
@@ -125,11 +117,75 @@ const CreatorDashboard = () => {
 
       {loading ? (
         <div className="flex items-center justify-center py-20"><Loader2 className="w-6 h-6 animate-spin text-muted-foreground" /></div>
+      ) : tab === 'overview' ? (
+        <OverviewTab metrics={metrics} memberships={memberships} commById={commById}
+          tiersById={tiersById} profilesById={profilesById} />
       ) : tab === 'communities' ? (
         <CommunitiesTab communities={communities} onTogglePublish={togglePublish} navigate={navigate} />
       ) : (
         <MembersTab memberships={memberships} commById={commById} tiersById={tiersById} profilesById={profilesById} />
       )}
+    </div>
+  );
+};
+
+const MetricCard = ({ icon: Icon, label, value, hint }: any) => (
+  <div className="p-4 rounded-2xl bg-card border border-border">
+    <div className="flex items-center gap-2 text-muted-foreground mb-2">
+      <Icon className="w-4 h-4" />
+      <span className="text-[11px] font-semibold uppercase tracking-wide">{label}</span>
+    </div>
+    <p className="text-2xl font-extrabold text-foreground leading-none">{value}</p>
+    {hint && <p className="text-[11px] text-muted-foreground mt-1">{hint}</p>}
+  </div>
+);
+
+const OverviewTab = ({ metrics, memberships, commById, tiersById, profilesById }: any) => {
+  const recent = memberships.filter((m: any) => m.status === 'active').slice(0, 5);
+  return (
+    <div className="space-y-4">
+      <div className="grid grid-cols-2 gap-3">
+        <MetricCard icon={Users} label="Total members" value={metrics.totalMembers} hint="active across all communities" />
+        <MetricCard icon={IndianRupee} label="Paying members" value={metrics.payingMembers} hint="on a paid tier" />
+        <MetricCard icon={TrendingUp} label="Total revenue" value={`₹${metrics.lifetime.toLocaleString('en-IN')}`} hint="from paid memberships" />
+        <MetricCard icon={Layers} label="Communities" value={metrics.liveCommunities}
+          hint={`${metrics.pending} pending • ${metrics.totalCommunities} total`} />
+      </div>
+
+      <div className="p-4 rounded-2xl bg-card border border-border">
+        <h2 className="font-bold text-foreground mb-3">Recent members</h2>
+        {recent.length === 0 ? (
+          <p className="text-sm text-muted-foreground">No members yet. Share your community to get the first signups.</p>
+        ) : (
+          <div className="space-y-3">
+            {recent.map((m: any) => {
+              const p = profilesById[m.user_id];
+              const c = commById[m.community_id];
+              const t = tiersById[m.tier_id];
+              return (
+                <div key={m.id} className="flex items-center gap-3">
+                  {p?.avatar_url ? (
+                    <img src={p.avatar_url} className="w-9 h-9 rounded-full object-cover" alt="" />
+                  ) : (
+                    <div className="w-9 h-9 rounded-full bg-secondary flex items-center justify-center text-xs font-bold text-muted-foreground">
+                      {(p?.name || p?.username || '?')[0]?.toUpperCase()}
+                    </div>
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold text-foreground truncate">{p?.name || p?.username || 'Member'}</p>
+                    <p className="text-xs text-muted-foreground truncate">
+                      {c?.name || 'Community'} • {t?.name || 'Tier'}
+                    </p>
+                  </div>
+                  <span className="text-[10px] text-muted-foreground">
+                    {new Date(m.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
     </div>
   );
 };
