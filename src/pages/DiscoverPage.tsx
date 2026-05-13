@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { Search, Sparkles, Users, Loader2 } from 'lucide-react';
+import { Search, Sparkles, Users, Loader2, Camera, Play, Globe } from 'lucide-react';
 
 interface CommunityCard {
   id: string;
@@ -11,6 +11,7 @@ interface CommunityCard {
   cover_url: string | null;
   member_count: number;
   creator_id: string;
+  social_links: { instagram?: string; youtube?: string; website?: string; x?: string } | null;
 }
 
 const DiscoverPage = () => {
@@ -24,7 +25,7 @@ const DiscoverPage = () => {
     const load = async () => {
       const { data } = await supabase
         .from('communities' as any)
-        .select('id, slug, name, description, cover_url, member_count, creator_id')
+        .select('id, slug, name, description, cover_url, member_count, creator_id, social_links')
         .eq('is_published', true)
         .eq('approval_status', 'approved')
         .order('member_count', { ascending: false })
@@ -83,11 +84,16 @@ const DiscoverPage = () => {
         <div className="grid grid-cols-2 gap-3">
           {filtered.map(c => {
             const creator = creators[c.creator_id];
+            const social = c.social_links || {};
+            const hasSocial = social.instagram || social.youtube || social.website;
             return (
-              <button
+              <div
                 key={c.id}
+                role="button"
+                tabIndex={0}
                 onClick={() => navigate(`/c/${c.slug}/room`)}
-                className="w-full text-left rounded-2xl overflow-hidden bg-card border border-border hover:border-primary/50 transition-colors"
+                onKeyDown={(e) => { if (e.key === 'Enter') navigate(`/c/${c.slug}/room`); }}
+                className="w-full text-left rounded-2xl overflow-hidden bg-card border border-border hover:border-primary/50 transition-colors cursor-pointer"
               >
                 {c.cover_url ? (
                   <div className="aspect-[16/10] bg-secondary overflow-hidden">
@@ -101,6 +107,28 @@ const DiscoverPage = () => {
                 <div className="p-2.5">
                   <h3 className="font-bold text-foreground text-sm mb-1 line-clamp-2 leading-snug">{c.name}</h3>
                   {c.description && <p className="text-[11px] text-muted-foreground line-clamp-3 mb-2 leading-snug">{c.description}</p>}
+                  {hasSocial && (
+                    <div className="flex items-center gap-1.5 mb-2" onClick={(e) => e.stopPropagation()}>
+                      {social.instagram && (
+                        <a href={social.instagram} target="_blank" rel="noopener noreferrer"
+                          className="p-1.5 rounded-lg bg-secondary text-muted-foreground hover:text-foreground" aria-label="Instagram">
+                          <Camera className="w-3 h-3" />
+                        </a>
+                      )}
+                      {social.youtube && (
+                        <a href={social.youtube} target="_blank" rel="noopener noreferrer"
+                          className="p-1.5 rounded-lg bg-secondary text-muted-foreground hover:text-foreground" aria-label="YouTube">
+                          <Play className="w-3 h-3" />
+                        </a>
+                      )}
+                      {social.website && (
+                        <a href={social.website} target="_blank" rel="noopener noreferrer"
+                          className="p-1.5 rounded-lg bg-secondary text-muted-foreground hover:text-foreground" aria-label="Website">
+                          <Globe className="w-3 h-3" />
+                        </a>
+                      )}
+                    </div>
+                  )}
                   <div className="flex items-center justify-between text-[11px]">
                     <div className="flex items-center gap-1.5 text-muted-foreground min-w-0">
                       {creator?.avatar_url ? (
@@ -116,7 +144,7 @@ const DiscoverPage = () => {
                     </div>
                   </div>
                 </div>
-              </button>
+              </div>
             );
           })}
         </div>
