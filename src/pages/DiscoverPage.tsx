@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { Search, Sparkles, Users, Loader2 } from 'lucide-react';
+import { Search, Sparkles, Users, Loader2, Instagram, Youtube, Globe } from 'lucide-react';
 
 interface CommunityCard {
   id: string;
@@ -11,6 +11,7 @@ interface CommunityCard {
   cover_url: string | null;
   member_count: number;
   creator_id: string;
+  social_links: { instagram?: string; youtube?: string; website?: string; x?: string } | null;
 }
 
 const DiscoverPage = () => {
