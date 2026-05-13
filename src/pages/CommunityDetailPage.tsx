@@ -211,6 +211,34 @@ const CommunityDetailPage = () => {
           </div>
         )}
 
+        {Array.isArray(community.info_attachments) && community.info_attachments.length > 0 && (
+          <div className="mb-5">
+            <h2 className="text-sm font-bold text-foreground uppercase tracking-wide mb-3">More info</h2>
+            <div className="space-y-2">
+              {community.info_attachments.map((a: any, i: number) => {
+                const isImage = a.mime?.startsWith('image/');
+                return (
+                  <a key={i} href={a.url} target="_blank" rel="noreferrer"
+                    className="flex items-center gap-3 p-2.5 rounded-2xl bg-card border border-border">
+                    {isImage ? (
+                      <img src={a.url} alt={a.name} className="w-12 h-12 rounded-xl object-cover shrink-0" />
+                    ) : (
+                      <div className="w-12 h-12 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                        <FileText className="w-5 h-5" />
+                      </div>
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold text-foreground truncate">{a.name}</p>
+                      {a.size && <p className="text-[11px] text-muted-foreground">{(a.size / 1024).toFixed(1)} KB</p>}
+                    </div>
+                    <Download className="w-4 h-4 text-muted-foreground shrink-0" />
+                  </a>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
         {community.key_outcomes?.length > 0 && (
           <div className="mb-5">
             <h2 className="text-sm font-bold text-foreground uppercase tracking-wide mb-3">What you'll get</h2>
