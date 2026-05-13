@@ -128,6 +128,10 @@ const CommunityRoomPage = () => {
             {isCreator ? 'You host this' : currentTier ? `${currentTier.name} member` : 'Member'}
           </p>
         </div>
+        <button onClick={() => shareCommunity({ slug: slug!, name: community.name, toast })}
+          className="p-2 rounded-xl bg-card border border-border" aria-label="Share community">
+          <Share2 className="w-5 h-5 text-foreground" />
+        </button>
       </div>
 
       {upgradeTier && showUpgrade && (
