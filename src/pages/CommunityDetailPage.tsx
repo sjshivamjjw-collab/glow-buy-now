@@ -66,15 +66,35 @@ const CommunityDetailPage = () => {
     setJoining(tier.id);
     try {
       if (tier.kind === 'free') {
-        const { error } = await supabase.from('memberships' as any).insert({
-          user_id: userId,
-          community_id: community.id,
-          tier_id: tier.id,
-          status: 'active',
-          source: 'free',
-          started_at: new Date().toISOString(),
-        });
-        if (error) throw error;
+        // If a membership row already exists (e.g. stale pending paid attempt),
+        // update it back to the free tier instead of inserting a duplicate.
+        const { data: existing } = await supabase.from('memberships' as any)
+          .select('id').eq('user_id', userId).eq('community_id', community.id).maybeSingle();
+        if (existing) {
+          const { error } = await supabase.from('memberships' as any).update({
+            tier_id: tier.id,
+            status: 'active',
+            source: 'free',
+            started_at: new Date().toISOString(),
+            razorpay_payment_id: null,
+            razorpay_subscription_id: null,
+            razorpay_order_id: null,
+            current_period_end: null,
+            cancelled_at: null,
+            updated_at: new Date().toISOString(),
+          }).eq('id', (existing as any).id);
+          if (error) throw error;
+        } else {
+          const { error } = await supabase.from('memberships' as any).insert({
+            user_id: userId,
+            community_id: community.id,
+            tier_id: tier.id,
+            status: 'active',
+            source: 'free',
+            started_at: new Date().toISOString(),
+          });
+          if (error) throw error;
+        }
         toast({ title: `Welcome to ${community.name}!` });
         await refresh();
       } else {
