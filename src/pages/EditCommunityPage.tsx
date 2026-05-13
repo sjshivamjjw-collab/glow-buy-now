@@ -3,7 +3,9 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
-import { ArrowLeft, Plus, Trash2, Image as ImageIcon, Video, Loader2, Globe, IndianRupee, RefreshCw, Zap } from 'lucide-react';
+import { ArrowLeft, Plus, Trash2, Image as ImageIcon, Video, Loader2, Globe, IndianRupee, RefreshCw, Zap, Paperclip, FileText } from 'lucide-react';
+
+interface InfoAttachment { url: string; name: string; mime: string; size: number; }
 
 const TENURE_OPTIONS = [1, 2, 3, 6, 12];
 
@@ -38,6 +40,8 @@ const EditCommunityPage = () => {
   const [introVideoUrl, setIntroVideoUrl] = useState<string | null>(null);
   const [outcomes, setOutcomes] = useState<string[]>(['']);
   const [social, setSocial] = useState({ youtube: '', instagram: '', x: '', website: '' });
+  const [attachments, setAttachments] = useState<InfoAttachment[]>([]);
+  const [uploadingAttachment, setUploadingAttachment] = useState(false);
   const [tiers, setTiers] = useState<TierDraft[]>([]);
   const [removedTierIds, setRemovedTierIds] = useState<string[]>([]);
   const [uploadingCover, setUploadingCover] = useState(false);
@@ -66,6 +70,7 @@ const EditCommunityPage = () => {
       setOutcomes((community.key_outcomes && community.key_outcomes.length) ? community.key_outcomes : ['']);
       const s = community.social_links || {};
       setSocial({ youtube: s.youtube || '', instagram: s.instagram || '', x: s.x || '', website: s.website || '' });
+      setAttachments(Array.isArray(community.info_attachments) ? community.info_attachments : []);
 
       const { data: tierRows } = await supabase
         .from('community_tiers' as any).select('*').eq('community_id', communityId).order('sort_order');
@@ -119,6 +124,23 @@ const EditCommunityPage = () => {
     setUploadingVideo(false);
     if (url) setIntroVideoUrl(url);
   };
+  const onAttachments = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    if (!files.length || !userId) return;
+    setUploadingAttachment(true);
+    const uploaded: InfoAttachment[] = [];
+    for (const f of files) {
+      const ext = f.name.split('.').pop() || 'bin';
+      const path = `${userId}/info-${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+      const { error } = await supabase.storage.from('community-media').upload(path, f);
+      if (error) { toast({ title: `Upload failed: ${f.name}`, description: error.message, variant: 'destructive' }); continue; }
+      const { data } = supabase.storage.from('community-media').getPublicUrl(path);
+      uploaded.push({ url: data.publicUrl, name: f.name, mime: f.type, size: f.size });
+    }
+    setAttachments(prev => [...prev, ...uploaded]);
+    setUploadingAttachment(false);
+    e.target.value = '';
+  };
 
   const addTier = () =>
     setTiers(prev => [...prev, {
@@ -157,6 +179,7 @@ const EditCommunityPage = () => {
         description: description.trim() || null,
         cover_url: coverUrl,
         intro_video_url: introVideoUrl,
+        info_attachments: attachments,
         key_outcomes: cleanOutcomes,
         social_links: cleanSocial,
       })
@@ -281,6 +304,41 @@ const EditCommunityPage = () => {
               <input type="file" accept="video/*" className="hidden" onChange={onVideo} />
             </label>
           )}
+        </div>
+
+        {/* Info attachments */}
+        <div>
+          <label className="text-xs font-semibold text-muted-foreground mb-2 block">
+            Documents & images (optional)
+          </label>
+          <p className="text-[11px] text-muted-foreground mb-2">Share PDFs, slides, images or any file to give members more info before they join.</p>
+          {attachments.length > 0 && (
+            <div className="space-y-2 mb-2">
+              {attachments.map((a, i) => (
+                <div key={i} className="flex items-center gap-2 p-2 rounded-xl bg-secondary">
+                  {a.mime?.startsWith('image/') ? (
+                    <img src={a.url} alt={a.name} className="w-10 h-10 rounded-lg object-cover shrink-0" />
+                  ) : (
+                    <div className="w-10 h-10 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                      <FileText className="w-5 h-5" />
+                    </div>
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-semibold text-foreground truncate">{a.name}</p>
+                    <p className="text-[10px] text-muted-foreground">{((a.size || 0) / 1024).toFixed(1)} KB</p>
+                  </div>
+                  <button onClick={() => setAttachments(prev => prev.filter((_, j) => j !== i))}
+                    className="p-1.5 rounded-lg text-muted-foreground hover:text-destructive">
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+          <label className="h-16 rounded-2xl bg-secondary border-2 border-dashed border-border flex items-center justify-center gap-2 cursor-pointer text-muted-foreground text-sm">
+            {uploadingAttachment ? <Loader2 className="w-5 h-5 animate-spin" /> : <><Paperclip className="w-5 h-5" /> Add files (multiple)</>}
+            <input type="file" multiple className="hidden" onChange={onAttachments} />
+          </label>
         </div>
 
         {/* Outcomes */}
