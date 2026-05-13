@@ -7,7 +7,7 @@ import { ArrowLeft, Plus, Trash2, Image as ImageIcon, Video, Loader2, Globe, Ind
 
 const TENURE_OPTIONS = [1, 2, 3, 6, 12];
 
-type PostPerm = 'all_members' | 'moderators' | 'creator_only';
+type PostPerm = 'all_members' | 'admins' | 'creator_only';
 
 interface TierDraft {
   id: string;            // local id
@@ -425,7 +425,7 @@ const EditCommunityPage = () => {
                     <div className="grid grid-cols-3 gap-1.5">
                       {([
                         { v: 'all_members', label: 'Everyone' },
-                        { v: 'moderators', label: 'Moderators' },
+                        { v: 'admins', label: 'Admins' },
                         { v: 'creator_only', label: 'Admin only' },
                       ] as { v: PostPerm; label: string }[]).map(opt => (
                         <button key={opt.v} type="button"

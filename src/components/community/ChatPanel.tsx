@@ -29,7 +29,7 @@ interface Channel {
   description: string | null;
   required_tier_level: number;
   sort_order: number;
-  post_permission: 'all_members' | 'moderators' | 'creator_only';
+  post_permission: 'all_members' | 'admins' | 'creator_only';
 }
 interface PollVote { message_id: string; user_id: string; option_index: number }
 
@@ -50,13 +50,13 @@ const slugify = (s: string) => s.toLowerCase().trim().replace(/[^a-z0-9\s-]/g, '
 interface Props {
   communityId: string;
   isCreator: boolean;
-  isModerator: boolean;
+  isAdmin: boolean;
   tierLevel: number;
   tiers: TierInfo[];
   slug: string;
 }
 
-export const ChatPanel = ({ communityId, isCreator, isModerator, tierLevel, tiers, slug }: Props) => {
+export const ChatPanel = ({ communityId, isCreator, isAdmin, tierLevel, tiers, slug }: Props) => {
   const { userId, userName, userAvatar } = useAuth();
   const { toast } = useToast();
   const [channels, setChannels] = useState<Channel[]>([]);
@@ -70,7 +70,7 @@ export const ChatPanel = ({ communityId, isCreator, isModerator, tierLevel, tier
   const [showPoll, setShowPoll] = useState(false);
   const [showAttach, setShowAttach] = useState(false);
   const [showChannelMgr, setShowChannelMgr] = useState(false);
-  const [showModMgr, setShowModMgr] = useState(false);
+  const [showAdminMgr, setShowAdminMgr] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const imageRef = useRef<HTMLInputElement>(null);
@@ -84,15 +84,15 @@ export const ChatPanel = ({ communityId, isCreator, isModerator, tierLevel, tier
       ? true
       : activeChannel.post_permission === 'creator_only'
         ? false
-        : activeChannel.post_permission === 'moderators'
-          ? isModerator
+        : activeChannel.post_permission === 'admins'
+          ? isAdmin
           : true
   );
   const postRestrictionLabel = !activeChannel ? '' : (
     activeChannel.post_permission === 'creator_only'
       ? 'Only the creator can post in this channel.'
-      : activeChannel.post_permission === 'moderators'
-        ? 'Only moderators can post in this channel.'
+      : activeChannel.post_permission === 'admins'
+        ? 'Only admins can post in this channel.'
         : ''
   );
 
@@ -280,7 +280,7 @@ export const ChatPanel = ({ communityId, isCreator, isModerator, tierLevel, tier
               className="shrink-0 inline-flex items-center gap-1 px-2.5 py-1.5 rounded-full text-xs font-semibold bg-card border border-dashed border-border text-muted-foreground">
               <Settings className="w-3 h-3" /> Channels
             </button>
-            <button onClick={() => setShowModMgr(true)}
+            <button onClick={() => setShowAdminMgr(true)}
               className="shrink-0 inline-flex items-center gap-1 px-2.5 py-1.5 rounded-full text-xs font-semibold bg-card border border-dashed border-border text-muted-foreground">
               <ShieldCheck className="w-3 h-3" /> Mods
             </button>
@@ -443,10 +443,10 @@ export const ChatPanel = ({ communityId, isCreator, isModerator, tierLevel, tier
           onChanged={loadChannels}
         />
       )}
-      {showModMgr && (
-        <ModeratorManager
+      {showAdminMgr && (
+        <AdminManager
           communityId={communityId}
-          onClose={() => setShowModMgr(false)}
+          onClose={() => setShowAdminMgr(false)}
         />
       )}
     </div>
@@ -531,7 +531,7 @@ const ChannelManager = ({ communityId, channels, tiers, onClose, onChanged }: {
                 <select value={c.post_permission} onChange={e => setPerm(c.id, e.target.value as Channel['post_permission'])}
                   className="px-2 py-1.5 rounded-lg bg-card border border-border text-xs col-span-2">
                   <option value="all_members">Everyone in this channel</option>
-                  <option value="moderators">Moderators only</option>
+                  <option value="admins">Admins only</option>
                   <option value="creator_only">Creator only (announcements)</option>
                 </select>
               </div>
@@ -647,10 +647,10 @@ interface MemberRow {
   name: string | null;
   username: string | null;
   avatar_url: string | null;
-  is_mod: boolean;
+  is_admin: boolean;
 }
 
-const ModeratorManager = ({ communityId, onClose }: { communityId: string; onClose: () => void }) => {
+const AdminManager = ({ communityId, onClose }: { communityId: string; onClose: () => void }) => {
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
   const [members, setMembers] = useState<MemberRow[]>([]);
@@ -661,30 +661,30 @@ const ModeratorManager = ({ communityId, onClose }: { communityId: string; onClo
     setLoading(true);
     const [{ data: mems }, { data: mods }] = await Promise.all([
       supabase.from('memberships' as any).select('user_id').eq('community_id', communityId).eq('status', 'active'),
-      supabase.from('community_moderators' as any).select('user_id').eq('community_id', communityId),
+      supabase.from('community_admins' as any).select('user_id').eq('community_id', communityId),
     ]);
     const memberIds = Array.from(new Set(((mems as any[]) || []).map(m => m.user_id)));
     const modIds = new Set(((mods as any[]) || []).map(m => m.user_id));
     if (!memberIds.length) { setMembers([]); setLoading(false); return; }
     const { data: profs } = await supabase.from('profiles').select('id, name, username, avatar_url').in('id', memberIds);
     const rows: MemberRow[] = (profs || []).map((p: any) => ({
-      user_id: p.id, name: p.name, username: p.username, avatar_url: p.avatar_url, is_mod: modIds.has(p.id),
+      user_id: p.id, name: p.name, username: p.username, avatar_url: p.avatar_url, is_admin: modIds.has(p.id),
     }));
-    rows.sort((a, b) => (Number(b.is_mod) - Number(a.is_mod)) || (a.name || a.username || '').localeCompare(b.name || b.username || ''));
+    rows.sort((a, b) => (Number(b.is_admin) - Number(a.is_admin)) || (a.name || a.username || '').localeCompare(b.name || b.username || ''));
     setMembers(rows);
     setLoading(false);
   };
 
   useEffect(() => { load(); /* eslint-disable-next-line */ }, [communityId]);
 
-  const toggleMod = async (m: MemberRow) => {
+  const toggleAdmin = async (m: MemberRow) => {
     setBusy(m.user_id);
-    if (m.is_mod) {
-      const { error } = await supabase.from('community_moderators' as any).delete()
+    if (m.is_admin) {
+      const { error } = await supabase.from('community_admins' as any).delete()
         .eq('community_id', communityId).eq('user_id', m.user_id);
       if (error) toast({ title: 'Could not remove', description: error.message, variant: 'destructive' });
     } else {
-      const { error } = await supabase.from('community_moderators' as any).insert({
+      const { error } = await supabase.from('community_admins' as any).insert({
         community_id: communityId, user_id: m.user_id,
       });
       if (error) toast({ title: 'Could not promote', description: error.message, variant: 'destructive' });
@@ -705,9 +705,9 @@ const ModeratorManager = ({ communityId, onClose }: { communityId: string; onClo
         <div className="flex items-center justify-between">
           <div>
             <h3 className="text-lg font-bold text-foreground flex items-center gap-2">
-              <ShieldCheck className="w-5 h-5 text-primary" /> Moderators
+              <ShieldCheck className="w-5 h-5 text-primary" /> Admins
             </h3>
-            <p className="text-xs text-muted-foreground">Promote members to post in moderator-only channels.</p>
+            <p className="text-xs text-muted-foreground">Promote members to post in admin-only channels.</p>
           </div>
           <button onClick={onClose} className="p-1 text-muted-foreground"><X className="w-5 h-5" /></button>
         </div>
@@ -737,17 +737,17 @@ const ModeratorManager = ({ communityId, onClose }: { communityId: string; onClo
                 <div className="flex-1 min-w-0">
                   <div className="text-sm font-semibold text-foreground truncate flex items-center gap-1.5">
                     {display}
-                    {m.is_mod && <Shield className="w-3.5 h-3.5 text-primary" />}
+                    {m.is_admin && <Shield className="w-3.5 h-3.5 text-primary" />}
                   </div>
                   {m.username && <div className="text-[11px] text-muted-foreground truncate">@{m.username}</div>}
                 </div>
-                <button onClick={() => toggleMod(m)} disabled={busy === m.user_id}
+                <button onClick={() => toggleAdmin(m)} disabled={busy === m.user_id}
                   className={`shrink-0 px-3 py-1.5 rounded-lg text-xs font-semibold transition disabled:opacity-50 ${
-                    m.is_mod
+                    m.is_admin
                       ? 'bg-muted text-foreground hover:bg-muted/70'
                       : 'bg-primary text-primary-foreground hover:opacity-90'
                   }`}>
-                  {busy === m.user_id ? '…' : m.is_mod ? 'Remove' : (<span className="inline-flex items-center gap-1"><UserPlus className="w-3 h-3" />Make mod</span>)}
+                  {busy === m.user_id ? '…' : m.is_admin ? 'Remove' : (<span className="inline-flex items-center gap-1"><UserPlus className="w-3 h-3" />Make admin</span>)}
                 </button>
               </div>
             );
