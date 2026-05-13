@@ -72,27 +72,33 @@ const CreateCommunityPage = () => {
     if (url) setIntroVideoUrl(url);
   };
 
-  const addTier = () =>
-    setTiers(prev => [...prev, { id: newId(), name: '', description: '', kind: 'paid_monthly', price_inr: '', post_permission: 'all_members', billing_period_months: 1, trial_days: '' }]);
-  const removeTier = (id: string) => setTiers(prev => prev.filter(t => t.id !== id));
-  const updateTier = (id: string, patch: Partial<TierDraft>) =>
-    setTiers(prev => prev.map(t => t.id === id ? { ...t, ...patch } : t));
+  const addPaidTier = () =>
+    setPaidTiers(prev => [...prev, {
+      id: newId(), name: '', kind: 'paid_monthly', price_inr: '',
+      billing_period_months: 1, trial_enabled: false, trial_days: '7',
+      post_permission: 'all_members',
+    }]);
+  const removePaidTier = (id: string) => setPaidTiers(prev => prev.filter(t => t.id !== id));
+  const updatePaidTier = (id: string, patch: Partial<PaidTierDraft>) =>
+    setPaidTiers(prev => prev.map(t => t.id === id ? { ...t, ...patch } : t));
 
   const handlePublish = async () => {
     if (!userId) return;
     if (!name.trim()) { toast({ title: 'Name is required', variant: 'destructive' }); return; }
-    const validTiers = tiers.filter(t => t.name.trim());
-    if (validTiers.length === 0) { toast({ title: 'Add at least one tier', variant: 'destructive' }); return; }
-    for (const t of validTiers) {
-      if (t.kind !== 'free' && (!t.price_inr || Number(t.price_inr) <= 0)) {
-        toast({ title: `Set a price for "${t.name}"`, variant: 'destructive' });
+    if (!freeEnabled && paidTiers.length === 0) {
+      toast({ title: 'Add at least one tier', description: 'Enable the Free tier or add a paid tier.', variant: 'destructive' });
+      return;
+    }
+    for (const t of paidTiers) {
+      if (!t.name.trim()) { toast({ title: 'Name each paid tier', variant: 'destructive' }); return; }
+      if (!t.price_inr || Number(t.price_inr) <= 0) {
+        toast({ title: `Set a price for "${t.name || 'paid tier'}"`, variant: 'destructive' });
         return;
       }
     }
 
     setSaving(true);
 
-    // Ensure the user has the creator role before inserting (RLS requires it).
     if (!isCreator) {
       const { error: rcErr } = await supabase.rpc('become_creator' as any);
       if (rcErr) {
@@ -130,17 +136,47 @@ const CreateCommunityPage = () => {
       return;
     }
 
-    const tierRows = validTiers.map((t, idx) => ({
-      community_id: (community as any).id,
-      name: t.name.trim(),
-      description: t.description.trim() || null,
-      kind: t.kind,
-      price_inr: t.kind === 'free' ? null : Number(t.price_inr),
-      billing_period_months: t.kind === 'paid_monthly' ? (t.billing_period_months || 1) : 1,
-      trial_days: t.kind === 'paid_monthly' ? (Number(t.trial_days) || 0) : 0,
-      sort_order: idx,
-      is_active: true,
-    }));
+    // Build the ordered tier list: free first (if enabled), then paid tiers
+    const ordered: Array<{
+      payload: any;
+      post_permission: PostPerm;
+    }> = [];
+    if (freeEnabled) {
+      ordered.push({
+        payload: {
+          community_id: (community as any).id,
+          name: 'Free',
+          description: freeDescription.trim() || null,
+          kind: 'free',
+          price_inr: null,
+          billing_period_months: 1,
+          trial_days: 0,
+          sort_order: 0,
+          is_active: true,
+        },
+        post_permission: freePostPermission,
+      });
+    }
+    paidTiers.forEach((t, i) => {
+      ordered.push({
+        payload: {
+          community_id: (community as any).id,
+          name: t.name.trim(),
+          description: null,
+          kind: t.kind,
+          price_inr: Number(t.price_inr),
+          billing_period_months: t.kind === 'paid_monthly' ? (t.billing_period_months || 1) : 1,
+          trial_days: t.kind === 'paid_monthly' && t.trial_enabled ? (Number(t.trial_days) || 0) : 0,
+          sort_order: ordered.length + i - (freeEnabled ? 0 : 0),
+          is_active: true,
+        },
+        post_permission: t.post_permission,
+      });
+    });
+    // Re-index sort_order cleanly
+    ordered.forEach((o, idx) => { o.payload.sort_order = idx; });
+
+    const tierRows = ordered.map(o => o.payload);
     const { data: insertedTiers, error: tErr } = await supabase
       .from('community_tiers' as any).insert(tierRows).select();
     if (tErr) {
@@ -149,20 +185,18 @@ const CreateCommunityPage = () => {
       return;
     }
 
-    // Auto-create one chat channel per tier with the chosen post permission
     const channelRows = (insertedTiers as any[] || []).map((tier, idx) => ({
       community_id: (community as any).id,
       name: `${tier.name} chat`,
       slug: `${slugify(tier.name)}-chat`,
       required_tier_level: tier.sort_order ?? idx,
       sort_order: tier.sort_order ?? idx,
-      post_permission: validTiers[idx]?.post_permission ?? 'all_members',
+      post_permission: ordered[idx]?.post_permission ?? 'all_members',
     }));
     if (channelRows.length) {
       await supabase.from('community_channels' as any).insert(channelRows);
     }
 
-    // Create Razorpay plans for monthly tiers (best-effort, non-blocking)
     const monthlyIds = (insertedTiers as any[] || []).filter(t => t.kind === 'paid_monthly').map(t => t.id);
     if (monthlyIds.length) {
       await Promise.all(monthlyIds.map(id =>
