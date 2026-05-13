@@ -16,7 +16,7 @@ export const useCommunityMembership = (communityId: string | null | undefined) =
   const [loading, setLoading] = useState(true);
   const [isMember, setIsMember] = useState(false);
   const [isCreator, setIsCreator] = useState(false);
-  const [isAdmin, setIsModerator] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [tiers, setTiers] = useState<TierInfo[]>([]);
   const [tierLevel, setTierLevel] = useState<number>(-1); // -1 = no membership; creators get Infinity
   const [currentTier, setCurrentTier] = useState<TierInfo | null>(null);
@@ -37,7 +37,7 @@ export const useCommunityMembership = (communityId: string | null | undefined) =
     setTiers(tierList);
     const creator = (c as any)?.creator_id === userId;
     setIsCreator(creator);
-    setIsModerator(creator || !!mod);
+    setIsAdmin(creator || !!mod);
 
     // Mirror DB-side gating in is_active_community_member: a paid tier requires
     // a verified Razorpay payment/subscription and an unexpired period.
