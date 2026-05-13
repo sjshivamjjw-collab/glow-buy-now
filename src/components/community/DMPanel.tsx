@@ -189,7 +189,9 @@ const DMThreadView = ({ thread, other, communityId, onBack }: {
       if (!cancelled) { setMessages(((data as any[]) || []) as DM[]); setLoading(false); }
     })();
 
-    const ch = supabase.channel(`dm-${thread.id}-${Math.random().toString(36).slice(2)}`)
+    // Use a private Realtime topic so realtime.messages RLS can verify
+    // the subscriber is one of the two thread participants.
+    const ch = supabase.channel(`dm:${thread.id}`, { config: { private: true } })
       .on('postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'community_dm_messages', filter: `thread_id=eq.${thread.id}` },
         (payload: any) => setMessages(prev => prev.some(m => m.id === payload.new.id) ? prev : [...prev, payload.new as DM]))
