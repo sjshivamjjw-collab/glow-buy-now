@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { getSignedUrl } from '@/lib/storageUrls';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { FileBox, Plus, Link2, FileText, Loader2, Trash2, Download, X, Upload, Sparkles, Lock } from 'lucide-react';
@@ -67,8 +68,9 @@ export const ResourcesPanel = ({ communityId, isCreator, tierLevel, tiers, slug 
       const path = `${communityId}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
       const { error: upErr } = await supabase.storage.from('community-resources').upload(path, file);
       if (upErr) { toast({ title: 'Upload failed', description: upErr.message, variant: 'destructive' }); setSaving(false); return; }
-      const { data: pub } = supabase.storage.from('community-resources').getPublicUrl(path);
-      payload.url = pub.publicUrl;
+      // Store the storage path; we generate short-lived signed URLs on demand
+      // so private bucket RLS can verify membership and tier on each access.
+      payload.url = path;
       payload.file_size = file.size;
     } else {
       if (!form.url.trim().startsWith('http')) { toast({ title: 'Enter a valid URL (https://…)', variant: 'destructive' }); setSaving(false); return; }
@@ -126,10 +128,20 @@ export const ResourcesPanel = ({ communityId, isCreator, tierLevel, tiers, slug 
                     {r.kind === 'file' && r.file_size && <p className="text-[10px] text-muted-foreground">{fmtSize(r.file_size)}</p>}
                   </div>
                   {!locked && (
-                    <a href={r.url} target="_blank" rel="noreferrer" download={r.kind === 'file' ? '' : undefined}
-                      className="p-2 rounded-xl bg-primary/10 text-primary">
-                      {r.kind === 'file' ? <Download className="w-4 h-4" /> : <Link2 className="w-4 h-4" />}
-                    </a>
+                    r.kind === 'file' ? (
+                      <button onClick={async () => {
+                        const signed = await getSignedUrl('community-resources', r.url);
+                        if (!signed) { toast({ title: 'Could not open file', variant: 'destructive' }); return; }
+                        window.open(signed, '_blank', 'noopener,noreferrer');
+                      }} className="p-2 rounded-xl bg-primary/10 text-primary">
+                        <Download className="w-4 h-4" />
+                      </button>
+                    ) : (
+                      <a href={r.url} target="_blank" rel="noreferrer"
+                        className="p-2 rounded-xl bg-primary/10 text-primary">
+                        <Link2 className="w-4 h-4" />
+                      </a>
+                    )
                   )}
                   {isCreator && (
                     <button onClick={() => remove(r.id)} className="p-2 rounded-xl text-muted-foreground hover:text-destructive">

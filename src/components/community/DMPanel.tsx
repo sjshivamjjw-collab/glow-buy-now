@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { ArrowLeft, Send, Loader2, Paperclip, Image as ImageIcon, Plus, FileText, Download, Trash2, Search, MessageSquarePlus, Users } from 'lucide-react';
+import { SignedImage, SignedLink } from '@/components/SignedMedia';
 import { format, isToday, isYesterday } from 'date-fns';
 
 const colorFor = (id: string) => {
@@ -188,7 +189,9 @@ const DMThreadView = ({ thread, other, communityId, onBack }: {
       if (!cancelled) { setMessages(((data as any[]) || []) as DM[]); setLoading(false); }
     })();
 
-    const ch = supabase.channel(`dm-${thread.id}-${Math.random().toString(36).slice(2)}`)
+    // Use a private Realtime topic so realtime.messages RLS can verify
+    // the subscriber is one of the two thread participants.
+    const ch = supabase.channel(`dm:${thread.id}`, { config: { private: true } })
       .on('postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'community_dm_messages', filter: `thread_id=eq.${thread.id}` },
         (payload: any) => setMessages(prev => prev.some(m => m.id === payload.new.id) ? prev : [...prev, payload.new as DM]))
@@ -224,10 +227,9 @@ const DMThreadView = ({ thread, other, communityId, onBack }: {
     const path = `dm/${communityId}/${userId}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
     const { error: upErr } = await supabase.storage.from('community-media').upload(path, file, { contentType: file.type });
     if (upErr) { setUploading(false); toast({ title: 'Upload failed', description: upErr.message, variant: 'destructive' }); return; }
-    const { data: pub } = supabase.storage.from('community-media').getPublicUrl(path);
     const { error } = await supabase.from('community_dm_messages' as any).insert({
       thread_id: thread.id, community_id: communityId, sender_id: userId, recipient_id: other.id, kind,
-      attachment_url: pub.publicUrl, attachment_name: file.name, attachment_mime: file.type, attachment_size: file.size,
+      attachment_url: path, attachment_name: file.name, attachment_mime: file.type, attachment_size: file.size,
       body: null,
     });
     setUploading(false);
@@ -296,12 +298,14 @@ const DMThreadView = ({ thread, other, communityId, onBack }: {
                   }`}>{m.body}</div>
                 )}
                 {m.kind === 'image' && m.attachment_url && (
-                  <a href={m.attachment_url} target="_blank" rel="noreferrer" className="block rounded-2xl overflow-hidden border border-border max-w-xs">
-                    <img src={m.attachment_url} alt={m.attachment_name || 'image'} className="w-full h-auto object-cover max-h-72" />
-                  </a>
+                  <SignedLink bucket="community-media" src={m.attachment_url}
+                    className="block rounded-2xl overflow-hidden border border-border max-w-xs">
+                    <SignedImage bucket="community-media" src={m.attachment_url}
+                      alt={m.attachment_name || 'image'} className="w-full h-auto object-cover max-h-72" />
+                  </SignedLink>
                 )}
                 {m.kind === 'file' && m.attachment_url && (
-                  <a href={m.attachment_url} target="_blank" rel="noreferrer"
+                  <SignedLink bucket="community-media" src={m.attachment_url} download={m.attachment_name || undefined}
                     className={`inline-flex items-center gap-3 px-3 py-2.5 rounded-2xl border border-border hover:bg-muted transition max-w-xs ${mine ? 'bg-primary/10' : 'bg-card'}`}>
                     <div className="w-9 h-9 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">
                       <FileText className="w-4 h-4" />
@@ -311,7 +315,7 @@ const DMThreadView = ({ thread, other, communityId, onBack }: {
                       <div className="text-[11px] text-muted-foreground">{formatSize(m.attachment_size)}</div>
                     </div>
                     <Download className="w-4 h-4 text-muted-foreground" />
-                  </a>
+                  </SignedLink>
                 )}
                 <div className="flex items-center gap-1.5 mt-0.5 px-1">
                   <span className="text-[10px] text-muted-foreground">{time}</span>

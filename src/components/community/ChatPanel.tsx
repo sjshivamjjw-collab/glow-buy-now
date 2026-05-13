@@ -3,6 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { Send, Loader2, Trash2, Paperclip, Image as ImageIcon, BarChart3, X, Plus, Check, FileText, Download, Hash, Lock, Settings, Sparkles, Shield, ShieldCheck, Search, UserPlus, Pencil, MessageCircle } from 'lucide-react';
+import { SignedImage, SignedLink } from '@/components/SignedMedia';
 import { useToast } from '@/hooks/use-toast';
 import { format, isToday, isYesterday } from 'date-fns';
 import type { TierInfo } from '@/hooks/useCommunityMembership';
@@ -236,10 +237,10 @@ export const ChatPanel = ({ communityId, isCreator, isAdmin, tierLevel, tiers, s
     const path = `chat/${communityId}/${userId}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
     const { error: upErr } = await supabase.storage.from('community-media').upload(path, file, { contentType: file.type });
     if (upErr) { setUploading(false); toast({ title: 'Upload failed', description: upErr.message, variant: 'destructive' }); return; }
-    const { data: pub } = supabase.storage.from('community-media').getPublicUrl(path);
+    // Store the storage path; readers resolve a short-lived signed URL on demand.
     const { error } = await supabase.from('community_chat_messages' as any).insert({
       community_id: communityId, channel_id: activeChannelId, user_id: userId, kind,
-      attachment_url: pub.publicUrl, attachment_name: file.name, attachment_mime: file.type, attachment_size: file.size,
+      attachment_url: path, attachment_name: file.name, attachment_mime: file.type, attachment_size: file.size,
     });
     setUploading(false);
     if (error) toast({ title: 'Could not send', description: error.message, variant: 'destructive' });
@@ -400,12 +401,14 @@ export const ChatPanel = ({ communityId, isCreator, isAdmin, tierLevel, tiers, s
                           <div className="text-sm text-foreground leading-relaxed whitespace-pre-wrap break-words">{m.body}</div>
                         )}
                         {m.kind === 'image' && m.attachment_url && (
-                          <a href={m.attachment_url} target="_blank" rel="noreferrer" className="block rounded-xl overflow-hidden border border-border max-w-xs hover:opacity-90 transition">
-                            <img src={m.attachment_url} alt={m.attachment_name || 'image'} className="w-full h-auto object-cover max-h-80" />
-                          </a>
+                          <SignedLink bucket="community-media" src={m.attachment_url}
+                            className="block rounded-xl overflow-hidden border border-border max-w-xs hover:opacity-90 transition">
+                            <SignedImage bucket="community-media" src={m.attachment_url}
+                              alt={m.attachment_name || 'image'} className="w-full h-auto object-cover max-h-80" />
+                          </SignedLink>
                         )}
                         {m.kind === 'file' && m.attachment_url && (
-                          <a href={m.attachment_url} target="_blank" rel="noreferrer"
+                          <SignedLink bucket="community-media" src={m.attachment_url} download={m.attachment_name || undefined}
                             className="inline-flex items-center gap-3 px-3 py-2.5 rounded-xl bg-card border border-border hover:bg-muted transition max-w-sm">
                             <div className="w-9 h-9 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">
                               <FileText className="w-4 h-4" />
@@ -415,7 +418,7 @@ export const ChatPanel = ({ communityId, isCreator, isAdmin, tierLevel, tiers, s
                               <div className="text-[11px] text-muted-foreground">{formatSize(m.attachment_size)}</div>
                             </div>
                             <Download className="w-4 h-4 text-muted-foreground" />
-                          </a>
+                          </SignedLink>
                         )}
                         {m.kind === 'poll' && m.poll && (
                           <PollCard message={m} votes={votes.filter(v => v.message_id === m.id)} userId={userId} onVote={(i) => vote(m.id, i)} />
