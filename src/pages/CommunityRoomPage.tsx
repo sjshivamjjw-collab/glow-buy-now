@@ -8,6 +8,7 @@ import { ChatPanel } from '@/components/community/ChatPanel';
 import { EventsPanel } from '@/components/community/EventsPanel';
 import { ResourcesPanel } from '@/components/community/ResourcesPanel';
 import { PlansPanel } from '@/components/community/PlansPanel';
+import ReviewsSection from '@/components/community/ReviewsSection';
 
 type Tab = 'chat' | 'events' | 'resources' | 'plans';
 
