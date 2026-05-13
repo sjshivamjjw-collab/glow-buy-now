@@ -40,6 +40,8 @@ const EditCommunityPage = () => {
   const [introVideoUrl, setIntroVideoUrl] = useState<string | null>(null);
   const [outcomes, setOutcomes] = useState<string[]>(['']);
   const [social, setSocial] = useState({ youtube: '', instagram: '', x: '', website: '' });
+  const [attachments, setAttachments] = useState<InfoAttachment[]>([]);
+  const [uploadingAttachment, setUploadingAttachment] = useState(false);
   const [tiers, setTiers] = useState<TierDraft[]>([]);
   const [removedTierIds, setRemovedTierIds] = useState<string[]>([]);
   const [uploadingCover, setUploadingCover] = useState(false);
