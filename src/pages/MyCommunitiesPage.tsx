@@ -2,13 +2,37 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { Loader2, Users, Sparkles, Crown, CheckCircle2, ChevronRight } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+import { Loader2, Users, Sparkles, Crown, CheckCircle2, ChevronRight, LogOut } from 'lucide-react';
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 
 const MyCommunitiesPage = () => {
   const navigate = useNavigate();
   const { userId } = useAuth();
+  const { toast } = useToast();
   const [rows, setRows] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [leaving, setLeaving] = useState<string | null>(null);
+
+  const handleLeave = async (membershipId: string, communityName: string) => {
+    setLeaving(membershipId);
+    const { error } = await supabase.from('memberships' as any).update({
+      status: 'cancelled',
+      cancelled_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    }).eq('id', membershipId);
+    setLeaving(null);
+    if (error) {
+      toast({ title: 'Could not leave', description: error.message, variant: 'destructive' });
+      return;
+    }
+    setRows(prev => prev.filter(r => r.id !== membershipId));
+    toast({ title: `Left ${communityName}` });
+  };
 
   useEffect(() => {
     if (!userId) return;
