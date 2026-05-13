@@ -31,7 +31,7 @@ const BottomNav = () => {
     { icon: Compass, label: 'Discover', path: '/' },
     { icon: Users, label: 'My communities', path: '/mine' },
     { icon: Plus, label: 'Start New', path: '/communities/new' },
-    ...(isCreator && hasApprovedCommunity ? [{ icon: LayoutDashboard, label: 'Creator', path: '/creator' }] : []),
+    ...(isCreator && hasApprovedCommunity ? [{ icon: LayoutDashboard, label: 'Dashboard', path: '/creator' }] : []),
     { icon: User, label: 'Profile', path: '/profile' },
   ];
 
