@@ -145,6 +145,7 @@ const CreateCommunityPage = () => {
         description: description.trim() || null,
         cover_url: coverUrl,
         intro_video_url: introVideoUrl,
+        info_attachments: attachments,
         key_outcomes: cleanOutcomes,
         social_links: cleanSocial,
         is_published: true,
