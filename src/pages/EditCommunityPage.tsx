@@ -306,6 +306,41 @@ const EditCommunityPage = () => {
           )}
         </div>
 
+        {/* Info attachments */}
+        <div>
+          <label className="text-xs font-semibold text-muted-foreground mb-2 block">
+            Documents & images (optional)
+          </label>
+          <p className="text-[11px] text-muted-foreground mb-2">Share PDFs, slides, images or any file to give members more info before they join.</p>
+          {attachments.length > 0 && (
+            <div className="space-y-2 mb-2">
+              {attachments.map((a, i) => (
+                <div key={i} className="flex items-center gap-2 p-2 rounded-xl bg-secondary">
+                  {a.mime?.startsWith('image/') ? (
+                    <img src={a.url} alt={a.name} className="w-10 h-10 rounded-lg object-cover shrink-0" />
+                  ) : (
+                    <div className="w-10 h-10 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                      <FileText className="w-5 h-5" />
+                    </div>
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-semibold text-foreground truncate">{a.name}</p>
+                    <p className="text-[10px] text-muted-foreground">{((a.size || 0) / 1024).toFixed(1)} KB</p>
+                  </div>
+                  <button onClick={() => setAttachments(prev => prev.filter((_, j) => j !== i))}
+                    className="p-1.5 rounded-lg text-muted-foreground hover:text-destructive">
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+          <label className="h-16 rounded-2xl bg-secondary border-2 border-dashed border-border flex items-center justify-center gap-2 cursor-pointer text-muted-foreground text-sm">
+            {uploadingAttachment ? <Loader2 className="w-5 h-5 animate-spin" /> : <><Paperclip className="w-5 h-5" /> Add files (multiple)</>}
+            <input type="file" multiple className="hidden" onChange={onAttachments} />
+          </label>
+        </div>
+
         {/* Outcomes */}
         <div>
           <label className="text-xs font-semibold text-muted-foreground mb-2 block">Key outcomes</label>
