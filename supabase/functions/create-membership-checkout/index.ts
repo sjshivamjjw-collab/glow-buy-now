@@ -1,5 +1,6 @@
-// Creates a Razorpay order for a community tier and a pending membership row.
-// For paid_monthly we charge for one period now; we set current_period_end on activation.
+// Creates a Razorpay order for a community tier. No membership row is created
+// here — the membership is inserted with status='active' only after
+// verify-membership-payment confirms the Razorpay signature.
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0';
 
 const corsHeaders = {
@@ -35,7 +36,6 @@ Deno.serve(async (req) => {
     const tier_id = String(body?.tier_id || '');
     if (!tier_id) return json(400, { error: 'tier_id required' });
 
-    // Service role for trusted reads/writes (bypass RLS for memberships insert).
     const admin = createClient(
       Deno.env.get('SUPABASE_URL')!,
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
@@ -52,45 +52,6 @@ Deno.serve(async (req) => {
     const amount = Number(tier.price_inr || 0);
     if (!amount || amount <= 0) return json(400, { error: 'Tier has no price' });
 
-    // Upsert a pending membership for this user+community.
-    const { data: existing } = await admin
-      .from('memberships')
-      .select('id, status')
-      .eq('user_id', user.id)
-      .eq('community_id', tier.community_id)
-      .maybeSingle();
-
-    const source = tier.kind === 'paid_monthly' ? 'razorpay_sub' : 'razorpay_order';
-
-    let membership_id: string;
-    if (existing) {
-      // Always reset to pending when starting a paid checkout. Access is only
-      // granted after verify-membership-payment confirms a Razorpay signature.
-      const { error: uErr } = await admin.from('memberships').update({
-        tier_id: tier.id,
-        status: 'pending',
-        source,
-        razorpay_payment_id: null,
-        razorpay_subscription_id: null,
-        razorpay_order_id: null,
-        current_period_end: null,
-        updated_at: new Date().toISOString(),
-      }).eq('id', existing.id);
-      if (uErr) { console.error(uErr); return json(500, { error: 'Could not prepare membership' }); }
-      membership_id = existing.id;
-    } else {
-      const { data: ins, error: iErr } = await admin.from('memberships').insert({
-        user_id: user.id,
-        community_id: tier.community_id,
-        tier_id: tier.id,
-        status: 'pending',
-        source,
-      }).select('id').single();
-      if (iErr || !ins) { console.error(iErr); return json(500, { error: 'Could not create membership' }); }
-      membership_id = ins.id;
-    }
-
-    // Create a Razorpay order.
     const auth = btoa(`${RAZORPAY_KEY_ID}:${RAZORPAY_KEY_SECRET}`);
     const rzpRes = await fetch('https://api.razorpay.com/v1/orders', {
       method: 'POST',
@@ -98,8 +59,8 @@ Deno.serve(async (req) => {
       body: JSON.stringify({
         amount: Math.round(amount * 100),
         currency: 'INR',
-        receipt: `mem_${membership_id.slice(0, 8)}_${Date.now()}`,
-        notes: { membership_id, tier_id, user_id: user.id, community_id: tier.community_id },
+        receipt: `mem_${tier.id.slice(0, 8)}_${Date.now()}`,
+        notes: { tier_id, user_id: user.id, community_id: tier.community_id },
       }),
     });
     const rzpData = await rzpRes.json();
@@ -108,14 +69,12 @@ Deno.serve(async (req) => {
       return json(502, { error: 'Failed to create payment order' });
     }
 
-    await admin.from('memberships').update({ razorpay_order_id: rzpData.id }).eq('id', membership_id);
-
     return json(200, {
-      membership_id,
       order_id: rzpData.id,
       amount: rzpData.amount,
       currency: rzpData.currency,
       key_id: RAZORPAY_KEY_ID,
+      tier_id,
     });
   } catch (e) {
     console.error(e);

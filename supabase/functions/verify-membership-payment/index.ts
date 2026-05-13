@@ -1,4 +1,5 @@
-// Verifies a Razorpay payment for a community membership and activates it.
+// Verifies a Razorpay payment and creates/activates a membership in one shot.
+// Memberships are only ever created with status='active' here.
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0';
 import { createHmac } from 'node:crypto';
 
@@ -29,11 +30,11 @@ Deno.serve(async (req) => {
     if (!user) return json(401, { error: 'Unauthorized' });
 
     const body = await req.json().catch(() => ({}));
-    const membership_id = String(body?.membership_id || '');
+    const tier_id = String(body?.tier_id || '');
     const razorpay_payment_id = String(body?.razorpay_payment_id || '');
     const razorpay_order_id = String(body?.razorpay_order_id || '');
     const razorpay_signature = String(body?.razorpay_signature || '');
-    if (!membership_id || !razorpay_payment_id || !razorpay_order_id || !razorpay_signature) {
+    if (!tier_id || !razorpay_payment_id || !razorpay_order_id || !razorpay_signature) {
       return json(400, { error: 'Missing fields' });
     }
 
@@ -42,7 +43,7 @@ Deno.serve(async (req) => {
       .update(`${razorpay_order_id}|${razorpay_payment_id}`)
       .digest('hex');
     if (expected !== razorpay_signature) {
-      console.error('Signature mismatch', { expected, got: razorpay_signature });
+      console.error('Signature mismatch');
       return json(400, { error: 'Invalid signature' });
     }
 
@@ -51,37 +52,59 @@ Deno.serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
     );
 
-    const { data: membership, error: mErr } = await admin
-      .from('memberships')
-      .select('id, user_id, tier_id, razorpay_order_id, community_tiers:tier_id(kind, billing_period_months)')
-      .eq('id', membership_id)
+    const { data: tier, error: tErr } = await admin
+      .from('community_tiers')
+      .select('id, community_id, kind, billing_period_months, is_active')
+      .eq('id', tier_id)
       .maybeSingle();
-    if (mErr || !membership) return json(404, { error: 'Membership not found' });
-    if (membership.user_id !== user.id) return json(403, { error: 'Forbidden' });
-    if (membership.razorpay_order_id && membership.razorpay_order_id !== razorpay_order_id) {
-      return json(400, { error: 'Order mismatch' });
-    }
+    if (tErr || !tier) return json(404, { error: 'Tier not found' });
+    if (!tier.is_active) return json(400, { error: 'Tier inactive' });
+    if (tier.kind === 'free') return json(400, { error: 'Free tier does not need verification' });
 
-    const tier = membership.community_tiers as any;
     const now = new Date();
     let current_period_end: string | null = null;
-    if (tier?.kind === 'paid_monthly') {
+    if (tier.kind === 'paid_monthly') {
       const months = Number(tier.billing_period_months || 1);
       const end = new Date(now);
       end.setMonth(end.getMonth() + months);
       current_period_end = end.toISOString();
     }
 
-    const { error: uErr } = await admin.from('memberships').update({
-      status: 'active',
-      source: tier?.kind === 'paid_monthly' ? 'razorpay_sub' : 'razorpay_order',
+    const source = tier.kind === 'paid_monthly' ? 'razorpay_sub' : 'razorpay_order';
+
+    // Upsert: if a membership row exists for this user+community (e.g. they
+    // were on the free tier), update it to the new active paid tier.
+    const { data: existing } = await admin
+      .from('memberships')
+      .select('id')
+      .eq('user_id', user.id)
+      .eq('community_id', tier.community_id)
+      .maybeSingle();
+
+    const payload = {
+      tier_id: tier.id,
+      status: 'active' as const,
+      source,
       razorpay_payment_id,
       razorpay_order_id,
+      razorpay_subscription_id: null,
       started_at: now.toISOString(),
       current_period_end,
+      cancelled_at: null,
       updated_at: now.toISOString(),
-    }).eq('id', membership_id);
-    if (uErr) { console.error(uErr); return json(500, { error: 'Could not activate membership' }); }
+    };
+
+    if (existing) {
+      const { error: uErr } = await admin.from('memberships').update(payload).eq('id', existing.id);
+      if (uErr) { console.error(uErr); return json(500, { error: 'Could not activate membership' }); }
+    } else {
+      const { error: iErr } = await admin.from('memberships').insert({
+        user_id: user.id,
+        community_id: tier.community_id,
+        ...payload,
+      });
+      if (iErr) { console.error(iErr); return json(500, { error: 'Could not create membership' }); }
+    }
 
     return json(200, { ok: true });
   } catch (e) {
