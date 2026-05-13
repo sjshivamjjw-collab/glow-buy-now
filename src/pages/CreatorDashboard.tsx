@@ -71,23 +71,14 @@ const CreatorDashboard = () => {
     return m;
   }, [communities]);
 
-  const metrics = useMemo(() => {
+  const summary = useMemo(() => {
     const active = memberships.filter(m => m.status === 'active');
-    const totalMembers = active.length;
-    // A "paying" member = active membership with an actual Razorpay payment/subscription id recorded
     const paying = active.filter(m =>
       !!m.razorpay_payment_id || !!m.razorpay_subscription_id || !!m.razorpay_order_id
     );
-    let lifetime = 0;
-    paying.forEach(m => {
-      const t = tiersById[m.tier_id];
-      if (!t) return;
-      lifetime += Number(t.price_inr || 0);
-    });
-    const liveCommunities = communities.filter(c => c.is_published && c.approval_status === 'approved').length;
-    const pending = communities.filter(c => c.approval_status === 'pending').length;
-    return { totalMembers, payingMembers: paying.length, lifetime, liveCommunities, pending, totalCommunities: communities.length };
-  }, [memberships, tiersById, communities]);
+    const lifetime = paying.reduce((s, m) => s + Number(tiersById[m.tier_id]?.price_inr || 0), 0);
+    return { totalMembers: active.length, payingMembers: paying.length, lifetime };
+  }, [memberships, tiersById]);
 
   const togglePublish = async (c: any) => {
     const { error } = await supabase.from('communities' as any).update({ is_published: !c.is_published }).eq('id', c.id);
@@ -104,8 +95,25 @@ const CreatorDashboard = () => {
         </button>
       </div>
 
+      {/* Insights entry: dashboard now lives on its own page */}
+      <button
+        onClick={() => navigate('/creator/insights')}
+        className="w-full mb-4 p-4 rounded-2xl border border-border bg-gradient-to-br from-primary/10 via-card to-card text-left flex items-center gap-3 hover:border-primary/40 transition"
+      >
+        <div className="w-10 h-10 rounded-xl bg-primary/15 flex items-center justify-center">
+          <BarChart3 className="w-5 h-5 text-primary" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-bold text-foreground">Insights</p>
+          <p className="text-[11px] text-muted-foreground truncate">
+            {summary.totalMembers} members · {summary.payingMembers} paying · ₹{summary.lifetime.toLocaleString('en-IN')} earned
+          </p>
+        </div>
+        <ChevronRight className="w-4 h-4 text-muted-foreground" />
+      </button>
+
       <div className="flex gap-1 p-1 mb-4 rounded-xl bg-secondary">
-        {(['overview', 'communities', 'members'] as const).map(t => (
+        {(['communities', 'members'] as const).map(t => (
           <button key={t} onClick={() => setTab(t)}
             className={`flex-1 py-2 rounded-lg text-xs font-semibold capitalize transition ${
               tab === t ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground'
@@ -117,9 +125,6 @@ const CreatorDashboard = () => {
 
       {loading ? (
         <div className="flex items-center justify-center py-20"><Loader2 className="w-6 h-6 animate-spin text-muted-foreground" /></div>
-      ) : tab === 'overview' ? (
-        <OverviewTab metrics={metrics} memberships={memberships} commById={commById}
-          tiersById={tiersById} profilesById={profilesById} />
       ) : tab === 'communities' ? (
         <CommunitiesTab communities={communities} onTogglePublish={togglePublish} navigate={navigate} />
       ) : (
