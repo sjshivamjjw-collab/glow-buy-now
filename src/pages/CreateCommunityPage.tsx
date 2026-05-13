@@ -36,9 +36,10 @@ const CreateCommunityPage = () => {
   const [introVideoUrl, setIntroVideoUrl] = useState<string | null>(null);
   const [outcomes, setOutcomes] = useState<string[]>(['']);
   const [social, setSocial] = useState({ youtube: '', instagram: '', x: '', website: '' });
-  const [tiers, setTiers] = useState<TierDraft[]>([
-    { id: newId(), name: 'Free', description: 'Get a taste of the community.', kind: 'free', price_inr: '', post_permission: 'all_members', billing_period_months: 1, trial_days: '' },
-  ]);
+  const [freeEnabled, setFreeEnabled] = useState(true);
+  const [freeDescription, setFreeDescription] = useState('Get a taste of the community.');
+  const [freePostPermission, setFreePostPermission] = useState<PostPerm>('all_members');
+  const [paidTiers, setPaidTiers] = useState<PaidTierDraft[]>([]);
   const [uploadingCover, setUploadingCover] = useState(false);
   const [uploadingVideo, setUploadingVideo] = useState(false);
   const [saving, setSaving] = useState(false);
