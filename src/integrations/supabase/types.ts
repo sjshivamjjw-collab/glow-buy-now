@@ -962,6 +962,7 @@ export type Database = {
       }
       otp_codes: {
         Row: {
+          attempt_count: number
           code: string
           created_at: string
           expires_at: string
@@ -970,6 +971,7 @@ export type Database = {
           verified: boolean
         }
         Insert: {
+          attempt_count?: number
           code: string
           created_at?: string
           expires_at: string
@@ -978,12 +980,43 @@ export type Database = {
           verified?: boolean
         }
         Update: {
+          attempt_count?: number
           code?: string
           created_at?: string
           expires_at?: string
           id?: string
           phone?: string
           verified?: boolean
+        }
+        Relationships: []
+      }
+      payment_intents: {
+        Row: {
+          amount_inr: number
+          community_id: string
+          created_at: string
+          id: string
+          razorpay_order_id: string
+          tier_id: string
+          user_id: string
+        }
+        Insert: {
+          amount_inr: number
+          community_id: string
+          created_at?: string
+          id?: string
+          razorpay_order_id: string
+          tier_id: string
+          user_id: string
+        }
+        Update: {
+          amount_inr?: number
+          community_id?: string
+          created_at?: string
+          id?: string
+          razorpay_order_id?: string
+          tier_id?: string
+          user_id?: string
         }
         Relationships: []
       }
