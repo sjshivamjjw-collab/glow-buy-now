@@ -366,10 +366,14 @@ export const ChatPanel = ({ communityId, isCreator, isAdmin, tierLevel, tiers, s
                 <div key={m.id} className={`flex gap-2.5 group px-1 ${item.showHeader ? 'pt-2' : 'pt-0.5'}`}>
                   <div className="w-9 shrink-0">
                     {item.showHeader ? (
-                      <div className="w-9 h-9 rounded-full flex items-center justify-center overflow-hidden ring-2 ring-background shadow-sm" style={{ background: accent }}>
+                      <button
+                        onClick={() => { if (!mine) { setDmUserParam(m.user_id); setDmMode(true); } }}
+                        disabled={mine}
+                        className={`w-9 h-9 rounded-full flex items-center justify-center overflow-hidden ring-2 ring-background shadow-sm ${mine ? '' : 'cursor-pointer hover:ring-primary'}`}
+                        style={{ background: accent }} title={mine ? '' : `Message ${name}`}>
                         {avatar ? <img src={avatar} alt={name} className="w-full h-full object-cover" /> :
                           <span className="text-xs font-bold text-white">{name.slice(0,1).toUpperCase()}</span>}
-                      </div>
+                      </button>
                     ) : (
                       <span className="opacity-0 group-hover:opacity-100 text-[10px] text-muted-foreground block text-right pr-1 pt-1">{time}</span>
                     )}
