@@ -286,7 +286,21 @@ export const ChatPanel = ({ communityId, isCreator, isAdmin, tierLevel, tiers, s
 
   return (
     <div className="flex flex-col h-[calc(100vh-260px)] min-h-[420px]">
+      {dmMode ? (
+        <DMPanel
+          communityId={communityId}
+          initialUserId={dmParam}
+          onClose={() => { setDmMode(false); setDmUserParam(null); }}
+          onOpenChange={(uid) => setDmUserParam(uid)}
+        />
+      ) : (
+      <>
       {/* Channel pills */}
+      <div className="flex items-center gap-1.5 mb-3 overflow-x-auto pb-1 scrollbar-thin">
+        <button onClick={() => { setDmMode(true); }}
+          className="shrink-0 inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-semibold bg-gradient-to-r from-primary/15 to-pink-500/15 border border-primary/30 text-primary">
+          <MessageCircle className="w-3 h-3" /> DMs
+        </button>
       <div className="flex items-center gap-1.5 mb-3 overflow-x-auto pb-1 scrollbar-thin">
         {channels.map(c => {
           const locked = !isCreator && tierLevel < c.required_tier_level;
