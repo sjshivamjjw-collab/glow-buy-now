@@ -12,6 +12,7 @@ type PostPerm = 'all_members' | 'moderators' | 'creator_only';
 interface PaidTierDraft {
   id: string;
   name: string;
+  description: string;
   kind: 'paid_monthly' | 'paid_one_time';
   price_inr: string;
   billing_period_months: number;
