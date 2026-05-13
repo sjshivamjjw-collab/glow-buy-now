@@ -3,7 +3,9 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
-import { ArrowLeft, Plus, Trash2, Image as ImageIcon, Video, Loader2, Globe, IndianRupee, RefreshCw, Zap } from 'lucide-react';
+import { ArrowLeft, Plus, Trash2, Image as ImageIcon, Video, Loader2, Globe, IndianRupee, RefreshCw, Zap, Paperclip, FileText } from 'lucide-react';
+
+interface InfoAttachment { url: string; name: string; mime: string; size: number; }
 
 const TENURE_OPTIONS = [1, 2, 3, 6, 12];
 
