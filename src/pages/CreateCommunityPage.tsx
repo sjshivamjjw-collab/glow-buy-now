@@ -75,7 +75,7 @@ const CreateCommunityPage = () => {
 
   const addPaidTier = () =>
     setPaidTiers(prev => [...prev, {
-      id: newId(), name: '', kind: 'paid_monthly', price_inr: '',
+      id: newId(), name: '', description: '', kind: 'paid_monthly', price_inr: '',
       billing_period_months: 1, trial_enabled: false, trial_days: '7',
       post_permission: 'all_members',
     }]);
