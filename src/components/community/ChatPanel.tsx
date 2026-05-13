@@ -496,6 +496,8 @@ export const ChatPanel = ({ communityId, isCreator, isAdmin, tierLevel, tiers, s
           onClose={() => setShowAdminMgr(false)}
         />
       )}
+      </>
+      )}
     </div>
   );
 };
