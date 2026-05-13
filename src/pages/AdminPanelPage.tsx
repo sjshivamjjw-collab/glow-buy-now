@@ -810,6 +810,39 @@ const AdminPanelPage = () => {
         </TabsContent>
       </Tabs>
 
+      <Dialog open={!!resolvingDispute} onOpenChange={(o) => !o && setResolvingDispute(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{disputeAction === 'resolved' ? 'Resolve dispute (refund)' : 'Reject dispute'}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div className="p-3 rounded-xl bg-secondary text-xs">
+              <p className="font-semibold text-foreground">{resolvingDispute?.communities?.name}</p>
+              <p className="text-muted-foreground">
+                {resolvingDispute?.profiles?.name || resolvingDispute?.profiles?.phone} · ₹{resolvingDispute?.community_tiers?.price_inr || 0}
+              </p>
+            </div>
+            <Textarea
+              value={disputeNotes}
+              onChange={e => setDisputeNotes(e.target.value)}
+              placeholder={disputeAction === 'resolved' ? 'Notes for the user (e.g. refund processed via Razorpay)' : 'Reason for rejecting'}
+              rows={4}
+            />
+            <p className="text-[11px] text-muted-foreground">
+              {disputeAction === 'resolved'
+                ? 'Process the refund in Razorpay manually, then mark resolved here. The user will be notified.'
+                : 'The user will be notified of the rejection.'}
+            </p>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setResolvingDispute(null)}>Cancel</Button>
+            <Button onClick={handleResolveDispute} variant={disputeAction === 'rejected' ? 'destructive' : 'default'}>
+              {disputeAction === 'resolved' ? 'Mark resolved' : 'Reject dispute'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       <AlertDialog open={!!revokingUser} onOpenChange={(open) => !open && !revoking && setRevokingUser(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
