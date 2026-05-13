@@ -3,7 +3,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { Settings, LogOut, ChevronRight, Bell, HelpCircle, Sparkles, ShieldCheck, LayoutDashboard, Users, Check, X } from 'lucide-react';
+import { Settings, LogOut, ChevronRight, Bell, HelpCircle, Sparkles, ShieldCheck, LayoutDashboard, Users, Check, X, Receipt } from 'lucide-react';
 import Footer from '@/components/Footer';
 
 const ProfilePage = () => {
@@ -73,6 +73,7 @@ const ProfilePage = () => {
 
   const menuItems = [
     { icon: Users, label: 'My Communities', path: '/mine' },
+    { icon: Receipt, label: 'Subscriptions & Refunds', path: '/subscriptions' },
     { icon: Bell, label: 'Notifications', path: '/notifications' },
     { icon: HelpCircle, label: 'Help & Support', path: '/contact' },
     { icon: Settings, label: 'Settings', path: '/settings' },

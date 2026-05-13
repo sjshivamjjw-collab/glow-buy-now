@@ -17,6 +17,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 
@@ -45,6 +47,10 @@ const AdminPanelPage = () => {
   const [returnRequests, setReturnRequests] = useState<any[]>([]);
   const [livestreams, setLivestreams] = useState<any[]>([]);
   const [communities, setCommunities] = useState<any[]>([]);
+  const [disputes, setDisputes] = useState<any[]>([]);
+  const [resolvingDispute, setResolvingDispute] = useState<any | null>(null);
+  const [disputeAction, setDisputeAction] = useState<'resolved' | 'rejected'>('resolved');
+  const [disputeNotes, setDisputeNotes] = useState('');
   const [communityFilter, setCommunityFilter] = useState<string>('pending');
   const [rejectingCommunityId, setRejectingCommunityId] = useState<string | null>(null);
   const [communityRejectReason, setCommunityRejectReason] = useState('');
@@ -64,7 +70,7 @@ const AdminPanelPage = () => {
 
   useEffect(() => {
     const load = async () => {
-      const [appsRes, ordersRes, profilesRes, prodCountRes, cancelRes, returnRes, streamsRes, sellersRes, communitiesRes] = await Promise.all([
+      const [appsRes, ordersRes, profilesRes, prodCountRes, cancelRes, returnRes, streamsRes, sellersRes, communitiesRes, disputesRes] = await Promise.all([
         supabase.from('seller_applications').select('*').order('created_at', { ascending: false }),
         supabase.from('orders').select('*, order_items(*, products(title, images, seller_id)), profiles:seller_id(name, phone)').order('created_at', { ascending: false }),
         supabase.from('profiles').select('id, name, phone, created_at'),
@@ -74,6 +80,7 @@ const AdminPanelPage = () => {
         supabase.from('livestreams').select('*').order('created_at', { ascending: false }),
         supabase.from('user_roles').select('user_id').eq('role', 'creator'),
         supabase.from('communities' as any).select('*').order('created_at', { ascending: false }),
+        supabase.from('membership_disputes' as any).select('*, communities(name, slug), profiles:user_id(name, phone), community_tiers(name, price_inr, kind)').order('created_at', { ascending: false }),
       ]);
 
       if (appsRes.data) setApplications(appsRes.data);
@@ -91,6 +98,7 @@ const AdminPanelPage = () => {
         const profilesById = new Map((profilesRes.data || []).map((p: any) => [p.id, p]));
         setCommunities((communitiesRes.data as any[]).map((c: any) => ({ ...c, creator: profilesById.get(c.creator_id) })));
       }
+      if (disputesRes.data) setDisputes(disputesRes.data as any[]);
       setLoading(false);
     };
     load();
@@ -103,6 +111,22 @@ const AdminPanelPage = () => {
   const pendingReturns = returnRequests.filter(r => r.status === 'pending').length;
   const liveNow = livestreams.filter(s => s.status === 'live').length;
   const pendingCommunities = communities.filter(c => c.approval_status === 'pending').length;
+  const pendingDisputes = disputes.filter(d => d.status === 'open').length;
+
+  const handleResolveDispute = async () => {
+    if (!resolvingDispute) return;
+    const { error } = await supabase.from('membership_disputes' as any).update({
+      status: disputeAction,
+      admin_notes: disputeNotes.trim() || null,
+      resolved_by: userId,
+      resolved_at: new Date().toISOString(),
+    }).eq('id', resolvingDispute.id);
+    if (error) { toast({ title: 'Failed', description: error.message, variant: 'destructive' }); return; }
+    setDisputes(prev => prev.map(d => d.id === resolvingDispute.id ? { ...d, status: disputeAction, admin_notes: disputeNotes.trim() || null } : d));
+    setResolvingDispute(null);
+    setDisputeNotes('');
+    toast({ title: `Dispute ${disputeAction}` });
+  };
 
   const filteredCommunities = useMemo(() =>
     communityFilter === 'all' ? communities : communities.filter(c => c.approval_status === communityFilter),
@@ -298,8 +322,8 @@ const AdminPanelPage = () => {
         </div>
       )}
 
-      <Tabs defaultValue={pendingCommunities > 0 ? 'communities' : 'applications'} className="w-full">
-        <TabsList className="w-full grid grid-cols-7 mb-4">
+      <Tabs defaultValue={pendingCommunities > 0 ? 'communities' : pendingDisputes > 0 ? 'disputes' : 'applications'} className="w-full">
+        <TabsList className="w-full grid grid-cols-8 mb-4">
           <TabsTrigger value="communities" className="text-xs px-1 relative">
             Comm
             {pendingCommunities > 0 && (
@@ -324,6 +348,14 @@ const AdminPanelPage = () => {
             {pendingReturns > 0 && (
               <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-blue-600 text-white text-[9px] font-bold flex items-center justify-center">
                 {pendingReturns}
+              </span>
+            )}
+          </TabsTrigger>
+          <TabsTrigger value="disputes" className="text-xs px-1 relative">
+            Disputes
+            {pendingDisputes > 0 && (
+              <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-destructive text-destructive-foreground text-[9px] font-bold flex items-center justify-center">
+                {pendingDisputes}
               </span>
             )}
           </TabsTrigger>
@@ -703,6 +735,45 @@ const AdminPanelPage = () => {
         </TabsContent>
 
         {/* STREAMS */}
+        {/* DISPUTES */}
+        <TabsContent value="disputes">
+          <div className="space-y-3">
+            {disputes.length === 0 && (
+              <p className="text-center text-muted-foreground text-sm py-8">No disputes</p>
+            )}
+            {disputes.map(d => (
+              <div key={d.id} className="p-4 rounded-2xl bg-card border border-border">
+                <div className="flex items-start justify-between gap-2 mb-2">
+                  <div className="min-w-0">
+                    <p className="font-semibold text-foreground text-sm truncate">{d.communities?.name || 'Community'}</p>
+                    <p className="text-xs text-muted-foreground truncate">
+                      {d.profiles?.name || d.profiles?.phone || 'User'} · {d.community_tiers?.name} · ₹{d.community_tiers?.price_inr || 0}
+                    </p>
+                  </div>
+                  <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${statusBadge[d.status] || ''}`}>
+                    {d.status.toUpperCase()}
+                  </span>
+                </div>
+                <p className="text-xs text-foreground whitespace-pre-wrap p-2 rounded-lg bg-secondary mb-2">{d.reason}</p>
+                {d.admin_notes && (
+                  <p className="text-xs text-muted-foreground mb-2"><span className="font-semibold text-foreground">Notes:</span> {d.admin_notes}</p>
+                )}
+                <p className="text-[10px] text-muted-foreground mb-2">{new Date(d.created_at).toLocaleString()}</p>
+                {d.status === 'open' && (
+                  <div className="flex gap-2">
+                    <Button size="sm" className="flex-1" onClick={() => { setResolvingDispute(d); setDisputeAction('resolved'); setDisputeNotes(''); }}>
+                      <Check className="w-4 h-4" /> Resolve (refund)
+                    </Button>
+                    <Button size="sm" variant="outline" className="flex-1" onClick={() => { setResolvingDispute(d); setDisputeAction('rejected'); setDisputeNotes(''); }}>
+                      <X className="w-4 h-4" /> Reject
+                    </Button>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </TabsContent>
+
         <TabsContent value="streams">
           <div className="space-y-3">
             {livestreams.length === 0 && (
@@ -738,6 +809,39 @@ const AdminPanelPage = () => {
           </div>
         </TabsContent>
       </Tabs>
+
+      <Dialog open={!!resolvingDispute} onOpenChange={(o) => !o && setResolvingDispute(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{disputeAction === 'resolved' ? 'Resolve dispute (refund)' : 'Reject dispute'}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div className="p-3 rounded-xl bg-secondary text-xs">
+              <p className="font-semibold text-foreground">{resolvingDispute?.communities?.name}</p>
+              <p className="text-muted-foreground">
+                {resolvingDispute?.profiles?.name || resolvingDispute?.profiles?.phone} · ₹{resolvingDispute?.community_tiers?.price_inr || 0}
+              </p>
+            </div>
+            <Textarea
+              value={disputeNotes}
+              onChange={e => setDisputeNotes(e.target.value)}
+              placeholder={disputeAction === 'resolved' ? 'Notes for the user (e.g. refund processed via Razorpay)' : 'Reason for rejecting'}
+              rows={4}
+            />
+            <p className="text-[11px] text-muted-foreground">
+              {disputeAction === 'resolved'
+                ? 'Process the refund in Razorpay manually, then mark resolved here. The user will be notified.'
+                : 'The user will be notified of the rejection.'}
+            </p>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setResolvingDispute(null)}>Cancel</Button>
+            <Button onClick={handleResolveDispute} variant={disputeAction === 'rejected' ? 'destructive' : 'default'}>
+              {disputeAction === 'resolved' ? 'Mark resolved' : 'Reject dispute'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <AlertDialog open={!!revokingUser} onOpenChange={(open) => !open && !revoking && setRevokingUser(null)}>
         <AlertDialogContent>

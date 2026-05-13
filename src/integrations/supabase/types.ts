@@ -600,6 +600,48 @@ export type Database = {
         }
         Relationships: []
       }
+      membership_disputes: {
+        Row: {
+          admin_notes: string | null
+          community_id: string
+          created_at: string
+          id: string
+          membership_id: string
+          reason: string
+          resolved_at: string | null
+          resolved_by: string | null
+          status: Database["public"]["Enums"]["dispute_status"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          admin_notes?: string | null
+          community_id: string
+          created_at?: string
+          id?: string
+          membership_id: string
+          reason: string
+          resolved_at?: string | null
+          resolved_by?: string | null
+          status?: Database["public"]["Enums"]["dispute_status"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          admin_notes?: string | null
+          community_id?: string
+          created_at?: string
+          id?: string
+          membership_id?: string
+          reason?: string
+          resolved_at?: string | null
+          resolved_by?: string | null
+          status?: Database["public"]["Enums"]["dispute_status"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       memberships: {
         Row: {
           cancelled_at: string | null
@@ -1209,6 +1251,7 @@ export type Database = {
       app_role: "admin" | "creator" | "shopper"
       application_status: "pending" | "approved" | "rejected"
       community_approval_status: "pending" | "approved" | "rejected"
+      dispute_status: "open" | "resolved" | "rejected"
       event_rsvp_status: "going" | "maybe" | "declined"
       livestream_status: "scheduled" | "live" | "ended"
       membership_source: "free" | "razorpay_sub" | "razorpay_order"
@@ -1353,6 +1396,7 @@ export const Constants = {
       app_role: ["admin", "creator", "shopper"],
       application_status: ["pending", "approved", "rejected"],
       community_approval_status: ["pending", "approved", "rejected"],
+      dispute_status: ["open", "resolved", "rejected"],
       event_rsvp_status: ["going", "maybe", "declined"],
       livestream_status: ["scheduled", "live", "ended"],
       membership_source: ["free", "razorpay_sub", "razorpay_order"],

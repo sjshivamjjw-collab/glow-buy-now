@@ -14,6 +14,7 @@ import CreatorDashboard from "@/pages/CreatorDashboard";
 import MyCommunitiesPage from "@/pages/MyCommunitiesPage";
 import CommunityRoomPage from "@/pages/CommunityRoomPage";
 import ProfilePage from "@/pages/ProfilePage";
+import SubscriptionsPage from "@/pages/SubscriptionsPage";
 import NotificationsPage from "@/pages/NotificationsPage";
 import AdminPanelPage from "@/pages/AdminPanelPage";
 import SettingsPage from "@/pages/SettingsPage";
@@ -87,6 +88,7 @@ const AppRoutes = () => {
               <Route path="/notifications" element={<NotificationsPage />} />
               <Route path="/profile" element={<ProfilePage />} />
               <Route path="/settings" element={<SettingsPage />} />
+              <Route path="/subscriptions" element={<SubscriptionsPage />} />
               <Route path="/admin" element={isAdmin ? <AdminPanelPage /> : <Navigate to="/" replace />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
