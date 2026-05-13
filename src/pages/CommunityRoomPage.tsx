@@ -8,6 +8,7 @@ import { ChatPanel } from '@/components/community/ChatPanel';
 import { EventsPanel } from '@/components/community/EventsPanel';
 import { ResourcesPanel } from '@/components/community/ResourcesPanel';
 import { PlansPanel } from '@/components/community/PlansPanel';
+import ReviewsSection from '@/components/community/ReviewsSection';
 
 type Tab = 'chat' | 'events' | 'resources' | 'plans';
 
@@ -161,7 +162,14 @@ const CommunityRoomPage = () => {
       {tab === 'chat' && <ChatPanel communityId={community.id} isCreator={isCreator} isAdmin={isAdmin} tierLevel={tierLevel} tiers={tiers} slug={slug!} />}
       {tab === 'events' && <EventsPanel communityId={community.id} isCreator={isCreator} tierLevel={tierLevel} tiers={tiers} slug={slug!} />}
       {tab === 'resources' && <ResourcesPanel communityId={community.id} isCreator={isCreator} tierLevel={tierLevel} tiers={tiers} slug={slug!} />}
-      {tab === 'plans' && <PlansPanel communityId={community.id} communityName={community.name} tiers={tiers} currentTier={currentTier} isCreator={isCreator} onJoined={refreshMembership} />}
+      {tab === 'plans' && (
+        <>
+          <PlansPanel communityId={community.id} communityName={community.name} tiers={tiers} currentTier={currentTier} isCreator={isCreator} onJoined={refreshMembership} />
+          <div className="mt-8">
+            <ReviewsSection communityId={community.id} isCreator={isCreator} hasMembership={isMember} />
+          </div>
+        </>
+      )}
     </div>
   );
 };
