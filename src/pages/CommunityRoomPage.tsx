@@ -129,12 +129,12 @@ const CommunityRoomPage = () => {
           </p>
         </div>
         <button onClick={() => navigate(`/c/${slug}`)}
-          className="shrink-0 inline-flex items-center gap-1 px-2.5 py-2 rounded-xl bg-primary/10 border border-primary/30 text-xs font-semibold text-primary"
+          className="shrink-0 inline-flex items-center gap-1 px-2.5 py-2 rounded-xl bg-card border border-border text-xs font-semibold text-foreground"
           aria-label="Know more about community">
           <Info className="w-3.5 h-3.5" /> Know more
         </button>
         <button onClick={() => { setTab('chat'); setSearchParams({ tab: 'chat', dm: 'inbox' }, { replace: true }); }}
-          className="shrink-0 inline-flex items-center gap-1 px-2.5 py-2 rounded-xl bg-gradient-to-r from-primary/15 to-pink-500/15 border border-primary/30 text-xs font-semibold text-primary"
+          className="shrink-0 inline-flex items-center gap-1 px-2.5 py-2 rounded-xl bg-card border border-border text-xs font-semibold text-foreground"
           aria-label="Open direct messages">
           <MessageCircle className="w-3.5 h-3.5" /> DMs
         </button>
