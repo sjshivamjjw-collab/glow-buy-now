@@ -101,12 +101,12 @@ const EditCommunityPage = () => {
     if (!userId) return null;
     const ext = file.name.split('.').pop();
     const path = `${userId}/${kind}-${Date.now()}.${ext}`;
-    const { error } = await supabase.storage.from('community-media').upload(path, file, { upsert: false });
+    const { error } = await supabase.storage.from('community-public').upload(path, file, { upsert: false });
     if (error) {
       toast({ title: 'Upload failed', description: error.message, variant: 'destructive' });
       return null;
     }
-    const { data } = supabase.storage.from('community-media').getPublicUrl(path);
+    const { data } = supabase.storage.from('community-public').getPublicUrl(path);
     return data.publicUrl;
   };
 
@@ -132,9 +132,9 @@ const EditCommunityPage = () => {
     for (const f of files) {
       const ext = f.name.split('.').pop() || 'bin';
       const path = `${userId}/info-${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
-      const { error } = await supabase.storage.from('community-media').upload(path, f);
+      const { error } = await supabase.storage.from('community-public').upload(path, f);
       if (error) { toast({ title: `Upload failed: ${f.name}`, description: error.message, variant: 'destructive' }); continue; }
-      const { data } = supabase.storage.from('community-media').getPublicUrl(path);
+      const { data } = supabase.storage.from('community-public').getPublicUrl(path);
       uploaded.push({ url: data.publicUrl, name: f.name, mime: f.type, size: f.size });
     }
     setAttachments(prev => [...prev, ...uploaded]);
