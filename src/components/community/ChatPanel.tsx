@@ -3,6 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { Send, Loader2, Trash2, Paperclip, Image as ImageIcon, BarChart3, X, Plus, Check, FileText, Download, Hash, Lock, Settings, Sparkles, Shield, ShieldCheck, Search, UserPlus, Pencil, MessageCircle } from 'lucide-react';
+import { SignedImage, SignedLink } from '@/components/SignedMedia';
 import { useToast } from '@/hooks/use-toast';
 import { format, isToday, isYesterday } from 'date-fns';
 import type { TierInfo } from '@/hooks/useCommunityMembership';
