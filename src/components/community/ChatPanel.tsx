@@ -111,11 +111,26 @@ export const ChatPanel = ({ communityId, isCreator, isAdmin, tierLevel, tiers, s
 
   const fetchAuthors = async (userIds: string[]) => {
     if (!userIds.length) return {};
-    const { data } = await supabase.from('profiles').select('id, name, username, avatar_url').in('id', userIds);
+    const { data } = await supabase.rpc('get_chat_author_names' as any, { _user_ids: userIds });
     const map: Record<string, any> = {};
-    (data || []).forEach((p: any) => { map[p.id] = p; });
+    ((data as any[]) || []).forEach((p: any) => { map[p.id] = p; });
     return map;
   };
+
+  // Load creator + admin ids so we can badge them in chat
+  const [creatorId, setCreatorId] = useState<string | null>(null);
+  const [adminIds, setAdminIds] = useState<Set<string>>(new Set());
+  useEffect(() => {
+    (async () => {
+      const [{ data: c }, { data: a }] = await Promise.all([
+        supabase.from('communities' as any).select('creator_id').eq('id', communityId).maybeSingle(),
+        supabase.from('community_admins' as any).select('user_id').eq('community_id', communityId),
+      ]);
+      setCreatorId((c as any)?.creator_id || null);
+      setAdminIds(new Set(((a as any[]) || []).map(r => r.user_id)));
+    })();
+  }, [communityId]);
+
 
   // Load messages for active channel
   useEffect(() => {
