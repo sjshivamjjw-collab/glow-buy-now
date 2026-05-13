@@ -85,6 +85,7 @@ const AppRoutes = () => {
               <Route path="/communities/new" element={<CreateCommunityPage />} />
               <Route path="/communities/:id/edit" element={<EditCommunityPage />} />
               <Route path="/creator" element={<CreatorDashboard />} />
+              <Route path="/creator/insights" element={<CreatorInsightsPage />} />
               <Route path="/mine" element={<MyCommunitiesPage />} />
               <Route path="/notifications" element={<NotificationsPage />} />
               <Route path="/profile" element={<ProfilePage />} />
