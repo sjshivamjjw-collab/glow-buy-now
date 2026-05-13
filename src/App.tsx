@@ -14,6 +14,7 @@ import CreatorDashboard from "@/pages/CreatorDashboard";
 import MyCommunitiesPage from "@/pages/MyCommunitiesPage";
 import CommunityRoomPage from "@/pages/CommunityRoomPage";
 import ProfilePage from "@/pages/ProfilePage";
+import SubscriptionsPage from "@/pages/SubscriptionsPage";
 import NotificationsPage from "@/pages/NotificationsPage";
 import AdminPanelPage from "@/pages/AdminPanelPage";
 import SettingsPage from "@/pages/SettingsPage";
