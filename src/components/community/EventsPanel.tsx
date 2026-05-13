@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
-import { Calendar, Plus, MapPin, Loader2, Trash2, Pencil, X, ExternalLink, Lock, Sparkles } from 'lucide-react';
+import { Calendar, Plus, MapPin, Loader2, Trash2, Pencil, X, ExternalLink, Lock, Sparkles, Video } from 'lucide-react';
 import type { TierInfo } from '@/hooks/useCommunityMembership';
 import { TierLockOverlay } from './TierLockOverlay';
 
