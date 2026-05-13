@@ -2,8 +2,6 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 import { supabase } from '@/integrations/supabase/client';
 import { UserRole } from '@/types';
 
-const ADMIN_PHONE = '+919619846170';
-
 interface AuthState {
   isAuthenticated: boolean;
   role: UserRole | null;
@@ -72,7 +70,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const login = (userId: string, phone: string, roles: string[], profile: any) => {
     const normalizedPhone = phone.startsWith('+') ? phone : `+91${phone}`;
-    const isAdmin = normalizedPhone === ADMIN_PHONE || roles.includes('admin');
+    // Admin status comes ONLY from the server-side user_roles table — never from
+    // a hardcoded phone number on the client.
+    const isAdmin = roles.includes('admin');
     const isCreator = roles.includes('creator') || isAdmin;
 
     let primaryRole: UserRole = 'shopper';

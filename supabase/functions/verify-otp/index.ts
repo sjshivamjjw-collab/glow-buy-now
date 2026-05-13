@@ -8,6 +8,8 @@ const corsHeaders = {
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
+const MAX_ATTEMPTS = 5;
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
@@ -15,8 +17,8 @@ Deno.serve(async (req) => {
 
   try {
     const { phone, code } = await req.json();
-    if (!phone || !code) {
-      return new Response(JSON.stringify({ error: "Phone and code required" }), {
+    if (!phone || !code || typeof code !== "string" || !/^\d{6}$/.test(code)) {
+      return new Response(JSON.stringify({ error: "Phone and 6-digit code required" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -25,19 +27,41 @@ Deno.serve(async (req) => {
     const normalizedPhone = phone.startsWith("+") ? phone : `+91${phone}`;
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
-    // Find latest unused OTP for this phone
-    const { data: otpRecord, error: fetchErr } = await supabase
+    // Find latest unused, unexpired OTP for this phone (regardless of code)
+    const { data: otpRecord } = await supabase
       .from("otp_codes")
       .select("*")
       .eq("phone", normalizedPhone)
-      .eq("code", code)
       .eq("verified", false)
       .gte("expires_at", new Date().toISOString())
       .order("created_at", { ascending: false })
       .limit(1)
       .maybeSingle();
 
-    if (fetchErr || !otpRecord) {
+    if (!otpRecord) {
+      return new Response(JSON.stringify({ error: "Invalid or expired OTP" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    if ((otpRecord.attempt_count ?? 0) >= MAX_ATTEMPTS) {
+      // Lock this OTP so further guesses are useless until a new one is requested
+      await supabase
+        .from("otp_codes")
+        .update({ verified: true })
+        .eq("id", otpRecord.id);
+      return new Response(JSON.stringify({ error: "Too many failed attempts. Please request a new code." }), {
+        status: 429,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    if (otpRecord.code !== code) {
+      await supabase
+        .from("otp_codes")
+        .update({ attempt_count: (otpRecord.attempt_count ?? 0) + 1 })
+        .eq("id", otpRecord.id);
       return new Response(JSON.stringify({ error: "Invalid or expired OTP" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -58,7 +82,6 @@ Deno.serve(async (req) => {
     const newPassword = genPassword();
 
     let userId: string;
-    let isNewUser = false;
 
     // Try to create user first; if exists, look them up
     const { data: newUser, error: createErr } = await supabase.auth.admin.createUser({
@@ -72,11 +95,9 @@ Deno.serve(async (req) => {
 
     if (createErr) {
       if (createErr.message?.includes("already been registered") || createErr.message?.includes("already exists")) {
-        // User exists — look them up via auth admin by email
         let foundUserId: string | null = null;
         const phoneVariants = [normalizedPhone, normalizedPhone.replace("+", "")];
 
-        // Try profiles table first (fast path)
         const { data: existingProfile } = await supabase
           .from("profiles")
           .select("id")
@@ -86,7 +107,6 @@ Deno.serve(async (req) => {
         if (existingProfile) {
           foundUserId = existingProfile.id;
         } else {
-          // Fallback: page through auth users to find by email
           for (let page = 1; page <= 20 && !foundUserId; page++) {
             const { data: list, error: listErr } = await supabase.auth.admin.listUsers({ page, perPage: 200 });
             if (listErr) break;
@@ -104,13 +124,11 @@ Deno.serve(async (req) => {
         }
         userId = foundUserId;
 
-        // Ensure profile row exists so future logins use the fast path
         await supabase.from("profiles").upsert(
           { id: userId, phone: normalizedPhone },
           { onConflict: "id" }
         );
 
-        // Rotate password to a fresh random value for this login
         await supabase.auth.admin.updateUserById(userId, { password: newPassword, email: fakeEmail });
       } else {
         console.error("Create user error:", createErr);
@@ -121,14 +139,11 @@ Deno.serve(async (req) => {
       }
     } else {
       userId = newUser.user.id;
-      isNewUser = true;
     }
 
-    // Generate a real Supabase session via signInWithPassword using a service-level client
-    // We use a separate client with the anon key to get a proper session
     const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY") || Deno.env.get("SUPABASE_PUBLISHABLE_KEY") || "";
     const anonClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-    
+
     const { data: signInData, error: signInErr } = await anonClient.auth.signInWithPassword({
       email: fakeEmail,
       password: newPassword,
@@ -142,7 +157,6 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Get user roles
     const { data: roles } = await supabase
       .from("user_roles")
       .select("role")
@@ -150,7 +164,6 @@ Deno.serve(async (req) => {
 
     const userRoles = roles?.map((r) => r.role) || ["shopper"];
 
-    // Get profile
     const { data: profile } = await supabase
       .from("profiles")
       .select("*")

@@ -69,6 +69,21 @@ Deno.serve(async (req) => {
       return json(502, { error: 'Failed to create payment order' });
     }
 
+    // Bind this Razorpay order to the exact tier/user/community it was created
+    // for, so verify-membership-payment cannot be tricked into activating a
+    // different tier with this payment.
+    const { error: piErr } = await admin.from('payment_intents').insert({
+      razorpay_order_id: rzpData.id,
+      user_id: user.id,
+      tier_id: tier.id,
+      community_id: tier.community_id,
+      amount_inr: amount,
+    });
+    if (piErr) {
+      console.error('payment_intents insert error', piErr);
+      return json(500, { error: 'Failed to record payment intent' });
+    }
+
     return json(200, {
       order_id: rzpData.id,
       amount: rzpData.amount,
