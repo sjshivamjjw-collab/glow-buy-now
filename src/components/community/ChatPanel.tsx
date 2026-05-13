@@ -63,8 +63,9 @@ export const ChatPanel = ({ communityId, isCreator, isAdmin, tierLevel, tiers, s
   const { toast } = useToast();
   const [searchParams, setSearchParams] = useSearchParams();
   const dmParam = searchParams.get('dm');
+  const dmInitialUser = dmParam && dmParam !== 'inbox' ? dmParam : null;
   const [dmMode, setDmMode] = useState<boolean>(!!dmParam);
-  useEffect(() => { if (dmParam) setDmMode(true); }, [dmParam]);
+  useEffect(() => { if (dmParam) setDmMode(true); else setDmMode(false); }, [dmParam]);
 
   const setDmUserParam = (uid: string | null) => {
     const next = new URLSearchParams(searchParams);
