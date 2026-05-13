@@ -384,6 +384,7 @@ export type Database = {
       }
       community_events: {
         Row: {
+          audience_user_ids: string[]
           community_id: string
           cover_url: string | null
           created_at: string
@@ -398,6 +399,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          audience_user_ids?: string[]
           community_id: string
           cover_url?: string | null
           created_at?: string
@@ -412,6 +414,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          audience_user_ids?: string[]
           community_id?: string
           cover_url?: string | null
           created_at?: string
