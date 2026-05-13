@@ -12,7 +12,7 @@ type Profile = { id: string; name: string | null; username: string | null; avata
 const CreatorDashboard = () => {
   const navigate = useNavigate();
   const { userId } = useAuth();
-  const [tab, setTab] = useState<'overview' | 'communities' | 'members'>('overview');
+  const [tab, setTab] = useState<'communities' | 'members'>('communities');
   const [communities, setCommunities] = useState<Community[]>([]);
   const [tiers, setTiers] = useState<Tier[]>([]);
   const [memberships, setMemberships] = useState<Membership[]>([]);
