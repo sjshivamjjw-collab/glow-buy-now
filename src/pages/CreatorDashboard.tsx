@@ -134,67 +134,6 @@ const CreatorDashboard = () => {
   );
 };
 
-const MetricCard = ({ icon: Icon, label, value, hint }: any) => (
-  <div className="p-4 rounded-2xl bg-card border border-border">
-    <div className="flex items-center gap-2 text-muted-foreground mb-2">
-      <Icon className="w-4 h-4" />
-      <span className="text-[11px] font-semibold uppercase tracking-wide">{label}</span>
-    </div>
-    <p className="text-2xl font-extrabold text-foreground leading-none">{value}</p>
-    {hint && <p className="text-[11px] text-muted-foreground mt-1">{hint}</p>}
-  </div>
-);
-
-const OverviewTab = ({ metrics, memberships, commById, tiersById, profilesById }: any) => {
-  const recent = memberships.filter((m: any) => m.status === 'active').slice(0, 5);
-  return (
-    <div className="space-y-4">
-      <div className="grid grid-cols-2 gap-3">
-        <MetricCard icon={Users} label="Total members" value={metrics.totalMembers} hint="active across all communities" />
-        <MetricCard icon={IndianRupee} label="Paying members" value={metrics.payingMembers} hint="on a paid tier" />
-        <MetricCard icon={TrendingUp} label="Total revenue" value={`₹${metrics.lifetime.toLocaleString('en-IN')}`} hint="from paid memberships" />
-        <MetricCard icon={Layers} label="Communities" value={metrics.liveCommunities}
-          hint={`${metrics.pending} pending • ${metrics.totalCommunities} total`} />
-      </div>
-
-      <div className="p-4 rounded-2xl bg-card border border-border">
-        <h2 className="font-bold text-foreground mb-3">Recent members</h2>
-        {recent.length === 0 ? (
-          <p className="text-sm text-muted-foreground">No members yet. Share your community to get the first signups.</p>
-        ) : (
-          <div className="space-y-3">
-            {recent.map((m: any) => {
-              const p = profilesById[m.user_id];
-              const c = commById[m.community_id];
-              const t = tiersById[m.tier_id];
-              return (
-                <div key={m.id} className="flex items-center gap-3">
-                  {p?.avatar_url ? (
-                    <img src={p.avatar_url} className="w-9 h-9 rounded-full object-cover" alt="" />
-                  ) : (
-                    <div className="w-9 h-9 rounded-full bg-secondary flex items-center justify-center text-xs font-bold text-muted-foreground">
-                      {(p?.name || p?.username || '?')[0]?.toUpperCase()}
-                    </div>
-                  )}
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold text-foreground truncate">{p?.name || p?.username || 'Member'}</p>
-                    <p className="text-xs text-muted-foreground truncate">
-                      {c?.name || 'Community'} • {t?.name || 'Tier'}
-                    </p>
-                  </div>
-                  <span className="text-[10px] text-muted-foreground">
-                    {new Date(m.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}
-                  </span>
-                </div>
-              );
-            })}
-          </div>
-        )}
-      </div>
-    </div>
-  );
-};
-
 const CommunitiesTab = ({ communities, onTogglePublish, navigate }: any) => {
   if (communities.length === 0) {
     return (
