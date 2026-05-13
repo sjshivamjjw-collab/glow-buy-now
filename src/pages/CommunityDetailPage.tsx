@@ -177,6 +177,11 @@ const CommunityDetailPage = () => {
           className="absolute top-4 left-4 p-2 rounded-xl bg-card/90 backdrop-blur border border-border">
           <ArrowLeft className="w-5 h-5 text-foreground" />
         </button>
+        <button onClick={() => shareCommunity({ slug: community.slug, name: community.name, description: community.description, toast })}
+          className="absolute top-4 right-4 p-2 rounded-xl bg-card/90 backdrop-blur border border-border"
+          aria-label="Share community">
+          <Share2 className="w-5 h-5 text-foreground" />
+        </button>
       </div>
 
       <div className="px-4 pt-5">
