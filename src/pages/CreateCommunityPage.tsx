@@ -163,7 +163,7 @@ const CreateCommunityPage = () => {
         payload: {
           community_id: (community as any).id,
           name: t.name.trim(),
-          description: null,
+          description: t.description.trim() || null,
           kind: t.kind,
           price_inr: Number(t.price_inr),
           billing_period_months: t.kind === 'paid_monthly' ? (t.billing_period_months || 1) : 1,
