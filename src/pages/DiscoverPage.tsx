@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { Search, Sparkles, Users, Loader2, Instagram, Youtube, Globe } from 'lucide-react';
+import { Search, Sparkles, Users, Loader2, Camera, Play, Globe } from 'lucide-react';
 
 interface CommunityCard {
   id: string;
