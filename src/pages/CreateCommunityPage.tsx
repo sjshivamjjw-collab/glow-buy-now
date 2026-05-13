@@ -40,7 +40,7 @@ const CreateCommunityPage = () => {
   const [attachments, setAttachments] = useState<InfoAttachment[]>([]);
   const [uploadingAttachment, setUploadingAttachment] = useState(false);
   const [outcomes, setOutcomes] = useState<string[]>(['']);
-  const [social, setSocial] = useState({ youtube: '', instagram: '', x: '', website: '' });
+  const [social, setSocial] = useState<Record<string, string>>({});
   const [freeEnabled, setFreeEnabled] = useState(true);
   const [freeDescription, setFreeDescription] = useState('Get a taste of the community.');
   const [freePostPermission, setFreePostPermission] = useState<PostPerm>('all_members');
