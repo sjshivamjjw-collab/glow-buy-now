@@ -196,14 +196,7 @@ const DiscoverPage = () => {
                   </div>
                 </div>
                 <div className="px-2.5 pb-2.5 mt-auto">
-                  {isOwn ? (
-                    <button
-                      onClick={(e) => { e.stopPropagation(); navigate(`/c/${c.slug}/room`); }}
-                      className="w-full py-1.5 rounded-lg bg-secondary text-foreground text-xs font-semibold"
-                    >
-                      Open
-                    </button>
-                  ) : isMember ? (
+                  {isOwn || isMember ? (
                     <button
                       onClick={(e) => { e.stopPropagation(); navigate(`/c/${c.slug}/room`); }}
                       className="w-full py-1.5 rounded-lg bg-secondary text-foreground text-xs font-semibold inline-flex items-center justify-center gap-1"
