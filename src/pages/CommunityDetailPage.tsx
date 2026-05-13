@@ -4,6 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { ArrowLeft, Loader2, Users, Check, Globe, Play, Camera } from 'lucide-react';
+import ReviewsSection from '@/components/community/ReviewsSection';
 
 const loadRazorpay = (): Promise<boolean> => new Promise(resolve => {
   if ((window as any).Razorpay) return resolve(true);
@@ -262,6 +263,12 @@ const CommunityDetailPage = () => {
             );
           })}
         </div>
+
+        <ReviewsSection
+          communityId={community.id}
+          isCreator={!!userId && userId === community.creator_id}
+          hasMembership={!!membership}
+        />
       </div>
     </div>
   );
