@@ -88,6 +88,7 @@ const AppRoutes = () => {
               <Route path="/notifications" element={<NotificationsPage />} />
               <Route path="/profile" element={<ProfilePage />} />
               <Route path="/settings" element={<SettingsPage />} />
+              <Route path="/subscriptions" element={<SubscriptionsPage />} />
               <Route path="/admin" element={isAdmin ? <AdminPanelPage /> : <Navigate to="/" replace />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
