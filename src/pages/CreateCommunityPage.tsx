@@ -3,23 +3,21 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
-import { ArrowLeft, Plus, Trash2, Image as ImageIcon, Video, Loader2, Globe, IndianRupee, RefreshCw, Zap } from 'lucide-react';
+import { ArrowLeft, Plus, Trash2, Image as ImageIcon, Video, Loader2, RefreshCw, Zap, Check } from 'lucide-react';
 
-const PRICE_SUGGESTIONS = [99, 299, 499, 999];
 const TENURE_OPTIONS = [1, 2, 3, 6, 12];
-const TRIAL_SUGGESTIONS = [3, 7, 14, 30];
 
 type PostPerm = 'all_members' | 'moderators' | 'creator_only';
 
-interface TierDraft {
+interface PaidTierDraft {
   id: string;
   name: string;
-  description: string;
-  kind: 'free' | 'paid_monthly' | 'paid_one_time';
+  kind: 'paid_monthly' | 'paid_one_time';
   price_inr: string;
-  post_permission: PostPerm;
   billing_period_months: number;
+  trial_enabled: boolean;
   trial_days: string;
+  post_permission: PostPerm;
 }
 
 const slugify = (s: string) =>
@@ -38,9 +36,10 @@ const CreateCommunityPage = () => {
   const [introVideoUrl, setIntroVideoUrl] = useState<string | null>(null);
   const [outcomes, setOutcomes] = useState<string[]>(['']);
   const [social, setSocial] = useState({ youtube: '', instagram: '', x: '', website: '' });
-  const [tiers, setTiers] = useState<TierDraft[]>([
-    { id: newId(), name: 'Free', description: 'Get a taste of the community.', kind: 'free', price_inr: '', post_permission: 'all_members', billing_period_months: 1, trial_days: '' },
-  ]);
+  const [freeEnabled, setFreeEnabled] = useState(true);
+  const [freeDescription, setFreeDescription] = useState('Get a taste of the community.');
+  const [freePostPermission, setFreePostPermission] = useState<PostPerm>('all_members');
+  const [paidTiers, setPaidTiers] = useState<PaidTierDraft[]>([]);
   const [uploadingCover, setUploadingCover] = useState(false);
   const [uploadingVideo, setUploadingVideo] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -73,27 +72,33 @@ const CreateCommunityPage = () => {
     if (url) setIntroVideoUrl(url);
   };
 
-  const addTier = () =>
-    setTiers(prev => [...prev, { id: newId(), name: '', description: '', kind: 'paid_monthly', price_inr: '', post_permission: 'all_members', billing_period_months: 1, trial_days: '' }]);
-  const removeTier = (id: string) => setTiers(prev => prev.filter(t => t.id !== id));
-  const updateTier = (id: string, patch: Partial<TierDraft>) =>
-    setTiers(prev => prev.map(t => t.id === id ? { ...t, ...patch } : t));
+  const addPaidTier = () =>
+    setPaidTiers(prev => [...prev, {
+      id: newId(), name: '', kind: 'paid_monthly', price_inr: '',
+      billing_period_months: 1, trial_enabled: false, trial_days: '7',
+      post_permission: 'all_members',
+    }]);
+  const removePaidTier = (id: string) => setPaidTiers(prev => prev.filter(t => t.id !== id));
+  const updatePaidTier = (id: string, patch: Partial<PaidTierDraft>) =>
+    setPaidTiers(prev => prev.map(t => t.id === id ? { ...t, ...patch } : t));
 
   const handlePublish = async () => {
     if (!userId) return;
     if (!name.trim()) { toast({ title: 'Name is required', variant: 'destructive' }); return; }
-    const validTiers = tiers.filter(t => t.name.trim());
-    if (validTiers.length === 0) { toast({ title: 'Add at least one tier', variant: 'destructive' }); return; }
-    for (const t of validTiers) {
-      if (t.kind !== 'free' && (!t.price_inr || Number(t.price_inr) <= 0)) {
-        toast({ title: `Set a price for "${t.name}"`, variant: 'destructive' });
+    if (!freeEnabled && paidTiers.length === 0) {
+      toast({ title: 'Add at least one tier', description: 'Enable the Free tier or add a paid tier.', variant: 'destructive' });
+      return;
+    }
+    for (const t of paidTiers) {
+      if (!t.name.trim()) { toast({ title: 'Name each paid tier', variant: 'destructive' }); return; }
+      if (!t.price_inr || Number(t.price_inr) <= 0) {
+        toast({ title: `Set a price for "${t.name || 'paid tier'}"`, variant: 'destructive' });
         return;
       }
     }
 
     setSaving(true);
 
-    // Ensure the user has the creator role before inserting (RLS requires it).
     if (!isCreator) {
       const { error: rcErr } = await supabase.rpc('become_creator' as any);
       if (rcErr) {
@@ -131,17 +136,47 @@ const CreateCommunityPage = () => {
       return;
     }
 
-    const tierRows = validTiers.map((t, idx) => ({
-      community_id: (community as any).id,
-      name: t.name.trim(),
-      description: t.description.trim() || null,
-      kind: t.kind,
-      price_inr: t.kind === 'free' ? null : Number(t.price_inr),
-      billing_period_months: t.kind === 'paid_monthly' ? (t.billing_period_months || 1) : 1,
-      trial_days: t.kind === 'paid_monthly' ? (Number(t.trial_days) || 0) : 0,
-      sort_order: idx,
-      is_active: true,
-    }));
+    // Build the ordered tier list: free first (if enabled), then paid tiers
+    const ordered: Array<{
+      payload: any;
+      post_permission: PostPerm;
+    }> = [];
+    if (freeEnabled) {
+      ordered.push({
+        payload: {
+          community_id: (community as any).id,
+          name: 'Free',
+          description: freeDescription.trim() || null,
+          kind: 'free',
+          price_inr: null,
+          billing_period_months: 1,
+          trial_days: 0,
+          sort_order: 0,
+          is_active: true,
+        },
+        post_permission: freePostPermission,
+      });
+    }
+    paidTiers.forEach((t, i) => {
+      ordered.push({
+        payload: {
+          community_id: (community as any).id,
+          name: t.name.trim(),
+          description: null,
+          kind: t.kind,
+          price_inr: Number(t.price_inr),
+          billing_period_months: t.kind === 'paid_monthly' ? (t.billing_period_months || 1) : 1,
+          trial_days: t.kind === 'paid_monthly' && t.trial_enabled ? (Number(t.trial_days) || 0) : 0,
+          sort_order: ordered.length + i - (freeEnabled ? 0 : 0),
+          is_active: true,
+        },
+        post_permission: t.post_permission,
+      });
+    });
+    // Re-index sort_order cleanly
+    ordered.forEach((o, idx) => { o.payload.sort_order = idx; });
+
+    const tierRows = ordered.map(o => o.payload);
     const { data: insertedTiers, error: tErr } = await supabase
       .from('community_tiers' as any).insert(tierRows).select();
     if (tErr) {
@@ -150,20 +185,18 @@ const CreateCommunityPage = () => {
       return;
     }
 
-    // Auto-create one chat channel per tier with the chosen post permission
     const channelRows = (insertedTiers as any[] || []).map((tier, idx) => ({
       community_id: (community as any).id,
       name: `${tier.name} chat`,
       slug: `${slugify(tier.name)}-chat`,
       required_tier_level: tier.sort_order ?? idx,
       sort_order: tier.sort_order ?? idx,
-      post_permission: validTiers[idx]?.post_permission ?? 'all_members',
+      post_permission: ordered[idx]?.post_permission ?? 'all_members',
     }));
     if (channelRows.length) {
       await supabase.from('community_channels' as any).insert(channelRows);
     }
 
-    // Create Razorpay plans for monthly tiers (best-effort, non-blocking)
     const monthlyIds = (insertedTiers as any[] || []).filter(t => t.kind === 'paid_monthly').map(t => t.id);
     if (monthlyIds.length) {
       await Promise.all(monthlyIds.map(id =>
@@ -270,183 +303,166 @@ const CreateCommunityPage = () => {
           </div>
         </div>
 
-        {/* Tiers */}
-        <div>
-          <label className="text-xs font-semibold text-muted-foreground mb-2 block">Pricing tiers</label>
-          <div className="space-y-3">
-            {tiers.map(t => {
-              const isPaid = t.kind !== 'free';
-              return (
-              <div key={t.id} className="p-4 rounded-2xl bg-card border border-border space-y-4">
-                <div className="flex items-center gap-2">
-                  <input value={t.name} onChange={e => updateTier(t.id, { name: e.target.value })}
-                    placeholder="Tier name (e.g. Premium)"
-                    className="flex-1 px-3 py-2 rounded-lg bg-secondary text-foreground text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-primary/30" />
-                  {tiers.length > 1 && (
-                    <button onClick={() => removeTier(t.id)} className="p-2 rounded-lg bg-secondary text-destructive">
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  )}
-                </div>
-                <textarea value={t.description} onChange={e => updateTier(t.id, { description: e.target.value })}
-                  placeholder="What's included in this tier?" rows={2}
-                  className="w-full px-3 py-2 rounded-lg bg-secondary text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 resize-none" />
+        {/* Pricing tiers — simplified */}
+        <div className="space-y-4">
+          <label className="text-xs font-semibold text-muted-foreground block">Pricing tiers</label>
 
-                {/* Pricing */}
+          {/* Free tier */}
+          <div className="p-4 rounded-2xl bg-card border border-border space-y-3">
+            <label className="flex items-center gap-3 cursor-pointer">
+              <button
+                type="button"
+                onClick={() => setFreeEnabled(v => !v)}
+                className={`w-5 h-5 rounded-md border-2 flex items-center justify-center transition-colors ${
+                  freeEnabled ? 'bg-primary border-primary' : 'border-muted-foreground/40 bg-background'
+                }`}
+              >
+                {freeEnabled && <Check className="w-3.5 h-3.5 text-primary-foreground" />}
+              </button>
+              <span className="text-sm font-semibold text-foreground">Free tier</span>
+              <span className="text-[11px] text-muted-foreground">Anyone can join</span>
+            </label>
+            {freeEnabled && (
+              <>
+                <textarea
+                  value={freeDescription}
+                  onChange={e => setFreeDescription(e.target.value)}
+                  placeholder="Short description (e.g. Get a taste of the community.)"
+                  rows={2}
+                  className="w-full px-3 py-2 rounded-lg bg-secondary text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 resize-none"
+                />
                 <div>
-                  <p className="text-xs font-semibold text-foreground mb-1">Pricing</p>
-                  <p className="text-[11px] text-muted-foreground mb-2">Choose how people access this tier.</p>
-                  <div className="grid grid-cols-2 gap-2">
-                    <button
-                      type="button"
-                      onClick={() => updateTier(t.id, { kind: 'free', price_inr: '' })}
-                      className={`flex items-center justify-between gap-2 px-3 py-3 rounded-xl border-2 transition-colors ${
-                        !isPaid ? 'border-primary bg-primary/5' : 'border-border bg-background'
-                      }`}
-                    >
-                      <div className="flex items-center gap-2">
-                        <Globe className="w-4 h-4 text-foreground" />
-                        <span className="text-sm font-semibold text-foreground">Free access</span>
-                      </div>
-                      <span className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${
-                        !isPaid ? 'border-primary' : 'border-muted-foreground/40'
-                      }`}>
-                        {!isPaid && <span className="w-2 h-2 rounded-full bg-primary" />}
-                      </span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => updateTier(t.id, { kind: t.kind === 'free' ? 'paid_monthly' : t.kind })}
-                      className={`flex items-center justify-between gap-2 px-3 py-3 rounded-xl border-2 transition-colors ${
-                        isPaid ? 'border-primary bg-primary/5' : 'border-border bg-background'
-                      }`}
-                    >
-                      <div className="flex items-center gap-2">
-                        <IndianRupee className="w-4 h-4 text-foreground" />
-                        <span className="text-sm font-semibold text-foreground">Paid access</span>
-                      </div>
-                      <span className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${
-                        isPaid ? 'border-primary' : 'border-muted-foreground/40'
-                      }`}>
-                        {isPaid && <span className="w-2 h-2 rounded-full bg-primary" />}
-                      </span>
-                    </button>
+                  <p className="text-[11px] font-semibold text-muted-foreground mb-1.5">Who can post in the Free chat</p>
+                  <div className="grid grid-cols-3 gap-1.5">
+                    {([
+                      { v: 'all_members', label: 'Everyone' },
+                      { v: 'moderators', label: 'Moderators' },
+                      { v: 'creator_only', label: 'Admin only' },
+                    ] as { v: PostPerm; label: string }[]).map(opt => (
+                      <button
+                        key={opt.v}
+                        type="button"
+                        onClick={() => setFreePostPermission(opt.v)}
+                        className={`px-2 py-2 rounded-lg text-xs font-semibold transition-colors ${
+                          freePostPermission === opt.v
+                            ? 'bg-primary text-primary-foreground'
+                            : 'bg-secondary text-foreground hover:bg-secondary/70'
+                        }`}
+                      >
+                        {opt.label}
+                      </button>
+                    ))}
                   </div>
                 </div>
+              </>
+            )}
+          </div>
 
-                {isPaid && (
-                  <div className="rounded-xl border border-border bg-background p-3 space-y-3">
-                    <div className="flex items-baseline justify-between">
-                      <p className="text-base font-bold text-foreground">
-                        ₹{t.price_inr || '0'}
-                        <span className="text-xs font-medium text-muted-foreground ml-1">
-                          {t.kind === 'paid_monthly'
-                            ? (t.billing_period_months === 1 ? '/ month' : `every ${t.billing_period_months} months`)
-                            : 'one-time'}
-                        </span>
-                      </p>
-                      {t.kind === 'paid_monthly' && Number(t.trial_days) > 0 && (
-                        <span className="text-[11px] font-semibold text-primary">
-                          {t.trial_days}-day free trial
-                        </span>
+          {/* Paid tiers */}
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <p className="text-xs font-semibold text-foreground">Paid access tiers</p>
+              <span className="text-[11px] text-muted-foreground">Optional</span>
+            </div>
+
+            {paidTiers.map(t => (
+              <div key={t.id} className="p-4 rounded-2xl bg-card border border-border space-y-3">
+                <div className="flex items-center gap-2">
+                  <input
+                    value={t.name}
+                    onChange={e => updatePaidTier(t.id, { name: e.target.value })}
+                    placeholder="Tier name (e.g. Premium)"
+                    className="flex-1 px-3 py-2 rounded-lg bg-secondary text-foreground text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-primary/30"
+                  />
+                  <button onClick={() => removePaidTier(t.id)} className="p-2 rounded-lg bg-secondary text-destructive">
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => updatePaidTier(t.id, { kind: 'paid_monthly' })}
+                    className={`flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold transition-colors ${
+                      t.kind === 'paid_monthly' ? 'bg-primary text-primary-foreground' : 'bg-secondary text-foreground'
+                    }`}
+                  >
+                    <RefreshCw className="w-3.5 h-3.5" /> Recurring
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => updatePaidTier(t.id, { kind: 'paid_one_time' })}
+                    className={`flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold transition-colors ${
+                      t.kind === 'paid_one_time' ? 'bg-primary text-primary-foreground' : 'bg-secondary text-foreground'
+                    }`}
+                  >
+                    <Zap className="w-3.5 h-3.5" /> One-time
+                  </button>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <div className="relative flex-1">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">₹</span>
+                    <input
+                      value={t.price_inr}
+                      onChange={e => updatePaidTier(t.id, { price_inr: e.target.value.replace(/[^0-9]/g, '') })}
+                      placeholder="Price"
+                      inputMode="numeric"
+                      className="w-full pl-7 pr-3 py-2.5 rounded-lg bg-secondary text-foreground text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/30"
+                    />
+                  </div>
+                  <div className="px-3 py-2.5 rounded-lg bg-secondary text-foreground text-sm font-semibold">INR</div>
+                </div>
+
+                {t.kind === 'paid_monthly' && (
+                  <>
+                    <div>
+                      <p className="text-[11px] font-semibold text-muted-foreground mb-1.5">Billing tenure</p>
+                      <div className="flex flex-wrap gap-1.5">
+                        {TENURE_OPTIONS.map(m => (
+                          <button
+                            key={m}
+                            type="button"
+                            onClick={() => updatePaidTier(t.id, { billing_period_months: m })}
+                            className={`px-2.5 py-1 rounded-md text-xs font-semibold transition-colors ${
+                              t.billing_period_months === m
+                                ? 'bg-primary text-primary-foreground'
+                                : 'bg-secondary text-foreground hover:bg-secondary/70'
+                            }`}
+                          >
+                            {m === 1 ? '1 month' : `${m} months`}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="flex items-center gap-2 cursor-pointer mb-1.5">
+                        <button
+                          type="button"
+                          onClick={() => updatePaidTier(t.id, { trial_enabled: !t.trial_enabled })}
+                          className={`w-4 h-4 rounded border-2 flex items-center justify-center transition-colors ${
+                            t.trial_enabled ? 'bg-primary border-primary' : 'border-muted-foreground/40 bg-background'
+                          }`}
+                        >
+                          {t.trial_enabled && <Check className="w-3 h-3 text-primary-foreground" />}
+                        </button>
+                        <span className="text-[11px] font-semibold text-muted-foreground">Offer free trial</span>
+                      </label>
+                      {t.trial_enabled && (
+                        <div className="flex items-center gap-2">
+                          <input
+                            value={t.trial_days}
+                            onChange={e => updatePaidTier(t.id, { trial_days: e.target.value.replace(/[^0-9]/g, '').slice(0, 3) })}
+                            placeholder="7"
+                            inputMode="numeric"
+                            className="flex-1 px-3 py-2 rounded-lg bg-secondary text-foreground text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/30"
+                          />
+                          <div className="px-3 py-2 rounded-lg bg-secondary text-foreground text-sm font-semibold">days</div>
+                        </div>
                       )}
                     </div>
-                    <div className="grid grid-cols-2 gap-2">
-                      <button
-                        type="button"
-                        onClick={() => updateTier(t.id, { kind: 'paid_monthly' })}
-                        className={`flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold transition-colors ${
-                          t.kind === 'paid_monthly' ? 'bg-primary text-primary-foreground' : 'bg-secondary text-foreground'
-                        }`}
-                      >
-                        <RefreshCw className="w-3.5 h-3.5" /> Recurring
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => updateTier(t.id, { kind: 'paid_one_time' })}
-                        className={`flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold transition-colors ${
-                          t.kind === 'paid_one_time' ? 'bg-primary text-primary-foreground' : 'bg-secondary text-foreground'
-                        }`}
-                      >
-                        <Zap className="w-3.5 h-3.5" /> One-time
-                      </button>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div className="relative flex-1">
-                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">₹</span>
-                        <input
-                          value={t.price_inr}
-                          onChange={e => updateTier(t.id, { price_inr: e.target.value.replace(/[^0-9]/g, '') })}
-                          placeholder="0"
-                          inputMode="numeric"
-                          className="w-full pl-7 pr-3 py-2.5 rounded-lg bg-secondary text-foreground text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/30"
-                        />
-                      </div>
-                      <div className="px-3 py-2.5 rounded-lg bg-secondary text-foreground text-sm font-semibold">
-                        INR
-                      </div>
-                    </div>
-                    {t.kind === 'paid_monthly' && (
-                      <>
-                        <div className="pt-1">
-                          <p className="text-[11px] font-semibold text-muted-foreground mb-1.5">Billing tenure</p>
-                          <div className="flex flex-wrap gap-1.5">
-                            {TENURE_OPTIONS.map(m => (
-                              <button
-                                key={m}
-                                type="button"
-                                onClick={() => updateTier(t.id, { billing_period_months: m })}
-                                className={`px-2.5 py-1 rounded-md text-xs font-semibold transition-colors ${
-                                  t.billing_period_months === m
-                                    ? 'bg-primary text-primary-foreground'
-                                    : 'bg-secondary text-foreground hover:bg-secondary/70'
-                                }`}
-                              >
-                                {m === 1 ? '1 month' : `${m} months`}
-                              </button>
-                            ))}
-                          </div>
-                        </div>
-
-                        <div className="pt-1">
-                          <div className="flex items-center justify-between mb-1.5">
-                            <p className="text-[11px] font-semibold text-muted-foreground">Free trial</p>
-                            <button
-                              type="button"
-                              role="switch"
-                              aria-checked={Number(t.trial_days) > 0}
-                              onClick={() => updateTier(t.id, { trial_days: Number(t.trial_days) > 0 ? '0' : '7' })}
-                              className={`relative h-5 w-9 rounded-full transition-colors ${
-                                Number(t.trial_days) > 0 ? 'bg-primary' : 'bg-secondary'
-                              }`}
-                            >
-                              <span
-                                className={`absolute top-0.5 h-4 w-4 rounded-full bg-background shadow transition-transform ${
-                                  Number(t.trial_days) > 0 ? 'translate-x-4' : 'translate-x-0.5'
-                                }`}
-                              />
-                            </button>
-                          </div>
-                          {Number(t.trial_days) > 0 && (
-                            <div className="flex items-center gap-2">
-                              <div className="relative flex-1">
-                                <input
-                                  value={t.trial_days}
-                                  onChange={e => updateTier(t.id, { trial_days: e.target.value.replace(/[^0-9]/g, '').slice(0, 3) })}
-                                  placeholder="0"
-                                  inputMode="numeric"
-                                  className="w-full px-3 py-2.5 rounded-lg bg-secondary text-foreground text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/30"
-                                />
-                              </div>
-                              <div className="px-3 py-2.5 rounded-lg bg-secondary text-foreground text-sm font-semibold">
-                                days
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      </>
-                    )}
-                  </div>
+                  </>
                 )}
 
                 <div>
@@ -460,7 +476,7 @@ const CreateCommunityPage = () => {
                       <button
                         key={opt.v}
                         type="button"
-                        onClick={() => updateTier(t.id, { post_permission: opt.v })}
+                        onClick={() => updatePaidTier(t.id, { post_permission: opt.v })}
                         className={`px-2 py-2 rounded-lg text-xs font-semibold transition-colors ${
                           t.post_permission === opt.v
                             ? 'bg-primary text-primary-foreground'
@@ -473,10 +489,10 @@ const CreateCommunityPage = () => {
                   </div>
                 </div>
               </div>
-              );
-            })}
-            <button onClick={addTier} className="flex items-center gap-1 text-primary text-sm font-semibold">
-              <Plus className="w-4 h-4" /> Add tier
+            ))}
+
+            <button onClick={addPaidTier} className="flex items-center gap-1 text-primary text-sm font-semibold">
+              <Plus className="w-4 h-4" /> Add paid tier
             </button>
           </div>
         </div>
