@@ -68,8 +68,9 @@ export const ResourcesPanel = ({ communityId, isCreator, tierLevel, tiers, slug 
       const path = `${communityId}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
       const { error: upErr } = await supabase.storage.from('community-resources').upload(path, file);
       if (upErr) { toast({ title: 'Upload failed', description: upErr.message, variant: 'destructive' }); setSaving(false); return; }
-      const { data: pub } = supabase.storage.from('community-resources').getPublicUrl(path);
-      payload.url = pub.publicUrl;
+      // Store the storage path; we generate short-lived signed URLs on demand
+      // so private bucket RLS can verify membership and tier on each access.
+      payload.url = path;
       payload.file_size = file.size;
     } else {
       if (!form.url.trim().startsWith('http')) { toast({ title: 'Enter a valid URL (https://…)', variant: 'destructive' }); setSaving(false); return; }
