@@ -3,7 +3,8 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
-import { ArrowLeft, Loader2, Users, Check, Globe, Play, Camera } from 'lucide-react';
+import { ArrowLeft, Loader2, Users, Check, Globe, Play, Camera, Share2 } from 'lucide-react';
+import { shareCommunity } from '@/lib/shareCommunity';
 import ReviewsSection from '@/components/community/ReviewsSection';
 
 const loadRazorpay = (): Promise<boolean> => new Promise(resolve => {
