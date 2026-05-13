@@ -73,7 +73,6 @@ const ProfilePage = () => {
 
   const menuItems = [
     { icon: Users, label: 'My Communities', path: '/mine' },
-    { icon: Receipt, label: 'Subscriptions & Refunds', path: '/subscriptions' },
     { icon: Bell, label: 'Notifications', path: '/notifications' },
     { icon: HelpCircle, label: 'Help & Support', path: '/contact' },
     { icon: Settings, label: 'Settings', path: '/settings' },
@@ -159,7 +158,19 @@ const ProfilePage = () => {
         </button>
       )}
 
-      <div className="rounded-2xl bg-card border border-border overflow-hidden mb-6 mt-6">
+      <button onClick={() => navigate('/subscriptions')}
+        className="w-full flex items-center gap-3 px-5 py-4 rounded-2xl bg-card border border-border mb-3">
+        <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+          <Receipt className="w-5 h-5 text-primary" />
+        </div>
+        <div className="flex-1 text-left">
+          <p className="text-foreground font-semibold text-sm">Subscriptions & Refunds</p>
+          <p className="text-muted-foreground text-xs">Manage memberships · raise refund disputes</p>
+        </div>
+        <ChevronRight className="w-4 h-4 text-muted-foreground" />
+      </button>
+
+      <div className="rounded-2xl bg-card border border-border overflow-hidden mb-6 mt-3">
         {menuItems.map((item, i) => (
           <button key={item.label} onClick={() => navigate(item.path)}
             className={`w-full flex items-center gap-3 px-5 py-4 text-left hover:bg-secondary/50 transition-colors ${i > 0 ? 'border-t border-border' : ''}`}>
