@@ -111,11 +111,26 @@ export const ChatPanel = ({ communityId, isCreator, isAdmin, tierLevel, tiers, s
 
   const fetchAuthors = async (userIds: string[]) => {
     if (!userIds.length) return {};
-    const { data } = await supabase.from('profiles').select('id, name, username, avatar_url').in('id', userIds);
+    const { data } = await supabase.rpc('get_chat_author_names' as any, { _user_ids: userIds });
     const map: Record<string, any> = {};
-    (data || []).forEach((p: any) => { map[p.id] = p; });
+    ((data as any[]) || []).forEach((p: any) => { map[p.id] = p; });
     return map;
   };
+
+  // Load creator + admin ids so we can badge them in chat
+  const [creatorId, setCreatorId] = useState<string | null>(null);
+  const [adminIds, setAdminIds] = useState<Set<string>>(new Set());
+  useEffect(() => {
+    (async () => {
+      const [{ data: c }, { data: a }] = await Promise.all([
+        supabase.from('communities' as any).select('creator_id').eq('id', communityId).maybeSingle(),
+        supabase.from('community_admins' as any).select('user_id').eq('community_id', communityId),
+      ]);
+      setCreatorId((c as any)?.creator_id || null);
+      setAdminIds(new Set(((a as any[]) || []).map(r => r.user_id)));
+    })();
+  }, [communityId]);
+
 
   // Load messages for active channel
   useEffect(() => {
@@ -335,9 +350,18 @@ export const ChatPanel = ({ communityId, isCreator, isAdmin, tierLevel, tiers, s
                   </div>
                   <div className="flex-1 min-w-0">
                     {item.showHeader && (
-                      <div className="flex items-baseline gap-2 mb-0.5">
+                      <div className="flex items-baseline gap-2 mb-0.5 flex-wrap">
                         <span className="text-sm font-semibold text-foreground" style={{ color: mine ? undefined : accent }}>{name}</span>
                         {mine && <span className="text-[10px] uppercase tracking-wide text-primary font-bold">You</span>}
+                        {m.user_id === creatorId ? (
+                          <span className="text-[9px] uppercase tracking-wide font-bold px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-600 inline-flex items-center gap-0.5">
+                            <ShieldCheck className="w-2.5 h-2.5" /> Creator
+                          </span>
+                        ) : adminIds.has(m.user_id) && (
+                          <span className="text-[9px] uppercase tracking-wide font-bold px-1.5 py-0.5 rounded bg-primary/10 text-primary inline-flex items-center gap-0.5">
+                            <Shield className="w-2.5 h-2.5" /> Admin
+                          </span>
+                        )}
                         <span className="text-[11px] text-muted-foreground">{time}</span>
                       </div>
                     )}
