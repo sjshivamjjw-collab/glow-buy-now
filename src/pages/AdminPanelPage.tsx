@@ -68,7 +68,7 @@ const AdminPanelPage = () => {
 
   useEffect(() => {
     const load = async () => {
-      const [appsRes, ordersRes, profilesRes, prodCountRes, cancelRes, returnRes, streamsRes, sellersRes, communitiesRes] = await Promise.all([
+      const [appsRes, ordersRes, profilesRes, prodCountRes, cancelRes, returnRes, streamsRes, sellersRes, communitiesRes, disputesRes] = await Promise.all([
         supabase.from('seller_applications').select('*').order('created_at', { ascending: false }),
         supabase.from('orders').select('*, order_items(*, products(title, images, seller_id)), profiles:seller_id(name, phone)').order('created_at', { ascending: false }),
         supabase.from('profiles').select('id, name, phone, created_at'),
@@ -78,6 +78,7 @@ const AdminPanelPage = () => {
         supabase.from('livestreams').select('*').order('created_at', { ascending: false }),
         supabase.from('user_roles').select('user_id').eq('role', 'creator'),
         supabase.from('communities' as any).select('*').order('created_at', { ascending: false }),
+        supabase.from('membership_disputes' as any).select('*, communities(name, slug), profiles:user_id(name, phone), community_tiers(name, price_inr, kind)').order('created_at', { ascending: false }),
       ]);
 
       if (appsRes.data) setApplications(appsRes.data);
