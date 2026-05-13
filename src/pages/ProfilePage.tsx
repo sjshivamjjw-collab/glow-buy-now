@@ -73,7 +73,6 @@ const ProfilePage = () => {
 
   const menuItems = [
     { icon: Users, label: 'My Communities', path: '/mine' },
-    { icon: Receipt, label: 'Subscriptions & Refunds', path: '/subscriptions' },
     { icon: Bell, label: 'Notifications', path: '/notifications' },
     { icon: HelpCircle, label: 'Help & Support', path: '/contact' },
     { icon: Settings, label: 'Settings', path: '/settings' },
