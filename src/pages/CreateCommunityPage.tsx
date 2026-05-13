@@ -37,6 +37,8 @@ const CreateCommunityPage = () => {
   const [description, setDescription] = useState('');
   const [coverUrl, setCoverUrl] = useState<string | null>(null);
   const [introVideoUrl, setIntroVideoUrl] = useState<string | null>(null);
+  const [attachments, setAttachments] = useState<InfoAttachment[]>([]);
+  const [uploadingAttachment, setUploadingAttachment] = useState(false);
   const [outcomes, setOutcomes] = useState<string[]>(['']);
   const [social, setSocial] = useState({ youtube: '', instagram: '', x: '', website: '' });
   const [freeEnabled, setFreeEnabled] = useState(true);
