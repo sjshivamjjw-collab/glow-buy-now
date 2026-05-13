@@ -3,23 +3,21 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
-import { ArrowLeft, Plus, Trash2, Image as ImageIcon, Video, Loader2, Globe, IndianRupee, RefreshCw, Zap } from 'lucide-react';
+import { ArrowLeft, Plus, Trash2, Image as ImageIcon, Video, Loader2, RefreshCw, Zap, Check } from 'lucide-react';
 
-const PRICE_SUGGESTIONS = [99, 299, 499, 999];
 const TENURE_OPTIONS = [1, 2, 3, 6, 12];
-const TRIAL_SUGGESTIONS = [3, 7, 14, 30];
 
 type PostPerm = 'all_members' | 'moderators' | 'creator_only';
 
-interface TierDraft {
+interface PaidTierDraft {
   id: string;
   name: string;
-  description: string;
-  kind: 'free' | 'paid_monthly' | 'paid_one_time';
+  kind: 'paid_monthly' | 'paid_one_time';
   price_inr: string;
-  post_permission: PostPerm;
   billing_period_months: number;
+  trial_enabled: boolean;
   trial_days: string;
+  post_permission: PostPerm;
 }
 
 const slugify = (s: string) =>
