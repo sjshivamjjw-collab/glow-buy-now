@@ -380,8 +380,8 @@ export const ChatPanel = ({ communityId, isCreator, isAdmin, tierLevel, tiers, s
                   <div className="flex-1 min-w-0">
                     {item.showHeader && (
                       <div className="flex items-baseline gap-2 mb-0.5 flex-wrap">
-                        {mine ? (
-                          <span className="text-sm font-semibold text-foreground">{name}</span>
+                        {mine || !dmsEnabled ? (
+                          <span className="text-sm font-semibold" style={{ color: mine ? undefined : accent }}>{name}</span>
                         ) : (
                           <button onClick={() => { setDmUserParam(m.user_id); setDmMode(true); }}
                             className="text-sm font-semibold hover:underline focus:underline focus:outline-none" style={{ color: accent }}
