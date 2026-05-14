@@ -55,6 +55,35 @@ const ProfilePage = () => {
     }
   };
 
+  const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file || !userId) return;
+    if (file.size > 5 * 1024 * 1024) {
+      toast({ title: 'Image too large', description: 'Please select an image under 5MB', variant: 'destructive' });
+      return;
+    }
+    setUploadingAvatar(true);
+    try {
+      const ext = file.name.split('.').pop() || 'jpg';
+      const path = `${userId}/avatar-${Date.now()}.${ext}`;
+      const { error: upErr } = await supabase.storage.from('avatars').upload(path, file, { upsert: true });
+      if (upErr) throw upErr;
+      const { data: urlData } = supabase.storage.from('avatars').getPublicUrl(path);
+      const publicUrl = urlData.publicUrl;
+      const { error: updErr } = await supabase.from('profiles').update({ avatar_url: publicUrl }).eq('id', userId);
+      if (updErr) throw updErr;
+      setProfile(prev => prev ? { ...prev, avatar_url: publicUrl } : { name: null, username: null, avatar_url: publicUrl });
+      updateProfile({ avatar_url: publicUrl });
+      toast({ title: 'Profile photo updated' });
+    } catch (err: any) {
+      console.error('Avatar upload error:', err);
+      toast({ title: 'Failed to update photo', description: err.message, variant: 'destructive' });
+    } finally {
+      setUploadingAvatar(false);
+    }
+  };
+
   const handleBecomeCreator = async () => {
     setBecoming(true);
     const { error } = await supabase.rpc('become_creator' as any);
