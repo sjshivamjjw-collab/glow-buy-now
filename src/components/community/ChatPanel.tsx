@@ -61,7 +61,7 @@ interface Props {
 }
 
 export const ChatPanel = ({ communityId, isCreator, isAdmin, tierLevel, tiers, slug, dmsEnabled = true }: Props) => {
-  const { userId, userName, userAvatar } = useAuth();
+  const { userId, userName, userAvatar, isAdmin: isPlatformAdmin } = useAuth();
   const { toast } = useToast();
   const [searchParams, setSearchParams] = useSearchParams();
   const dmParam = dmsEnabled ? searchParams.get('dm') : null;
