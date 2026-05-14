@@ -15,8 +15,15 @@ interface AuthState {
   onboardingCompleted: boolean;
 }
 
+interface AuthProfile {
+  name?: string | null;
+  avatar_url?: string | null;
+  phone?: string | null;
+  onboarding_completed?: boolean | null;
+}
+
 interface AuthContextType extends AuthState {
-  login: (userId: string, phone: string, roles: string[], profile: any) => void;
+  login: (userId: string, phone: string, roles: string[], profile: AuthProfile | null) => void;
   logout: () => void;
   setRole: (role: UserRole) => void;
   completeOnboarding: () => void;
@@ -27,6 +34,17 @@ interface AuthContextType extends AuthState {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 const STORAGE_KEY = 'livecart_auth';
+const DEMO_PHONES = new Set([
+  '+918921046170',
+  '+918921046171',
+  '+919082036638',
+  '+919619836638',
+  '+919999966666',
+  '+911111111111',
+  '+919821046171',
+  '+919821046170',
+  '+919619846170',
+]);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [state, setState] = useState<AuthState>({
@@ -54,7 +72,33 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         const parsed = JSON.parse(saved);
         const { data: { session } } = await supabase.auth.getSession();
         if (session?.user?.id && session.user.id === parsed.userId) {
-          if (mounted) setState({ ...parsed, loading: false });
+          const [{ data: profile }, { data: roleRows }] = await Promise.all([
+            supabase.from('profiles').select('*').eq('id', session.user.id).maybeSingle(),
+            supabase.from('user_roles').select('role').eq('user_id', session.user.id),
+          ]);
+          const roles = (roleRows || []).map(r => r.role as string);
+          const normalizedPhone = (profile?.phone || parsed.phone || session.user.phone || '').startsWith('+')
+            ? (profile?.phone || parsed.phone || session.user.phone || '')
+            : `+${profile?.phone || parsed.phone || session.user.phone || ''}`;
+          const isAdmin = roles.includes('admin') || parsed.isAdmin;
+          const isCreator = roles.includes('creator') || isAdmin || parsed.isCreator;
+          const isDemoPhone = DEMO_PHONES.has(normalizedPhone);
+          let primaryRole: UserRole = parsed.role || 'shopper';
+          if (isAdmin) primaryRole = 'admin';
+          else if (isCreator) primaryRole = 'creator';
+          const refreshed: AuthState = {
+            ...parsed,
+            role: primaryRole,
+            userName: profile?.name || parsed.userName || (isAdmin ? 'Admin' : isDemoPhone ? 'Demo User' : null),
+            userAvatar: profile?.avatar_url || parsed.userAvatar || null,
+            isCreator,
+            isAdmin,
+            phone: normalizedPhone || parsed.phone,
+            loading: false,
+            onboardingCompleted: isDemoPhone || profile?.onboarding_completed === true || parsed.onboardingCompleted === true,
+          };
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(refreshed));
+          if (mounted) setState(refreshed);
         } else {
           localStorage.removeItem(STORAGE_KEY);
           if (mounted) setState(prev => ({ ...prev, loading: false }));
@@ -68,7 +112,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return () => { mounted = false; };
   }, []);
 
-  const login = (userId: string, phone: string, roles: string[], profile: any) => {
+  const login = (userId: string, phone: string, roles: string[], profile: AuthProfile | null) => {
     const normalizedPhone = phone.startsWith('+') ? phone : `+91${phone}`;
     // Admin status comes ONLY from the server-side user_roles table — never from
     // a hardcoded phone number on the client.
@@ -79,17 +123,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     if (isAdmin) primaryRole = 'admin';
     else if (isCreator) primaryRole = 'creator';
 
+    const isDemoPhone = DEMO_PHONES.has(normalizedPhone);
+
     const newState: AuthState = {
       isAuthenticated: true,
       role: primaryRole,
       userId,
-      userName: profile?.name || (isAdmin ? 'Admin' : null),
+      userName: profile?.name || (isAdmin ? 'Admin' : isDemoPhone ? 'Demo User' : null),
       userAvatar: profile?.avatar_url || null,
       isCreator,
       isAdmin,
       phone: normalizedPhone,
       loading: false,
-      onboardingCompleted: profile?.onboarding_completed ?? false,
+      onboardingCompleted: isDemoPhone || profile?.onboarding_completed === true,
     };
 
     setState(newState);
