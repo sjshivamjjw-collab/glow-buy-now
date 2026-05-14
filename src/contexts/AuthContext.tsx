@@ -27,6 +27,17 @@ interface AuthContextType extends AuthState {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 const STORAGE_KEY = 'livecart_auth';
+const DEMO_PHONES = new Set([
+  '+918921046170',
+  '+918921046171',
+  '+919082036638',
+  '+919619836638',
+  '+919999966666',
+  '+911111111111',
+  '+919821046171',
+  '+919821046170',
+  '+919619846170',
+]);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [state, setState] = useState<AuthState>({
@@ -79,17 +90,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     if (isAdmin) primaryRole = 'admin';
     else if (isCreator) primaryRole = 'creator';
 
+    const isDemoPhone = DEMO_PHONES.has(normalizedPhone);
+
     const newState: AuthState = {
       isAuthenticated: true,
       role: primaryRole,
       userId,
-      userName: profile?.name || (isAdmin ? 'Admin' : null),
+      userName: profile?.name || (isAdmin ? 'Admin' : isDemoPhone ? 'Demo User' : null),
       userAvatar: profile?.avatar_url || null,
       isCreator,
       isAdmin,
       phone: normalizedPhone,
       loading: false,
-      onboardingCompleted: profile?.onboarding_completed ?? false,
+      onboardingCompleted: isDemoPhone || profile?.onboarding_completed === true,
     };
 
     setState(newState);
