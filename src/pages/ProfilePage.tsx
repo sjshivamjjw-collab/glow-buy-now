@@ -1,9 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { Settings, LogOut, ChevronRight, Bell, HelpCircle, Sparkles, ShieldCheck, LayoutDashboard, Users, Check, X, Receipt } from 'lucide-react';
+import { Settings, LogOut, ChevronRight, Bell, HelpCircle, Sparkles, ShieldCheck, LayoutDashboard, Users, Check, X, Receipt, Camera } from 'lucide-react';
 import Footer from '@/components/Footer';
 
 const ProfilePage = () => {
