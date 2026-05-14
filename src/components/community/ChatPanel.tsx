@@ -305,7 +305,7 @@ export const ChatPanel = ({ communityId, isCreator, isAdmin, tierLevel, tiers, s
         lastDay = day; lastUser = ''; lastTime = 0;
       }
       const t = d.getTime();
-      const showHeader = m.user_id !== lastUser || t - lastTime > 5 * 60 * 1000;
+      const showHeader = m.user_id !== lastUser || t - lastTime > 2 * 60 * 1000;
       out.push({ type: 'msg', msg: m, showHeader });
       lastUser = m.user_id; lastTime = t;
     });
