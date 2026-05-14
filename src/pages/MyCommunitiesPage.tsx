@@ -111,7 +111,7 @@ const MyCommunitiesPage = () => {
                         <ChevronRight className="w-4 h-4 text-muted-foreground flex-shrink-0 mt-1" />
                       </div>
                       <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1 flex-wrap">
-                        <span className="inline-flex items-center gap-1"><Users className="w-3 h-3" />{c.member_count}</span>
+                        <span className="inline-flex items-center gap-1"><Users className="w-3 h-3" />{formatCount(c.member_count)}</span>
                         <span className={`px-1.5 py-0.5 rounded capitalize ${
                           r.status === 'active' ? 'bg-success/10 text-success' :
                           r.status === 'pending' ? 'bg-yellow-500/10 text-yellow-600' :
