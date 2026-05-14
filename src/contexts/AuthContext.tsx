@@ -65,7 +65,33 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         const parsed = JSON.parse(saved);
         const { data: { session } } = await supabase.auth.getSession();
         if (session?.user?.id && session.user.id === parsed.userId) {
-          if (mounted) setState({ ...parsed, loading: false });
+          const [{ data: profile }, { data: roleRows }] = await Promise.all([
+            supabase.from('profiles').select('*').eq('id', session.user.id).maybeSingle(),
+            supabase.from('user_roles').select('role').eq('user_id', session.user.id),
+          ]);
+          const roles = (roleRows || []).map(r => r.role as string);
+          const normalizedPhone = (profile?.phone || parsed.phone || session.user.phone || '').startsWith('+')
+            ? (profile?.phone || parsed.phone || session.user.phone || '')
+            : `+${profile?.phone || parsed.phone || session.user.phone || ''}`;
+          const isAdmin = roles.includes('admin') || parsed.isAdmin;
+          const isCreator = roles.includes('creator') || isAdmin || parsed.isCreator;
+          const isDemoPhone = DEMO_PHONES.has(normalizedPhone);
+          let primaryRole: UserRole = parsed.role || 'shopper';
+          if (isAdmin) primaryRole = 'admin';
+          else if (isCreator) primaryRole = 'creator';
+          const refreshed: AuthState = {
+            ...parsed,
+            role: primaryRole,
+            userName: profile?.name || parsed.userName || (isAdmin ? 'Admin' : isDemoPhone ? 'Demo User' : null),
+            userAvatar: profile?.avatar_url || parsed.userAvatar || null,
+            isCreator,
+            isAdmin,
+            phone: normalizedPhone || parsed.phone,
+            loading: false,
+            onboardingCompleted: isDemoPhone || profile?.onboarding_completed === true || parsed.onboardingCompleted === true,
+          };
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(refreshed));
+          if (mounted) setState(refreshed);
         } else {
           localStorage.removeItem(STORAGE_KEY);
           if (mounted) setState(prev => ({ ...prev, loading: false }));
