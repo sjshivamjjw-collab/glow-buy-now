@@ -44,7 +44,7 @@ const CommunityDetailPage = () => {
 
       const [{ data: t }, { data: prof }, { data: mem }] = await Promise.all([
         supabase.from('community_tiers' as any).select('*').eq('community_id', (c as any).id).eq('is_active', true).order('sort_order'),
-        supabase.from('profiles').select('id, name, username, avatar_url').eq('id', (c as any).creator_id).maybeSingle(),
+        supabase.rpc('get_seller_public_profile' as any, { _seller_id: (c as any).creator_id }).maybeSingle(),
         userId
           ? supabase.from('memberships' as any).select('*').eq('community_id', (c as any).id).eq('user_id', userId).maybeSingle()
           : Promise.resolve({ data: null }),
