@@ -89,11 +89,6 @@ const OnboardingPage = () => {
     }
   };
 
-  const toggleCategory = (id: string) => {
-    setSelectedCategories(prev =>
-      prev.includes(id) ? prev.filter(c => c !== id) : [...prev, id]
-    );
-  };
 
   const handleFinish = async () => {
     if (!userId) return;
