@@ -220,7 +220,7 @@ const CommunitiesTab = ({ communities, onTogglePublish, navigate }: any) => {
               <h3 className="font-bold text-foreground truncate">{c.name}</h3>
               <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
                 <Users className="w-3 h-3" />
-                <span>{c.member_count} members</span>
+                <span>{formatCount(c.member_count)} members</span>
               </div>
             </div>
             <span className={`text-[10px] font-bold px-2 py-1 rounded-full ${
