@@ -5,6 +5,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { ArrowLeft, Loader2, Users, Check, Globe, Play, Camera, Share2, FileText, Download } from 'lucide-react';
 import { shareCommunity } from '@/lib/shareCommunity';
+import { formatCount } from '@/lib/utils';
 import ReviewsSection from '@/components/community/ReviewsSection';
 
 const loadRazorpay = (): Promise<boolean> => new Promise(resolve => {
@@ -195,7 +196,7 @@ const CommunityDetailPage = () => {
             <p className="text-sm text-muted-foreground">By {creator?.name || creator?.username || 'Creator'}</p>
             <div className="flex items-center gap-1 text-xs text-muted-foreground">
               <Users className="w-3 h-3" />
-              <span>{community.member_count} member{community.member_count === 1 ? '' : 's'}</span>
+              <span>{formatCount(community.member_count)} member{community.member_count === 1 ? '' : 's'}</span>
             </div>
           </div>
         </div>
