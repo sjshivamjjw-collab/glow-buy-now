@@ -37,7 +37,7 @@ export const useCommunityMembership = (communityId: string | null | undefined) =
     setTiers(tierList);
     const creator = (c as any)?.creator_id === userId;
     setIsCreator(creator);
-    setIsAdmin(creator || !!mod);
+    setIsAdmin(creator || !!mod || isPlatformAdmin);
 
     // Mirror DB-side gating in is_active_community_member: a paid tier requires
     // a verified Razorpay payment/subscription and an unexpired period.
@@ -51,10 +51,10 @@ export const useCommunityMembership = (communityId: string | null | undefined) =
       validMembership = periodOk && (isFree || paidOk);
     }
 
-    setIsMember(creator || validMembership);
-    if (creator) {
+    setIsMember(creator || validMembership || isPlatformAdmin);
+    if (creator || isPlatformAdmin) {
       setTierLevel(Number.POSITIVE_INFINITY);
-      setCurrentTier(null);
+      setCurrentTier(creator ? null : memTier);
     } else if (validMembership && memTier) {
       setCurrentTier(memTier);
       setTierLevel(memTier.sort_order);
