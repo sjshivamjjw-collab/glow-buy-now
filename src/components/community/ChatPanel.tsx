@@ -366,10 +366,10 @@ export const ChatPanel = ({ communityId, isCreator, isAdmin, tierLevel, tiers, s
                   <div className="w-9 shrink-0">
                     {item.showHeader ? (
                       <button
-                        onClick={() => { if (!mine) { setDmUserParam(m.user_id); setDmMode(true); } }}
-                        disabled={mine}
-                        className={`w-9 h-9 rounded-full flex items-center justify-center overflow-hidden ring-2 ring-background shadow-sm ${mine ? '' : 'cursor-pointer hover:ring-primary'}`}
-                        style={{ background: accent }} title={mine ? '' : `Message ${name}`}>
+                        onClick={() => { if (!mine && dmsEnabled) { setDmUserParam(m.user_id); setDmMode(true); } }}
+                        disabled={mine || !dmsEnabled}
+                        className={`w-9 h-9 rounded-full flex items-center justify-center overflow-hidden ring-2 ring-background shadow-sm ${mine || !dmsEnabled ? '' : 'cursor-pointer hover:ring-primary'}`}
+                        style={{ background: accent }} title={mine || !dmsEnabled ? '' : `Message ${name}`}>
                         {avatar ? <img src={avatar} alt={name} className="w-full h-full object-cover" /> :
                           <span className="text-xs font-bold text-white">{name.slice(0,1).toUpperCase()}</span>}
                       </button>
