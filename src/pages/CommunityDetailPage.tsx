@@ -5,6 +5,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { ArrowLeft, Loader2, Users, Check, Globe, Play, Camera, Share2, FileText, Download } from 'lucide-react';
 import { shareCommunity } from '@/lib/shareCommunity';
+import { formatCount } from '@/lib/utils';
 import ReviewsSection from '@/components/community/ReviewsSection';
 
 const loadRazorpay = (): Promise<boolean> => new Promise(resolve => {
