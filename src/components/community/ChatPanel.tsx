@@ -138,12 +138,18 @@ export const ChatPanel = ({ communityId, isCreator, isAdmin, tierLevel, tiers, s
   const [adminIds, setAdminIds] = useState<Set<string>>(new Set());
   useEffect(() => {
     (async () => {
-      const [{ data: c }, { data: a }] = await Promise.all([
+      const [{ data: c }, { data: a }, { data: pa }] = await Promise.all([
         supabase.from('communities' as any).select('creator_id').eq('id', communityId).maybeSingle(),
         supabase.from('community_admins' as any).select('user_id').eq('community_id', communityId),
+        supabase.rpc('get_platform_admin_ids' as any),
       ]);
       setCreatorId((c as any)?.creator_id || null);
-      setAdminIds(new Set(((a as any[]) || []).map(r => r.user_id)));
+      const ids = new Set<string>(((a as any[]) || []).map(r => r.user_id));
+      ((pa as any[]) || []).forEach((row: any) => {
+        const id = typeof row === 'string' ? row : row?.get_platform_admin_ids || row?.user_id || row;
+        if (typeof id === 'string') ids.add(id);
+      });
+      setAdminIds(ids);
     })();
   }, [communityId]);
 
