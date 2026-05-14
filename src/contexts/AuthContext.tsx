@@ -15,8 +15,15 @@ interface AuthState {
   onboardingCompleted: boolean;
 }
 
+interface AuthProfile {
+  name?: string | null;
+  avatar_url?: string | null;
+  phone?: string | null;
+  onboarding_completed?: boolean | null;
+}
+
 interface AuthContextType extends AuthState {
-  login: (userId: string, phone: string, roles: string[], profile: any) => void;
+  login: (userId: string, phone: string, roles: string[], profile: AuthProfile | null) => void;
   logout: () => void;
   setRole: (role: UserRole) => void;
   completeOnboarding: () => void;
@@ -105,7 +112,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return () => { mounted = false; };
   }, []);
 
-  const login = (userId: string, phone: string, roles: string[], profile: any) => {
+  const login = (userId: string, phone: string, roles: string[], profile: AuthProfile | null) => {
     const normalizedPhone = phone.startsWith('+') ? phone : `+91${phone}`;
     // Admin status comes ONLY from the server-side user_roles table — never from
     // a hardcoded phone number on the client.
