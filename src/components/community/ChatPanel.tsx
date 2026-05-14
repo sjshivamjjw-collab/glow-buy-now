@@ -92,11 +92,11 @@ export const ChatPanel = ({ communityId, isCreator, isAdmin, tierLevel, tiers, s
   const imageRef = useRef<HTMLInputElement>(null);
 
   const activeChannel = channels.find(c => c.id === activeChannelId) || null;
-  const canAccessActive = !activeChannel || isCreator || tierLevel >= activeChannel.required_tier_level;
+  const canAccessActive = !activeChannel || isCreator || isPlatformAdmin || tierLevel >= activeChannel.required_tier_level;
 
   // Posting permission for the active channel
   const canPostInActive = !activeChannel ? false : (
-    isCreator
+    isCreator || isPlatformAdmin
       ? true
       : activeChannel.post_permission === 'creator_only'
         ? false
