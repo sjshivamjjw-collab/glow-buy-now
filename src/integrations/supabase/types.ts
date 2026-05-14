@@ -1365,6 +1365,7 @@ export type Database = {
         Args: { _community_id: string; _other_user_id: string }
         Returns: string
       }
+      get_platform_admin_ids: { Args: never; Returns: string[] }
       get_seller_public_profile: {
         Args: { _seller_id: string }
         Returns: {
