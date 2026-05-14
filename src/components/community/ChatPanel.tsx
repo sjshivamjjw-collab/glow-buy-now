@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, type TouchEvent } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -51,7 +51,7 @@ const dayLabel = (d: Date) => isToday(d) ? 'Today' : isYesterday(d) ? 'Yesterday
 const slugify = (s: string) => s.toLowerCase().trim().replace(/[^a-z0-9\s-]/g, '').replace(/\s+/g, '-').slice(0, 40);
 
 const LINK_RE = /((?:https?:\/\/|www\.)[^\s<]+[^\s<.,!?;:)'"\]])|([\w.+-]+@[\w-]+\.[\w.-]+)/gi;
-const openUrlOnTouch = (e: React.TouchEvent<HTMLAnchorElement>, href: string) => {
+const openUrlOnTouch = (e: TouchEvent<HTMLAnchorElement>, href: string) => {
   e.preventDefault();
   e.stopPropagation();
   window.location.assign(href);
