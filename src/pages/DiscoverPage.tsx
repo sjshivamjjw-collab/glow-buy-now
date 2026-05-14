@@ -43,7 +43,7 @@ const DiscoverPage = () => {
         const ids = list.map(c => c.id);
         const creatorIds = Array.from(new Set(list.map(c => c.creator_id)));
         const [{ data: profs }, { data: tiers }, memRes] = await Promise.all([
-          supabase.from('profiles').select('id, name, username, avatar_url').in('id', creatorIds),
+          supabase.rpc('get_seller_public_profiles' as any, { _ids: creatorIds }),
           supabase.from('community_tiers' as any).select('id, community_id, kind, sort_order').in('community_id', ids).eq('is_active', true).eq('kind', 'free'),
           userId
             ? supabase.from('memberships' as any).select('community_id, status').eq('user_id', userId).eq('status', 'active').in('community_id', ids)
