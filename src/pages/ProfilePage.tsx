@@ -1,9 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { Settings, LogOut, ChevronRight, Bell, HelpCircle, Sparkles, ShieldCheck, LayoutDashboard, Users, Check, X, Receipt } from 'lucide-react';
+import { Settings, LogOut, ChevronRight, Bell, HelpCircle, Sparkles, ShieldCheck, LayoutDashboard, Users, Check, X, Receipt, Camera } from 'lucide-react';
 import Footer from '@/components/Footer';
 
 const ProfilePage = () => {
@@ -16,6 +16,8 @@ const ProfilePage = () => {
   const [editUsername, setEditUsername] = useState('');
   const [saving, setSaving] = useState(false);
   const [becoming, setBecoming] = useState(false);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (!userId) return;
@@ -53,6 +55,35 @@ const ProfilePage = () => {
     }
   };
 
+  const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file || !userId) return;
+    if (file.size > 5 * 1024 * 1024) {
+      toast({ title: 'Image too large', description: 'Please select an image under 5MB', variant: 'destructive' });
+      return;
+    }
+    setUploadingAvatar(true);
+    try {
+      const ext = file.name.split('.').pop() || 'jpg';
+      const path = `${userId}/avatar-${Date.now()}.${ext}`;
+      const { error: upErr } = await supabase.storage.from('avatars').upload(path, file, { upsert: true });
+      if (upErr) throw upErr;
+      const { data: urlData } = supabase.storage.from('avatars').getPublicUrl(path);
+      const publicUrl = urlData.publicUrl;
+      const { error: updErr } = await supabase.from('profiles').update({ avatar_url: publicUrl }).eq('id', userId);
+      if (updErr) throw updErr;
+      setProfile(prev => prev ? { ...prev, avatar_url: publicUrl } : { name: null, username: null, avatar_url: publicUrl });
+      updateProfile({ avatar_url: publicUrl });
+      toast({ title: 'Profile photo updated' });
+    } catch (err: any) {
+      console.error('Avatar upload error:', err);
+      toast({ title: 'Failed to update photo', description: err.message, variant: 'destructive' });
+    } finally {
+      setUploadingAvatar(false);
+    }
+  };
+
   const handleBecomeCreator = async () => {
     setBecoming(true);
     const { error } = await supabase.rpc('become_creator' as any);
@@ -84,13 +115,34 @@ const ProfilePage = () => {
 
       <div className="p-5 rounded-2xl bg-card border border-border mb-6">
         <div className="flex items-center gap-4">
-          <div className="w-16 h-16 rounded-2xl bg-secondary flex items-center justify-center overflow-hidden">
+          <button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={uploadingAvatar}
+            className="relative w-16 h-16 rounded-2xl bg-secondary flex items-center justify-center overflow-hidden group disabled:opacity-60"
+            aria-label="Change profile photo"
+          >
             {displayAvatar ? (
               <img src={displayAvatar} alt={displayName} className="w-full h-full object-cover" />
             ) : (
               <span className="text-2xl font-bold text-muted-foreground">{displayName[0]?.toUpperCase() || '?'}</span>
             )}
-          </div>
+            <span className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+              <Camera className="w-5 h-5 text-white" />
+            </span>
+            {uploadingAvatar && (
+              <span className="absolute inset-0 bg-black/50 flex items-center justify-center text-white text-[10px] font-semibold">
+                Uploading…
+              </span>
+            )}
+          </button>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={handleAvatarChange}
+          />
           {!editing ? (
             <div className="flex-1">
               <h2 className="text-lg font-bold text-foreground">{displayName}</h2>
