@@ -273,27 +273,16 @@ const OnboardingPage = () => {
                 />
               </div>
 
-              {/* Interests */}
+              {/* City */}
               <div>
-                <label className="text-sm font-medium text-foreground mb-2 block">Interests</label>
-                <div className="flex flex-wrap gap-2">
-                  {categories.map(cat => (
-                    <button
-                      key={cat.id}
-                      onClick={() => toggleCategory(cat.id)}
-                      className={`px-4 py-2.5 rounded-full text-sm font-semibold transition-colors active:scale-95 ${
-                        selectedCategories.includes(cat.id)
-                          ? 'bg-primary text-primary-foreground'
-                          : 'bg-secondary text-foreground border border-border'
-                      }`}
-                    >
-                      {cat.name}
-                    </button>
-                  ))}
-                  {categories.length === 0 && (
-                    <p className="text-muted-foreground text-sm">No categories available yet</p>
-                  )}
-                </div>
+                <label className="text-sm font-medium text-foreground mb-2 block">City</label>
+                <input
+                  type="text"
+                  placeholder="e.g. Mumbai"
+                  value={city}
+                  onChange={e => setCity(e.target.value.slice(0, 60))}
+                  className="w-full px-4 py-3.5 rounded-2xl bg-secondary text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 text-base"
+                />
               </div>
             </div>
 
