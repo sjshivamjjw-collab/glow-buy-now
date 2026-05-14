@@ -1139,6 +1139,7 @@ export type Database = {
         Row: {
           auth_secret: string | null
           avatar_url: string | null
+          city: string | null
           created_at: string
           date_of_birth: string | null
           gender: string | null
@@ -1152,6 +1153,7 @@ export type Database = {
         Insert: {
           auth_secret?: string | null
           avatar_url?: string | null
+          city?: string | null
           created_at?: string
           date_of_birth?: string | null
           gender?: string | null
@@ -1165,6 +1167,7 @@ export type Database = {
         Update: {
           auth_secret?: string | null
           avatar_url?: string | null
+          city?: string | null
           created_at?: string
           date_of_birth?: string | null
           gender?: string | null
