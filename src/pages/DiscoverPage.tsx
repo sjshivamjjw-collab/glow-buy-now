@@ -4,6 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { Search, Sparkles, Users, Loader2, Check } from 'lucide-react';
+import { formatCount } from '@/lib/utils';
 
 interface CommunityCard {
   id: string;
