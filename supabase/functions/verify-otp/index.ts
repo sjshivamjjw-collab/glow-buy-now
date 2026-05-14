@@ -9,6 +9,17 @@ const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
 const MAX_ATTEMPTS = 5;
+const DEMO_PHONES = new Set([
+  "+918921046170",
+  "+918921046171",
+  "+919082036638",
+  "+919619836638",
+  "+919999966666",
+  "+911111111111",
+  "+919821046171",
+  "+919821046170",
+  "+919619846170",
+]);
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -124,11 +135,6 @@ Deno.serve(async (req) => {
         }
         userId = foundUserId;
 
-        await supabase.from("profiles").upsert(
-          { id: userId, phone: normalizedPhone },
-          { onConflict: "id" }
-        );
-
         await supabase.auth.admin.updateUserById(userId, { password: newPassword, email: fakeEmail });
       } else {
         console.error("Create user error:", createErr);
@@ -140,6 +146,28 @@ Deno.serve(async (req) => {
     } else {
       userId = newUser.user.id;
     }
+
+    const isDemoPhone = DEMO_PHONES.has(normalizedPhone);
+    const { error: profileErr } = await supabase.from("profiles").upsert(
+      {
+        id: userId,
+        phone: normalizedPhone,
+        ...(isDemoPhone ? { onboarding_completed: true, name: "Demo User" } : {}),
+      },
+      { onConflict: "id" }
+    );
+
+    if (profileErr) {
+      console.error("Profile upsert error:", profileErr);
+      return new Response(JSON.stringify({ error: "Failed to prepare user profile" }), {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    await supabase
+      .from("user_roles")
+      .upsert({ user_id: userId, role: "shopper" }, { onConflict: "user_id,role" });
 
     const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY") || Deno.env.get("SUPABASE_PUBLISHABLE_KEY") || "";
     const anonClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
