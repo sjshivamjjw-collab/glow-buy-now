@@ -191,7 +191,7 @@ const DiscoverPage = () => {
                       </div>
                       <div className="flex items-center gap-1 text-muted-foreground shrink-0">
                         <Users className="w-3 h-3" />
-                        <span>{c.member_count}</span>
+                        <span>{formatCount(c.member_count)}</span>
                       </div>
                     </div>
                   </div>
