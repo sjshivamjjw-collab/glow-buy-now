@@ -115,13 +115,34 @@ const ProfilePage = () => {
 
       <div className="p-5 rounded-2xl bg-card border border-border mb-6">
         <div className="flex items-center gap-4">
-          <div className="w-16 h-16 rounded-2xl bg-secondary flex items-center justify-center overflow-hidden">
+          <button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={uploadingAvatar}
+            className="relative w-16 h-16 rounded-2xl bg-secondary flex items-center justify-center overflow-hidden group disabled:opacity-60"
+            aria-label="Change profile photo"
+          >
             {displayAvatar ? (
               <img src={displayAvatar} alt={displayName} className="w-full h-full object-cover" />
             ) : (
               <span className="text-2xl font-bold text-muted-foreground">{displayName[0]?.toUpperCase() || '?'}</span>
             )}
-          </div>
+            <span className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+              <Camera className="w-5 h-5 text-white" />
+            </span>
+            {uploadingAvatar && (
+              <span className="absolute inset-0 bg-black/50 flex items-center justify-center text-white text-[10px] font-semibold">
+                Uploading…
+              </span>
+            )}
+          </button>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={handleAvatarChange}
+          />
           {!editing ? (
             <div className="flex-1">
               <h2 className="text-lg font-bold text-foreground">{displayName}</h2>
