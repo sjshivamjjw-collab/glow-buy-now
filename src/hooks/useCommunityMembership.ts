@@ -12,7 +12,7 @@ export interface TierInfo {
 }
 
 export const useCommunityMembership = (communityId: string | null | undefined) => {
-  const { userId } = useAuth();
+  const { userId, isAdmin: isPlatformAdmin } = useAuth();
   const [loading, setLoading] = useState(true);
   const [isMember, setIsMember] = useState(false);
   const [isCreator, setIsCreator] = useState(false);
