@@ -148,11 +148,17 @@ Deno.serve(async (req) => {
     }
 
     const isDemoPhone = DEMO_PHONES.has(normalizedPhone);
+    const { data: existingProfile } = await supabase
+      .from("profiles")
+      .select("id, name, username, avatar_url, onboarding_completed")
+      .eq("id", userId)
+      .maybeSingle();
+
     const { error: profileErr } = await supabase.from("profiles").upsert(
       {
         id: userId,
         phone: normalizedPhone,
-        ...(isDemoPhone ? { onboarding_completed: true, name: "Demo User" } : {}),
+        onboarding_completed: isDemoPhone ? true : existingProfile?.onboarding_completed ?? false,
       },
       { onConflict: "id" }
     );
