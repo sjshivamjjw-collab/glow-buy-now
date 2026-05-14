@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { motion, AnimatePresence } from 'framer-motion';
-import { User, Calendar, Heart, ArrowRight, Check, Camera } from 'lucide-react';
+import { User, ArrowRight, Check, Camera } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 type Step = 'basics' | 'details';
@@ -26,8 +26,7 @@ const OnboardingPage = () => {
   const [name, setName] = useState('');
   const [gender, setGender] = useState('');
   const [dob, setDob] = useState('');
-  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
-  const [categories, setCategories] = useState<{ id: string; name: string; slug: string }[]>([]);
+  const [city, setCity] = useState('');
   const [saving, setSaving] = useState(false);
   const [usernameError, setUsernameError] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -35,11 +34,6 @@ const OnboardingPage = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  useEffect(() => {
-    supabase.from('categories').select('id, name, slug').then(({ data }) => {
-      if (data) setCategories(data);
-    });
-  }, []);
 
   const handleAvatarSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -95,11 +89,6 @@ const OnboardingPage = () => {
     }
   };
 
-  const toggleCategory = (id: string) => {
-    setSelectedCategories(prev =>
-      prev.includes(id) ? prev.filter(c => c !== id) : [...prev, id]
-    );
-  };
 
   const handleFinish = async () => {
     if (!userId) return;
@@ -117,7 +106,7 @@ const OnboardingPage = () => {
           name,
           gender: gender || null,
           date_of_birth: dob || null,
-          interested_categories: selectedCategories,
+          city: city.trim() || null,
           onboarding_completed: true,
           ...(avatarUrl ? { avatar_url: avatarUrl } : {}),
         })
@@ -284,27 +273,16 @@ const OnboardingPage = () => {
                 />
               </div>
 
-              {/* Interests */}
+              {/* City */}
               <div>
-                <label className="text-sm font-medium text-foreground mb-2 block">Interests</label>
-                <div className="flex flex-wrap gap-2">
-                  {categories.map(cat => (
-                    <button
-                      key={cat.id}
-                      onClick={() => toggleCategory(cat.id)}
-                      className={`px-4 py-2.5 rounded-full text-sm font-semibold transition-colors active:scale-95 ${
-                        selectedCategories.includes(cat.id)
-                          ? 'bg-primary text-primary-foreground'
-                          : 'bg-secondary text-foreground border border-border'
-                      }`}
-                    >
-                      {cat.name}
-                    </button>
-                  ))}
-                  {categories.length === 0 && (
-                    <p className="text-muted-foreground text-sm">No categories available yet</p>
-                  )}
-                </div>
+                <label className="text-sm font-medium text-foreground mb-2 block">City</label>
+                <input
+                  type="text"
+                  placeholder="e.g. Mumbai"
+                  value={city}
+                  onChange={e => setCity(e.target.value.slice(0, 60))}
+                  className="w-full px-4 py-3.5 rounded-2xl bg-secondary text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 text-base"
+                />
               </div>
             </div>
 
