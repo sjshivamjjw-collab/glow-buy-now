@@ -16,6 +16,8 @@ const ProfilePage = () => {
   const [editUsername, setEditUsername] = useState('');
   const [saving, setSaving] = useState(false);
   const [becoming, setBecoming] = useState(false);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (!userId) return;
