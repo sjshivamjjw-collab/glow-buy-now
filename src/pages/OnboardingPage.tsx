@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { motion, AnimatePresence } from 'framer-motion';
-import { User, Calendar, Heart, ArrowRight, Check, Camera } from 'lucide-react';
+import { User, ArrowRight, Check, Camera } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 type Step = 'basics' | 'details';
