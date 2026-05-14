@@ -36,6 +36,10 @@ Deno.serve(async (req) => {
       "+919821046171",
       "+919821046170",
       "+919082036638",
+      "+918921046170",
+      "+918921046171",
+      "+919619836638",
+      "+919999966666",
     ];
     const isDevPhone = DEV_PHONES.includes(normalizedPhone);
 
