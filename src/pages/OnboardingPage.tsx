@@ -106,7 +106,7 @@ const OnboardingPage = () => {
           name,
           gender: gender || null,
           date_of_birth: dob || null,
-          interested_categories: selectedCategories,
+          city: city.trim() || null,
           onboarding_completed: true,
           ...(avatarUrl ? { avatar_url: avatarUrl } : {}),
         })
