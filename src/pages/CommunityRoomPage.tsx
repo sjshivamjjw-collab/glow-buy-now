@@ -30,7 +30,7 @@ const CommunityRoomPage = () => {
     (async () => {
       setLoadingCommunity(true);
       const { data } = await supabase.from('communities' as any)
-        .select('id, name').eq('slug', slug).maybeSingle();
+        .select('id, name, dms_enabled').eq('slug', slug).maybeSingle();
       setCommunity(data as any);
       setLoadingCommunity(false);
     })();
