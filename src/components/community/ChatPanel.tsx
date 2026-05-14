@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, type TouchEvent } from 'react';
+import { useEffect, useMemo, useRef, useState, type MouseEvent, type PointerEvent, type TouchEvent } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -51,37 +51,56 @@ const dayLabel = (d: Date) => isToday(d) ? 'Today' : isYesterday(d) ? 'Yesterday
 const slugify = (s: string) => s.toLowerCase().trim().replace(/[^a-z0-9\s-]/g, '').replace(/\s+/g, '-').slice(0, 40);
 
 const LINK_RE = /((?:https?:\/\/|www\.)[^\s<]+[^\s<.,!?;:)'"\]])|([\w.+-]+@[\w-]+\.[\w.-]+)/gi;
-const openUrlOnTouch = (e: TouchEvent<HTMLAnchorElement>, href: string) => {
+let lastLinkOpen = { href: '', at: 0 };
+const openChatLink = (href: string) => {
+  const now = Date.now();
+  if (lastLinkOpen.href === href && now - lastLinkOpen.at < 700) return;
+  lastLinkOpen = { href, at: now };
+
+  if (href.startsWith('mailto:')) {
+    window.location.href = href;
+    return;
+  }
+
+  const isTouchDevice = window.matchMedia?.('(hover: none), (pointer: coarse)').matches;
+  if (isTouchDevice) {
+    window.location.href = href;
+    return;
+  }
+
+  const opened = window.open(href, '_blank', 'noopener,noreferrer');
+  if (!opened) window.location.href = href;
+};
+const activateChatLink = (
+  e: MouseEvent<HTMLAnchorElement> | PointerEvent<HTMLAnchorElement> | TouchEvent<HTMLAnchorElement>,
+  href: string,
+) => {
   e.preventDefault();
   e.stopPropagation();
-  window.location.assign(href);
+  openChatLink(href);
 };
 
 const renderWithLinks = (text: string) => {
   const parts: (string | JSX.Element)[] = [];
   let last = 0; let i = 0;
-  const linkCls = "relative z-20 inline text-primary underline break-all touch-manipulation cursor-pointer pointer-events-auto select-text";
+  const linkCls = "relative z-30 inline-block text-primary underline break-all touch-manipulation cursor-pointer pointer-events-auto";
   text.replace(LINK_RE, (match, urlMatch, emailMatch, offset: number) => {
     if (offset > last) parts.push(text.slice(last, offset));
     if (emailMatch) {
       const href = `mailto:${emailMatch}`;
       parts.push(
         <a key={i++} href={href} className={linkCls}
-          onTouchEnd={(e) => openUrlOnTouch(e, href)}
-          onClick={(e) => e.stopPropagation()}>{emailMatch}</a>
+          onTouchEnd={(e) => activateChatLink(e, href)}
+          onPointerUp={(e) => { if (e.pointerType !== 'mouse') activateChatLink(e, href); }}
+          onClick={(e) => activateChatLink(e, href)}>{emailMatch}</a>
       );
     } else {
       const href = urlMatch.startsWith('http') ? urlMatch : `https://${urlMatch}`;
       parts.push(
         <a key={i++} href={href} target="_blank" rel="noopener noreferrer" className={linkCls}
-          onTouchEnd={(e) => openUrlOnTouch(e, href)}
-          onClick={(e) => {
-            e.stopPropagation();
-            // Mobile browsers can drop target="_blank" on programmatic-feeling clicks.
-            // Force a synchronous open within this user gesture so the link always works.
-            const w = window.open(href, '_blank', 'noopener,noreferrer');
-            if (w) e.preventDefault();
-          }}>{urlMatch}</a>
+          onTouchEnd={(e) => activateChatLink(e, href)}
+          onPointerUp={(e) => { if (e.pointerType !== 'mouse') activateChatLink(e, href); }}
+          onClick={(e) => activateChatLink(e, href)}>{urlMatch}</a>
       );
     }
     last = offset + match.length;
