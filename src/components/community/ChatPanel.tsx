@@ -50,6 +50,25 @@ const formatSize = (b?: number | null) => {
 const dayLabel = (d: Date) => isToday(d) ? 'Today' : isYesterday(d) ? 'Yesterday' : format(d, 'MMM d, yyyy');
 const slugify = (s: string) => s.toLowerCase().trim().replace(/[^a-z0-9\s-]/g, '').replace(/\s+/g, '-').slice(0, 40);
 
+const LINK_RE = /((?:https?:\/\/|www\.)[^\s<]+[^\s<.,!?;:)'"\]])|([\w.+-]+@[\w-]+\.[\w.-]+)/gi;
+const renderWithLinks = (text: string) => {
+  const parts: (string | JSX.Element)[] = [];
+  let last = 0; let i = 0;
+  text.replace(LINK_RE, (match, urlMatch, emailMatch, offset: number) => {
+    if (offset > last) parts.push(text.slice(last, offset));
+    if (emailMatch) {
+      parts.push(<a key={i++} href={`mailto:${emailMatch}`} className="text-primary underline break-all">{emailMatch}</a>);
+    } else {
+      const href = urlMatch.startsWith('http') ? urlMatch : `https://${urlMatch}`;
+      parts.push(<a key={i++} href={href} target="_blank" rel="noopener noreferrer" className="text-primary underline break-all">{urlMatch}</a>);
+    }
+    last = offset + match.length;
+    return match;
+  });
+  if (last < text.length) parts.push(text.slice(last));
+  return parts;
+};
+
 interface Props {
   communityId: string;
   isCreator: boolean;
@@ -405,7 +424,7 @@ export const ChatPanel = ({ communityId, isCreator, isAdmin, tierLevel, tiers, s
                     <div className="flex items-start gap-2">
                       <div className="min-w-0 max-w-[85%]">
                         {m.kind === 'text' && (
-                          <div className="text-sm text-foreground leading-relaxed whitespace-pre-wrap break-words">{m.body}</div>
+                          <div className="text-sm text-foreground leading-relaxed whitespace-pre-wrap break-words">{renderWithLinks(m.body || '')}</div>
                         )}
                         {m.kind === 'image' && m.attachment_url && (
                           <SignedLink bucket="community-media" src={m.attachment_url}
