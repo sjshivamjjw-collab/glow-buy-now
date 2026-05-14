@@ -405,7 +405,7 @@ export const ChatPanel = ({ communityId, isCreator, isAdmin, tierLevel, tiers, s
                     <div className="flex items-start gap-2">
                       <div className="min-w-0 max-w-[85%]">
                         {m.kind === 'text' && (
-                          <div className="text-sm text-foreground leading-relaxed whitespace-pre-wrap break-words">{m.body}</div>
+                          <div className="text-sm text-foreground leading-relaxed whitespace-pre-wrap break-words">{renderWithLinks(m.body || '')}</div>
                         )}
                         {m.kind === 'image' && m.attachment_url && (
                           <SignedLink bucket="community-media" src={m.attachment_url}
