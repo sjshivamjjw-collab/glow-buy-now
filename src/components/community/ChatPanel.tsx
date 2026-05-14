@@ -57,13 +57,14 @@ interface Props {
   tierLevel: number;
   tiers: TierInfo[];
   slug: string;
+  dmsEnabled?: boolean;
 }
 
-export const ChatPanel = ({ communityId, isCreator, isAdmin, tierLevel, tiers, slug }: Props) => {
+export const ChatPanel = ({ communityId, isCreator, isAdmin, tierLevel, tiers, slug, dmsEnabled = true }: Props) => {
   const { userId, userName, userAvatar } = useAuth();
   const { toast } = useToast();
   const [searchParams, setSearchParams] = useSearchParams();
-  const dmParam = searchParams.get('dm');
+  const dmParam = dmsEnabled ? searchParams.get('dm') : null;
   const dmInitialUser = dmParam && dmParam !== 'inbox' ? dmParam : null;
   const [dmMode, setDmMode] = useState<boolean>(!!dmParam);
   useEffect(() => { if (dmParam) setDmMode(true); else setDmMode(false); }, [dmParam]);
