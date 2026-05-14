@@ -178,7 +178,7 @@ const CommunityRoomPage = () => {
         ))}
       </div>
 
-      {tab === 'chat' && <ChatPanel communityId={community.id} isCreator={isCreator} isAdmin={isAdmin} tierLevel={tierLevel} tiers={tiers} slug={slug!} />}
+      {tab === 'chat' && <ChatPanel communityId={community.id} isCreator={isCreator} isAdmin={isAdmin} tierLevel={tierLevel} tiers={tiers} slug={slug!} dmsEnabled={community.dms_enabled !== false} />}
       {tab === 'events' && <EventsPanel communityId={community.id} isCreator={isCreator} tierLevel={tierLevel} tiers={tiers} slug={slug!} />}
       {tab === 'resources' && <ResourcesPanel communityId={community.id} isCreator={isCreator} tierLevel={tierLevel} tiers={tiers} slug={slug!} />}
       {tab === 'plans' && (
