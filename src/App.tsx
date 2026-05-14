@@ -79,6 +79,7 @@ const AppRoutes = () => {
           <AppLayout>
             <Routes>
               <Route path="/" element={<DiscoverPage />} />
+              <Route path="/onboarding" element={<Navigate to="/" replace />} />
               <Route path="/c/:slug" element={<CommunityDetailPage />} />
               <Route path="/c/:slug/room" element={<CommunityRoomPage />} />
               <Route path="/communities/new" element={<CreateCommunityPage />} />
