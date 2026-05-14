@@ -57,13 +57,14 @@ interface Props {
   tierLevel: number;
   tiers: TierInfo[];
   slug: string;
+  dmsEnabled?: boolean;
 }
 
-export const ChatPanel = ({ communityId, isCreator, isAdmin, tierLevel, tiers, slug }: Props) => {
+export const ChatPanel = ({ communityId, isCreator, isAdmin, tierLevel, tiers, slug, dmsEnabled = true }: Props) => {
   const { userId, userName, userAvatar } = useAuth();
   const { toast } = useToast();
   const [searchParams, setSearchParams] = useSearchParams();
-  const dmParam = searchParams.get('dm');
+  const dmParam = dmsEnabled ? searchParams.get('dm') : null;
   const dmInitialUser = dmParam && dmParam !== 'inbox' ? dmParam : null;
   const [dmMode, setDmMode] = useState<boolean>(!!dmParam);
   useEffect(() => { if (dmParam) setDmMode(true); else setDmMode(false); }, [dmParam]);
@@ -365,10 +366,10 @@ export const ChatPanel = ({ communityId, isCreator, isAdmin, tierLevel, tiers, s
                   <div className="w-9 shrink-0">
                     {item.showHeader ? (
                       <button
-                        onClick={() => { if (!mine) { setDmUserParam(m.user_id); setDmMode(true); } }}
-                        disabled={mine}
-                        className={`w-9 h-9 rounded-full flex items-center justify-center overflow-hidden ring-2 ring-background shadow-sm ${mine ? '' : 'cursor-pointer hover:ring-primary'}`}
-                        style={{ background: accent }} title={mine ? '' : `Message ${name}`}>
+                        onClick={() => { if (!mine && dmsEnabled) { setDmUserParam(m.user_id); setDmMode(true); } }}
+                        disabled={mine || !dmsEnabled}
+                        className={`w-9 h-9 rounded-full flex items-center justify-center overflow-hidden ring-2 ring-background shadow-sm ${mine || !dmsEnabled ? '' : 'cursor-pointer hover:ring-primary'}`}
+                        style={{ background: accent }} title={mine || !dmsEnabled ? '' : `Message ${name}`}>
                         {avatar ? <img src={avatar} alt={name} className="w-full h-full object-cover" /> :
                           <span className="text-xs font-bold text-white">{name.slice(0,1).toUpperCase()}</span>}
                       </button>
@@ -379,8 +380,8 @@ export const ChatPanel = ({ communityId, isCreator, isAdmin, tierLevel, tiers, s
                   <div className="flex-1 min-w-0">
                     {item.showHeader && (
                       <div className="flex items-baseline gap-2 mb-0.5 flex-wrap">
-                        {mine ? (
-                          <span className="text-sm font-semibold text-foreground">{name}</span>
+                        {mine || !dmsEnabled ? (
+                          <span className="text-sm font-semibold" style={{ color: mine ? undefined : accent }}>{name}</span>
                         ) : (
                           <button onClick={() => { setDmUserParam(m.user_id); setDmMode(true); }}
                             className="text-sm font-semibold hover:underline focus:underline focus:outline-none" style={{ color: accent }}

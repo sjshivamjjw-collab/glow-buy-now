@@ -1,0 +1,1 @@
+ALTER TABLE public.communities ADD COLUMN IF NOT EXISTS dms_enabled boolean NOT NULL DEFAULT true;

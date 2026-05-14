@@ -18,7 +18,7 @@ const CommunityRoomPage = () => {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
-  const [community, setCommunity] = useState<{ id: string; name: string } | null>(null);
+  const [community, setCommunity] = useState<{ id: string; name: string; dms_enabled?: boolean } | null>(null);
   const [loadingCommunity, setLoadingCommunity] = useState(true);
   const { isMember, isCreator, isAdmin, loading: loadingMembership, tiers, tierLevel, currentTier, refresh: refreshMembership } = useCommunityMembership(community?.id);
   const initialTab = (searchParams.get('tab') as Tab) || 'chat';
@@ -30,7 +30,7 @@ const CommunityRoomPage = () => {
     (async () => {
       setLoadingCommunity(true);
       const { data } = await supabase.from('communities' as any)
-        .select('id, name').eq('slug', slug).maybeSingle();
+        .select('id, name, dms_enabled').eq('slug', slug).maybeSingle();
       setCommunity(data as any);
       setLoadingCommunity(false);
     })();
@@ -133,11 +133,13 @@ const CommunityRoomPage = () => {
           aria-label="Know more about community">
           <Info className="w-3.5 h-3.5" /> Know more
         </button>
-        <button onClick={() => { setTab('chat'); setSearchParams({ tab: 'chat', dm: 'inbox' }, { replace: true }); }}
-          className="shrink-0 inline-flex items-center gap-1 px-2.5 py-2 rounded-xl bg-card border border-border text-xs font-semibold text-foreground"
-          aria-label="Open direct messages">
-          <MessageCircle className="w-3.5 h-3.5" /> DMs
-        </button>
+        {community.dms_enabled !== false && (
+          <button onClick={() => { setTab('chat'); setSearchParams({ tab: 'chat', dm: 'inbox' }, { replace: true }); }}
+            className="shrink-0 inline-flex items-center gap-1 px-2.5 py-2 rounded-xl bg-card border border-border text-xs font-semibold text-foreground"
+            aria-label="Open direct messages">
+            <MessageCircle className="w-3.5 h-3.5" /> DMs
+          </button>
+        )}
         <button onClick={() => shareCommunity({ slug: slug!, name: community.name, toast })}
           className="shrink-0 p-2 rounded-xl bg-card border border-border" aria-label="Share community">
           <Share2 className="w-5 h-5 text-foreground" />
@@ -176,7 +178,7 @@ const CommunityRoomPage = () => {
         ))}
       </div>
 
-      {tab === 'chat' && <ChatPanel communityId={community.id} isCreator={isCreator} isAdmin={isAdmin} tierLevel={tierLevel} tiers={tiers} slug={slug!} />}
+      {tab === 'chat' && <ChatPanel communityId={community.id} isCreator={isCreator} isAdmin={isAdmin} tierLevel={tierLevel} tiers={tiers} slug={slug!} dmsEnabled={community.dms_enabled !== false} />}
       {tab === 'events' && <EventsPanel communityId={community.id} isCreator={isCreator} tierLevel={tierLevel} tiers={tiers} slug={slug!} />}
       {tab === 'resources' && <ResourcesPanel communityId={community.id} isCreator={isCreator} tierLevel={tierLevel} tiers={tiers} slug={slug!} />}
       {tab === 'plans' && (
