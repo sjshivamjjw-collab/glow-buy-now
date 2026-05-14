@@ -34,11 +34,6 @@ const OnboardingPage = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  useEffect(() => {
-    supabase.from('categories').select('id, name, slug').then(({ data }) => {
-      if (data) setCategories(data);
-    });
-  }, []);
 
   const handleAvatarSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
