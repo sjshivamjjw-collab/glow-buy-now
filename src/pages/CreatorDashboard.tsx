@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { Plus, Loader2, Users, Eye, EyeOff, Pencil, IndianRupee, TrendingUp, Layers } from 'lucide-react';
+import { formatCount } from '@/lib/utils';
 
 type Community = any;
 type Tier = any;
