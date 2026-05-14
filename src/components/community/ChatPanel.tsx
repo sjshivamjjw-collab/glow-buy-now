@@ -54,13 +54,26 @@ const LINK_RE = /((?:https?:\/\/|www\.)[^\s<]+[^\s<.,!?;:)'"\]])|([\w.+-]+@[\w-]
 const renderWithLinks = (text: string) => {
   const parts: (string | JSX.Element)[] = [];
   let last = 0; let i = 0;
+  const linkCls = "relative z-10 text-primary underline break-all touch-manipulation cursor-pointer pointer-events-auto";
   text.replace(LINK_RE, (match, urlMatch, emailMatch, offset: number) => {
     if (offset > last) parts.push(text.slice(last, offset));
     if (emailMatch) {
-      parts.push(<a key={i++} href={`mailto:${emailMatch}`} className="text-primary underline break-all">{emailMatch}</a>);
+      parts.push(
+        <a key={i++} href={`mailto:${emailMatch}`} className={linkCls}
+          onClick={(e) => e.stopPropagation()}>{emailMatch}</a>
+      );
     } else {
       const href = urlMatch.startsWith('http') ? urlMatch : `https://${urlMatch}`;
-      parts.push(<a key={i++} href={href} target="_blank" rel="noopener noreferrer" className="text-primary underline break-all">{urlMatch}</a>);
+      parts.push(
+        <a key={i++} href={href} target="_blank" rel="noopener noreferrer" className={linkCls}
+          onClick={(e) => {
+            e.stopPropagation();
+            // Mobile browsers can drop target="_blank" on programmatic-feeling clicks.
+            // Force a synchronous open within this user gesture so the link always works.
+            const w = window.open(href, '_blank', 'noopener,noreferrer');
+            if (w) e.preventDefault();
+          }}>{urlMatch}</a>
+      );
     }
     last = offset + match.length;
     return match;
