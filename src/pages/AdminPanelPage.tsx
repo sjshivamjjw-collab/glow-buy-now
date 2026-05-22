@@ -46,14 +46,6 @@ const AdminPanelPage = () => {
   const [cancellationRequests, setCancellationRequests] = useState<any[]>([]);
   const [returnRequests, setReturnRequests] = useState<any[]>([]);
   const [livestreams, setLivestreams] = useState<any[]>([]);
-  const [communities, setCommunities] = useState<any[]>([]);
-  const [disputes, setDisputes] = useState<any[]>([]);
-  const [resolvingDispute, setResolvingDispute] = useState<any | null>(null);
-  const [disputeAction, setDisputeAction] = useState<'resolved' | 'rejected'>('resolved');
-  const [disputeNotes, setDisputeNotes] = useState('');
-  const [communityFilter, setCommunityFilter] = useState<string>('pending');
-  const [rejectingCommunityId, setRejectingCommunityId] = useState<string | null>(null);
-  const [communityRejectReason, setCommunityRejectReason] = useState('');
   const [sellerIds, setSellerIds] = useState<Set<string>>(new Set());
   const [revokingUser, setRevokingUser] = useState<any>(null);
   const [revoking, setRevoking] = useState(false);
@@ -70,7 +62,7 @@ const AdminPanelPage = () => {
 
   useEffect(() => {
     const load = async () => {
-      const [appsRes, ordersRes, profilesRes, prodCountRes, cancelRes, returnRes, streamsRes, sellersRes, communitiesRes, disputesRes] = await Promise.all([
+      const [appsRes, ordersRes, profilesRes, prodCountRes, cancelRes, returnRes, streamsRes, sellersRes] = await Promise.all([
         supabase.from('seller_applications').select('*').order('created_at', { ascending: false }),
         supabase.from('orders').select('*, order_items(*, products(title, images, seller_id)), profiles:seller_id(name, phone)').order('created_at', { ascending: false }),
         supabase.from('profiles').select('id, name, phone, created_at'),
@@ -79,8 +71,6 @@ const AdminPanelPage = () => {
         supabase.from('return_requests').select('*, orders(id, total_amount, status, buyer_id, seller_id), profiles:requested_by(name, phone)').order('created_at', { ascending: false }),
         supabase.from('livestreams').select('*').order('created_at', { ascending: false }),
         supabase.from('user_roles').select('user_id').eq('role', 'creator'),
-        supabase.from('communities' as any).select('*').order('created_at', { ascending: false }),
-        supabase.from('membership_disputes' as any).select('*, communities(name, slug), profiles:user_id(name, phone), community_tiers(name, price_inr, kind)').order('created_at', { ascending: false }),
       ]);
 
       if (appsRes.data) setApplications(appsRes.data);
@@ -94,15 +84,11 @@ const AdminPanelPage = () => {
         const profilesById = new Map((profilesRes.data || []).map((p: any) => [p.id, p]));
         setLivestreams(streamsRes.data.map((s: any) => ({ ...s, profiles: profilesById.get(s.seller_id) })));
       }
-      if (communitiesRes.data) {
-        const profilesById = new Map((profilesRes.data || []).map((p: any) => [p.id, p]));
-        setCommunities((communitiesRes.data as any[]).map((c: any) => ({ ...c, creator: profilesById.get(c.creator_id) })));
-      }
-      if (disputesRes.data) setDisputes(disputesRes.data as any[]);
       setLoading(false);
     };
     load();
   }, []);
+
 
   // Stats
   const totalRevenue = orders.reduce((sum, o) => sum + Number(o.total_amount), 0);
