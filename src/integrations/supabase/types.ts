@@ -164,483 +164,6 @@ export type Database = {
         }
         Relationships: []
       }
-      communities: {
-        Row: {
-          approval_status: Database["public"]["Enums"]["community_approval_status"]
-          cover_url: string | null
-          created_at: string
-          creator_id: string
-          description: string | null
-          dms_enabled: boolean
-          id: string
-          info_attachments: Json
-          intro_video_url: string | null
-          is_published: boolean
-          key_outcomes: string[]
-          member_count: number
-          name: string
-          rejection_reason: string | null
-          reviewed_at: string | null
-          reviewed_by: string | null
-          slug: string
-          social_links: Json
-          updated_at: string
-        }
-        Insert: {
-          approval_status?: Database["public"]["Enums"]["community_approval_status"]
-          cover_url?: string | null
-          created_at?: string
-          creator_id: string
-          description?: string | null
-          dms_enabled?: boolean
-          id?: string
-          info_attachments?: Json
-          intro_video_url?: string | null
-          is_published?: boolean
-          key_outcomes?: string[]
-          member_count?: number
-          name: string
-          rejection_reason?: string | null
-          reviewed_at?: string | null
-          reviewed_by?: string | null
-          slug: string
-          social_links?: Json
-          updated_at?: string
-        }
-        Update: {
-          approval_status?: Database["public"]["Enums"]["community_approval_status"]
-          cover_url?: string | null
-          created_at?: string
-          creator_id?: string
-          description?: string | null
-          dms_enabled?: boolean
-          id?: string
-          info_attachments?: Json
-          intro_video_url?: string | null
-          is_published?: boolean
-          key_outcomes?: string[]
-          member_count?: number
-          name?: string
-          rejection_reason?: string | null
-          reviewed_at?: string | null
-          reviewed_by?: string | null
-          slug?: string
-          social_links?: Json
-          updated_at?: string
-        }
-        Relationships: []
-      }
-      community_admins: {
-        Row: {
-          community_id: string
-          created_at: string
-          id: string
-          user_id: string
-        }
-        Insert: {
-          community_id: string
-          created_at?: string
-          id?: string
-          user_id: string
-        }
-        Update: {
-          community_id?: string
-          created_at?: string
-          id?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
-      community_channels: {
-        Row: {
-          community_id: string
-          created_at: string
-          description: string | null
-          id: string
-          name: string
-          post_permission: string
-          required_tier_level: number
-          slug: string
-          sort_order: number
-        }
-        Insert: {
-          community_id: string
-          created_at?: string
-          description?: string | null
-          id?: string
-          name: string
-          post_permission?: string
-          required_tier_level?: number
-          slug: string
-          sort_order?: number
-        }
-        Update: {
-          community_id?: string
-          created_at?: string
-          description?: string | null
-          id?: string
-          name?: string
-          post_permission?: string
-          required_tier_level?: number
-          slug?: string
-          sort_order?: number
-        }
-        Relationships: []
-      }
-      community_chat_messages: {
-        Row: {
-          attachment_mime: string | null
-          attachment_name: string | null
-          attachment_size: number | null
-          attachment_url: string | null
-          body: string | null
-          channel_id: string
-          community_id: string
-          created_at: string
-          id: string
-          kind: string
-          poll: Json | null
-          user_id: string
-        }
-        Insert: {
-          attachment_mime?: string | null
-          attachment_name?: string | null
-          attachment_size?: number | null
-          attachment_url?: string | null
-          body?: string | null
-          channel_id: string
-          community_id: string
-          created_at?: string
-          id?: string
-          kind?: string
-          poll?: Json | null
-          user_id: string
-        }
-        Update: {
-          attachment_mime?: string | null
-          attachment_name?: string | null
-          attachment_size?: number | null
-          attachment_url?: string | null
-          body?: string | null
-          channel_id?: string
-          community_id?: string
-          created_at?: string
-          id?: string
-          kind?: string
-          poll?: Json | null
-          user_id?: string
-        }
-        Relationships: []
-      }
-      community_chat_poll_votes: {
-        Row: {
-          created_at: string
-          id: string
-          message_id: string
-          option_index: number
-          user_id: string
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          message_id: string
-          option_index: number
-          user_id: string
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          message_id?: string
-          option_index?: number
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "community_chat_poll_votes_message_id_fkey"
-            columns: ["message_id"]
-            isOneToOne: false
-            referencedRelation: "community_chat_messages"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      community_dm_messages: {
-        Row: {
-          attachment_mime: string | null
-          attachment_name: string | null
-          attachment_size: number | null
-          attachment_url: string | null
-          body: string | null
-          community_id: string
-          created_at: string
-          id: string
-          kind: string
-          recipient_id: string
-          sender_id: string
-          thread_id: string
-        }
-        Insert: {
-          attachment_mime?: string | null
-          attachment_name?: string | null
-          attachment_size?: number | null
-          attachment_url?: string | null
-          body?: string | null
-          community_id: string
-          created_at?: string
-          id?: string
-          kind?: string
-          recipient_id: string
-          sender_id: string
-          thread_id: string
-        }
-        Update: {
-          attachment_mime?: string | null
-          attachment_name?: string | null
-          attachment_size?: number | null
-          attachment_url?: string | null
-          body?: string | null
-          community_id?: string
-          created_at?: string
-          id?: string
-          kind?: string
-          recipient_id?: string
-          sender_id?: string
-          thread_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "community_dm_messages_thread_id_fkey"
-            columns: ["thread_id"]
-            isOneToOne: false
-            referencedRelation: "community_dm_threads"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      community_dm_threads: {
-        Row: {
-          community_id: string
-          created_at: string
-          id: string
-          last_message_at: string | null
-          user_a: string
-          user_b: string
-        }
-        Insert: {
-          community_id: string
-          created_at?: string
-          id?: string
-          last_message_at?: string | null
-          user_a: string
-          user_b: string
-        }
-        Update: {
-          community_id?: string
-          created_at?: string
-          id?: string
-          last_message_at?: string | null
-          user_a?: string
-          user_b?: string
-        }
-        Relationships: []
-      }
-      community_event_rsvps: {
-        Row: {
-          created_at: string
-          event_id: string
-          id: string
-          status: Database["public"]["Enums"]["event_rsvp_status"]
-          user_id: string
-        }
-        Insert: {
-          created_at?: string
-          event_id: string
-          id?: string
-          status?: Database["public"]["Enums"]["event_rsvp_status"]
-          user_id: string
-        }
-        Update: {
-          created_at?: string
-          event_id?: string
-          id?: string
-          status?: Database["public"]["Enums"]["event_rsvp_status"]
-          user_id?: string
-        }
-        Relationships: []
-      }
-      community_events: {
-        Row: {
-          audience_user_ids: string[]
-          community_id: string
-          cover_url: string | null
-          created_at: string
-          created_by: string
-          description: string | null
-          ends_at: string | null
-          id: string
-          location_url: string | null
-          required_tier_level: number
-          starts_at: string
-          title: string
-          updated_at: string
-        }
-        Insert: {
-          audience_user_ids?: string[]
-          community_id: string
-          cover_url?: string | null
-          created_at?: string
-          created_by: string
-          description?: string | null
-          ends_at?: string | null
-          id?: string
-          location_url?: string | null
-          required_tier_level?: number
-          starts_at: string
-          title: string
-          updated_at?: string
-        }
-        Update: {
-          audience_user_ids?: string[]
-          community_id?: string
-          cover_url?: string | null
-          created_at?: string
-          created_by?: string
-          description?: string | null
-          ends_at?: string | null
-          id?: string
-          location_url?: string | null
-          required_tier_level?: number
-          starts_at?: string
-          title?: string
-          updated_at?: string
-        }
-        Relationships: []
-      }
-      community_resources: {
-        Row: {
-          community_id: string
-          created_at: string
-          created_by: string
-          description: string | null
-          file_size: number | null
-          id: string
-          kind: Database["public"]["Enums"]["resource_kind"]
-          required_tier_level: number
-          title: string
-          url: string
-        }
-        Insert: {
-          community_id: string
-          created_at?: string
-          created_by: string
-          description?: string | null
-          file_size?: number | null
-          id?: string
-          kind: Database["public"]["Enums"]["resource_kind"]
-          required_tier_level?: number
-          title: string
-          url: string
-        }
-        Update: {
-          community_id?: string
-          created_at?: string
-          created_by?: string
-          description?: string | null
-          file_size?: number | null
-          id?: string
-          kind?: Database["public"]["Enums"]["resource_kind"]
-          required_tier_level?: number
-          title?: string
-          url?: string
-        }
-        Relationships: []
-      }
-      community_reviews: {
-        Row: {
-          body: string | null
-          community_id: string
-          created_at: string
-          id: string
-          rating: number
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          body?: string | null
-          community_id: string
-          created_at?: string
-          id?: string
-          rating: number
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          body?: string | null
-          community_id?: string
-          created_at?: string
-          id?: string
-          rating?: number
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
-      community_tiers: {
-        Row: {
-          billing_period_months: number
-          community_id: string
-          created_at: string
-          description: string | null
-          id: string
-          is_active: boolean
-          kind: Database["public"]["Enums"]["tier_kind"]
-          name: string
-          price_inr: number | null
-          razorpay_plan_id: string | null
-          sort_order: number
-          trial_days: number
-          updated_at: string
-        }
-        Insert: {
-          billing_period_months?: number
-          community_id: string
-          created_at?: string
-          description?: string | null
-          id?: string
-          is_active?: boolean
-          kind: Database["public"]["Enums"]["tier_kind"]
-          name: string
-          price_inr?: number | null
-          razorpay_plan_id?: string | null
-          sort_order?: number
-          trial_days?: number
-          updated_at?: string
-        }
-        Update: {
-          billing_period_months?: number
-          community_id?: string
-          created_at?: string
-          description?: string | null
-          id?: string
-          is_active?: boolean
-          kind?: Database["public"]["Enums"]["tier_kind"]
-          name?: string
-          price_inr?: number | null
-          razorpay_plan_id?: string | null
-          sort_order?: number
-          trial_days?: number
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "community_tiers_community_id_fkey"
-            columns: ["community_id"]
-            isOneToOne: false
-            referencedRelation: "communities"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       follows: {
         Row: {
           created_at: string
@@ -718,114 +241,6 @@ export type Database = {
           viewer_count?: number
         }
         Relationships: []
-      }
-      membership_disputes: {
-        Row: {
-          admin_notes: string | null
-          community_id: string
-          created_at: string
-          id: string
-          membership_id: string
-          reason: string
-          resolved_at: string | null
-          resolved_by: string | null
-          status: Database["public"]["Enums"]["dispute_status"]
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          admin_notes?: string | null
-          community_id: string
-          created_at?: string
-          id?: string
-          membership_id: string
-          reason: string
-          resolved_at?: string | null
-          resolved_by?: string | null
-          status?: Database["public"]["Enums"]["dispute_status"]
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          admin_notes?: string | null
-          community_id?: string
-          created_at?: string
-          id?: string
-          membership_id?: string
-          reason?: string
-          resolved_at?: string | null
-          resolved_by?: string | null
-          status?: Database["public"]["Enums"]["dispute_status"]
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
-      memberships: {
-        Row: {
-          cancelled_at: string | null
-          community_id: string
-          created_at: string
-          current_period_end: string | null
-          id: string
-          razorpay_order_id: string | null
-          razorpay_payment_id: string | null
-          razorpay_subscription_id: string | null
-          source: Database["public"]["Enums"]["membership_source"]
-          started_at: string | null
-          status: Database["public"]["Enums"]["membership_status"]
-          tier_id: string
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          cancelled_at?: string | null
-          community_id: string
-          created_at?: string
-          current_period_end?: string | null
-          id?: string
-          razorpay_order_id?: string | null
-          razorpay_payment_id?: string | null
-          razorpay_subscription_id?: string | null
-          source: Database["public"]["Enums"]["membership_source"]
-          started_at?: string | null
-          status?: Database["public"]["Enums"]["membership_status"]
-          tier_id: string
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          cancelled_at?: string | null
-          community_id?: string
-          created_at?: string
-          current_period_end?: string | null
-          id?: string
-          razorpay_order_id?: string | null
-          razorpay_payment_id?: string | null
-          razorpay_subscription_id?: string | null
-          source?: Database["public"]["Enums"]["membership_source"]
-          started_at?: string | null
-          status?: Database["public"]["Enums"]["membership_status"]
-          tier_id?: string
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "memberships_community_id_fkey"
-            columns: ["community_id"]
-            isOneToOne: false
-            referencedRelation: "communities"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "memberships_tier_id_fkey"
-            columns: ["tier_id"]
-            isOneToOne: false
-            referencedRelation: "community_tiers"
-            referencedColumns: ["id"]
-          },
-        ]
       }
       notifications: {
         Row: {
@@ -993,36 +408,6 @@ export type Database = {
         }
         Relationships: []
       }
-      payment_intents: {
-        Row: {
-          amount_inr: number
-          community_id: string
-          created_at: string
-          id: string
-          razorpay_order_id: string
-          tier_id: string
-          user_id: string
-        }
-        Insert: {
-          amount_inr: number
-          community_id: string
-          created_at?: string
-          id?: string
-          razorpay_order_id: string
-          tier_id: string
-          user_id: string
-        }
-        Update: {
-          amount_inr?: number
-          community_id?: string
-          created_at?: string
-          id?: string
-          razorpay_order_id?: string
-          tier_id?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
       platform_settings: {
         Row: {
           key: string
@@ -1038,6 +423,138 @@ export type Database = {
           key?: string
           updated_at?: string
           value?: Json
+        }
+        Relationships: []
+      }
+      post_comments: {
+        Row: {
+          body: string
+          created_at: string
+          id: string
+          post_id: string
+          user_id: string
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          id?: string
+          post_id: string
+          user_id: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          id?: string
+          post_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "post_comments_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      post_likes: {
+        Row: {
+          created_at: string
+          post_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          post_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          post_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "post_likes_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      post_media: {
+        Row: {
+          created_at: string
+          id: string
+          kind: string
+          post_id: string
+          sort_order: number
+          url: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          kind: string
+          post_id: string
+          sort_order?: number
+          url: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          kind?: string
+          post_id?: string
+          sort_order?: number
+          url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "post_media_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      posts: {
+        Row: {
+          body: string | null
+          comment_count: number
+          created_at: string
+          hashtags: string[]
+          id: string
+          like_count: number
+          location: string | null
+          title: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          body?: string | null
+          comment_count?: number
+          created_at?: string
+          hashtags?: string[]
+          id?: string
+          like_count?: number
+          location?: string | null
+          title?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          body?: string | null
+          comment_count?: number
+          created_at?: string
+          hashtags?: string[]
+          id?: string
+          like_count?: number
+          location?: string | null
+          title?: string | null
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -1300,6 +817,24 @@ export type Database = {
         }
         Relationships: []
       }
+      user_follows: {
+        Row: {
+          created_at: string
+          follower_id: string
+          following_id: string
+        }
+        Insert: {
+          created_at?: string
+          follower_id: string
+          following_id: string
+        }
+        Update: {
+          created_at?: string
+          follower_id?: string
+          following_id?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           id: string
@@ -1335,18 +870,6 @@ export type Database = {
     Functions: {
       admin_revoke_seller: { Args: { _user_id: string }; Returns: boolean }
       become_creator: { Args: never; Returns: boolean }
-      can_access_community_tier: {
-        Args: {
-          _community_id: string
-          _required_level: number
-          _user_id: string
-        }
-        Returns: boolean
-      }
-      can_post_in_channel: {
-        Args: { _channel_id: string; _community_id: string; _user_id: string }
-        Returns: boolean
-      }
       decrement_product_stock: {
         Args: { _product_id: string; _qty: number }
         Returns: boolean
@@ -1364,11 +887,16 @@ export type Database = {
           username: string
         }[]
       }
-      get_or_create_dm_thread: {
-        Args: { _community_id: string; _other_user_id: string }
-        Returns: string
-      }
       get_platform_admin_ids: { Args: never; Returns: string[] }
+      get_public_profiles: {
+        Args: { _ids: string[] }
+        Returns: {
+          avatar_url: string
+          id: string
+          name: string
+          username: string
+        }[]
+      }
       get_seller_public_profile: {
         Args: { _seller_id: string }
         Returns: {
@@ -1387,6 +915,24 @@ export type Database = {
           username: string
         }[]
       }
+      get_trending_posts: {
+        Args: { _limit?: number; _offset?: number }
+        Returns: {
+          body: string
+          comment_count: number
+          cover_kind: string
+          cover_url: string
+          created_at: string
+          hashtags: string[]
+          id: string
+          like_count: number
+          location: string
+          media_count: number
+          score: number
+          title: string
+          user_id: string
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -1394,28 +940,11 @@ export type Database = {
         }
         Returns: boolean
       }
-      is_active_community_member: {
-        Args: { _community_id: string; _user_id: string }
-        Returns: boolean
-      }
-      is_community_admin: {
-        Args: { _community_id: string; _user_id: string }
-        Returns: boolean
-      }
-      user_community_tier_level: {
-        Args: { _community_id: string; _user_id: string }
-        Returns: number
-      }
     }
     Enums: {
       app_role: "admin" | "creator" | "shopper"
       application_status: "pending" | "approved" | "rejected"
-      community_approval_status: "pending" | "approved" | "rejected"
-      dispute_status: "open" | "resolved" | "rejected"
-      event_rsvp_status: "going" | "maybe" | "declined"
       livestream_status: "scheduled" | "live" | "ended"
-      membership_source: "free" | "razorpay_sub" | "razorpay_order"
-      membership_status: "active" | "pending" | "expired" | "cancelled"
       order_status:
         | "pending"
         | "confirmed"
@@ -1424,8 +953,6 @@ export type Database = {
         | "cancelled"
         | "return_initiated"
         | "return_completed"
-      resource_kind: "file" | "link"
-      tier_kind: "free" | "paid_monthly" | "paid_one_time"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1555,12 +1082,7 @@ export const Constants = {
     Enums: {
       app_role: ["admin", "creator", "shopper"],
       application_status: ["pending", "approved", "rejected"],
-      community_approval_status: ["pending", "approved", "rejected"],
-      dispute_status: ["open", "resolved", "rejected"],
-      event_rsvp_status: ["going", "maybe", "declined"],
       livestream_status: ["scheduled", "live", "ended"],
-      membership_source: ["free", "razorpay_sub", "razorpay_order"],
-      membership_status: ["active", "pending", "expired", "cancelled"],
       order_status: [
         "pending",
         "confirmed",
@@ -1570,8 +1092,6 @@ export const Constants = {
         "return_initiated",
         "return_completed",
       ],
-      resource_kind: ["file", "link"],
-      tier_kind: ["free", "paid_monthly", "paid_one_time"],
     },
   },
 } as const
