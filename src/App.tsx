@@ -7,14 +7,10 @@ import AppLayout from "@/components/AppLayout";
 import AuthPage from "@/pages/AuthPage";
 import OnboardingPage from "@/pages/OnboardingPage";
 import DiscoverPage from "@/pages/DiscoverPage";
-import CommunityDetailPage from "@/pages/CommunityDetailPage";
-import CreateCommunityPage from "@/pages/CreateCommunityPage";
-import EditCommunityPage from "@/pages/EditCommunityPage";
-import CreatorDashboard from "@/pages/CreatorDashboard";
-import MyCommunitiesPage from "@/pages/MyCommunitiesPage";
-import CommunityRoomPage from "@/pages/CommunityRoomPage";
+import CreatePostPage from "@/pages/CreatePostPage";
+import PostDetailPage from "@/pages/PostDetailPage";
+import UserProfilePage from "@/pages/UserProfilePage";
 import ProfilePage from "@/pages/ProfilePage";
-import SubscriptionsPage from "@/pages/SubscriptionsPage";
 import NotificationsPage from "@/pages/NotificationsPage";
 import AdminPanelPage from "@/pages/AdminPanelPage";
 import SettingsPage from "@/pages/SettingsPage";
@@ -80,16 +76,12 @@ const AppRoutes = () => {
             <Routes>
               <Route path="/" element={<DiscoverPage />} />
               <Route path="/onboarding" element={<Navigate to="/" replace />} />
-              <Route path="/c/:slug" element={<CommunityDetailPage />} />
-              <Route path="/c/:slug/room" element={<CommunityRoomPage />} />
-              <Route path="/communities/new" element={<CreateCommunityPage />} />
-              <Route path="/communities/:id/edit" element={<EditCommunityPage />} />
-              <Route path="/creator" element={<CreatorDashboard />} />
-              <Route path="/mine" element={<MyCommunitiesPage />} />
+              <Route path="/post/new" element={<CreatePostPage />} />
+              <Route path="/p/:id" element={<PostDetailPage />} />
+              <Route path="/u/:userId" element={<UserProfilePage />} />
               <Route path="/notifications" element={<NotificationsPage />} />
               <Route path="/profile" element={<ProfilePage />} />
               <Route path="/settings" element={<SettingsPage />} />
-              <Route path="/subscriptions" element={<SubscriptionsPage />} />
               <Route path="/admin" element={isAdmin ? <AdminPanelPage /> : <Navigate to="/" replace />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
