@@ -267,16 +267,8 @@ const AdminPanelPage = () => {
         </div>
       )}
 
-      <Tabs defaultValue={pendingCommunities > 0 ? 'communities' : pendingDisputes > 0 ? 'disputes' : 'applications'} className="w-full">
-        <TabsList className="w-full grid grid-cols-8 mb-4">
-          <TabsTrigger value="communities" className="text-xs px-1 relative">
-            Comm
-            {pendingCommunities > 0 && (
-              <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-yellow-500 text-white text-[9px] font-bold flex items-center justify-center">
-                {pendingCommunities}
-              </span>
-            )}
-          </TabsTrigger>
+      <Tabs defaultValue="applications" className="w-full">
+        <TabsList className="w-full grid grid-cols-6 mb-4">
           <TabsTrigger value="applications" className="text-xs px-1">Apps</TabsTrigger>
           <TabsTrigger value="users" className="text-xs px-1">Users</TabsTrigger>
           <TabsTrigger value="orders" className="text-xs px-1">Orders</TabsTrigger>
@@ -296,100 +288,10 @@ const AdminPanelPage = () => {
               </span>
             )}
           </TabsTrigger>
-          <TabsTrigger value="disputes" className="text-xs px-1 relative">
-            Disputes
-            {pendingDisputes > 0 && (
-              <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-destructive text-destructive-foreground text-[9px] font-bold flex items-center justify-center">
-                {pendingDisputes}
-              </span>
-            )}
-          </TabsTrigger>
           <TabsTrigger value="streams" className="text-xs px-1">Streams</TabsTrigger>
         </TabsList>
 
-        {/* COMMUNITIES */}
-        <TabsContent value="communities">
-          <div className="flex gap-2 mb-4 overflow-x-auto pb-1">
-            {(['pending', 'approved', 'rejected', 'all'] as const).map(f => (
-              <button key={f} onClick={() => setCommunityFilter(f)}
-                className={`px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap border transition-colors ${
-                  communityFilter === f ? 'bg-primary text-primary-foreground border-primary' : 'bg-card text-muted-foreground border-border'
-                }`}>
-                {f === 'all' ? 'All' : f.charAt(0).toUpperCase() + f.slice(1)}
-                {f === 'pending' && ` (${pendingCommunities})`}
-              </button>
-            ))}
-          </div>
-          <div className="space-y-3">
-            {filteredCommunities.length === 0 && <p className="text-center text-muted-foreground py-8 text-sm">No communities found.</p>}
-            {filteredCommunities.map(c => (
-              <div key={c.id} className="rounded-2xl bg-card border border-border overflow-hidden">
-                <div className="p-4 flex items-start gap-3">
-                  {c.cover_url ? (
-                    <img src={c.cover_url} className="w-14 h-14 rounded-xl object-cover" alt="" />
-                  ) : (
-                    <div className="w-14 h-14 rounded-xl bg-secondary flex items-center justify-center font-bold text-muted-foreground">{c.name?.[0]}</div>
-                  )}
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-bold text-foreground text-sm truncate">{c.name}</h3>
-                    <p className="text-xs text-muted-foreground truncate">By {c.creator?.name || c.creator?.phone || 'Creator'}</p>
-                    <p className="text-[10px] text-muted-foreground mt-0.5">{new Date(c.created_at).toLocaleDateString()}</p>
-                  </div>
-                  <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold border ${statusBadge[c.approval_status]}`}>
-                    {c.approval_status.toUpperCase()}
-                  </span>
-                </div>
-                {c.description && <p className="px-4 pb-3 text-sm text-foreground">{c.description}</p>}
-                {c.key_outcomes?.length > 0 && (
-                  <div className="px-4 pb-3 flex flex-wrap gap-1.5">
-                    {c.key_outcomes.map((o: string, i: number) => (
-                      <span key={i} className="text-[10px] px-2 py-0.5 rounded-full bg-secondary text-foreground">{o}</span>
-                    ))}
-                  </div>
-                )}
-                <div className="px-4 pb-4 flex flex-col gap-2">
-                  <button onClick={() => navigate(`/c/${c.slug}`)}
-                    className="text-xs text-primary font-semibold flex items-center gap-1 self-start">
-                    Preview <ExternalLink className="w-3 h-3" />
-                  </button>
-                  {c.rejection_reason && (
-                    <div className="p-2 rounded-lg bg-destructive/10 border border-destructive/20">
-                      <p className="text-[10px] font-semibold text-destructive mb-0.5">Rejection reason</p>
-                      <p className="text-xs text-foreground">{c.rejection_reason}</p>
-                    </div>
-                  )}
-                  {c.approval_status === 'pending' && (
-                    rejectingCommunityId === c.id ? (
-                      <div className="space-y-2">
-                        <textarea value={communityRejectReason} onChange={e => setCommunityRejectReason(e.target.value)}
-                          placeholder="Reason for rejection…" rows={2}
-                          className="w-full px-3 py-2 rounded-xl bg-background border border-border text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 resize-none" />
-                        <div className="flex gap-2">
-                          <button onClick={() => handleRejectCommunity(c.id)} className="flex-1 py-2.5 rounded-xl bg-destructive text-destructive-foreground font-semibold text-sm">Confirm reject</button>
-                          <button onClick={() => { setRejectingCommunityId(null); setCommunityRejectReason(''); }} className="px-4 py-2.5 rounded-xl bg-card border border-border text-foreground text-sm">Cancel</button>
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="flex gap-2">
-                        <button onClick={() => handleApproveCommunity(c.id)}
-                          className="flex-1 flex items-center justify-center gap-1.5 py-3 rounded-xl bg-green-600 text-white font-semibold text-sm">
-                          <Check className="w-4 h-4" /> Approve
-                        </button>
-                        <button onClick={() => setRejectingCommunityId(c.id)}
-                          className="flex-1 flex items-center justify-center gap-1.5 py-3 rounded-xl bg-destructive/10 text-destructive font-semibold text-sm border border-destructive/20">
-                          <X className="w-4 h-4" /> Reject
-                        </button>
-                      </div>
-                    )
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
-        </TabsContent>
 
-
-        {/* APPLICATIONS */}
         <TabsContent value="applications">
           <div className="flex gap-2 mb-4 overflow-x-auto pb-1">
             {(['all', 'pending', 'approved', 'rejected'] as const).map(f => (
