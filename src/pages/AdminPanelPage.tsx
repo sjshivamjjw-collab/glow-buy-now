@@ -17,8 +17,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { Textarea } from '@/components/ui/textarea';
+
+
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 
@@ -96,48 +96,7 @@ const AdminPanelPage = () => {
   const pendingCancellations = cancellationRequests.filter(c => c.status === 'pending').length;
   const pendingReturns = returnRequests.filter(r => r.status === 'pending').length;
   const liveNow = livestreams.filter(s => s.status === 'live').length;
-  const pendingCommunities = communities.filter(c => c.approval_status === 'pending').length;
-  const pendingDisputes = disputes.filter(d => d.status === 'open').length;
 
-  const handleResolveDispute = async () => {
-    if (!resolvingDispute) return;
-    const { error } = await supabase.from('membership_disputes' as any).update({
-      status: disputeAction,
-      admin_notes: disputeNotes.trim() || null,
-      resolved_by: userId,
-      resolved_at: new Date().toISOString(),
-    }).eq('id', resolvingDispute.id);
-    if (error) { toast({ title: 'Failed', description: error.message, variant: 'destructive' }); return; }
-    setDisputes(prev => prev.map(d => d.id === resolvingDispute.id ? { ...d, status: disputeAction, admin_notes: disputeNotes.trim() || null } : d));
-    setResolvingDispute(null);
-    setDisputeNotes('');
-    toast({ title: `Dispute ${disputeAction}` });
-  };
-
-  const filteredCommunities = useMemo(() =>
-    communityFilter === 'all' ? communities : communities.filter(c => c.approval_status === communityFilter),
-    [communities, communityFilter]);
-
-  const handleApproveCommunity = async (id: string) => {
-    const { error } = await supabase.from('communities' as any).update({
-      approval_status: 'approved', reviewed_by: userId, reviewed_at: new Date().toISOString(),
-    }).eq('id', id);
-    if (error) { toast({ title: 'Failed', description: error.message, variant: 'destructive' }); return; }
-    setCommunities(prev => prev.map(c => c.id === id ? { ...c, approval_status: 'approved' } : c));
-    toast({ title: 'Community approved ✅' });
-  };
-
-  const handleRejectCommunity = async (id: string) => {
-    if (!communityRejectReason.trim()) { toast({ title: 'Please provide a reason', variant: 'destructive' }); return; }
-    const { error } = await supabase.from('communities' as any).update({
-      approval_status: 'rejected', rejection_reason: communityRejectReason,
-      reviewed_by: userId, reviewed_at: new Date().toISOString(),
-    }).eq('id', id);
-    if (error) { toast({ title: 'Failed', description: error.message, variant: 'destructive' }); return; }
-    setCommunities(prev => prev.map(c => c.id === id ? { ...c, approval_status: 'rejected', rejection_reason: communityRejectReason } : c));
-    setRejectingCommunityId(null); setCommunityRejectReason('');
-    toast({ title: 'Community rejected' });
-  };
 
   const filteredOrders = useMemo(() => {
     return orders.filter(order => {
@@ -308,16 +267,8 @@ const AdminPanelPage = () => {
         </div>
       )}
 
-      <Tabs defaultValue={pendingCommunities > 0 ? 'communities' : pendingDisputes > 0 ? 'disputes' : 'applications'} className="w-full">
-        <TabsList className="w-full grid grid-cols-8 mb-4">
-          <TabsTrigger value="communities" className="text-xs px-1 relative">
-            Comm
-            {pendingCommunities > 0 && (
-              <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-yellow-500 text-white text-[9px] font-bold flex items-center justify-center">
-                {pendingCommunities}
-              </span>
-            )}
-          </TabsTrigger>
+      <Tabs defaultValue="applications" className="w-full">
+        <TabsList className="w-full grid grid-cols-6 mb-4">
           <TabsTrigger value="applications" className="text-xs px-1">Apps</TabsTrigger>
           <TabsTrigger value="users" className="text-xs px-1">Users</TabsTrigger>
           <TabsTrigger value="orders" className="text-xs px-1">Orders</TabsTrigger>
@@ -337,100 +288,10 @@ const AdminPanelPage = () => {
               </span>
             )}
           </TabsTrigger>
-          <TabsTrigger value="disputes" className="text-xs px-1 relative">
-            Disputes
-            {pendingDisputes > 0 && (
-              <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-destructive text-destructive-foreground text-[9px] font-bold flex items-center justify-center">
-                {pendingDisputes}
-              </span>
-            )}
-          </TabsTrigger>
           <TabsTrigger value="streams" className="text-xs px-1">Streams</TabsTrigger>
         </TabsList>
 
-        {/* COMMUNITIES */}
-        <TabsContent value="communities">
-          <div className="flex gap-2 mb-4 overflow-x-auto pb-1">
-            {(['pending', 'approved', 'rejected', 'all'] as const).map(f => (
-              <button key={f} onClick={() => setCommunityFilter(f)}
-                className={`px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap border transition-colors ${
-                  communityFilter === f ? 'bg-primary text-primary-foreground border-primary' : 'bg-card text-muted-foreground border-border'
-                }`}>
-                {f === 'all' ? 'All' : f.charAt(0).toUpperCase() + f.slice(1)}
-                {f === 'pending' && ` (${pendingCommunities})`}
-              </button>
-            ))}
-          </div>
-          <div className="space-y-3">
-            {filteredCommunities.length === 0 && <p className="text-center text-muted-foreground py-8 text-sm">No communities found.</p>}
-            {filteredCommunities.map(c => (
-              <div key={c.id} className="rounded-2xl bg-card border border-border overflow-hidden">
-                <div className="p-4 flex items-start gap-3">
-                  {c.cover_url ? (
-                    <img src={c.cover_url} className="w-14 h-14 rounded-xl object-cover" alt="" />
-                  ) : (
-                    <div className="w-14 h-14 rounded-xl bg-secondary flex items-center justify-center font-bold text-muted-foreground">{c.name?.[0]}</div>
-                  )}
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-bold text-foreground text-sm truncate">{c.name}</h3>
-                    <p className="text-xs text-muted-foreground truncate">By {c.creator?.name || c.creator?.phone || 'Creator'}</p>
-                    <p className="text-[10px] text-muted-foreground mt-0.5">{new Date(c.created_at).toLocaleDateString()}</p>
-                  </div>
-                  <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold border ${statusBadge[c.approval_status]}`}>
-                    {c.approval_status.toUpperCase()}
-                  </span>
-                </div>
-                {c.description && <p className="px-4 pb-3 text-sm text-foreground">{c.description}</p>}
-                {c.key_outcomes?.length > 0 && (
-                  <div className="px-4 pb-3 flex flex-wrap gap-1.5">
-                    {c.key_outcomes.map((o: string, i: number) => (
-                      <span key={i} className="text-[10px] px-2 py-0.5 rounded-full bg-secondary text-foreground">{o}</span>
-                    ))}
-                  </div>
-                )}
-                <div className="px-4 pb-4 flex flex-col gap-2">
-                  <button onClick={() => navigate(`/c/${c.slug}`)}
-                    className="text-xs text-primary font-semibold flex items-center gap-1 self-start">
-                    Preview <ExternalLink className="w-3 h-3" />
-                  </button>
-                  {c.rejection_reason && (
-                    <div className="p-2 rounded-lg bg-destructive/10 border border-destructive/20">
-                      <p className="text-[10px] font-semibold text-destructive mb-0.5">Rejection reason</p>
-                      <p className="text-xs text-foreground">{c.rejection_reason}</p>
-                    </div>
-                  )}
-                  {c.approval_status === 'pending' && (
-                    rejectingCommunityId === c.id ? (
-                      <div className="space-y-2">
-                        <textarea value={communityRejectReason} onChange={e => setCommunityRejectReason(e.target.value)}
-                          placeholder="Reason for rejection…" rows={2}
-                          className="w-full px-3 py-2 rounded-xl bg-background border border-border text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 resize-none" />
-                        <div className="flex gap-2">
-                          <button onClick={() => handleRejectCommunity(c.id)} className="flex-1 py-2.5 rounded-xl bg-destructive text-destructive-foreground font-semibold text-sm">Confirm reject</button>
-                          <button onClick={() => { setRejectingCommunityId(null); setCommunityRejectReason(''); }} className="px-4 py-2.5 rounded-xl bg-card border border-border text-foreground text-sm">Cancel</button>
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="flex gap-2">
-                        <button onClick={() => handleApproveCommunity(c.id)}
-                          className="flex-1 flex items-center justify-center gap-1.5 py-3 rounded-xl bg-green-600 text-white font-semibold text-sm">
-                          <Check className="w-4 h-4" /> Approve
-                        </button>
-                        <button onClick={() => setRejectingCommunityId(c.id)}
-                          className="flex-1 flex items-center justify-center gap-1.5 py-3 rounded-xl bg-destructive/10 text-destructive font-semibold text-sm border border-destructive/20">
-                          <X className="w-4 h-4" /> Reject
-                        </button>
-                      </div>
-                    )
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
-        </TabsContent>
 
-
-        {/* APPLICATIONS */}
         <TabsContent value="applications">
           <div className="flex gap-2 mb-4 overflow-x-auto pb-1">
             {(['all', 'pending', 'approved', 'rejected'] as const).map(f => (
@@ -721,44 +582,7 @@ const AdminPanelPage = () => {
         </TabsContent>
 
         {/* STREAMS */}
-        {/* DISPUTES */}
-        <TabsContent value="disputes">
-          <div className="space-y-3">
-            {disputes.length === 0 && (
-              <p className="text-center text-muted-foreground text-sm py-8">No disputes</p>
-            )}
-            {disputes.map(d => (
-              <div key={d.id} className="p-4 rounded-2xl bg-card border border-border">
-                <div className="flex items-start justify-between gap-2 mb-2">
-                  <div className="min-w-0">
-                    <p className="font-semibold text-foreground text-sm truncate">{d.communities?.name || 'Community'}</p>
-                    <p className="text-xs text-muted-foreground truncate">
-                      {d.profiles?.name || d.profiles?.phone || 'User'} · {d.community_tiers?.name} · ₹{d.community_tiers?.price_inr || 0}
-                    </p>
-                  </div>
-                  <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${statusBadge[d.status] || ''}`}>
-                    {d.status.toUpperCase()}
-                  </span>
-                </div>
-                <p className="text-xs text-foreground whitespace-pre-wrap p-2 rounded-lg bg-secondary mb-2">{d.reason}</p>
-                {d.admin_notes && (
-                  <p className="text-xs text-muted-foreground mb-2"><span className="font-semibold text-foreground">Notes:</span> {d.admin_notes}</p>
-                )}
-                <p className="text-[10px] text-muted-foreground mb-2">{new Date(d.created_at).toLocaleString()}</p>
-                {d.status === 'open' && (
-                  <div className="flex gap-2">
-                    <Button size="sm" className="flex-1" onClick={() => { setResolvingDispute(d); setDisputeAction('resolved'); setDisputeNotes(''); }}>
-                      <Check className="w-4 h-4" /> Resolve (refund)
-                    </Button>
-                    <Button size="sm" variant="outline" className="flex-1" onClick={() => { setResolvingDispute(d); setDisputeAction('rejected'); setDisputeNotes(''); }}>
-                      <X className="w-4 h-4" /> Reject
-                    </Button>
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-        </TabsContent>
+
 
         <TabsContent value="streams">
           <div className="space-y-3">
@@ -796,38 +620,8 @@ const AdminPanelPage = () => {
         </TabsContent>
       </Tabs>
 
-      <Dialog open={!!resolvingDispute} onOpenChange={(o) => !o && setResolvingDispute(null)}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{disputeAction === 'resolved' ? 'Resolve dispute (refund)' : 'Reject dispute'}</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-3">
-            <div className="p-3 rounded-xl bg-secondary text-xs">
-              <p className="font-semibold text-foreground">{resolvingDispute?.communities?.name}</p>
-              <p className="text-muted-foreground">
-                {resolvingDispute?.profiles?.name || resolvingDispute?.profiles?.phone} · ₹{resolvingDispute?.community_tiers?.price_inr || 0}
-              </p>
-            </div>
-            <Textarea
-              value={disputeNotes}
-              onChange={e => setDisputeNotes(e.target.value)}
-              placeholder={disputeAction === 'resolved' ? 'Notes for the user (e.g. refund processed via Razorpay)' : 'Reason for rejecting'}
-              rows={4}
-            />
-            <p className="text-[11px] text-muted-foreground">
-              {disputeAction === 'resolved'
-                ? 'Process the refund in Razorpay manually, then mark resolved here. The user will be notified.'
-                : 'The user will be notified of the rejection.'}
-            </p>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setResolvingDispute(null)}>Cancel</Button>
-            <Button onClick={handleResolveDispute} variant={disputeAction === 'rejected' ? 'destructive' : 'default'}>
-              {disputeAction === 'resolved' ? 'Mark resolved' : 'Reject dispute'}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+
+
 
       <AlertDialog open={!!revokingUser} onOpenChange={(open) => !open && !revoking && setRevokingUser(null)}>
         <AlertDialogContent>
