@@ -1,0 +1,236 @@
+import { useState, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
+import { useToast } from '@/hooks/use-toast';
+import { ArrowLeft, ImagePlus, X, Loader2, MapPin, Hash } from 'lucide-react';
+
+const MAX_FILES = 10;
+const MAX_FILE_MB = 25;
+
+interface PendingMedia {
+  file: File;
+  previewUrl: string;
+  kind: 'image' | 'video';
+}
+
+const CreatePostPage = () => {
+  const navigate = useNavigate();
+  const { userId } = useAuth();
+  const { toast } = useToast();
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  const [media, setMedia] = useState<PendingMedia[]>([]);
+  const [title, setTitle] = useState('');
+  const [body, setBody] = useState('');
+  const [location, setLocation] = useState('');
+  const [hashtagInput, setHashtagInput] = useState('');
+  const [hashtags, setHashtags] = useState<string[]>([]);
+  const [submitting, setSubmitting] = useState(false);
+
+  const handleFiles = (files: FileList | null) => {
+    if (!files) return;
+    const next: PendingMedia[] = [];
+    Array.from(files).forEach(file => {
+      if (media.length + next.length >= MAX_FILES) return;
+      if (file.size > MAX_FILE_MB * 1024 * 1024) {
+        toast({ title: `${file.name} is too large`, description: `Max ${MAX_FILE_MB}MB per file`, variant: 'destructive' });
+        return;
+      }
+      const kind: 'image' | 'video' = file.type.startsWith('video/') ? 'video' : 'image';
+      next.push({ file, previewUrl: URL.createObjectURL(file), kind });
+    });
+    setMedia(prev => [...prev, ...next]);
+  };
+
+  const removeMedia = (i: number) => {
+    setMedia(prev => {
+      const copy = [...prev];
+      URL.revokeObjectURL(copy[i].previewUrl);
+      copy.splice(i, 1);
+      return copy;
+    });
+  };
+
+  const commitHashtag = () => {
+    const raw = hashtagInput.trim().replace(/^#+/, '').toLowerCase();
+    if (!raw) return;
+    if (hashtags.includes(raw)) { setHashtagInput(''); return; }
+    setHashtags(prev => [...prev, raw].slice(0, 20));
+    setHashtagInput('');
+  };
+
+  const handleHashtagKey = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' || e.key === ',' || e.key === ' ') {
+      e.preventDefault();
+      commitHashtag();
+    } else if (e.key === 'Backspace' && !hashtagInput && hashtags.length) {
+      setHashtags(prev => prev.slice(0, -1));
+    }
+  };
+
+  const handleSubmit = async () => {
+    if (!userId) return;
+    if (!title.trim() && !body.trim() && media.length === 0) {
+      toast({ title: 'Add some content', description: 'Add a title, body, or media to post', variant: 'destructive' });
+      return;
+    }
+    setSubmitting(true);
+    try {
+      // 1. Insert post row
+      const { data: post, error: postErr } = await supabase.from('posts' as any).insert({
+        user_id: userId,
+        title: title.trim() || null,
+        body: body.trim() || null,
+        location: location.trim() || null,
+        hashtags,
+      }).select('id').single();
+      if (postErr || !post) throw postErr || new Error('Failed to create post');
+      const postId = (post as any).id as string;
+
+      // 2. Upload media + create media rows
+      for (let i = 0; i < media.length; i++) {
+        const m = media[i];
+        const ext = m.file.name.split('.').pop() || (m.kind === 'video' ? 'mp4' : 'jpg');
+        const path = `${userId}/${postId}/${i}-${Date.now()}.${ext}`;
+        const { error: upErr } = await supabase.storage.from('post-media').upload(path, m.file, {
+          contentType: m.file.type || undefined,
+          upsert: false,
+        });
+        if (upErr) throw upErr;
+        const { data: pub } = supabase.storage.from('post-media').getPublicUrl(path);
+        const { error: mErr } = await supabase.from('post_media' as any).insert({
+          post_id: postId,
+          url: pub.publicUrl,
+          kind: m.kind,
+          sort_order: i,
+        });
+        if (mErr) throw mErr;
+      }
+
+      toast({ title: 'Posted!' });
+      navigate(`/p/${postId}`);
+    } catch (e: any) {
+      console.error(e);
+      toast({ title: 'Could not post', description: e?.message || 'Try again', variant: 'destructive' });
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-background max-w-lg mx-auto px-4 pt-4 pb-32">
+      <div className="flex items-center gap-3 mb-6">
+        <button onClick={() => navigate(-1)} className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center">
+          <ArrowLeft className="w-5 h-5 text-foreground" />
+        </button>
+        <h1 className="text-xl font-bold text-foreground">New post</h1>
+      </div>
+
+      {/* Media grid */}
+      <div className="grid grid-cols-3 gap-2 mb-4">
+        {media.map((m, i) => (
+          <div key={i} className="relative aspect-square rounded-xl overflow-hidden bg-secondary">
+            {m.kind === 'video' ? (
+              <video src={m.previewUrl} className="w-full h-full object-cover" muted playsInline />
+            ) : (
+              <img src={m.previewUrl} alt="" className="w-full h-full object-cover" />
+            )}
+            <button onClick={() => removeMedia(i)} aria-label="Remove" className="absolute top-1 right-1 w-6 h-6 rounded-full bg-black/60 text-white flex items-center justify-center">
+              <X className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        ))}
+        {media.length < MAX_FILES && (
+          <button
+            type="button"
+            onClick={() => fileRef.current?.click()}
+            className="aspect-square rounded-xl border-2 border-dashed border-border bg-card flex flex-col items-center justify-center text-muted-foreground gap-1 hover:border-primary/50 transition-colors"
+          >
+            <ImagePlus className="w-6 h-6" />
+            <span className="text-[10px] font-semibold">Add media</span>
+          </button>
+        )}
+      </div>
+      <input
+        ref={fileRef}
+        type="file"
+        accept="image/*,video/*"
+        multiple
+        className="hidden"
+        onChange={e => { handleFiles(e.target.files); e.target.value = ''; }}
+      />
+      <p className="text-[10px] text-muted-foreground mb-5">Up to {MAX_FILES} images or videos · max {MAX_FILE_MB}MB each</p>
+
+      {/* Title */}
+      <label className="text-xs font-semibold text-muted-foreground mb-1 block">Title</label>
+      <input
+        value={title}
+        onChange={e => setTitle(e.target.value)}
+        placeholder="Give your post a headline"
+        maxLength={140}
+        className="w-full px-4 py-3 mb-4 rounded-xl bg-secondary text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 text-sm"
+      />
+
+      {/* Body */}
+      <label className="text-xs font-semibold text-muted-foreground mb-1 block">Description</label>
+      <textarea
+        value={body}
+        onChange={e => setBody(e.target.value)}
+        placeholder="Tell people more…"
+        maxLength={2000}
+        rows={5}
+        className="w-full px-4 py-3 mb-4 rounded-xl bg-secondary text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 text-sm resize-none"
+      />
+
+      {/* Location */}
+      <label className="text-xs font-semibold text-muted-foreground mb-1 block">Location</label>
+      <div className="relative mb-4">
+        <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+        <input
+          value={location}
+          onChange={e => setLocation(e.target.value)}
+          placeholder="e.g. Mumbai, Bandra"
+          maxLength={100}
+          className="w-full pl-11 pr-4 py-3 rounded-xl bg-secondary text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 text-sm"
+        />
+      </div>
+
+      {/* Hashtags */}
+      <label className="text-xs font-semibold text-muted-foreground mb-1 block">Hashtags</label>
+      <div className="px-3 py-2 mb-1 rounded-xl bg-secondary flex flex-wrap gap-1.5 items-center min-h-[44px]">
+        {hashtags.map(h => (
+          <span key={h} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-primary/10 text-primary text-xs font-semibold">
+            #{h}
+            <button onClick={() => setHashtags(prev => prev.filter(x => x !== h))} aria-label="Remove">
+              <X className="w-3 h-3" />
+            </button>
+          </span>
+        ))}
+        <div className="relative flex-1 min-w-[120px]">
+          <Hash className="absolute left-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
+          <input
+            value={hashtagInput}
+            onChange={e => setHashtagInput(e.target.value)}
+            onKeyDown={handleHashtagKey}
+            onBlur={commitHashtag}
+            placeholder={hashtags.length ? '' : 'travel, foodie…'}
+            className="w-full pl-7 pr-1 py-1 bg-transparent text-foreground placeholder:text-muted-foreground focus:outline-none text-sm"
+          />
+        </div>
+      </div>
+      <p className="text-[10px] text-muted-foreground mb-6">Press space, comma, or enter to add.</p>
+
+      <button
+        onClick={handleSubmit}
+        disabled={submitting}
+        className="w-full py-3.5 rounded-2xl bg-primary text-primary-foreground font-bold text-sm disabled:opacity-60 flex items-center justify-center gap-2"
+      >
+        {submitting && <Loader2 className="w-4 h-4 animate-spin" />}
+        {submitting ? 'Posting…' : 'Share post'}
+      </button>
+    </div>
+  );
+};
+
+export default CreatePostPage;

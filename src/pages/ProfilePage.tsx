@@ -3,39 +3,61 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { Settings, LogOut, ChevronRight, Bell, HelpCircle, Sparkles, ShieldCheck, LayoutDashboard, Users, Check, X, Receipt, Camera } from 'lucide-react';
+import { Settings, LogOut, ChevronRight, Bell, HelpCircle, ShieldCheck, Check, X, Camera, Plus } from 'lucide-react';
 import Footer from '@/components/Footer';
+import { PostsGrid } from '@/pages/UserProfilePage';
+import { formatCount } from '@/lib/utils';
+
+interface PostThumb { id: string; cover_url: string | null; cover_kind: string | null; like_count: number; }
 
 const ProfilePage = () => {
-  const { role, userName, userAvatar, userId, isCreator, isAdmin, phone, logout, updateProfile, refreshRoles } = useAuth();
+  const { userName, userAvatar, userId, isAdmin, phone, logout, updateProfile } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
+
   const [profile, setProfile] = useState<{ name: string | null; username: string | null; avatar_url: string | null } | null>(null);
   const [editing, setEditing] = useState(false);
   const [editName, setEditName] = useState('');
   const [editUsername, setEditUsername] = useState('');
   const [saving, setSaving] = useState(false);
-  const [becoming, setBecoming] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const [posts, setPosts] = useState<PostThumb[]>([]);
+  const [followers, setFollowers] = useState(0);
+  const [following, setFollowing] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (!userId) return;
-    refreshRoles();
-    supabase.from('profiles').select('name, username, avatar_url').eq('id', userId).single().then(({ data }) => {
-      if (data) setProfile(data);
-    });
+    const load = async () => {
+      const [{ data: prof }, { data: rawPosts }, { count: fc }, { count: fgc }] = await Promise.all([
+        supabase.from('profiles').select('name, username, avatar_url').eq('id', userId).single(),
+        supabase.from('posts' as any).select('id, like_count').eq('user_id', userId).order('created_at', { ascending: false }).limit(60),
+        supabase.from('user_follows' as any).select('*', { count: 'exact', head: true }).eq('following_id', userId),
+        supabase.from('user_follows' as any).select('*', { count: 'exact', head: true }).eq('follower_id', userId),
+      ]);
+      if (prof) setProfile(prof);
+      const ids = ((rawPosts as any[]) || []).map(p => p.id);
+      const likeMap: Record<string, number> = {};
+      ((rawPosts as any[]) || []).forEach(p => { likeMap[p.id] = p.like_count; });
+      if (ids.length) {
+        const { data: media } = await supabase.from('post_media' as any).select('post_id, url, kind, sort_order').in('post_id', ids).order('sort_order');
+        const coverMap: Record<string, { url: string; kind: string }> = {};
+        ((media as any[]) || []).forEach(m => { if (!coverMap[m.post_id]) coverMap[m.post_id] = { url: m.url, kind: m.kind }; });
+        setPosts(ids.map(id => ({ id, cover_url: coverMap[id]?.url || null, cover_kind: coverMap[id]?.kind || null, like_count: likeMap[id] || 0 })));
+      } else {
+        setPosts([]);
+      }
+      setFollowers(fc || 0);
+      setFollowing(fgc || 0);
+    };
+    load();
   }, [userId]);
 
   const displayName = profile?.name || userName || phone || 'User';
   const displayAvatar = profile?.avatar_url || userAvatar;
   const displayUsername = profile?.username;
 
-  const handleEdit = () => {
-    setEditName(profile?.name || '');
-    setEditUsername(profile?.username || '');
-    setEditing(true);
-  };
+  const handleEdit = () => { setEditName(profile?.name || ''); setEditUsername(profile?.username || ''); setEditing(true); };
 
   const handleSave = async () => {
     if (!userId) return;
@@ -77,129 +99,83 @@ const ProfilePage = () => {
       updateProfile({ avatar_url: publicUrl });
       toast({ title: 'Profile photo updated' });
     } catch (err: any) {
-      console.error('Avatar upload error:', err);
       toast({ title: 'Failed to update photo', description: err.message, variant: 'destructive' });
     } finally {
       setUploadingAvatar(false);
     }
   };
 
-  const handleBecomeCreator = async () => {
-    setBecoming(true);
-    const { error } = await supabase.rpc('become_creator' as any);
-    setBecoming(false);
-    if (error) {
-      toast({ title: 'Could not enable creator mode', description: error.message, variant: 'destructive' });
-      return;
-    }
-    await refreshRoles();
-    toast({ title: 'You are a creator now!', description: 'Build your first community.' });
-    navigate('/communities/new');
-  };
-
-  const handleLogout = () => {
-    logout();
-    navigate('/auth');
-  };
+  const handleLogout = () => { logout(); navigate('/auth'); };
 
   const menuItems = [
-    { icon: Users, label: 'My Communities', path: '/mine' },
     { icon: Bell, label: 'Notifications', path: '/notifications' },
     { icon: HelpCircle, label: 'Help & Support', path: '/contact' },
     { icon: Settings, label: 'Settings', path: '/settings' },
   ];
 
   return (
-    <div className="min-h-screen bg-background max-w-lg mx-auto px-4 pt-14">
+    <div className="min-h-screen bg-background max-w-lg mx-auto px-4 pt-14 pb-24">
       <h1 className="text-xl font-bold text-foreground mb-6">Profile</h1>
 
-      <div className="p-5 rounded-2xl bg-card border border-border mb-6">
-        <div className="flex items-center gap-4">
-          <button
-            type="button"
-            onClick={() => fileInputRef.current?.click()}
-            disabled={uploadingAvatar}
-            className="relative w-16 h-16 rounded-2xl bg-secondary flex items-center justify-center overflow-hidden group disabled:opacity-60"
-            aria-label="Change profile photo"
-          >
-            {displayAvatar ? (
-              <img src={displayAvatar} alt={displayName} className="w-full h-full object-cover" />
-            ) : (
-              <span className="text-2xl font-bold text-muted-foreground">{displayName[0]?.toUpperCase() || '?'}</span>
-            )}
-            <span className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-              <Camera className="w-5 h-5 text-white" />
-            </span>
-            {uploadingAvatar && (
-              <span className="absolute inset-0 bg-black/50 flex items-center justify-center text-white text-[10px] font-semibold">
-                Uploading…
-              </span>
-            )}
-          </button>
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/*"
-            className="hidden"
-            onChange={handleAvatarChange}
-          />
-          {!editing ? (
-            <div className="flex-1">
-              <h2 className="text-lg font-bold text-foreground">{displayName}</h2>
-              {displayUsername && <p className="text-muted-foreground text-sm">@{displayUsername}</p>}
-              <p className="text-muted-foreground text-xs capitalize mt-0.5">{role === 'shopper' ? 'Member' : role}</p>
-            </div>
+      <div className="flex items-center gap-5 mb-5">
+        <button
+          type="button"
+          onClick={() => fileInputRef.current?.click()}
+          disabled={uploadingAvatar}
+          className="relative w-20 h-20 rounded-full bg-secondary flex items-center justify-center overflow-hidden group disabled:opacity-60"
+          aria-label="Change profile photo"
+        >
+          {displayAvatar ? (
+            <img src={displayAvatar} alt={displayName} className="w-full h-full object-cover" />
           ) : (
-            <div className="flex-1" />
+            <span className="text-3xl font-bold text-muted-foreground">{displayName[0]?.toUpperCase() || '?'}</span>
           )}
-          {!editing && (
-            <button onClick={handleEdit} className="px-3 py-1.5 rounded-xl bg-secondary text-secondary-foreground text-sm font-semibold">Edit</button>
+          <span className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+            <Camera className="w-5 h-5 text-white" />
+          </span>
+          {uploadingAvatar && (
+            <span className="absolute inset-0 bg-black/50 flex items-center justify-center text-white text-[10px] font-semibold">Uploading…</span>
           )}
+        </button>
+        <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleAvatarChange} />
+        <div className="flex-1 grid grid-cols-3 gap-2 text-center">
+          <div><p className="font-bold text-foreground">{formatCount(posts.length)}</p><p className="text-[11px] text-muted-foreground">Posts</p></div>
+          <div><p className="font-bold text-foreground">{formatCount(followers)}</p><p className="text-[11px] text-muted-foreground">Followers</p></div>
+          <div><p className="font-bold text-foreground">{formatCount(following)}</p><p className="text-[11px] text-muted-foreground">Following</p></div>
         </div>
-
-        {editing && (
-          <div className="mt-4 space-y-3">
-            <div>
-              <label className="text-xs font-semibold text-muted-foreground mb-1 block">Full Name</label>
-              <input value={editName} onChange={e => setEditName(e.target.value)} placeholder="Your name"
-                className="w-full px-4 py-3 rounded-xl bg-secondary text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 text-sm" />
-            </div>
-            <div>
-              <label className="text-xs font-semibold text-muted-foreground mb-1 block">Username</label>
-              <input value={editUsername} onChange={e => setEditUsername(e.target.value)} placeholder="username"
-                className="w-full px-4 py-3 rounded-xl bg-secondary text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 text-sm" />
-            </div>
-            <div className="flex gap-2 justify-end">
-              <button onClick={() => setEditing(false)} className="px-4 py-2 rounded-xl bg-secondary text-secondary-foreground text-sm font-semibold flex items-center gap-1">
-                <X className="w-4 h-4" /> Cancel
-              </button>
-              <button onClick={handleSave} disabled={saving} className="px-4 py-2 rounded-xl bg-primary text-primary-foreground text-sm font-semibold flex items-center gap-1 disabled:opacity-50">
-                <Check className="w-4 h-4" /> {saving ? 'Saving...' : 'Save'}
-              </button>
-            </div>
-          </div>
-        )}
       </div>
 
-      {isCreator && (
-        <button onClick={() => navigate('/creator')}
-          className="w-full flex items-center gap-3 px-5 py-4 rounded-2xl bg-primary/10 border border-primary/20 mb-3">
-          <LayoutDashboard className="w-5 h-5 text-primary" />
-          <span className="flex-1 text-foreground font-semibold text-sm text-left">Creator Dashboard</span>
-          <ChevronRight className="w-4 h-4 text-primary" />
-        </button>
+      {!editing ? (
+        <div className="mb-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="font-bold text-foreground">{displayName}</p>
+              {displayUsername && <p className="text-muted-foreground text-sm">@{displayUsername}</p>}
+            </div>
+            <button onClick={handleEdit} className="px-3 py-1.5 rounded-xl bg-secondary text-secondary-foreground text-sm font-semibold">Edit</button>
+          </div>
+        </div>
+      ) : (
+        <div className="mt-2 space-y-3 mb-4">
+          <input value={editName} onChange={e => setEditName(e.target.value)} placeholder="Your name"
+            className="w-full px-4 py-3 rounded-xl bg-secondary text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 text-sm" />
+          <input value={editUsername} onChange={e => setEditUsername(e.target.value)} placeholder="username"
+            className="w-full px-4 py-3 rounded-xl bg-secondary text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 text-sm" />
+          <div className="flex gap-2 justify-end">
+            <button onClick={() => setEditing(false)} className="px-4 py-2 rounded-xl bg-secondary text-secondary-foreground text-sm font-semibold flex items-center gap-1">
+              <X className="w-4 h-4" /> Cancel
+            </button>
+            <button onClick={handleSave} disabled={saving} className="px-4 py-2 rounded-xl bg-primary text-primary-foreground text-sm font-semibold flex items-center gap-1 disabled:opacity-50">
+              <Check className="w-4 h-4" /> {saving ? 'Saving…' : 'Save'}
+            </button>
+          </div>
+        </div>
       )}
 
-      {!isCreator && (
-        <button onClick={handleBecomeCreator} disabled={becoming}
-          className="w-full flex items-center gap-3 px-5 py-4 rounded-2xl bg-primary/10 border border-primary/20 mb-3 disabled:opacity-50">
-          <Sparkles className="w-5 h-5 text-primary" />
-          <span className="flex-1 text-foreground font-semibold text-sm text-left">
-            {becoming ? 'Setting up...' : 'Become a creator'}
-          </span>
-          <ChevronRight className="w-4 h-4 text-primary" />
-        </button>
-      )}
+      <button onClick={() => navigate('/post/new')}
+        className="w-full mb-6 py-2.5 rounded-xl bg-primary text-primary-foreground font-semibold text-sm flex items-center justify-center gap-2">
+        <Plus className="w-4 h-4" /> New post
+      </button>
 
       {isAdmin && (
         <button onClick={() => navigate('/admin')}
@@ -210,19 +186,12 @@ const ProfilePage = () => {
         </button>
       )}
 
-      <button onClick={() => navigate('/subscriptions')}
-        className="w-full flex items-center gap-3 px-5 py-4 rounded-2xl bg-card border border-border mb-3">
-        <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
-          <Receipt className="w-5 h-5 text-primary" />
-        </div>
-        <div className="flex-1 text-left">
-          <p className="text-foreground font-semibold text-sm">Subscriptions & Refunds</p>
-          <p className="text-muted-foreground text-xs">Manage memberships · raise refund disputes</p>
-        </div>
-        <ChevronRight className="w-4 h-4 text-muted-foreground" />
-      </button>
+      <h2 className="text-xs font-bold text-muted-foreground uppercase tracking-wide mb-3">My posts</h2>
+      <div className="mb-8">
+        <PostsGrid posts={posts} onOpen={id => navigate(`/p/${id}`)} />
+      </div>
 
-      <div className="rounded-2xl bg-card border border-border overflow-hidden mb-6 mt-3">
+      <div className="rounded-2xl bg-card border border-border overflow-hidden mb-6">
         {menuItems.map((item, i) => (
           <button key={item.label} onClick={() => navigate(item.path)}
             className={`w-full flex items-center gap-3 px-5 py-4 text-left hover:bg-secondary/50 transition-colors ${i > 0 ? 'border-t border-border' : ''}`}>
