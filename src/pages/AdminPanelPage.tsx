@@ -582,44 +582,7 @@ const AdminPanelPage = () => {
         </TabsContent>
 
         {/* STREAMS */}
-        {/* DISPUTES */}
-        <TabsContent value="disputes">
-          <div className="space-y-3">
-            {disputes.length === 0 && (
-              <p className="text-center text-muted-foreground text-sm py-8">No disputes</p>
-            )}
-            {disputes.map(d => (
-              <div key={d.id} className="p-4 rounded-2xl bg-card border border-border">
-                <div className="flex items-start justify-between gap-2 mb-2">
-                  <div className="min-w-0">
-                    <p className="font-semibold text-foreground text-sm truncate">{d.communities?.name || 'Community'}</p>
-                    <p className="text-xs text-muted-foreground truncate">
-                      {d.profiles?.name || d.profiles?.phone || 'User'} · {d.community_tiers?.name} · ₹{d.community_tiers?.price_inr || 0}
-                    </p>
-                  </div>
-                  <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${statusBadge[d.status] || ''}`}>
-                    {d.status.toUpperCase()}
-                  </span>
-                </div>
-                <p className="text-xs text-foreground whitespace-pre-wrap p-2 rounded-lg bg-secondary mb-2">{d.reason}</p>
-                {d.admin_notes && (
-                  <p className="text-xs text-muted-foreground mb-2"><span className="font-semibold text-foreground">Notes:</span> {d.admin_notes}</p>
-                )}
-                <p className="text-[10px] text-muted-foreground mb-2">{new Date(d.created_at).toLocaleString()}</p>
-                {d.status === 'open' && (
-                  <div className="flex gap-2">
-                    <Button size="sm" className="flex-1" onClick={() => { setResolvingDispute(d); setDisputeAction('resolved'); setDisputeNotes(''); }}>
-                      <Check className="w-4 h-4" /> Resolve (refund)
-                    </Button>
-                    <Button size="sm" variant="outline" className="flex-1" onClick={() => { setResolvingDispute(d); setDisputeAction('rejected'); setDisputeNotes(''); }}>
-                      <X className="w-4 h-4" /> Reject
-                    </Button>
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-        </TabsContent>
+
 
         <TabsContent value="streams">
           <div className="space-y-3">
