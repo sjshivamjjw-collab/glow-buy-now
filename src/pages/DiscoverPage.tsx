@@ -56,12 +56,7 @@ const DiscoverPage = () => {
     load();
   }, []);
 
-  const chips = useMemo(() => {
-    const counts = new Map<string, number>();
-    posts.forEach(p => p.hashtags.forEach(h => counts.set(h, (counts.get(h) || 0) + 1)));
-    const top = Array.from(counts.entries()).sort((a, b) => b[1] - a[1]).slice(0, 6).map(([h]) => `#${h}`);
-    return ['For you', 'Trending', ...top];
-  }, [posts]);
+  const chips = useMemo(() => ['For you', 'Trending'], []);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
