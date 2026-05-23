@@ -323,7 +323,7 @@ const CreatePostPage = () => {
       {/* Body */}
       {(() => {
         const BODY_PLACEHOLDERS: Partial<Record<CategoryKey, string>> = {
-          everyday_vibes: '1. Drop unfiltered story/reaction behind the moment\n\n2. Pour out what does a day in your life look like?\n\n3. Life updates, chaotic rants, random thoughts!',
+          everyday_vibes: 'eg. of things you can include\n\n✨ The story: Unfiltered backstory or reaction behind this moment...\n\n📅 Day in the life: What does your day realistically look like?\n\n💭 Vibe check: Life updates, chaotic rants, or random thoughts!',
           showcase: '1. What are the items, products or tools you used?\n\n2. How long did the entire process take?\n\n3. What will you do differently if you were to do it again?',
         };
         const ph = BODY_PLACEHOLDERS[category!] ?? 'Tell people more...';
