@@ -127,11 +127,6 @@ const DiscoverPage = () => {
                 </div>
                 <div className="p-2.5">
                   {p.title && <p className="font-bold text-foreground text-xs line-clamp-2 leading-snug mb-1">{p.title}</p>}
-                  {p.hashtags.length > 0 && (
-                    <p className="text-[10px] text-primary font-semibold truncate mb-1">
-                      {p.hashtags.slice(0, 2).map(t => `#${t}`).join(' ')}
-                    </p>
-                  )}
                   <div className="flex items-center justify-between text-[11px]">
                     <div className="flex items-center gap-1.5 text-muted-foreground min-w-0">
                       {author?.avatar_url ? (
