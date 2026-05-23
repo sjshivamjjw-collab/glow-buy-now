@@ -297,7 +297,7 @@ const CreatePostPage = () => {
 
 
   // STEP 2 — fill in the post
-  const Icon = selectedCategory!.icon;
+  
   const goBackFromForm = () => {
     if (category === 'review') { setReviewSub(null); } else { setCategory(null); }
   };
