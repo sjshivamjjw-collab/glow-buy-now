@@ -324,7 +324,7 @@ const CreatePostPage = () => {
       {(() => {
         const BODY_PLACEHOLDERS: Partial<Record<CategoryKey, string>> = {
           everyday_vibes: 'Example of things you can include:\n\n✨ Drop the unfiltered story behind the moment\n\n📅 What\u2019s a day in your life looking like lately?\n\n💭 Life updates, chaotic rants & random thoughts',
-          showcase: '1. What are the items, products or tools you used?\n\n2. How long did the entire process take?\n\n3. What will you do differently if you were to do it again?',
+          showcase: 'Example of things you can include:\n\n✨ What makes it special, unique, or useful?\n\n📍 How did you discover it and how can other people access it?\n\n💡 Any insider tips or warnings for someone willing to try it out?',
           review: 'Example of things you can include:\n\n✨ What did you try? Highlight the must-tries or absolute skips.\n\n🪑 How was the seating or service? (e.g., ideal for dates, laptop work, group hangs).\n\n💰 How was the overall experience and did it justify the price?',
         };
         const REVIEW_SUB_PLACEHOLDERS: Partial<Record<ReviewSubKey, string>> = {
