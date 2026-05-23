@@ -12,6 +12,7 @@ import PostDetailPage from "@/pages/PostDetailPage";
 import UserProfilePage from "@/pages/UserProfilePage";
 import ProfilePage from "@/pages/ProfilePage";
 import NotificationsPage from "@/pages/NotificationsPage";
+import SavedPostsPage from "@/pages/SavedPostsPage";
 import AdminPanelPage from "@/pages/AdminPanelPage";
 import SettingsPage from "@/pages/SettingsPage";
 import TermsPage from "@/pages/TermsPage";
@@ -80,6 +81,7 @@ const AppRoutes = () => {
               <Route path="/p/:id" element={<PostDetailPage />} />
               <Route path="/u/:userId" element={<UserProfilePage />} />
               <Route path="/notifications" element={<NotificationsPage />} />
+              <Route path="/saved" element={<SavedPostsPage />} />
               <Route path="/profile" element={<ProfilePage />} />
               <Route path="/settings" element={<SettingsPage />} />
               <Route path="/admin" element={isAdmin ? <AdminPanelPage /> : <Navigate to="/" replace />} />

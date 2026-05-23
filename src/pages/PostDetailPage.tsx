@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
-import { ArrowLeft, Heart, MessageCircle, MapPin, Loader2, Send, Trash2, ChevronLeft, ChevronRight } from 'lucide-react';
+import { ArrowLeft, Heart, MessageCircle, MapPin, Loader2, Send, Trash2, ChevronLeft, ChevronRight, Bookmark } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 
 interface PostRow {
@@ -36,22 +36,25 @@ const PostDetailPage = () => {
   const [posting, setPosting] = useState(false);
   const [draft, setDraft] = useState('');
   const [mediaIdx, setMediaIdx] = useState(0);
+  const [saved, setSaved] = useState(false);
 
   useEffect(() => {
     if (!id) return;
     const load = async () => {
       setLoading(true);
-      const [{ data: p }, { data: m }, { data: c }, likeRes] = await Promise.all([
+      const [{ data: p }, { data: m }, { data: c }, likeRes, saveRes] = await Promise.all([
         supabase.from('posts' as any).select('*').eq('id', id).maybeSingle(),
         supabase.from('post_media' as any).select('*').eq('post_id', id).order('sort_order'),
         supabase.from('post_comments' as any).select('*').eq('post_id', id).order('created_at', { ascending: true }),
         userId ? supabase.from('post_likes' as any).select('post_id').eq('post_id', id).eq('user_id', userId).maybeSingle() : Promise.resolve({ data: null }),
+        userId ? supabase.from('post_saves' as any).select('post_id').eq('post_id', id).eq('user_id', userId).maybeSingle() : Promise.resolve({ data: null }),
       ]);
       setPost(p as any);
       setMedia((m as any) || []);
       const commentList = (c as any) || [];
       setComments(commentList);
       setLiked(!!likeRes.data);
+      setSaved(!!saveRes.data);
       const ids = new Set<string>();
       if (p) ids.add((p as any).user_id);
       commentList.forEach((cc: CommentRow) => ids.add(cc.user_id));
@@ -77,6 +80,18 @@ const PostDetailPage = () => {
       await supabase.from('post_likes' as any).delete().eq('post_id', post.id).eq('user_id', userId);
     }
   };
+
+  const handleSave = async () => {
+    if (!userId || !post) { navigate('/auth'); return; }
+    const newSaved = !saved;
+    setSaved(newSaved);
+    if (newSaved) {
+      await supabase.from('post_saves' as any).insert({ post_id: post.id, user_id: userId });
+    } else {
+      await supabase.from('post_saves' as any).delete().eq('post_id', post.id).eq('user_id', userId);
+    }
+  };
+
 
   const handleComment = async () => {
     if (!userId || !post) return;
@@ -188,6 +203,10 @@ const PostDetailPage = () => {
           <MessageCircle className="w-6 h-6 text-[#fafafa]" />
           <span className="text-sm font-semibold text-[#fafafa]">{post.comment_count}</span>
         </div>
+        <button onClick={handleSave} aria-label="Save" className="ml-auto flex items-center gap-1.5 active:scale-95 transition-transform">
+          <Bookmark className={`w-6 h-6 ${saved ? 'fill-[#ef4444] text-[#ef4444]' : 'text-[#fafafa]'}`} />
+          <span className="text-sm font-semibold text-[#fafafa]">{saved ? 'Saved' : 'Save'}</span>
+        </button>
       </div>
 
       {/* Body */}

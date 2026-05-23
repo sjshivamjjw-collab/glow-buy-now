@@ -1,4 +1,4 @@
-import { Compass, Bell, User, Plus } from 'lucide-react';
+import { Compass, Bell, User, Plus, Bookmark } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useNotifications } from '@/hooks/useNotifications';
 
@@ -9,6 +9,7 @@ const BottomNav = () => {
 
   const tabs = [
     { icon: Compass, label: 'Discover', path: '/' },
+    { icon: Bookmark, label: 'Saved', path: '/saved' },
     { icon: Plus, label: 'Post', path: '/post/new', accent: true },
     { icon: Bell, label: 'Activity', path: '/notifications', badge: unreadCount },
     { icon: User, label: 'Profile', path: '/profile' },
