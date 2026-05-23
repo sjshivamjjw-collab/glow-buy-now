@@ -183,10 +183,6 @@ const DiscoverPage = () => {
                       <Images className="w-3 h-3" /> {p.media_count}
                     </span>
                   )}
-                  <div className="absolute bottom-2 right-2 flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#0a0a0a]/85 backdrop-blur-sm text-[#fafafa] text-[11px] font-semibold">
-                    <Heart className="w-3 h-3 fill-[#f97316] text-[#f97316]" />
-                    {formatCount(p.like_count)}
-                  </div>
                 </div>
 
                 {/* Footer */}
@@ -212,9 +208,14 @@ const DiscoverPage = () => {
                         {author?.username ? `@${author.username}` : author?.name || 'User'}
                       </span>
                     </div>
-                    <span className="flex items-center gap-0.5 text-[11px] text-[#f59e4b] font-medium shrink-0">
-                      <MessageCircle className="w-3 h-3" />{formatCount(p.comment_count)}
-                    </span>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <span className="flex items-center gap-0.5 text-[11px] text-[#f59e4b] font-medium">
+                        <Heart className="w-3 h-3 fill-[#f97316] text-[#f97316]" />{formatCount(p.like_count)}
+                      </span>
+                      <span className="flex items-center gap-0.5 text-[11px] text-[#f59e4b] font-medium">
+                        <MessageCircle className="w-3 h-3" />{formatCount(p.comment_count)}
+                      </span>
+                    </div>
                   </div>
                 </div>
               </button>
