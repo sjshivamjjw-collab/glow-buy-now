@@ -276,55 +276,91 @@ const PostDetailPage = () => {
           <p className="text-sm text-[#a0a0a0] text-center py-6">Be the first to comment.</p>
         ) : (
           <ul className="space-y-3">
-            {comments.map(c => {
-              const a = authors[c.user_id];
-              const mine = c.user_id === userId;
-              return (
-                <li key={c.id} className="flex gap-2.5 p-3 rounded-2xl bg-[#161616] border border-[#2a2a2a]/50">
-                  {a?.avatar_url ? (
-                    <img src={a.avatar_url} className="w-8 h-8 rounded-full object-cover shrink-0 ring-1 ring-[#2a2a2a]" alt="" />
-                  ) : (
-                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#2a2a2a] to-[#ef4444]/40 shrink-0 flex items-center justify-center text-xs font-bold text-[#fafafa]">
-                      {(a?.name || a?.username || '?')[0]?.toUpperCase()}
+            {comments.filter(c => !c.parent_id).map(top => {
+              const thread = [top, ...comments.filter(r => r.parent_id === top.id)];
+              return thread.map((c, idx) => {
+                const a = authors[c.user_id];
+                const mine = c.user_id === userId;
+                const isReply = idx > 0;
+                const cLiked = likedComments.has(c.id);
+                return (
+                  <li
+                    key={c.id}
+                    className={`flex gap-2.5 p-3 rounded-2xl bg-[#161616] border border-[#2a2a2a]/50 ${isReply ? 'ml-8' : ''}`}
+                  >
+                    {a?.avatar_url ? (
+                      <img src={a.avatar_url} className="w-8 h-8 rounded-full object-cover shrink-0 ring-1 ring-[#2a2a2a]" alt="" />
+                    ) : (
+                      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#2a2a2a] to-[#ef4444]/40 shrink-0 flex items-center justify-center text-xs font-bold text-[#fafafa]">
+                        {(a?.name || a?.username || '?')[0]?.toUpperCase()}
+                      </div>
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-bold text-[#fafafa]">
+                        {a?.name || a?.username || 'User'}
+                        <span className="ml-2 text-[#a0a0a0] font-normal">{formatDistanceToNow(new Date(c.created_at), { addSuffix: true })}</span>
+                      </p>
+                      <p className="text-sm text-[#e5e5e5] whitespace-pre-wrap">{c.body}</p>
+                      <div className="flex items-center gap-4 mt-1.5">
+                        <button
+                          onClick={() => handleLikeComment(c)}
+                          className="flex items-center gap-1 text-[11px] text-[#a0a0a0] hover:text-[#ef4444] active:scale-95 transition-transform"
+                        >
+                          <Heart className={`w-3.5 h-3.5 ${cLiked ? 'fill-[#ef4444] text-[#ef4444]' : ''}`} />
+                          {c.like_count > 0 && <span className="font-semibold">{c.like_count}</span>}
+                        </button>
+                        {!isReply && (
+                          <button
+                            onClick={() => { setReplyTo(c); }}
+                            className="flex items-center gap-1 text-[11px] text-[#a0a0a0] hover:text-[#fafafa] font-semibold"
+                          >
+                            <Reply className="w-3.5 h-3.5" /> Reply
+                          </button>
+                        )}
+                      </div>
                     </div>
-                  )}
-                  <div className="flex-1 min-w-0">
-                    <p className="text-xs font-bold text-[#fafafa]">
-                      {a?.name || a?.username || 'User'}
-                      <span className="ml-2 text-[#a0a0a0] font-normal">{formatDistanceToNow(new Date(c.created_at), { addSuffix: true })}</span>
-                    </p>
-                    <p className="text-sm text-[#e5e5e5] whitespace-pre-wrap">{c.body}</p>
-                  </div>
-                  {(mine || isOwn) && (
-                    <button onClick={() => handleDeleteComment(c.id)} aria-label="Delete" className="text-[#a0a0a0] hover:text-[#ef4444] p-1">
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
-                  )}
-                </li>
-              );
+                    {(mine || isOwn) && (
+                      <button onClick={() => handleDeleteComment(c.id)} aria-label="Delete" className="text-[#a0a0a0] hover:text-[#ef4444] p-1">
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    )}
+                  </li>
+                );
+              });
             })}
           </ul>
         )}
       </div>
 
       {/* Comment box */}
-      <div className="fixed bottom-[68px] left-0 right-0 z-[60] bg-[#0a0a0a]/95 backdrop-blur-xl border-t border-[#2a2a2a]/40 max-w-lg mx-auto px-3 py-2 flex items-center gap-2">
-        <input
-          value={draft}
-          onChange={e => setDraft(e.target.value)}
-          onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleComment(); } }}
-          placeholder="Add a comment…"
-          className="flex-1 px-4 py-2.5 rounded-full bg-[#1a1a1a]/80 border border-[#2a2a2a]/60 text-[#fafafa] placeholder:text-[#ef4444]/60 focus:outline-none focus:ring-2 focus:ring-[#ef4444]/40 text-sm font-medium"
-        />
-        <button
-          onClick={handleComment}
-          disabled={!draft.trim() || posting}
-          className="w-10 h-10 rounded-full bg-gradient-to-br from-[#ef4444] to-[#dc2626] text-white flex items-center justify-center shadow-md shadow-[#dc2626]/30 disabled:opacity-40 active:scale-95 transition-transform"
-          aria-label="Send"
-        >
-          {posting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
-        </button>
+      <div className="fixed bottom-[68px] left-0 right-0 z-[60] bg-[#0a0a0a]/95 backdrop-blur-xl border-t border-[#2a2a2a]/40 max-w-lg mx-auto">
+        {replyTo && (
+          <div className="px-3 pt-2 pb-1 flex items-center justify-between text-xs text-[#a0a0a0]">
+            <span>Replying to <span className="text-[#fafafa] font-semibold">{authors[replyTo.user_id]?.name || authors[replyTo.user_id]?.username || 'User'}</span></span>
+            <button onClick={() => setReplyTo(null)} aria-label="Cancel reply" className="p-1 hover:text-[#fafafa]">
+              <X className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        )}
+        <div className="px-3 py-2 flex items-center gap-2 border-t border-[#2a2a2a]/40">
+          <input
+            value={draft}
+            onChange={e => setDraft(e.target.value)}
+            onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleComment(); } }}
+            placeholder={replyTo ? 'Write a reply…' : 'Add a comment…'}
+            className="flex-1 px-4 py-2.5 rounded-full bg-[#1a1a1a]/80 border border-[#2a2a2a]/60 text-[#fafafa] placeholder:text-[#ef4444]/60 focus:outline-none focus:ring-2 focus:ring-[#ef4444]/40 text-sm font-medium"
+          />
+          <button
+            onClick={handleComment}
+            disabled={!draft.trim() || posting}
+            className="w-10 h-10 rounded-full bg-gradient-to-br from-[#ef4444] to-[#dc2626] text-white flex items-center justify-center shadow-md shadow-[#dc2626]/30 disabled:opacity-40 active:scale-95 transition-transform"
+            aria-label="Send"
+          >
+            {posting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+          </button>
+        </div>
       </div>
+
     </div>
   );
 };
