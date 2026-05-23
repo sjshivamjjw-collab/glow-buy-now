@@ -42,17 +42,19 @@ const PostDetailPage = () => {
     if (!id) return;
     const load = async () => {
       setLoading(true);
-      const [{ data: p }, { data: m }, { data: c }, likeRes] = await Promise.all([
+      const [{ data: p }, { data: m }, { data: c }, likeRes, saveRes] = await Promise.all([
         supabase.from('posts' as any).select('*').eq('id', id).maybeSingle(),
         supabase.from('post_media' as any).select('*').eq('post_id', id).order('sort_order'),
         supabase.from('post_comments' as any).select('*').eq('post_id', id).order('created_at', { ascending: true }),
         userId ? supabase.from('post_likes' as any).select('post_id').eq('post_id', id).eq('user_id', userId).maybeSingle() : Promise.resolve({ data: null }),
+        userId ? supabase.from('post_saves' as any).select('post_id').eq('post_id', id).eq('user_id', userId).maybeSingle() : Promise.resolve({ data: null }),
       ]);
       setPost(p as any);
       setMedia((m as any) || []);
       const commentList = (c as any) || [];
       setComments(commentList);
       setLiked(!!likeRes.data);
+      setSaved(!!saveRes.data);
       const ids = new Set<string>();
       if (p) ids.add((p as any).user_id);
       commentList.forEach((cc: CommentRow) => ids.add(cc.user_id));
