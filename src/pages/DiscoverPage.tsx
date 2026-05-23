@@ -127,18 +127,18 @@ const DiscoverPage = () => {
                 </div>
                 <div className="p-2.5">
                   {p.title && <p className="font-bold text-foreground text-xs line-clamp-2 leading-snug mb-1">{p.title}</p>}
-                  <div className="flex items-center justify-between text-[11px]">
-                    <div className="flex items-center gap-1.5 text-muted-foreground min-w-0">
+                  <div className="flex items-center justify-between text-[13px]">
+                    <div className="flex items-center gap-2 text-muted-foreground min-w-0">
                       {author?.avatar_url ? (
-                        <img src={author.avatar_url} className="w-4 h-4 rounded-full object-cover shrink-0" alt="" />
+                        <img src={author.avatar_url} className="w-6 h-6 rounded-full object-cover shrink-0" alt="" />
                       ) : (
-                        <div className="w-4 h-4 rounded-full bg-secondary shrink-0" />
+                        <div className="w-6 h-6 rounded-full bg-secondary shrink-0" />
                       )}
-                      <span className="truncate">{author?.username ? `@${author.username}` : author?.name || 'User'}</span>
+                      <span className="truncate font-medium">{author?.username ? `@${author.username}` : author?.name || 'User'}</span>
                     </div>
-                    <div className="flex items-center gap-2 text-muted-foreground shrink-0">
-                      <span className="flex items-center gap-0.5"><Heart className="w-3 h-3" />{formatCount(p.like_count)}</span>
-                      <span className="flex items-center gap-0.5"><MessageCircle className="w-3 h-3" />{formatCount(p.comment_count)}</span>
+                    <div className="flex items-center gap-2.5 text-muted-foreground shrink-0">
+                      <span className="flex items-center gap-1"><Heart className="w-4 h-4" />{formatCount(p.like_count)}</span>
+                      <span className="flex items-center gap-1"><MessageCircle className="w-4 h-4" />{formatCount(p.comment_count)}</span>
                     </div>
                   </div>
                 </div>
