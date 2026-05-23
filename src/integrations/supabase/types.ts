@@ -944,6 +944,7 @@ export type Database = {
         Args: { _qty: number; _variant_id: string }
         Returns: boolean
       }
+      extract_mention_usernames: { Args: { _text: string }; Returns: string[] }
       get_chat_author_names: {
         Args: { _user_ids: string[] }
         Returns: {
@@ -1005,6 +1006,15 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      search_profiles_for_mention: {
+        Args: { _q: string }
+        Returns: {
+          avatar_url: string
+          id: string
+          name: string
+          username: string
+        }[]
       }
     }
     Enums: {
