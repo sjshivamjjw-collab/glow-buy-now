@@ -114,21 +114,21 @@ const ProfilePage = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-background max-w-lg mx-auto px-4 pt-14 pb-24">
-      <h1 className="text-xl font-bold text-foreground mb-6">Profile</h1>
+    <div className="min-h-screen bg-[linear-gradient(180deg,#0a0a0a_0%,#111111_40%,#000000_100%)] max-w-lg mx-auto px-4 pt-14 pb-24">
+      <h1 className="text-xl font-bold text-[#fafafa] mb-6">Profile</h1>
 
       <div className="flex items-center gap-5 mb-5">
         <button
           type="button"
           onClick={() => fileInputRef.current?.click()}
           disabled={uploadingAvatar}
-          className="relative w-20 h-20 rounded-full bg-secondary flex items-center justify-center overflow-hidden group disabled:opacity-60"
+          className="relative w-20 h-20 rounded-full bg-[#161616] ring-1 ring-[#2a2a2a] flex items-center justify-center overflow-hidden group disabled:opacity-60"
           aria-label="Change profile photo"
         >
           {displayAvatar ? (
             <img src={displayAvatar} alt={displayName} className="w-full h-full object-cover" />
           ) : (
-            <span className="text-3xl font-bold text-muted-foreground">{displayName[0]?.toUpperCase() || '?'}</span>
+            <span className="text-3xl font-bold text-[#a0a0a0]">{displayName[0]?.toUpperCase() || '?'}</span>
           )}
           <span className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
             <Camera className="w-5 h-5 text-white" />
@@ -139,9 +139,9 @@ const ProfilePage = () => {
         </button>
         <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleAvatarChange} />
         <div className="flex-1 grid grid-cols-3 gap-2 text-center">
-          <div><p className="font-bold text-foreground">{formatCount(posts.length)}</p><p className="text-[11px] text-muted-foreground">Posts</p></div>
-          <div><p className="font-bold text-foreground">{formatCount(followers)}</p><p className="text-[11px] text-muted-foreground">Followers</p></div>
-          <div><p className="font-bold text-foreground">{formatCount(following)}</p><p className="text-[11px] text-muted-foreground">Following</p></div>
+          <div><p className="font-bold text-[#fafafa]">{formatCount(posts.length)}</p><p className="text-[11px] text-[#a0a0a0]">Posts</p></div>
+          <div><p className="font-bold text-[#fafafa]">{formatCount(followers)}</p><p className="text-[11px] text-[#a0a0a0]">Followers</p></div>
+          <div><p className="font-bold text-[#fafafa]">{formatCount(following)}</p><p className="text-[11px] text-[#a0a0a0]">Following</p></div>
         </div>
       </div>
 
@@ -149,23 +149,23 @@ const ProfilePage = () => {
         <div className="mb-4">
           <div className="flex items-center justify-between">
             <div>
-              <p className="font-bold text-foreground">{displayName}</p>
-              {displayUsername && <p className="text-muted-foreground text-sm">@{displayUsername}</p>}
+              <p className="font-bold text-[#fafafa]">{displayName}</p>
+              {displayUsername && <p className="text-[#a0a0a0] text-sm">@{displayUsername}</p>}
             </div>
-            <button onClick={handleEdit} className="px-3 py-1.5 rounded-xl bg-secondary text-secondary-foreground text-sm font-semibold">Edit</button>
+            <button onClick={handleEdit} className="px-3 py-1.5 rounded-xl bg-[#161616] border border-[#2a2a2a]/60 text-[#fafafa] text-sm font-semibold">Edit</button>
           </div>
         </div>
       ) : (
         <div className="mt-2 space-y-3 mb-4">
           <input value={editName} onChange={e => setEditName(e.target.value)} placeholder="Your name"
-            className="w-full px-4 py-3 rounded-xl bg-secondary text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 text-sm" />
+            className="w-full px-4 py-3 rounded-xl bg-[#161616] border border-[#2a2a2a]/60 text-[#fafafa] placeholder:text-[#6b6b6b] focus:outline-none focus:ring-2 focus:ring-[#ef4444]/40 text-sm" />
           <input value={editUsername} onChange={e => setEditUsername(e.target.value)} placeholder="username"
-            className="w-full px-4 py-3 rounded-xl bg-secondary text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 text-sm" />
+            className="w-full px-4 py-3 rounded-xl bg-[#161616] border border-[#2a2a2a]/60 text-[#fafafa] placeholder:text-[#6b6b6b] focus:outline-none focus:ring-2 focus:ring-[#ef4444]/40 text-sm" />
           <div className="flex gap-2 justify-end">
-            <button onClick={() => setEditing(false)} className="px-4 py-2 rounded-xl bg-secondary text-secondary-foreground text-sm font-semibold flex items-center gap-1">
+            <button onClick={() => setEditing(false)} className="px-4 py-2 rounded-xl bg-[#161616] border border-[#2a2a2a]/60 text-[#fafafa] text-sm font-semibold flex items-center gap-1">
               <X className="w-4 h-4" /> Cancel
             </button>
-            <button onClick={handleSave} disabled={saving} className="px-4 py-2 rounded-xl bg-primary text-primary-foreground text-sm font-semibold flex items-center gap-1 disabled:opacity-50">
+            <button onClick={handleSave} disabled={saving} className="px-4 py-2 rounded-xl bg-gradient-to-br from-[#ef4444] to-[#dc2626] text-white text-sm font-semibold flex items-center gap-1 disabled:opacity-50">
               <Check className="w-4 h-4" /> {saving ? 'Saving…' : 'Save'}
             </button>
           </div>
@@ -173,39 +173,40 @@ const ProfilePage = () => {
       )}
 
       <button onClick={() => navigate('/post/new')}
-        className="w-full mb-6 py-2.5 rounded-xl bg-primary text-primary-foreground font-semibold text-sm flex items-center justify-center gap-2">
+        className="w-full mb-6 py-2.5 rounded-xl bg-gradient-to-br from-[#ef4444] to-[#dc2626] text-white font-semibold text-sm flex items-center justify-center gap-2 shadow-[0_8px_24px_-8px_rgba(239,68,68,0.5)]">
         <Plus className="w-4 h-4" /> New post
       </button>
 
       {isAdmin && (
         <button onClick={() => navigate('/admin')}
-          className="w-full flex items-center gap-3 px-5 py-4 rounded-2xl bg-accent/50 border border-border mb-6">
-          <ShieldCheck className="w-5 h-5 text-muted-foreground" />
-          <span className="flex-1 text-foreground font-semibold text-sm text-left">Admin Panel</span>
-          <ChevronRight className="w-4 h-4 text-muted-foreground" />
+          className="w-full flex items-center gap-3 px-5 py-4 rounded-2xl bg-[#161616] border border-[#2a2a2a]/60 mb-6">
+          <ShieldCheck className="w-5 h-5 text-[#ef4444]" />
+          <span className="flex-1 text-[#fafafa] font-semibold text-sm text-left">Admin Panel</span>
+          <ChevronRight className="w-4 h-4 text-[#a0a0a0]" />
         </button>
       )}
 
-      <h2 className="text-xs font-bold text-muted-foreground uppercase tracking-wide mb-3">My posts</h2>
+      <h2 className="text-xs font-bold text-[#a0a0a0] uppercase tracking-wide mb-3">My posts</h2>
       <div className="mb-8">
         <PostsGrid posts={posts} onOpen={id => navigate(`/p/${id}`)} />
       </div>
 
-      <div className="rounded-2xl bg-card border border-border overflow-hidden mb-6">
+      <div className="rounded-2xl bg-[#161616] border border-[#2a2a2a]/60 overflow-hidden mb-6">
         {menuItems.map((item, i) => (
           <button key={item.label} onClick={() => navigate(item.path)}
-            className={`w-full flex items-center gap-3 px-5 py-4 text-left hover:bg-secondary/50 transition-colors ${i > 0 ? 'border-t border-border' : ''}`}>
-            <item.icon className="w-5 h-5 text-muted-foreground" />
-            <span className="flex-1 text-foreground font-medium text-sm">{item.label}</span>
-            <ChevronRight className="w-4 h-4 text-muted-foreground" />
+            className={`w-full flex items-center gap-3 px-5 py-4 text-left hover:bg-[#1a1a1a] transition-colors ${i > 0 ? 'border-t border-[#2a2a2a]/60' : ''}`}>
+            <item.icon className="w-5 h-5 text-[#a0a0a0]" />
+            <span className="flex-1 text-[#fafafa] font-medium text-sm">{item.label}</span>
+            <ChevronRight className="w-4 h-4 text-[#a0a0a0]" />
           </button>
         ))}
       </div>
 
-      <button onClick={handleLogout} className="w-full flex items-center justify-center gap-2 py-4 rounded-2xl bg-destructive/10 text-destructive font-semibold">
+      <button onClick={handleLogout} className="w-full flex items-center justify-center gap-2 py-4 rounded-2xl bg-[#ef4444]/10 border border-[#ef4444]/30 text-[#ef4444] font-semibold">
         <LogOut className="w-5 h-5" />
         Sign Out
       </button>
+
 
       <Footer />
     </div>
