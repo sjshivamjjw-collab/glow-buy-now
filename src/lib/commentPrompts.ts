@@ -19,20 +19,20 @@ export type ReviewSubcategory =
   | string;
 
 const REVIEW_SUB_PROMPTS: Record<string, string> = {
-  restaurant: 'Been here? Share your must-try dish or skip…',
-  hotel: 'Stayed here? How was the room, vibe or service…',
-  trip: 'Visited this place? Drop tips, hidden spots, or warnings…',
-  product: 'Used this product? Share what worked or didn’t…',
-  media: 'Watched/read it? Share your honest take, no spoilers…',
-  activity: 'Tried this? Was it worth the time and money…',
+  restaurant: 'Been here? Agree, disagree, or got a question?',
+  hotel: 'Stayed here? Got questions before booking?',
+  trip: 'Done this trip? Planning it? Ask away.',
+  product: 'Tried this? Thinking of buying? Weigh in.',
+  media: 'Watched or read this? Agree with the take?',
+  activity: 'Done this? Have more questions?',
 };
 
 const CATEGORY_PROMPTS: Record<string, string> = {
-  everyday_vibes: 'React to this moment… use @ to tag friends',
-  showcase: 'Hype it up or ask how they made it… use @ to tag',
-  real_talk: 'Share your advice or own experience… use @ to tag',
-  hidden_gems: 'Been there? Add tips or your own gems… use @ to tag',
-  review: 'Share your honest take… use @ to tag people',
+  everyday_vibes: 'Thoughts?',
+  showcase: 'Curious about anything here? Ask.',
+  real_talk: 'Been through this? Got a different take?',
+  hidden_gems: 'Tried this? Know something even better?',
+  review: 'Share your honest take…',
 };
 
 export const getCommentPrompt = (
