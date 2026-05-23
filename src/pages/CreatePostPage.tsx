@@ -317,7 +317,7 @@ const CreatePostPage = () => {
 
       {/* Title */}
       <label className="text-xs font-semibold text-muted-foreground mb-1 block">What are you sharing today?</label>
-      <input value={title} onChange={e => setTitle(e.target.value)} placeholder="Give your post a headline" maxLength={140}
+      <input value={title} onChange={e => setTitle(e.target.value)} placeholder="A short and clear title helps more people discover your post" maxLength={140}
         className="w-full px-4 py-3 mb-4 rounded-xl bg-secondary text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 text-sm" />
 
       {/* Body */}
