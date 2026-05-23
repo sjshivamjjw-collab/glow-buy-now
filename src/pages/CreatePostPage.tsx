@@ -3,10 +3,30 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
-import { ArrowLeft, ImagePlus, X, Loader2, MapPin, Hash } from 'lucide-react';
+import {
+  ArrowLeft, ImagePlus, X, Loader2, MapPin, Hash, Music, Sparkles,
+  Palette, Star, MessageSquareQuote, Gem, ChevronRight,
+} from 'lucide-react';
 
 const MAX_FILES = 10;
 const MAX_FILE_MB = 25;
+const MAX_AUDIO_MB = 15;
+
+type CategoryKey = 'everyday_vibes' | 'showcase' | 'review' | 'real_talk' | 'hidden_gems';
+
+const CATEGORIES: {
+  key: CategoryKey;
+  title: string;
+  subtitle: string;
+  icon: typeof Sparkles;
+  accent: string;
+}[] = [
+  { key: 'everyday_vibes', title: 'Everyday Vibes', subtitle: 'Moments, moods, routines and little things from life', icon: Sparkles, accent: 'from-pink-500/20 to-orange-400/20 text-pink-500' },
+  { key: 'showcase', title: 'Showcase', subtitle: 'Something you styled, designed, or created', icon: Palette, accent: 'from-violet-500/20 to-fuchsia-400/20 text-violet-500' },
+  { key: 'review', title: 'Review', subtitle: 'A place, product, food spot, or experience you tried', icon: Star, accent: 'from-amber-500/20 to-yellow-400/20 text-amber-500' },
+  { key: 'real_talk', title: 'Real Talk & Tips', subtitle: 'Share advice, recommendation or life lesson', icon: MessageSquareQuote, accent: 'from-sky-500/20 to-cyan-400/20 text-sky-500' },
+  { key: 'hidden_gems', title: 'Hidden Gems & Life Hacks', subtitle: 'Share a secret local spot, rare find, or cool shortcut', icon: Gem, accent: 'from-emerald-500/20 to-teal-400/20 text-emerald-500' },
+];
 
 interface PendingMedia {
   file: File;
@@ -19,14 +39,20 @@ const CreatePostPage = () => {
   const { userId } = useAuth();
   const { toast } = useToast();
   const fileRef = useRef<HTMLInputElement>(null);
+  const audioRef = useRef<HTMLInputElement>(null);
 
+  const [category, setCategory] = useState<CategoryKey | null>(null);
   const [media, setMedia] = useState<PendingMedia[]>([]);
   const [title, setTitle] = useState('');
   const [body, setBody] = useState('');
   const [location, setLocation] = useState('');
   const [hashtagInput, setHashtagInput] = useState('');
   const [hashtags, setHashtags] = useState<string[]>([]);
+  const [musicFile, setMusicFile] = useState<File | null>(null);
+  const [musicTitle, setMusicTitle] = useState('');
   const [submitting, setSubmitting] = useState(false);
+
+  const selectedCategory = CATEGORIES.find(c => c.key === category);
 
   const handleFiles = (files: FileList | null) => {
     if (!files) return;
@@ -52,6 +78,16 @@ const CreatePostPage = () => {
     });
   };
 
+  const handleAudio = (f: File | null) => {
+    if (!f) return;
+    if (f.size > MAX_AUDIO_MB * 1024 * 1024) {
+      toast({ title: 'Audio too large', description: `Max ${MAX_AUDIO_MB}MB`, variant: 'destructive' });
+      return;
+    }
+    setMusicFile(f);
+    if (!musicTitle) setMusicTitle(f.name.replace(/\.[^.]+$/, ''));
+  };
+
   const commitHashtag = () => {
     const raw = hashtagInput.trim().replace(/^#+/, '').toLowerCase();
     if (!raw) return;
@@ -70,40 +106,48 @@ const CreatePostPage = () => {
   };
 
   const handleSubmit = async () => {
-    if (!userId) return;
+    if (!userId || !category) return;
     if (!title.trim() && !body.trim() && media.length === 0) {
-      toast({ title: 'Add some content', description: 'Add a title, body, or media to post', variant: 'destructive' });
+      toast({ title: 'Add some content', description: 'Add a title, description, or media', variant: 'destructive' });
       return;
     }
     setSubmitting(true);
     try {
-      // 1. Insert post row
+      let musicUrl: string | null = null;
+      if (musicFile) {
+        const ext = musicFile.name.split('.').pop() || 'mp3';
+        const path = `${userId}/music/${Date.now()}.${ext}`;
+        const { error: aErr } = await supabase.storage.from('post-media').upload(path, musicFile, {
+          contentType: musicFile.type || 'audio/mpeg', upsert: false,
+        });
+        if (aErr) throw aErr;
+        musicUrl = supabase.storage.from('post-media').getPublicUrl(path).data.publicUrl;
+      }
+
       const { data: post, error: postErr } = await supabase.from('posts' as any).insert({
         user_id: userId,
+        category,
         title: title.trim() || null,
         body: body.trim() || null,
         location: location.trim() || null,
         hashtags,
+        music_url: musicUrl,
+        music_title: musicFile ? (musicTitle.trim() || null) : null,
       }).select('id').single();
       if (postErr || !post) throw postErr || new Error('Failed to create post');
       const postId = (post as any).id as string;
 
-      // 2. Upload media + create media rows
       for (let i = 0; i < media.length; i++) {
         const m = media[i];
         const ext = m.file.name.split('.').pop() || (m.kind === 'video' ? 'mp4' : 'jpg');
         const path = `${userId}/${postId}/${i}-${Date.now()}.${ext}`;
         const { error: upErr } = await supabase.storage.from('post-media').upload(path, m.file, {
-          contentType: m.file.type || undefined,
-          upsert: false,
+          contentType: m.file.type || undefined, upsert: false,
         });
         if (upErr) throw upErr;
-        const { data: pub } = supabase.storage.from('post-media').getPublicUrl(path);
+        const url = supabase.storage.from('post-media').getPublicUrl(path).data.publicUrl;
         const { error: mErr } = await supabase.from('post_media' as any).insert({
-          post_id: postId,
-          url: pub.publicUrl,
-          kind: m.kind,
-          sort_order: i,
+          post_id: postId, url, kind: m.kind, sort_order: i,
         });
         if (mErr) throw mErr;
       }
@@ -118,17 +162,72 @@ const CreatePostPage = () => {
     }
   };
 
+  // STEP 1 — pick a category
+  if (!category) {
+    return (
+      <div className="min-h-screen bg-background max-w-lg mx-auto px-4 pt-4 pb-32">
+        <div className="flex items-center gap-3 mb-2">
+          <button onClick={() => navigate(-1)} className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center">
+            <ArrowLeft className="w-5 h-5 text-foreground" />
+          </button>
+          <h1 className="text-xl font-bold text-foreground">New post</h1>
+        </div>
+        <p className="text-sm text-muted-foreground mb-5 pl-1">What are you sharing today?</p>
+
+        <div className="space-y-3">
+          {CATEGORIES.map(c => {
+            const Icon = c.icon;
+            return (
+              <button
+                key={c.key}
+                onClick={() => setCategory(c.key)}
+                className="w-full text-left rounded-2xl bg-card border border-border p-4 flex items-center gap-4 active:scale-[0.99] transition-transform"
+              >
+                <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${c.accent} flex items-center justify-center shrink-0`}>
+                  <Icon className="w-6 h-6" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="font-bold text-foreground text-sm">{c.title}</p>
+                  <p className="text-xs text-muted-foreground leading-snug">{c.subtitle}</p>
+                </div>
+                <ChevronRight className="w-5 h-5 text-muted-foreground shrink-0" />
+              </button>
+            );
+          })}
+        </div>
+      </div>
+    );
+  }
+
+  // STEP 2 — fill in the post
+  const Icon = selectedCategory!.icon;
   return (
     <div className="min-h-screen bg-background max-w-lg mx-auto px-4 pt-4 pb-32">
-      <div className="flex items-center gap-3 mb-6">
-        <button onClick={() => navigate(-1)} className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center">
+      <div className="flex items-center gap-3 mb-4">
+        <button onClick={() => setCategory(null)} className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center">
           <ArrowLeft className="w-5 h-5 text-foreground" />
         </button>
         <h1 className="text-xl font-bold text-foreground">New post</h1>
       </div>
 
+      {/* Selected category chip */}
+      <button
+        onClick={() => setCategory(null)}
+        className={`w-full rounded-2xl bg-gradient-to-br ${selectedCategory!.accent} p-3 mb-5 flex items-center gap-3 border border-border`}
+      >
+        <div className="w-10 h-10 rounded-xl bg-background/60 flex items-center justify-center">
+          <Icon className="w-5 h-5" />
+        </div>
+        <div className="flex-1 text-left min-w-0">
+          <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide">Category</p>
+          <p className="font-bold text-foreground text-sm">{selectedCategory!.title}</p>
+        </div>
+        <span className="text-xs font-semibold text-foreground/70">Change</span>
+      </button>
+
       {/* Media grid */}
-      <div className="grid grid-cols-3 gap-2 mb-4">
+      <label className="text-xs font-semibold text-muted-foreground mb-1 block">Media</label>
+      <div className="grid grid-cols-3 gap-2 mb-1">
         {media.map((m, i) => (
           <div key={i} className="relative aspect-square rounded-xl overflow-hidden bg-secondary">
             {m.kind === 'video' ? (
@@ -152,48 +251,26 @@ const CreatePostPage = () => {
           </button>
         )}
       </div>
-      <input
-        ref={fileRef}
-        type="file"
-        accept="image/*,video/*"
-        multiple
-        className="hidden"
-        onChange={e => { handleFiles(e.target.files); e.target.value = ''; }}
-      />
+      <input ref={fileRef} type="file" accept="image/*,video/*" multiple className="hidden"
+        onChange={e => { handleFiles(e.target.files); e.target.value = ''; }} />
       <p className="text-[10px] text-muted-foreground mb-5">Up to {MAX_FILES} images or videos · max {MAX_FILE_MB}MB each</p>
 
       {/* Title */}
       <label className="text-xs font-semibold text-muted-foreground mb-1 block">Title</label>
-      <input
-        value={title}
-        onChange={e => setTitle(e.target.value)}
-        placeholder="Give your post a headline"
-        maxLength={140}
-        className="w-full px-4 py-3 mb-4 rounded-xl bg-secondary text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 text-sm"
-      />
+      <input value={title} onChange={e => setTitle(e.target.value)} placeholder="Give your post a headline" maxLength={140}
+        className="w-full px-4 py-3 mb-4 rounded-xl bg-secondary text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 text-sm" />
 
       {/* Body */}
       <label className="text-xs font-semibold text-muted-foreground mb-1 block">Description</label>
-      <textarea
-        value={body}
-        onChange={e => setBody(e.target.value)}
-        placeholder="Tell people more…"
-        maxLength={2000}
-        rows={5}
-        className="w-full px-4 py-3 mb-4 rounded-xl bg-secondary text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 text-sm resize-none"
-      />
+      <textarea value={body} onChange={e => setBody(e.target.value)} placeholder="Tell people more…" maxLength={2000} rows={5}
+        className="w-full px-4 py-3 mb-4 rounded-xl bg-secondary text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 text-sm resize-none" />
 
       {/* Location */}
       <label className="text-xs font-semibold text-muted-foreground mb-1 block">Location</label>
       <div className="relative mb-4">
         <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-        <input
-          value={location}
-          onChange={e => setLocation(e.target.value)}
-          placeholder="e.g. Mumbai, Bandra"
-          maxLength={100}
-          className="w-full pl-11 pr-4 py-3 rounded-xl bg-secondary text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 text-sm"
-        />
+        <input value={location} onChange={e => setLocation(e.target.value)} placeholder="e.g. Mumbai, Bandra" maxLength={100}
+          className="w-full pl-11 pr-4 py-3 rounded-xl bg-secondary text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 text-sm" />
       </div>
 
       {/* Hashtags */}
@@ -209,23 +286,43 @@ const CreatePostPage = () => {
         ))}
         <div className="relative flex-1 min-w-[120px]">
           <Hash className="absolute left-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
-          <input
-            value={hashtagInput}
-            onChange={e => setHashtagInput(e.target.value)}
-            onKeyDown={handleHashtagKey}
-            onBlur={commitHashtag}
+          <input value={hashtagInput} onChange={e => setHashtagInput(e.target.value)} onKeyDown={handleHashtagKey} onBlur={commitHashtag}
             placeholder={hashtags.length ? '' : 'travel, foodie…'}
-            className="w-full pl-7 pr-1 py-1 bg-transparent text-foreground placeholder:text-muted-foreground focus:outline-none text-sm"
-          />
+            className="w-full pl-7 pr-1 py-1 bg-transparent text-foreground placeholder:text-muted-foreground focus:outline-none text-sm" />
         </div>
       </div>
-      <p className="text-[10px] text-muted-foreground mb-6">Press space, comma, or enter to add.</p>
+      <p className="text-[10px] text-muted-foreground mb-5">Press space, comma, or enter to add.</p>
 
-      <button
-        onClick={handleSubmit}
-        disabled={submitting}
-        className="w-full py-3.5 rounded-2xl bg-primary text-primary-foreground font-bold text-sm disabled:opacity-60 flex items-center justify-center gap-2"
-      >
+      {/* Music */}
+      <label className="text-xs font-semibold text-muted-foreground mb-1 block">Music (optional)</label>
+      {musicFile ? (
+        <div className="mb-1 rounded-xl bg-secondary p-3 flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
+            <Music className="w-5 h-5" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <input value={musicTitle} onChange={e => setMusicTitle(e.target.value)} placeholder="Track title"
+              className="w-full bg-transparent text-foreground text-sm font-semibold focus:outline-none truncate" />
+            <p className="text-[10px] text-muted-foreground truncate">{musicFile.name}</p>
+          </div>
+          <button onClick={() => { setMusicFile(null); setMusicTitle(''); }} aria-label="Remove music"
+            className="w-8 h-8 rounded-full bg-background flex items-center justify-center">
+            <X className="w-4 h-4 text-foreground" />
+          </button>
+        </div>
+      ) : (
+        <button type="button" onClick={() => audioRef.current?.click()}
+          className="w-full mb-1 rounded-xl border-2 border-dashed border-border bg-card p-4 flex items-center gap-3 text-muted-foreground hover:border-primary/50 transition-colors">
+          <Music className="w-5 h-5" />
+          <span className="text-sm font-semibold">Add a music track</span>
+        </button>
+      )}
+      <input ref={audioRef} type="file" accept="audio/*" className="hidden"
+        onChange={e => { handleAudio(e.target.files?.[0] || null); e.target.value = ''; }} />
+      <p className="text-[10px] text-muted-foreground mb-6">MP3 / M4A / WAV · max {MAX_AUDIO_MB}MB</p>
+
+      <button onClick={handleSubmit} disabled={submitting}
+        className="w-full py-3.5 rounded-2xl bg-primary text-primary-foreground font-bold text-sm disabled:opacity-60 flex items-center justify-center gap-2">
         {submitting && <Loader2 className="w-4 h-4 animate-spin" />}
         {submitting ? 'Posting…' : 'Share post'}
       </button>
