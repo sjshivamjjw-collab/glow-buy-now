@@ -316,7 +316,7 @@ const CreatePostPage = () => {
       <p className="text-[10px] text-muted-foreground mb-5">Up to {MAX_FILES} images or videos · max {MAX_FILE_MB}MB each</p>
 
       {/* Title */}
-      <label className="text-xs font-semibold text-muted-foreground mb-1 block">Title</label>
+      <label className="text-xs font-semibold text-muted-foreground mb-1 block">What are you sharing today?</label>
       <input value={title} onChange={e => setTitle(e.target.value)} placeholder="Give your post a headline" maxLength={140}
         className="w-full px-4 py-3 mb-4 rounded-xl bg-secondary text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 text-sm" />
 
