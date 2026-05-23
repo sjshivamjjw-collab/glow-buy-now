@@ -203,6 +203,10 @@ const PostDetailPage = () => {
           <MessageCircle className="w-6 h-6 text-[#fafafa]" />
           <span className="text-sm font-semibold text-[#fafafa]">{post.comment_count}</span>
         </div>
+        <button onClick={handleSave} aria-label="Save" className="ml-auto flex items-center gap-1.5 active:scale-95 transition-transform">
+          <Bookmark className={`w-6 h-6 ${saved ? 'fill-[#ef4444] text-[#ef4444]' : 'text-[#fafafa]'}`} />
+          <span className="text-sm font-semibold text-[#fafafa]">{saved ? 'Saved' : 'Save'}</span>
+        </button>
       </div>
 
       {/* Body */}
