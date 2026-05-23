@@ -92,7 +92,15 @@ const CreatePostPage = () => {
         const items = data.map(d => {
           const a = d.address || {};
           const primary = a.city || a.town || a.village || a.suburb || a.neighbourhood || a.county || a.state || d.name || d.display_name.split(',')[0];
-          const region = [a.state, a.country].filter(Boolean).join(', ');
+          const parts: string[] = [];
+          const seenPart = new Set<string>([primary.toLowerCase()]);
+          [a.state, a.country].forEach((p) => {
+            if (p && !seenPart.has(p.toLowerCase())) {
+              seenPart.add(p.toLowerCase());
+              parts.push(p);
+            }
+          });
+          const region = parts.join(', ');
           return { name: primary, display: region ? `${primary}, ${region}` : d.display_name };
         });
         // de-dup by display
