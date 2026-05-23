@@ -170,8 +170,16 @@ const CreatePostPage = () => {
 
   const handleSubmit = async () => {
     if (!userId || !category) return;
-    if (!title.trim() && !body.trim() && media.length === 0) {
-      toast({ title: 'Add some content', description: 'Add a title, description, or media', variant: 'destructive' });
+    if (media.length === 0) {
+      toast({ title: 'Add media', description: 'Please add at least one photo or video', variant: 'destructive' });
+      return;
+    }
+    if (!title.trim()) {
+      toast({ title: 'Add a title', description: 'Tell people what you are sharing', variant: 'destructive' });
+      return;
+    }
+    if (!body.trim()) {
+      toast({ title: 'Add a description', description: 'Tell people more about your post', variant: 'destructive' });
       return;
     }
     setSubmitting(true);
@@ -322,7 +330,7 @@ const CreatePostPage = () => {
 
 
       {/* Media grid */}
-      <label className="text-xs font-semibold text-[#6b6b6b] mb-1 block">Media</label>
+      <label className="text-xs font-semibold text-[#6b6b6b] mb-1 block">Media <span className="text-[#ef4444]">*</span></label>
       <div className="grid grid-cols-3 gap-2 mb-1">
         {media.map((m, i) => (
           <div key={i} className="relative aspect-square rounded-xl overflow-hidden bg-[#f5f5f5] border border-[#e5e5e5]">
@@ -352,7 +360,7 @@ const CreatePostPage = () => {
       
 
       {/* Title */}
-      <label className="text-xs font-semibold text-[#6b6b6b] mb-1 block">What are you sharing today?</label>
+      <label className="text-xs font-semibold text-[#6b6b6b] mb-1 block">What are you sharing today? <span className="text-[#ef4444]">*</span></label>
       <input value={title} onChange={e => setTitle(e.target.value.slice(0, 75))} placeholder="A short and clear title helps more people discover your post" maxLength={75}
         className="w-full px-4 py-3 mb-4 rounded-xl bg-[#f5f5f5] border border-[#e5e5e5] text-[#0a0a0a] placeholder:text-[#a0a0a0] focus:outline-none focus:ring-2 focus:ring-[#ef4444]/40 text-sm" />
 
@@ -406,7 +414,7 @@ const CreatePostPage = () => {
         };
         return (
           <>
-            <label className="text-xs font-semibold text-[#6b6b6b] mb-1 block">Tell people more... <span className="text-[10px] font-normal">(the more descriptive and accurate, the better it is for the community)</span></label>
+            <label className="text-xs font-semibold text-[#6b6b6b] mb-1 block">Tell people more... <span className="text-[#ef4444]">*</span> <span className="text-[10px] font-normal">(the more descriptive and accurate, the better it is for the community)</span></label>
             <textarea
               value={body}
               onChange={handleBodyChange}
