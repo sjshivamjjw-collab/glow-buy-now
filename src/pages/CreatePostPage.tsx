@@ -326,6 +326,7 @@ const CreatePostPage = () => {
           everyday_vibes: 'Example of things you can include:\n\n✨ Drop the unfiltered story behind the moment\n\n📅 What\u2019s a day in your life looking like lately?\n\n💭 Life updates, chaotic rants & random thoughts',
           showcase: 'Example of things you can include:\n\n✨ What makes it special, unique, or useful?\n\n📍 How did you discover it and how can other people access it?\n\n💡 Any insider tips or warnings for someone willing to try it out?',
           review: 'Example of things you can include:\n\n✨ What did you try? Highlight the must-tries or absolute skips.\n\n🪑 How was the seating or service? (e.g., ideal for dates, laptop work, group hangs).\n\n💰 How was the overall experience and did it justify the price?',
+          hidden_gems: 'Example of things you can include:\n\n💎 What makes this feel special, underrated or genuinely useful?\n\n🔍 How did you discover it — and how can others find it too?\n\n✨ Any tips for someone planning to try or explore it?',
         };
         const REVIEW_SUB_PLACEHOLDERS: Partial<Record<ReviewSubKey, string>> = {
           trip: 'Example of things you can include:\n\n🛌 How was the comfort, cleanliness, views, and amenities?\n\n💡 Any insider tricks on free upgrades or things to not miss out on?\n\n📢 What would you tell someone who is just about to book this?',
