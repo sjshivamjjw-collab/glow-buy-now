@@ -280,7 +280,7 @@ const PostDetailPage = () => {
       </div>
 
       {/* Comment box */}
-      <div className="fixed bottom-0 left-0 right-0 z-40 bg-[#0a0a0a]/90 backdrop-blur-xl border-t border-[#2a2a2a]/40 max-w-lg mx-auto px-3 py-2 flex items-center gap-2 safe-bottom">
+      <div className="fixed bottom-[68px] left-0 right-0 z-[60] bg-[#0a0a0a]/95 backdrop-blur-xl border-t border-[#2a2a2a]/40 max-w-lg mx-auto px-3 py-2 flex items-center gap-2">
         <input
           value={draft}
           onChange={e => setDraft(e.target.value)}
