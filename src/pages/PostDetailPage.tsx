@@ -26,6 +26,7 @@ interface PostRow {
   location: string | null;
   hashtags: string[];
   category: string | null;
+  review_subcategory: string | null;
   like_count: number;
   comment_count: number;
   created_at: string;
