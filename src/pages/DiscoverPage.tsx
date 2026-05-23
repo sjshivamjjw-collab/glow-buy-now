@@ -52,6 +52,8 @@ const RIGHT_HEIGHTS = [230, 250, 220, 245, 235, 240];
 
 const DiscoverPage = () => {
   const navigate = useNavigate();
+  const { userName } = useAuth();
+  const firstName = (userName || '').trim().split(' ')[0] || 'there';
   const [posts, setPosts] = useState<TrendingPost[]>([]);
   const [authors, setAuthors] = useState<Record<string, AuthorInfo>>({});
   const [loading, setLoading] = useState(true);
