@@ -6,6 +6,14 @@ import { useToast } from '@/hooks/use-toast';
 import { ArrowLeft, Heart, MessageCircle, MapPin, Loader2, Send, Trash2, ChevronLeft, ChevronRight, Bookmark, Share2, Reply, X } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 
+const CATEGORY_META: Record<string, { label: string }> = {
+  everyday_vibes: { label: 'Daily Life' },
+  showcase: { label: 'Show & Tell' },
+  review: { label: 'Review' },
+  real_talk: { label: 'Advice' },
+  hidden_gems: { label: 'Hidden Gems' },
+};
+
 interface PostRow {
   id: string;
   user_id: string;
@@ -13,6 +21,7 @@ interface PostRow {
   body: string | null;
   location: string | null;
   hashtags: string[];
+  category: string | null;
   like_count: number;
   comment_count: number;
   created_at: string;
