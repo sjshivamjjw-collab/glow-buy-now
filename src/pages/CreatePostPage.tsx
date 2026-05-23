@@ -170,8 +170,16 @@ const CreatePostPage = () => {
 
   const handleSubmit = async () => {
     if (!userId || !category) return;
-    if (!title.trim() && !body.trim() && media.length === 0) {
-      toast({ title: 'Add some content', description: 'Add a title, description, or media', variant: 'destructive' });
+    if (media.length === 0) {
+      toast({ title: 'Add media', description: 'Please add at least one photo or video', variant: 'destructive' });
+      return;
+    }
+    if (!title.trim()) {
+      toast({ title: 'Add a title', description: 'Tell people what you are sharing', variant: 'destructive' });
+      return;
+    }
+    if (!body.trim()) {
+      toast({ title: 'Add a description', description: 'Tell people more about your post', variant: 'destructive' });
       return;
     }
     setSubmitting(true);
