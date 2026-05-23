@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -64,6 +64,10 @@ const CreatePostPage = () => {
   const [title, setTitle] = useState('');
   const [body, setBody] = useState('');
   const [location, setLocation] = useState('');
+  const [locSuggestions, setLocSuggestions] = useState<{ name: string; display: string }[]>([]);
+  const [locOpen, setLocOpen] = useState(false);
+  const [locLoading, setLocLoading] = useState(false);
+  const locJustPicked = useRef(false);
   const [hashtagInput, setHashtagInput] = useState('');
   const [hashtags, setHashtags] = useState<string[]>([]);
   const [musicFile, setMusicFile] = useState<File | null>(null);
@@ -72,6 +76,38 @@ const CreatePostPage = () => {
 
   const selectedCategory = CATEGORIES.find(c => c.key === category);
   const selectedReviewSub = REVIEW_SUBCATEGORIES.find(s => s.key === reviewSub);
+  useEffect(() => {
+    if (locJustPicked.current) { locJustPicked.current = false; return; }
+    const q = location.trim();
+    if (q.length < 2) { setLocSuggestions([]); setLocLoading(false); return; }
+    setLocLoading(true);
+    const ctrl = new AbortController();
+    const t = setTimeout(async () => {
+      try {
+        const res = await fetch(
+          `https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&limit=6&q=${encodeURIComponent(q)}`,
+          { signal: ctrl.signal, headers: { 'Accept': 'application/json' } }
+        );
+        const data: any[] = await res.json();
+        const items = data.map(d => {
+          const a = d.address || {};
+          const primary = a.city || a.town || a.village || a.suburb || a.neighbourhood || a.county || a.state || d.name || d.display_name.split(',')[0];
+          const region = [a.state, a.country].filter(Boolean).join(', ');
+          return { name: primary, display: region ? `${primary}, ${region}` : d.display_name };
+        });
+        // de-dup by display
+        const seen = new Set<string>();
+        const unique = items.filter(i => { if (seen.has(i.display)) return false; seen.add(i.display); return true; });
+        setLocSuggestions(unique);
+      } catch (e) {
+        if ((e as any)?.name !== 'AbortError') setLocSuggestions([]);
+      } finally {
+        setLocLoading(false);
+      }
+    }, 300);
+    return () => { ctrl.abort(); clearTimeout(t); };
+  }, [location]);
+
 
   const handleFiles = (files: FileList | null) => {
     if (!files) return;
@@ -351,10 +387,45 @@ const CreatePostPage = () => {
       {/* Location */}
       <label className="text-xs font-semibold text-muted-foreground mb-1 block">Location</label>
       <div className="relative mb-4">
-        <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-        <input value={location} onChange={e => setLocation(e.target.value)} placeholder="e.g. Mumbai, Bandra" maxLength={100}
-          className="w-full pl-11 pr-4 py-3 rounded-xl bg-secondary text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 text-sm" />
+        <MapPin className="absolute left-4 top-[22px] -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+        <input
+          value={location}
+          onChange={e => { setLocation(e.target.value); setLocOpen(true); }}
+          onFocus={() => setLocOpen(true)}
+          onBlur={() => setTimeout(() => setLocOpen(false), 150)}
+          placeholder="e.g. Mumbai, Bandra"
+          maxLength={100}
+          className="w-full pl-11 pr-10 py-3 rounded-xl bg-secondary text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 text-sm"
+        />
+        {locLoading && (
+          <Loader2 className="absolute right-3 top-[22px] -translate-y-1/2 w-4 h-4 text-muted-foreground animate-spin" />
+        )}
+        {locOpen && location.trim().length >= 2 && locSuggestions.length > 0 && (
+          <div className="absolute z-20 left-0 right-0 mt-1 rounded-xl bg-card border border-border shadow-lg overflow-hidden max-h-72 overflow-y-auto">
+            {locSuggestions.map((s, i) => (
+              <button
+                key={i}
+                type="button"
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  locJustPicked.current = true;
+                  setLocation(s.display);
+                  setLocOpen(false);
+                  setLocSuggestions([]);
+                }}
+                className="w-full text-left px-3 py-2.5 flex items-start gap-2 hover:bg-secondary transition-colors border-b border-border last:border-b-0"
+              >
+                <MapPin className="w-4 h-4 text-muted-foreground shrink-0 mt-0.5" />
+                <div className="min-w-0">
+                  <p className="text-sm font-semibold text-foreground truncate">{s.name}</p>
+                  <p className="text-[11px] text-muted-foreground truncate">{s.display}</p>
+                </div>
+              </button>
+            ))}
+          </div>
+        )}
       </div>
+
 
       {/* Hashtags */}
       <label className="text-xs font-semibold text-muted-foreground mb-1 block">Hashtags</label>
