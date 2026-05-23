@@ -124,12 +124,12 @@ const DiscoverPage = () => {
   return (
     <div className="min-h-screen max-w-lg mx-auto pb-24 font-[Figtree] bg-[linear-gradient(180deg,#0a0a0a_0%,#111111_40%,#000000_100%)]">
       {/* Header */}
-      <div className="sticky top-0 z-20 backdrop-blur-xl bg-[#0a0a0a]/70 border-b border-[#2a2a2a]/40 px-4 pt-12 pb-3">
-        <div className="mb-3">
-          <p className="text-[11px] font-semibold tracking-[0.08em] text-[#dc2626]/80 mb-0.5">
-            Welcome Back
+      <div className="sticky top-0 z-20 backdrop-blur-xl bg-[#0a0a0a]/70 border-b border-[#2a2a2a]/40 px-4 pt-3 pb-3">
+        <div className="mb-2 flex items-baseline gap-2">
+          <p className="text-[11px] font-semibold tracking-[0.08em] text-[#dc2626]/80">
+            Welcome Back,
           </p>
-          <h1 className="font-[Outfit] text-3xl font-extrabold tracking-tight text-[#fafafa]">
+          <h1 className="font-[Outfit] text-base font-bold tracking-tight text-[#fafafa]">
             {firstName}
           </h1>
         </div>
