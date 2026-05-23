@@ -302,13 +302,14 @@ const CreatePostPage = () => {
     if (category === 'review') { setReviewSub(null); } else { setCategory(null); }
   };
   return (
-    <div className="min-h-screen bg-background max-w-lg mx-auto px-4 pt-4 pb-32">
+    <div className="min-h-screen bg-[linear-gradient(180deg,#0a0a0a_0%,#111111_40%,#000000_100%)] max-w-lg mx-auto px-4 pt-4 pb-32">
       <div className="flex items-center gap-3 mb-4">
-        <button onClick={goBackFromForm} className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center">
-          <ArrowLeft className="w-5 h-5 text-foreground" />
+        <button onClick={goBackFromForm} className="w-10 h-10 rounded-xl bg-[#161616] border border-[#2a2a2a]/60 flex items-center justify-center">
+          <ArrowLeft className="w-5 h-5 text-[#fafafa]" />
         </button>
-        <h1 className="text-xl font-bold text-foreground">New post</h1>
+        <h1 className="text-xl font-bold text-[#fafafa]">New post</h1>
       </div>
+
 
       {/* Selected category chip */}
       <button
