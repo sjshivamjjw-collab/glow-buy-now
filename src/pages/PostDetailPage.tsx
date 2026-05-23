@@ -18,7 +18,7 @@ interface PostRow {
   created_at: string;
 }
 interface MediaRow { id: string; url: string; kind: 'image' | 'video'; sort_order: number; }
-interface CommentRow { id: string; user_id: string; body: string; created_at: string; }
+interface CommentRow { id: string; user_id: string; body: string; created_at: string; parent_id: string | null; like_count: number; }
 interface AuthorInfo { id: string; name: string | null; username: string | null; avatar_url: string | null; }
 
 const PostDetailPage = () => {
