@@ -59,6 +59,7 @@ const CreatePostPage = () => {
   const audioRef = useRef<HTMLInputElement>(null);
 
   const [category, setCategory] = useState<CategoryKey | null>(null);
+  const [reviewSub, setReviewSub] = useState<ReviewSubKey | null>(null);
   const [media, setMedia] = useState<PendingMedia[]>([]);
   const [title, setTitle] = useState('');
   const [body, setBody] = useState('');
