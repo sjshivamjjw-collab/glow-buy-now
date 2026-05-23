@@ -327,8 +327,12 @@ const CreatePostPage = () => {
           showcase: '1. What are the items, products or tools you used?\n\n2. How long did the entire process take?\n\n3. What will you do differently if you were to do it again?',
           review: 'Example of things you can include:\n\n✨ What did you try? Highlight the must-tries or absolute skips.\n\n🪑 How was the seating or service? (e.g., ideal for dates, laptop work, group hangs).\n\n💰 How was the overall experience and did it justify the price?',
         };
-        const ph = BODY_PLACEHOLDERS[category!] ?? 'Tell people more...';
-        const hasSuggestions = !!BODY_PLACEHOLDERS[category!];
+        const REVIEW_SUB_PLACEHOLDERS: Partial<Record<ReviewSubKey, string>> = {
+          trip: 'Example of things you can include:\n\n🛌 How was the comfort, cleanliness, views, and amenities?\n\n💡 Any insider tricks on free upgrades or things to not miss out on?\n\n📢 What would you tell someone who is just about to book this?',
+        };
+        const subPh = category === 'review' && reviewSub ? REVIEW_SUB_PLACEHOLDERS[reviewSub] : undefined;
+        const ph = subPh ?? BODY_PLACEHOLDERS[category!] ?? 'Tell people more...';
+        const hasSuggestions = !!subPh || !!BODY_PLACEHOLDERS[category!];
         return (
           <>
             <label className="text-xs font-semibold text-muted-foreground mb-1 block">Tell people more...</label>
