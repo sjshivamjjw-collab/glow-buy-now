@@ -207,6 +207,7 @@ const CreatePostPage = () => {
                   <Icon className="w-4 h-4" />
                 </div>
                 <p className="font-bold text-foreground text-[13px] leading-tight mt-0.5">{c.title}</p>
+                <p className="text-[11px] text-muted-foreground leading-snug">{c.subtitle}</p>
               </button>
 
             );
