@@ -6,6 +6,7 @@ import { useToast } from '@/hooks/use-toast';
 import {
   ArrowLeft, ImagePlus, X, Loader2, MapPin, Hash, Music, Sparkles,
   Palette, Star, MessageSquareQuote, Gem, ChevronRight,
+  UtensilsCrossed, BedDouble, Plane, ShoppingBag, BookOpen, Ticket,
 } from 'lucide-react';
 
 const MAX_FILES = 10;
@@ -13,6 +14,22 @@ const MAX_FILE_MB = 25;
 const MAX_AUDIO_MB = 15;
 
 type CategoryKey = 'everyday_vibes' | 'showcase' | 'review' | 'real_talk' | 'hidden_gems';
+type ReviewSubKey = 'restaurant' | 'hotel' | 'trip' | 'product' | 'media' | 'activity';
+
+const REVIEW_SUBCATEGORIES: {
+  key: ReviewSubKey;
+  title: string;
+  subtitle: string;
+  icon: typeof Sparkles;
+  accent: string;
+}[] = [
+  { key: 'restaurant', title: 'Restaurant / Bar / Food Joint', subtitle: 'Cafés, bars, street food and dining spots', icon: UtensilsCrossed, accent: 'from-orange-500/20 to-red-400/20 text-orange-500' },
+  { key: 'hotel', title: 'Hotel / Stay / Hostel', subtitle: 'Where you stayed and how it felt', icon: BedDouble, accent: 'from-indigo-500/20 to-blue-400/20 text-indigo-500' },
+  { key: 'trip', title: 'Trip / Vacation', subtitle: 'A full journey or getaway', icon: Plane, accent: 'from-sky-500/20 to-cyan-400/20 text-sky-500' },
+  { key: 'product', title: 'Product', subtitle: 'Something you bought and tried', icon: ShoppingBag, accent: 'from-violet-500/20 to-fuchsia-400/20 text-violet-500' },
+  { key: 'media', title: 'Book / Film / Podcast', subtitle: 'What you read, watched, or listened to', icon: BookOpen, accent: 'from-amber-500/20 to-yellow-400/20 text-amber-500' },
+  { key: 'activity', title: 'Activity / Experience / Event', subtitle: 'A class, concert, tour, or event', icon: Ticket, accent: 'from-emerald-500/20 to-teal-400/20 text-emerald-500' },
+];
 
 const CATEGORIES: {
   key: CategoryKey;
@@ -42,6 +59,7 @@ const CreatePostPage = () => {
   const audioRef = useRef<HTMLInputElement>(null);
 
   const [category, setCategory] = useState<CategoryKey | null>(null);
+  const [reviewSub, setReviewSub] = useState<ReviewSubKey | null>(null);
   const [media, setMedia] = useState<PendingMedia[]>([]);
   const [title, setTitle] = useState('');
   const [body, setBody] = useState('');
@@ -53,6 +71,7 @@ const CreatePostPage = () => {
   const [submitting, setSubmitting] = useState(false);
 
   const selectedCategory = CATEGORIES.find(c => c.key === category);
+  const selectedReviewSub = REVIEW_SUBCATEGORIES.find(s => s.key === reviewSub);
 
   const handleFiles = (files: FileList | null) => {
     if (!files) return;
@@ -198,13 +217,51 @@ const CreatePostPage = () => {
     );
   }
 
+  // STEP 1b — pick a review subcategory
+  if (category === 'review' && !reviewSub) {
+    return (
+      <div className="min-h-screen bg-background max-w-lg mx-auto px-4 pt-4 pb-32">
+        <div className="flex items-center gap-3 mb-4">
+          <button onClick={() => setCategory(null)} className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center">
+            <ArrowLeft className="w-5 h-5 text-foreground" />
+          </button>
+          <h1 className="text-xl font-bold text-foreground">New post</h1>
+        </div>
+        <h2 className="text-2xl font-bold text-foreground mb-1">What are you reviewing?</h2>
+        <p className="text-sm text-muted-foreground mb-5">Pick the closest one</p>
+
+        <div className="grid grid-cols-2 gap-3">
+          {REVIEW_SUBCATEGORIES.map(s => {
+            const Icon = s.icon;
+            return (
+              <button
+                key={s.key}
+                onClick={() => setReviewSub(s.key)}
+                className="text-left rounded-2xl bg-card border border-border p-3 flex flex-col gap-1.5 active:scale-[0.98] hover:border-primary/40 transition-all"
+              >
+                <div className={`w-8 h-8 rounded-lg bg-gradient-to-br ${s.accent} flex items-center justify-center`}>
+                  <Icon className="w-4 h-4" />
+                </div>
+                <p className="font-bold text-foreground text-[13px] leading-tight mt-0.5">{s.title}</p>
+                <p className="text-[11px] text-muted-foreground leading-snug">{s.subtitle}</p>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+    );
+  }
+
 
   // STEP 2 — fill in the post
   const Icon = selectedCategory!.icon;
+  const goBackFromForm = () => {
+    if (category === 'review') { setReviewSub(null); } else { setCategory(null); }
+  };
   return (
     <div className="min-h-screen bg-background max-w-lg mx-auto px-4 pt-4 pb-32">
       <div className="flex items-center gap-3 mb-4">
-        <button onClick={() => setCategory(null)} className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center">
+        <button onClick={goBackFromForm} className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center">
           <ArrowLeft className="w-5 h-5 text-foreground" />
         </button>
         <h1 className="text-xl font-bold text-foreground">New post</h1>
@@ -212,7 +269,7 @@ const CreatePostPage = () => {
 
       {/* Selected category chip */}
       <button
-        onClick={() => setCategory(null)}
+        onClick={goBackFromForm}
         className={`w-full rounded-2xl bg-gradient-to-br ${selectedCategory!.accent} p-3 mb-5 flex items-center gap-3 border border-border`}
       >
         <div className="w-10 h-10 rounded-xl bg-background/60 flex items-center justify-center">
@@ -220,7 +277,10 @@ const CreatePostPage = () => {
         </div>
         <div className="flex-1 text-left min-w-0">
           <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide">Category</p>
-          <p className="font-bold text-foreground text-sm">{selectedCategory!.title}</p>
+          <p className="font-bold text-foreground text-sm truncate">
+            {selectedCategory!.title}
+            {selectedReviewSub && <span className="text-foreground/70"> · {selectedReviewSub.title}</span>}
+          </p>
         </div>
         <span className="text-xs font-semibold text-foreground/70">Change</span>
       </button>
