@@ -182,14 +182,15 @@ const CreatePostPage = () => {
               <button
                 key={c.key}
                 onClick={() => setCategory(c.key)}
-                className="text-left rounded-2xl bg-card border border-border p-4 flex flex-col gap-2 active:scale-[0.98] hover:border-primary/40 transition-all min-h-[140px]"
+                className="text-left rounded-2xl bg-card border border-border p-3 flex flex-col gap-1.5 active:scale-[0.98] hover:border-primary/40 transition-all"
               >
-                <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${c.accent} flex items-center justify-center`}>
-                  <Icon className="w-5 h-5" />
+                <div className={`w-8 h-8 rounded-lg bg-gradient-to-br ${c.accent} flex items-center justify-center`}>
+                  <Icon className="w-4 h-4" />
                 </div>
-                <p className="font-bold text-foreground text-sm leading-tight mt-1">{c.title}</p>
-                <p className="text-xs text-muted-foreground leading-snug">{c.subtitle}</p>
+                <p className="font-bold text-foreground text-[13px] leading-tight mt-0.5">{c.title}</p>
+                <p className="text-[11px] text-muted-foreground leading-snug">{c.subtitle}</p>
               </button>
+
             );
           })}
         </div>
