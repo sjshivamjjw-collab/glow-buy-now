@@ -16,7 +16,7 @@ const BottomNav = () => {
   ];
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-card/95 backdrop-blur-lg border-t border-border safe-bottom">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-[#0a0a0a]/95 backdrop-blur-xl border-t border-[#2a2a2a]/60 safe-bottom">
       <div className="flex items-center justify-around px-2 pt-2 pb-1 max-w-lg mx-auto">
         {tabs.map(({ icon: Icon, label, path, accent, badge }) => {
           const isActive = location.pathname === path;
@@ -25,7 +25,7 @@ const BottomNav = () => {
               <button
                 key={path}
                 onClick={() => navigate(path)}
-                className="relative -mt-6 w-12 h-12 rounded-2xl bg-primary text-primary-foreground flex items-center justify-center shadow-lg active:scale-95 transition-transform"
+                className="relative -mt-6 w-12 h-12 rounded-2xl bg-gradient-to-br from-[#ef4444] to-[#dc2626] text-white flex items-center justify-center shadow-[0_8px_24px_-6px_rgba(239,68,68,0.6)] ring-4 ring-[#0a0a0a] active:scale-95 transition-transform"
                 aria-label={label}
               >
                 <Icon className="w-6 h-6" strokeWidth={2.5} />
@@ -37,13 +37,13 @@ const BottomNav = () => {
               key={path}
               onClick={() => navigate(path)}
               className={`relative flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-xl transition-colors ${
-                isActive ? 'text-primary' : 'text-muted-foreground'
+                isActive ? 'text-[#ef4444]' : 'text-[#a0a0a0]'
               }`}
             >
               <Icon className="w-5 h-5" strokeWidth={isActive ? 2.5 : 2} />
               <span className="text-[10px] font-semibold">{label}</span>
               {!!badge && badge > 0 && (
-                <span className="absolute top-0 right-1 min-w-[16px] h-4 px-1 rounded-full bg-destructive text-destructive-foreground text-[9px] font-bold flex items-center justify-center">
+                <span className="absolute top-0 right-1 min-w-[16px] h-4 px-1 rounded-full bg-gradient-to-br from-[#ef4444] to-[#dc2626] text-white text-[9px] font-bold flex items-center justify-center">
                   {badge > 9 ? '9+' : badge}
                 </span>
               )}
@@ -52,6 +52,7 @@ const BottomNav = () => {
         })}
       </div>
     </nav>
+
   );
 };
 
