@@ -106,21 +106,21 @@ const CreatePostPage = () => {
         const data: any[] = await res.json();
         const items = data.map(d => {
           const a = d.address || {};
-          const primary = a.city || a.town || a.village || a.suburb || a.neighbourhood || a.county || a.state || d.name || d.display_name.split(',')[0];
-          const parts: string[] = [];
+          const primary = a.suburb || a.neighbourhood || a.village || a.town || a.city || a.county || a.state || d.name || d.display_name.split(',')[0];
+          // Secondary context shown only as hint in the dropdown (not saved).
+          const contextParts: string[] = [];
           const seenPart = new Set<string>([primary.toLowerCase()]);
-          [a.state, a.country].forEach((p) => {
+          [a.city, a.state, a.country].forEach((p) => {
             if (p && !seenPart.has(p.toLowerCase())) {
               seenPart.add(p.toLowerCase());
-              parts.push(p);
+              contextParts.push(p);
             }
           });
-          const region = parts.join(', ');
-          return { name: primary, display: region ? `${primary}, ${region}` : d.display_name };
+          return { name: primary, display: contextParts.join(', ') };
         });
-        // de-dup by display
+        // de-dup by name + display hint
         const seen = new Set<string>();
-        const unique = items.filter(i => { if (seen.has(i.display)) return false; seen.add(i.display); return true; });
+        const unique = items.filter(i => { const k = `${i.name}|${i.display}`; if (seen.has(k)) return false; seen.add(k); return true; });
         setLocSuggestions(unique);
       } catch (e) {
         if ((e as any)?.name !== 'AbortError') setLocSuggestions([]);
