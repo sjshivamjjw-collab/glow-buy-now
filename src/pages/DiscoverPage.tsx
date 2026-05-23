@@ -17,7 +17,25 @@ interface TrendingPost {
   cover_url: string | null;
   cover_kind: 'image' | 'video' | null;
   media_count: number;
+  category?: string | null;
 }
+
+const CATEGORY_META: Record<string, { label: string }> = {
+  everyday_vibes: { label: 'Daily Life' },
+  showcase: { label: 'Show & Tell' },
+  review: { label: 'Review' },
+  real_talk: { label: 'Advice' },
+  hidden_gems: { label: 'Hidden Gems' },
+};
+
+const CATEGORY_FILTERS = [
+  { key: 'everyday_vibes', label: 'Daily Life' },
+  { key: 'review', label: 'Reviews' },
+  { key: 'showcase', label: 'Show & Tell' },
+  { key: 'real_talk', label: 'Advice' },
+  { key: 'hidden_gems', label: 'Hidden Gems' },
+];
+
 
 interface AuthorInfo {
   id: string;
