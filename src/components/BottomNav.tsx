@@ -16,8 +16,8 @@ const BottomNav = () => {
   ];
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-[#0a0a0a]/95 backdrop-blur-xl border-t border-[#2a2a2a]/60 safe-bottom">
-      <div className="flex items-center justify-around px-2 pt-2 pb-1 max-w-lg mx-auto">
+    <nav className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-lg z-50 bg-[#0a0a0a]/95 backdrop-blur-xl border-t border-[#2a2a2a]/60 safe-bottom">
+      <div className="flex items-center justify-around px-2 pt-2 pb-1">
         {tabs.map(({ icon: Icon, label, path, accent, badge }) => {
           const isActive = location.pathname === path;
           if (accent) {
