@@ -53,6 +53,8 @@ const PostDetailPage = () => {
   const [replyTo, setReplyTo] = useState<CommentRow | null>(null);
   const draftInputRef = useRef<HTMLInputElement>(null);
   const [draftCursor, setDraftCursor] = useState<number | null>(null);
+  const commentsSectionRef = useRef<HTMLDivElement>(null);
+  const [showCommentBar, setShowCommentBar] = useState(false);
   const mention = useMentionAutocomplete({
     value: draft,
     cursor: draftCursor,
@@ -104,6 +106,17 @@ const PostDetailPage = () => {
     };
     load();
   }, [id, userId]);
+
+  useEffect(() => {
+    const el = commentsSectionRef.current;
+    if (!el) return;
+    const io = new IntersectionObserver(
+      ([entry]) => setShowCommentBar(entry.isIntersecting),
+      { rootMargin: '0px 0px -20% 0px', threshold: 0 }
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, [loading]);
 
   const handleLike = async () => {
     if (!userId || !post) { navigate('/auth'); return; }
@@ -301,7 +314,7 @@ const PostDetailPage = () => {
       </div>
 
       {/* Comments */}
-      <div className="px-4 mt-6">
+      <div ref={commentsSectionRef} className="px-4 mt-6">
         <h3 className="font-[Outfit] text-sm font-bold text-[#a0a0a0] mb-3">Comments</h3>
         {comments.length === 0 ? (
           <p className="text-sm text-[#a0a0a0] text-center py-6">Be the first to comment.</p>
@@ -364,7 +377,7 @@ const PostDetailPage = () => {
       </div>
 
       {/* Comment box */}
-      <div className="fixed bottom-[68px] left-0 right-0 z-[60] bg-[#0a0a0a]/95 backdrop-blur-xl border-t border-[#2a2a2a]/40 max-w-lg mx-auto">
+      <div className={`fixed bottom-[68px] left-0 right-0 z-[60] bg-[#0a0a0a]/95 backdrop-blur-xl border-t border-[#2a2a2a]/40 max-w-lg mx-auto transition-all duration-200 ${showCommentBar ? 'translate-y-0 opacity-100 pointer-events-auto' : 'translate-y-full opacity-0 pointer-events-none'}`}>
         {replyTo && (
           <div className="px-3 pt-2 pb-1 flex items-center justify-between text-xs text-[#a0a0a0]">
             <span>Replying to <span className="text-[#fafafa] font-semibold">{authors[replyTo.user_id]?.name || authors[replyTo.user_id]?.username || 'User'}</span></span>
