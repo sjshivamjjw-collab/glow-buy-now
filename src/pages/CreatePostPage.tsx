@@ -65,6 +65,19 @@ const CreatePostPage = () => {
   const [media, setMedia] = useState<PendingMedia[]>([]);
   const [title, setTitle] = useState('');
   const [body, setBody] = useState('');
+  const bodyRef = useRef<HTMLTextAreaElement>(null);
+  const [bodyCursor, setBodyCursor] = useState<number | null>(null);
+  const bodyMention = useMentionAutocomplete({
+    value: body,
+    cursor: bodyCursor,
+    onPick: ({ value, cursor }) => {
+      setBody(value);
+      requestAnimationFrame(() => {
+        const el = bodyRef.current;
+        if (el) { el.focus(); el.setSelectionRange(cursor, cursor); setBodyCursor(cursor); }
+      });
+    },
+  });
   const [location, setLocation] = useState('');
   const [locSuggestions, setLocSuggestions] = useState<{ name: string; display: string }[]>([]);
   const [locOpen, setLocOpen] = useState(false);
