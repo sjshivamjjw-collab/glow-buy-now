@@ -8,6 +8,8 @@ import {
   Palette, Star, MessageSquareQuote, Gem, ChevronRight,
   UtensilsCrossed, BedDouble, Plane, ShoppingBag, BookOpen, Ticket,
 } from 'lucide-react';
+import { useMentionAutocomplete } from '@/hooks/useMentionAutocomplete';
+import { MentionSuggestions } from '@/components/MentionSuggestions';
 
 const MAX_FILES = 10;
 const MAX_FILE_MB = 25;
@@ -63,6 +65,19 @@ const CreatePostPage = () => {
   const [media, setMedia] = useState<PendingMedia[]>([]);
   const [title, setTitle] = useState('');
   const [body, setBody] = useState('');
+  const bodyRef = useRef<HTMLTextAreaElement>(null);
+  const [bodyCursor, setBodyCursor] = useState<number | null>(null);
+  const bodyMention = useMentionAutocomplete({
+    value: body,
+    cursor: bodyCursor,
+    onPick: ({ value, cursor }) => {
+      setBody(value);
+      requestAnimationFrame(() => {
+        const el = bodyRef.current;
+        if (el) { el.focus(); el.setSelectionRange(cursor, cursor); setBodyCursor(cursor); }
+      });
+    },
+  });
   const [location, setLocation] = useState('');
   const [locSuggestions, setLocSuggestions] = useState<{ name: string; display: string }[]>([]);
   const [locOpen, setLocOpen] = useState(false);
@@ -389,10 +404,12 @@ const CreatePostPage = () => {
         const handleBodyChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
           let v = e.target.value;
           // If user wiped everything, leave it empty so placeholder shows again
-          if (v.trim() === '' || v === '•' || v === BULLET.trim()) { setBody(''); return; }
+          if (v.trim() === '' || v === '•' || v === BULLET.trim()) { setBody(''); setBodyCursor(0); return; }
           setBody(v);
+          setBodyCursor(e.target.selectionStart);
         };
         const handleBodyKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+          if (bodyMention.handleKeyDown(e)) return;
           if (e.key === 'Enter') {
             e.preventDefault();
             const ta = e.currentTarget;
@@ -409,22 +426,38 @@ const CreatePostPage = () => {
             requestAnimationFrame(() => {
               const pos = start + insert.length;
               ta.selectionStart = ta.selectionEnd = pos;
+              setBodyCursor(pos);
             });
           }
         };
         return (
           <>
             <label className="text-xs font-semibold text-[#6b6b6b] mb-1 block">Tell people more... <span className="text-[#ef4444]">*</span> <span className="text-[10px] font-normal">(the more descriptive and accurate, the better it is for the community)</span></label>
-            <textarea
-              value={body}
-              onChange={handleBodyChange}
-              onFocus={handleBodyFocus}
-              onKeyDown={handleBodyKeyDown}
-              placeholder={ph}
-              maxLength={2000}
-              rows={hasSuggestions ? 7 : 5}
-              className="w-full px-4 py-3 mb-4 rounded-xl bg-[#f5f5f5] border border-[#e5e5e5] text-[#0a0a0a] placeholder:text-[#a0a0a0] focus:outline-none focus:ring-2 focus:ring-[#ef4444]/40 text-[13px] resize-none"
-            />
+            <div className="relative mb-4">
+              <textarea
+                ref={bodyRef}
+                value={body}
+                onChange={handleBodyChange}
+                onFocus={handleBodyFocus}
+                onKeyDown={handleBodyKeyDown}
+                onSelect={e => setBodyCursor((e.target as HTMLTextAreaElement).selectionStart)}
+                onKeyUp={e => setBodyCursor((e.target as HTMLTextAreaElement).selectionStart)}
+                placeholder={ph}
+                maxLength={2000}
+                rows={hasSuggestions ? 7 : 5}
+                className="w-full px-4 py-3 rounded-xl bg-[#f5f5f5] border border-[#e5e5e5] text-[#0a0a0a] placeholder:text-[#a0a0a0] focus:outline-none focus:ring-2 focus:ring-[#ef4444]/40 text-[13px] resize-none"
+              />
+              {bodyMention.open && (
+                <div className="absolute left-0 right-0 top-full mt-1 z-30">
+                  <MentionSuggestions
+                    items={bodyMention.items}
+                    active={bodyMention.active}
+                    onPick={bodyMention.applyItem}
+                    onHover={bodyMention.setActive}
+                  />
+                </div>
+              )}
+            </div>
           </>
         );
       })()}
