@@ -358,7 +358,7 @@ const CreatePostPage = () => {
       </div>
       <input ref={fileRef} type="file" accept="image/*,video/*" multiple className="hidden"
         onChange={e => { handleFiles(e.target.files); e.target.value = ''; }} />
-      <p className="text-[10px] text-[#a0a0a0] mb-5">Up to {MAX_FILES} images or videos · max {MAX_FILE_MB}MB each</p>
+      
 
       {/* Title */}
       <label className="text-xs font-semibold text-[#a0a0a0] mb-1 block">What are you sharing today?</label>
