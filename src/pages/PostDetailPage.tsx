@@ -6,6 +6,14 @@ import { useToast } from '@/hooks/use-toast';
 import { ArrowLeft, Heart, MessageCircle, MapPin, Loader2, Send, Trash2, ChevronLeft, ChevronRight, Bookmark, Share2, Reply, X } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 
+const CATEGORY_META: Record<string, { label: string }> = {
+  everyday_vibes: { label: 'Daily Life' },
+  showcase: { label: 'Show & Tell' },
+  review: { label: 'Review' },
+  real_talk: { label: 'Advice' },
+  hidden_gems: { label: 'Hidden Gems' },
+};
+
 interface PostRow {
   id: string;
   user_id: string;
@@ -13,6 +21,7 @@ interface PostRow {
   body: string | null;
   location: string | null;
   hashtags: string[];
+  category: string | null;
   like_count: number;
   comment_count: number;
   created_at: string;
@@ -216,6 +225,11 @@ const PostDetailPage = () => {
             <video src={currentMedia.url} className="w-full h-full object-contain" controls playsInline />
           ) : (
             <img src={currentMedia.url} alt="" className="w-full h-full object-contain" />
+          )}
+          {post.category && CATEGORY_META[post.category] && (
+            <span className="absolute top-2 left-2 z-10 px-2 py-0.5 rounded-md bg-black/55 backdrop-blur-sm text-white/90 text-[10px] font-medium tracking-wide">
+              {CATEGORY_META[post.category].label}
+            </span>
           )}
           {media.length > 1 && (
             <>
