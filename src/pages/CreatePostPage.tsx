@@ -302,7 +302,7 @@ const CreatePostPage = () => {
     if (category === 'review') { setReviewSub(null); } else { setCategory(null); }
   };
   return (
-    <div className="min-h-screen bg-white max-w-lg mx-auto px-4 pt-4 pb-32">
+    <div className="min-h-screen bg-white max-w-2xl mx-auto px-4 pt-4 pb-32">
       <div className="flex items-center gap-3 mb-4">
         <button onClick={goBackFromForm} className="w-10 h-10 rounded-xl bg-[#f5f5f5] border border-[#e5e5e5] flex items-center justify-center">
           <ArrowLeft className="w-5 h-5 text-[#0a0a0a]" />
