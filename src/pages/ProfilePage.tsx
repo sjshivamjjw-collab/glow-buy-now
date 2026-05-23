@@ -221,10 +221,12 @@ const ProfilePage = () => {
       </div>
 
 
-      <button onClick={handleLogout} className="w-full flex items-center justify-center gap-2 py-4 rounded-2xl bg-[#ef4444]/10 border border-[#ef4444]/30 text-[#ef4444] font-semibold">
-        <LogOut className="w-5 h-5" />
-        Sign Out
-      </button>
+      <div className="flex justify-center">
+        <button onClick={handleLogout} className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-[#ef4444]/10 border border-[#ef4444]/30 text-[#ef4444] text-xs font-semibold">
+          <LogOut className="w-3.5 h-3.5" />
+          Sign Out
+        </button>
+      </div>
     </div>
   );
 };
