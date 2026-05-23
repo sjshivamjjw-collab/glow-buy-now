@@ -56,6 +56,19 @@ const DiscoverPage = () => {
   const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState('');
   const [activeChip, setActiveChip] = useState<string>('For you');
+  const [categoryOpen, setCategoryOpen] = useState(false);
+  const [activeCategory, setActiveCategory] = useState<string | null>(null);
+  const categoryRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const onClick = (e: MouseEvent) => {
+      if (categoryRef.current && !categoryRef.current.contains(e.target as Node)) {
+        setCategoryOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', onClick);
+    return () => document.removeEventListener('mousedown', onClick);
+  }, []);
 
 
   useEffect(() => {
