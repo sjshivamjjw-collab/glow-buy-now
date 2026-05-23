@@ -31,11 +31,8 @@ const PostDetailPage = () => {
   const [media, setMedia] = useState<MediaRow[]>([]);
   const [comments, setComments] = useState<CommentRow[]>([]);
   const [authors, setAuthors] = useState<Record<string, AuthorInfo>>({});
-  const [liked, setLiked] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [posting, setPosting] = useState(false);
-  const [draft, setDraft] = useState('');
   const [mediaIdx, setMediaIdx] = useState(0);
+  const [saved, setSaved] = useState(false);
 
   useEffect(() => {
     if (!id) return;
