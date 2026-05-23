@@ -213,6 +213,7 @@ const CreatePostPage = () => {
       const { data: post, error: postErr } = await supabase.from('posts' as any).insert({
         user_id: userId,
         category,
+        review_subcategory: category === 'review' ? reviewSub : null,
         title: title.trim() || null,
         body: body.trim() || null,
         location: location.trim() || null,

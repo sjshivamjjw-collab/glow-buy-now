@@ -588,6 +588,7 @@ export type Database = {
           location: string | null
           music_title: string | null
           music_url: string | null
+          review_subcategory: string | null
           title: string | null
           updated_at: string
           user_id: string
@@ -603,6 +604,7 @@ export type Database = {
           location?: string | null
           music_title?: string | null
           music_url?: string | null
+          review_subcategory?: string | null
           title?: string | null
           updated_at?: string
           user_id: string
@@ -618,6 +620,7 @@ export type Database = {
           location?: string | null
           music_title?: string | null
           music_url?: string | null
+          review_subcategory?: string | null
           title?: string | null
           updated_at?: string
           user_id?: string
