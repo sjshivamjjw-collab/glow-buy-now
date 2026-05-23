@@ -3,7 +3,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { Settings, LogOut, ChevronRight, Bell, HelpCircle, ShieldCheck, Check, X, Camera, Plus } from 'lucide-react';
+import { Settings, LogOut, ChevronRight, Bell, HelpCircle, ShieldCheck, Check, X, Camera, Plus, Share2 } from 'lucide-react';
 
 import { PostsGrid } from '@/pages/UserProfilePage';
 import { formatCount } from '@/lib/utils';
@@ -147,12 +147,38 @@ const ProfilePage = () => {
         </div>
 
         {!editing && (
-          <div className="mt-4 pt-4 border-t border-[#2a2a2a]/60 flex items-center justify-between">
+          <div className="mt-4 pt-4 border-t border-[#2a2a2a]/60 flex items-center justify-between gap-2">
             <div className="min-w-0">
               <p className="font-bold text-[#fafafa] truncate">{displayName}</p>
               {displayUsername && <p className="text-[#a0a0a0] text-sm truncate">@{displayUsername}</p>}
             </div>
-            <button onClick={handleEdit} className="px-4 py-1.5 rounded-full bg-[#1f1f1f] border border-[#2a2a2a] hover:border-[#ef4444]/50 text-[#fafafa] text-xs font-semibold transition-colors shrink-0 ml-3">Edit profile</button>
+            <div className="flex items-center gap-2 shrink-0">
+              <button onClick={handleEdit} className="px-4 py-1.5 rounded-full bg-[#1f1f1f] border border-[#2a2a2a] hover:border-[#ef4444]/50 text-[#fafafa] text-xs font-semibold transition-colors">Edit profile</button>
+              <button
+                onClick={async () => {
+                  const url = `${window.location.origin}/u/${userId}`;
+                  const shareData = {
+                    title: displayName ? `${displayName} on LiveCart` : 'Profile on LiveCart',
+                    text: displayUsername ? `Check out @${displayUsername} on LiveCart` : 'Check out this profile on LiveCart',
+                    url,
+                  };
+                  try {
+                    if (navigator.share) {
+                      await navigator.share(shareData);
+                    } else {
+                      await navigator.clipboard.writeText(url);
+                      toast({ title: 'Link copied', description: url });
+                    }
+                  } catch {
+                    /* user cancelled */
+                  }
+                }}
+                className="px-3 py-1.5 rounded-full bg-[#1f1f1f] border border-[#2a2a2a] hover:border-[#ef4444]/50 text-[#fafafa] text-xs font-semibold transition-colors flex items-center gap-1"
+                aria-label="Share profile"
+              >
+                <Share2 className="w-3.5 h-3.5" /> Share
+              </button>
+            </div>
           </div>
         )}
       </div>
