@@ -201,10 +201,11 @@ const DiscoverPage = () => {
                     </span>
                   )}
                   {p.media_count > 1 && (
-                    <span className="absolute top-2 right-2 px-2 py-0.5 rounded-full bg-black/55 backdrop-blur-sm text-white text-[10px] font-bold flex items-center gap-1">
+                    <span className="absolute bottom-2 right-2 px-2 py-0.5 rounded-full bg-black/55 backdrop-blur-sm text-white text-[10px] font-bold flex items-center gap-1">
                       <Images className="w-3 h-3" /> {p.media_count}
                     </span>
                   )}
+
 
                 </div>
 
