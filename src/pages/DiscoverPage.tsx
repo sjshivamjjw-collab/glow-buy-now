@@ -246,7 +246,7 @@ const DiscoverPage = () => {
                     </div>
                   )}
                   {p.category && CATEGORY_META[p.category] && (
-                    <span className="absolute top-2 left-2 px-2 py-0.5 rounded-full bg-gradient-to-br from-[#ef4444] to-[#dc2626] text-white text-[10px] font-bold shadow-md shadow-black/40">
+                    <span className="absolute top-1.5 left-1.5 px-1.5 py-[2px] rounded-md bg-black/55 backdrop-blur-sm text-white/90 text-[9px] font-medium tracking-wide">
                       {CATEGORY_META[p.category].label}
                     </span>
                   )}
