@@ -12,6 +12,7 @@ import PostDetailPage from "@/pages/PostDetailPage";
 import UserProfilePage from "@/pages/UserProfilePage";
 import ProfilePage from "@/pages/ProfilePage";
 import NotificationsPage from "@/pages/NotificationsPage";
+import SavedPostsPage from "@/pages/SavedPostsPage";
 import AdminPanelPage from "@/pages/AdminPanelPage";
 import SettingsPage from "@/pages/SettingsPage";
 import TermsPage from "@/pages/TermsPage";
