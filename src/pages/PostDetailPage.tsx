@@ -104,12 +104,12 @@ const PostDetailPage = () => {
 
 
   const handleComment = async () => {
-    if (!userId || !post) return;
+    if (!userId || !post) { navigate('/auth'); return; }
     const body = draft.trim();
     if (!body) return;
     setPosting(true);
     const { data, error } = await supabase.from('post_comments' as any).insert({
-      post_id: post.id, user_id: userId, body,
+      post_id: post.id, user_id: userId, body, parent_id: replyTo?.id ?? null,
     }).select('*').single();
     setPosting(false);
     if (error || !data) {
@@ -119,16 +119,34 @@ const PostDetailPage = () => {
     setComments(prev => [...prev, data as any]);
     setPost(p => p ? { ...p, comment_count: p.comment_count + 1 } : p);
     setDraft('');
+    setReplyTo(null);
     if (!authors[userId]) {
       const { data: prof } = await supabase.rpc('get_public_profiles' as any, { _ids: [userId] });
       if (prof?.[0]) setAuthors(a => ({ ...a, [userId]: prof[0] as any }));
     }
   };
 
+  const handleLikeComment = async (c: CommentRow) => {
+    if (!userId) { navigate('/auth'); return; }
+    const isLiked = likedComments.has(c.id);
+    setLikedComments(prev => {
+      const n = new Set(prev);
+      if (isLiked) n.delete(c.id); else n.add(c.id);
+      return n;
+    });
+    setComments(prev => prev.map(x => x.id === c.id ? { ...x, like_count: Math.max(0, x.like_count + (isLiked ? -1 : 1)) } : x));
+    if (isLiked) {
+      await supabase.from('post_comment_likes' as any).delete().eq('comment_id', c.id).eq('user_id', userId);
+    } else {
+      await supabase.from('post_comment_likes' as any).insert({ comment_id: c.id, user_id: userId });
+    }
+  };
+
   const handleDeleteComment = async (cid: string) => {
     await supabase.from('post_comments' as any).delete().eq('id', cid);
-    setComments(prev => prev.filter(c => c.id !== cid));
-    setPost(p => p ? { ...p, comment_count: Math.max(0, p.comment_count - 1) } : p);
+    const removed = comments.filter(c => c.id === cid || c.parent_id === cid).length;
+    setComments(prev => prev.filter(c => c.id !== cid && c.parent_id !== cid));
+    setPost(p => p ? { ...p, comment_count: Math.max(0, p.comment_count - removed) } : p);
   };
 
   const handleDeletePost = async () => {
