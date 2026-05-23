@@ -373,11 +373,49 @@ const CreatePostPage = () => {
         const subPh = category === 'review' && reviewSub ? REVIEW_SUB_PLACEHOLDERS[reviewSub] : undefined;
         const ph = subPh ?? BODY_PLACEHOLDERS[category!] ?? 'Tell people more...';
         const hasSuggestions = !!subPh || !!BODY_PLACEHOLDERS[category!];
+        const BULLET = '• ';
+        const handleBodyFocus = () => {
+          if (!body) setBody(BULLET);
+        };
+        const handleBodyChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+          let v = e.target.value;
+          // If user wiped everything, leave it empty so placeholder shows again
+          if (v.trim() === '' || v === '•' || v === BULLET.trim()) { setBody(''); return; }
+          setBody(v);
+        };
+        const handleBodyKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            const ta = e.currentTarget;
+            const start = ta.selectionStart;
+            const end = ta.selectionEnd;
+            const before = body.slice(0, start);
+            const after = body.slice(end);
+            // If current line is an empty bullet, exit bullet mode (just newline)
+            const lineStart = before.lastIndexOf('\n') + 1;
+            const currentLine = before.slice(lineStart);
+            const insert = currentLine.trim() === '•' ? '\n' : `\n${BULLET}`;
+            const next = before + insert + after;
+            setBody(next);
+            requestAnimationFrame(() => {
+              const pos = start + insert.length;
+              ta.selectionStart = ta.selectionEnd = pos;
+            });
+          }
+        };
         return (
           <>
             <label className="text-xs font-semibold text-muted-foreground mb-1 block">Tell people more...</label>
-            <textarea value={body} onChange={e => setBody(e.target.value)} placeholder={ph} maxLength={2000} rows={hasSuggestions ? 7 : 5}
-              className="w-full px-4 py-3 mb-4 rounded-xl bg-secondary text-foreground placeholder:text-muted-foreground/70 focus:outline-none focus:ring-2 focus:ring-primary/30 text-sm resize-none" />
+            <textarea
+              value={body}
+              onChange={handleBodyChange}
+              onFocus={handleBodyFocus}
+              onKeyDown={handleBodyKeyDown}
+              placeholder={ph}
+              maxLength={2000}
+              rows={hasSuggestions ? 7 : 5}
+              className="w-full px-4 py-3 mb-4 rounded-xl bg-secondary text-foreground placeholder:text-muted-foreground/70 focus:outline-none focus:ring-2 focus:ring-primary/30 text-sm resize-none"
+            />
           </>
         );
       })()}
