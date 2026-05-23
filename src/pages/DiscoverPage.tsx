@@ -1,7 +1,7 @@
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { Search, Sparkles, Heart, MessageCircle, Loader2, Play, Images, MapPin, TrendingUp } from 'lucide-react';
+import { Search, Sparkles, Heart, MessageCircle, Loader2, Play, Images, MapPin, TrendingUp, ChevronDown, Check } from 'lucide-react';
 import { formatCount } from '@/lib/utils';
 
 interface TrendingPost {
@@ -56,6 +56,19 @@ const DiscoverPage = () => {
   const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState('');
   const [activeChip, setActiveChip] = useState<string>('For you');
+  const [categoryOpen, setCategoryOpen] = useState(false);
+  const [activeCategory, setActiveCategory] = useState<string | null>(null);
+  const categoryRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const onClick = (e: MouseEvent) => {
+      if (categoryRef.current && !categoryRef.current.contains(e.target as Node)) {
+        setCategoryOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', onClick);
+    return () => document.removeEventListener('mousedown', onClick);
+  }, []);
 
 
   useEffect(() => {
@@ -83,7 +96,7 @@ const DiscoverPage = () => {
     load();
   }, []);
 
-  const chips = useMemo(() => ['For you', 'Trending', ...CATEGORY_FILTERS.map(c => c.label)], []);
+  const baseChips = useMemo(() => ['For you', 'Trending'], []);
   const labelToKey = useMemo(() => Object.fromEntries(CATEGORY_FILTERS.map(c => [c.label, c.key])), []);
 
   const filtered = useMemo(() => {
@@ -91,8 +104,8 @@ const DiscoverPage = () => {
     let list = posts;
     if (activeChip === 'Trending') {
       list = [...list].sort((a, b) => (b.like_count + b.comment_count) - (a.like_count + a.comment_count));
-    } else if (labelToKey[activeChip]) {
-      list = list.filter(p => p.category === labelToKey[activeChip]);
+    } else if (activeChip === 'Category' && activeCategory) {
+      list = list.filter(p => p.category === activeCategory);
     }
     if (!q) return list;
     const tag = q.startsWith('#') ? q.slice(1) : q;
@@ -102,7 +115,7 @@ const DiscoverPage = () => {
       (p.location || '').toLowerCase().includes(q) ||
       p.hashtags.some(h => h.toLowerCase().includes(tag))
     );
-  }, [posts, query, activeChip, labelToKey]);
+  }, [posts, query, activeChip, activeCategory]);
 
 
   return (
@@ -126,15 +139,15 @@ const DiscoverPage = () => {
           />
         </div>
 
-        {/* Filter chips */}
-        <div className="flex gap-2 overflow-x-auto -mx-4 px-4 mt-3 scrollbar-none">
-          {chips.map(chip => {
+        {/* Filter tabs */}
+        <div className="flex gap-2 mt-3 items-center">
+          {baseChips.map(chip => {
             const active = chip === activeChip;
             return (
               <button
                 key={chip}
-                onClick={() => setActiveChip(chip)}
-                className={`shrink-0 px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all ${
+                onClick={() => { setActiveChip(chip); setCategoryOpen(false); }}
+                className={`px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all ${
                   active
                     ? 'bg-[#fafafa] text-[#1a1a1a] shadow-sm'
                     : 'bg-[#1a1a1a]/70 text-[#a0a0a0] border border-[#2a2a2a]/60 hover:border-[#ef4444]'
@@ -146,6 +159,43 @@ const DiscoverPage = () => {
               </button>
             );
           })}
+
+          {/* Category dropdown tab */}
+          <div className="relative" ref={categoryRef}>
+            <button
+              onClick={() => { setActiveChip('Category'); setCategoryOpen(o => !o); }}
+              className={`flex items-center gap-1 px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all ${
+                activeChip === 'Category'
+                  ? 'bg-[#fafafa] text-[#1a1a1a] shadow-sm'
+                  : 'bg-[#1a1a1a]/70 text-[#a0a0a0] border border-[#2a2a2a]/60 hover:border-[#ef4444]'
+              }`}
+            >
+              {activeChip === 'Category' && activeCategory
+                ? CATEGORY_META[activeCategory]?.label || 'Category'
+                : 'Category'}
+              <ChevronDown className={`w-3 h-3 transition-transform ${categoryOpen ? 'rotate-180' : ''}`} />
+            </button>
+
+            {categoryOpen && (
+              <div className="absolute left-0 mt-2 w-44 rounded-xl bg-[#161616] border border-[#2a2a2a]/60 shadow-xl shadow-black/40 overflow-hidden z-30">
+                {CATEGORY_FILTERS.map(c => {
+                  const selected = activeCategory === c.key && activeChip === 'Category';
+                  return (
+                    <button
+                      key={c.key}
+                      onClick={() => { setActiveCategory(c.key); setActiveChip('Category'); setCategoryOpen(false); }}
+                      className={`w-full flex items-center justify-between px-3 py-2 text-xs font-semibold text-left transition-colors ${
+                        selected ? 'bg-[#ef4444]/15 text-[#ef4444]' : 'text-[#fafafa] hover:bg-[#1a1a1a]'
+                      }`}
+                    >
+                      {c.label}
+                      {selected && <Check className="w-3.5 h-3.5" />}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
