@@ -319,7 +319,7 @@ const PostDetailPage = () => {
       <div ref={commentsSectionRef} className="px-4 mt-6">
         <h3 className="font-[Outfit] text-sm font-bold text-[#a0a0a0] mb-3">Thoughts</h3>
         {comments.length === 0 ? (
-          <p className="text-sm text-[#a0a0a0] text-center py-6">Be the first to comment.</p>
+          <p className="text-sm text-[#a0a0a0] text-center py-6">Be the first to add thoughts</p>
         ) : (
           <ul className="space-y-1">
             {comments.filter(c => !c.parent_id).map(top => {
