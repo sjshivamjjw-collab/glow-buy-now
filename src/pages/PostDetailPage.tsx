@@ -410,7 +410,7 @@ const PostDetailPage = () => {
               if (mention.handleKeyDown(e)) return;
               if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleComment(); }
             }}
-            placeholder={replyTo ? 'Write a reply…' : 'Add a comment… use @ to tag people'}
+            placeholder={getCommentPrompt(post.category, post.review_subcategory, !!replyTo)}
             className="flex-1 px-4 py-2.5 rounded-full bg-[#1a1a1a]/80 border border-[#2a2a2a]/60 text-[#fafafa] placeholder:text-[#ef4444]/60 focus:outline-none focus:ring-2 focus:ring-[#ef4444]/40 text-sm font-medium"
           />
           <button
