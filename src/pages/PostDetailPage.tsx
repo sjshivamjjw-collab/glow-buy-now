@@ -81,6 +81,18 @@ const PostDetailPage = () => {
     }
   };
 
+  const handleSave = async () => {
+    if (!userId || !post) { navigate('/auth'); return; }
+    const newSaved = !saved;
+    setSaved(newSaved);
+    if (newSaved) {
+      await supabase.from('post_saves' as any).insert({ post_id: post.id, user_id: userId });
+    } else {
+      await supabase.from('post_saves' as any).delete().eq('post_id', post.id).eq('user_id', userId);
+    }
+  };
+
+
   const handleComment = async () => {
     if (!userId || !post) return;
     const body = draft.trim();
