@@ -166,31 +166,29 @@ const CreatePostPage = () => {
   if (!category) {
     return (
       <div className="min-h-screen bg-background max-w-lg mx-auto px-4 pt-4 pb-32">
-        <div className="flex items-center gap-3 mb-2">
+        <div className="flex items-center gap-3 mb-4">
           <button onClick={() => navigate(-1)} className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center">
             <ArrowLeft className="w-5 h-5 text-foreground" />
           </button>
           <h1 className="text-xl font-bold text-foreground">New post</h1>
         </div>
-        <p className="text-sm text-muted-foreground mb-5 pl-1">What are you sharing today?</p>
+        <h2 className="text-2xl font-bold text-foreground mb-1">What are you posting about?</h2>
+        <p className="text-sm text-muted-foreground mb-5">Pick the closest one — takes one second</p>
 
-        <div className="space-y-3">
+        <div className="grid grid-cols-2 gap-3">
           {CATEGORIES.map(c => {
             const Icon = c.icon;
             return (
               <button
                 key={c.key}
                 onClick={() => setCategory(c.key)}
-                className="w-full text-left rounded-2xl bg-card border border-border p-4 flex items-center gap-4 active:scale-[0.99] transition-transform"
+                className="text-left rounded-2xl bg-card border border-border p-4 flex flex-col gap-2 active:scale-[0.98] hover:border-primary/40 transition-all min-h-[140px]"
               >
-                <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${c.accent} flex items-center justify-center shrink-0`}>
-                  <Icon className="w-6 h-6" />
+                <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${c.accent} flex items-center justify-center`}>
+                  <Icon className="w-5 h-5" />
                 </div>
-                <div className="flex-1 min-w-0">
-                  <p className="font-bold text-foreground text-sm">{c.title}</p>
-                  <p className="text-xs text-muted-foreground leading-snug">{c.subtitle}</p>
-                </div>
-                <ChevronRight className="w-5 h-5 text-muted-foreground shrink-0" />
+                <p className="font-bold text-foreground text-sm leading-tight mt-1">{c.title}</p>
+                <p className="text-xs text-muted-foreground leading-snug">{c.subtitle}</p>
               </button>
             );
           })}
@@ -198,6 +196,7 @@ const CreatePostPage = () => {
       </div>
     );
   }
+
 
   // STEP 2 — fill in the post
   const Icon = selectedCategory!.icon;
