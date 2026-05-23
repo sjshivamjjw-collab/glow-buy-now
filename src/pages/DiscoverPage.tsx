@@ -57,22 +57,6 @@ const DiscoverPage = () => {
   const [query, setQuery] = useState('');
   const [activeChip, setActiveChip] = useState<string>('For you');
 
-  useEffect(() => {
-    const load = async () => {
-      const { data } = await supabase.rpc('get_trending_posts' as any, { _limit: 80, _offset: 0 });
-      const list = (data as TrendingPost[] | null) ?? [];
-      setPosts(list);
-      if (list.length) {
-        const ids = Array.from(new Set(list.map(p => p.user_id)));
-        const { data: profs } = await supabase.rpc('get_public_profiles' as any, { _ids: ids });
-        const map: Record<string, AuthorInfo> = {};
-        ((profs as any[]) || []).forEach(p => { map[p.id] = p; });
-        setAuthors(map);
-      }
-      setLoading(false);
-    };
-    load();
-  }, []);
 
   useEffect(() => {
     const load = async () => {
