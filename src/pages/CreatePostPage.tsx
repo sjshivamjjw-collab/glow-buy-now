@@ -76,6 +76,38 @@ const CreatePostPage = () => {
 
   const selectedCategory = CATEGORIES.find(c => c.key === category);
   const selectedReviewSub = REVIEW_SUBCATEGORIES.find(s => s.key === reviewSub);
+  useEffect(() => {
+    if (locJustPicked.current) { locJustPicked.current = false; return; }
+    const q = location.trim();
+    if (q.length < 2) { setLocSuggestions([]); setLocLoading(false); return; }
+    setLocLoading(true);
+    const ctrl = new AbortController();
+    const t = setTimeout(async () => {
+      try {
+        const res = await fetch(
+          `https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&limit=6&q=${encodeURIComponent(q)}`,
+          { signal: ctrl.signal, headers: { 'Accept': 'application/json' } }
+        );
+        const data: any[] = await res.json();
+        const items = data.map(d => {
+          const a = d.address || {};
+          const primary = a.city || a.town || a.village || a.suburb || a.neighbourhood || a.county || a.state || d.name || d.display_name.split(',')[0];
+          const region = [a.state, a.country].filter(Boolean).join(', ');
+          return { name: primary, display: region ? `${primary}, ${region}` : d.display_name };
+        });
+        // de-dup by display
+        const seen = new Set<string>();
+        const unique = items.filter(i => { if (seen.has(i.display)) return false; seen.add(i.display); return true; });
+        setLocSuggestions(unique);
+      } catch (e) {
+        if ((e as any)?.name !== 'AbortError') setLocSuggestions([]);
+      } finally {
+        setLocLoading(false);
+      }
+    }, 300);
+    return () => { ctrl.abort(); clearTimeout(t); };
+  }, [location]);
+
 
   const handleFiles = (files: FileList | null) => {
     if (!files) return;
