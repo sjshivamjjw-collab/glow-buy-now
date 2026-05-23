@@ -490,7 +490,7 @@ const CreatePostPage = () => {
                 onMouseDown={(e) => {
                   e.preventDefault();
                   locJustPicked.current = true;
-                  setLocation(s.display);
+                  setLocation(s.name);
                   setLocOpen(false);
                   setLocSuggestions([]);
                 }}
@@ -499,7 +499,7 @@ const CreatePostPage = () => {
                 <MapPin className="w-4 h-4 text-[#6b6b6b] shrink-0 mt-0.5" />
                 <div className="min-w-0">
                   <p className="text-sm font-semibold text-[#0a0a0a] truncate">{s.name}</p>
-                  <p className="text-[11px] text-[#6b6b6b] truncate">{s.display}</p>
+                  {s.display && <p className="text-[11px] text-[#6b6b6b] truncate">{s.display}</p>}
                 </div>
               </button>
             ))}
