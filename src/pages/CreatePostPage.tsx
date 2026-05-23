@@ -8,6 +8,8 @@ import {
   Palette, Star, MessageSquareQuote, Gem, ChevronRight,
   UtensilsCrossed, BedDouble, Plane, ShoppingBag, BookOpen, Ticket,
 } from 'lucide-react';
+import { useMentionAutocomplete } from '@/hooks/useMentionAutocomplete';
+import { MentionSuggestions } from '@/components/MentionSuggestions';
 
 const MAX_FILES = 10;
 const MAX_FILE_MB = 25;
