@@ -414,7 +414,7 @@ const CreatePostPage = () => {
         };
         return (
           <>
-            <label className="text-xs font-semibold text-[#6b6b6b] mb-1 block">Tell people more... <span className="text-[10px] font-normal">(the more descriptive and accurate, the better it is for the community)</span></label>
+            <label className="text-xs font-semibold text-[#6b6b6b] mb-1 block">Tell people more... <span className="text-[#ef4444]">*</span> <span className="text-[10px] font-normal">(the more descriptive and accurate, the better it is for the community)</span></label>
             <textarea
               value={body}
               onChange={handleBodyChange}
