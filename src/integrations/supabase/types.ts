@@ -522,36 +522,45 @@ export type Database = {
       posts: {
         Row: {
           body: string | null
+          category: string | null
           comment_count: number
           created_at: string
           hashtags: string[]
           id: string
           like_count: number
           location: string | null
+          music_title: string | null
+          music_url: string | null
           title: string | null
           updated_at: string
           user_id: string
         }
         Insert: {
           body?: string | null
+          category?: string | null
           comment_count?: number
           created_at?: string
           hashtags?: string[]
           id?: string
           like_count?: number
           location?: string | null
+          music_title?: string | null
+          music_url?: string | null
           title?: string | null
           updated_at?: string
           user_id: string
         }
         Update: {
           body?: string | null
+          category?: string | null
           comment_count?: number
           created_at?: string
           hashtags?: string[]
           id?: string
           like_count?: number
           location?: string | null
+          music_title?: string | null
+          music_url?: string | null
           title?: string | null
           updated_at?: string
           user_id?: string
