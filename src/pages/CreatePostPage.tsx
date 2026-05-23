@@ -6,6 +6,7 @@ import { useToast } from '@/hooks/use-toast';
 import {
   ArrowLeft, ImagePlus, X, Loader2, MapPin, Hash, Music, Sparkles,
   Palette, Star, MessageSquareQuote, Gem, ChevronRight,
+  UtensilsCrossed, BedDouble, Plane, ShoppingBag, BookOpen, Ticket,
 } from 'lucide-react';
 
 const MAX_FILES = 10;
@@ -13,6 +14,22 @@ const MAX_FILE_MB = 25;
 const MAX_AUDIO_MB = 15;
 
 type CategoryKey = 'everyday_vibes' | 'showcase' | 'review' | 'real_talk' | 'hidden_gems';
+type ReviewSubKey = 'restaurant' | 'hotel' | 'trip' | 'product' | 'media' | 'activity';
+
+const REVIEW_SUBCATEGORIES: {
+  key: ReviewSubKey;
+  title: string;
+  subtitle: string;
+  icon: typeof Sparkles;
+  accent: string;
+}[] = [
+  { key: 'restaurant', title: 'Restaurant / Bar / Food Joint', subtitle: 'Cafés, bars, street food and dining spots', icon: UtensilsCrossed, accent: 'from-orange-500/20 to-red-400/20 text-orange-500' },
+  { key: 'hotel', title: 'Hotel / Stay / Hostel', subtitle: 'Where you stayed and how it felt', icon: BedDouble, accent: 'from-indigo-500/20 to-blue-400/20 text-indigo-500' },
+  { key: 'trip', title: 'Trip / Vacation', subtitle: 'A full journey or getaway', icon: Plane, accent: 'from-sky-500/20 to-cyan-400/20 text-sky-500' },
+  { key: 'product', title: 'Product', subtitle: 'Something you bought and tried', icon: ShoppingBag, accent: 'from-violet-500/20 to-fuchsia-400/20 text-violet-500' },
+  { key: 'media', title: 'Book / Film / Podcast', subtitle: 'What you read, watched, or listened to', icon: BookOpen, accent: 'from-amber-500/20 to-yellow-400/20 text-amber-500' },
+  { key: 'activity', title: 'Activity / Experience / Event', subtitle: 'A class, concert, tour, or event', icon: Ticket, accent: 'from-emerald-500/20 to-teal-400/20 text-emerald-500' },
+];
 
 const CATEGORIES: {
   key: CategoryKey;
