@@ -96,7 +96,7 @@ const DiscoverPage = () => {
     load();
   }, []);
 
-  const chips = useMemo(() => ['For you', 'Trending', ...CATEGORY_FILTERS.map(c => c.label)], []);
+  const baseChips = useMemo(() => ['For you', 'Trending'], []);
   const labelToKey = useMemo(() => Object.fromEntries(CATEGORY_FILTERS.map(c => [c.label, c.key])), []);
 
   const filtered = useMemo(() => {
@@ -104,8 +104,8 @@ const DiscoverPage = () => {
     let list = posts;
     if (activeChip === 'Trending') {
       list = [...list].sort((a, b) => (b.like_count + b.comment_count) - (a.like_count + a.comment_count));
-    } else if (labelToKey[activeChip]) {
-      list = list.filter(p => p.category === labelToKey[activeChip]);
+    } else if (activeChip === 'Category' && activeCategory) {
+      list = list.filter(p => p.category === activeCategory);
     }
     if (!q) return list;
     const tag = q.startsWith('#') ? q.slice(1) : q;
@@ -115,7 +115,7 @@ const DiscoverPage = () => {
       (p.location || '').toLowerCase().includes(q) ||
       p.hashtags.some(h => h.toLowerCase().includes(tag))
     );
-  }, [posts, query, activeChip, labelToKey]);
+  }, [posts, query, activeChip, activeCategory]);
 
 
   return (
