@@ -81,6 +81,7 @@ const AppRoutes = () => {
               <Route path="/p/:id" element={<PostDetailPage />} />
               <Route path="/u/:userId" element={<UserProfilePage />} />
               <Route path="/notifications" element={<NotificationsPage />} />
+              <Route path="/saved" element={<SavedPostsPage />} />
               <Route path="/profile" element={<ProfilePage />} />
               <Route path="/settings" element={<SettingsPage />} />
               <Route path="/admin" element={isAdmin ? <AdminPanelPage /> : <Navigate to="/" replace />} />
