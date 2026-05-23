@@ -107,6 +107,17 @@ const PostDetailPage = () => {
     load();
   }, [id, userId]);
 
+  useEffect(() => {
+    const el = commentsSectionRef.current;
+    if (!el) return;
+    const io = new IntersectionObserver(
+      ([entry]) => setShowCommentBar(entry.isIntersecting),
+      { rootMargin: '0px 0px -20% 0px', threshold: 0 }
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, [loading]);
+
   const handleLike = async () => {
     if (!userId || !post) { navigate('/auth'); return; }
     const newLiked = !liked;
