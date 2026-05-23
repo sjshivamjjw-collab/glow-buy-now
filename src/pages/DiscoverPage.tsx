@@ -105,7 +105,7 @@ const DiscoverPage = () => {
             value={query}
             onChange={e => setQuery(e.target.value)}
             placeholder="Search posts, people, #tags…"
-            className="w-full pl-11 pr-4 py-3 rounded-full bg-white/80 border border-[#2a2a2a]/60 text-[#fafafa] placeholder:text-[#f59e4b]/60 focus:outline-none focus:ring-2 focus:ring-[#f5a76b]/40 text-sm font-medium"
+            className="w-full pl-11 pr-4 py-3 rounded-full bg-[#1a1a1a]/80 border border-[#2a2a2a]/60 text-[#fafafa] placeholder:text-[#f59e4b]/60 focus:outline-none focus:ring-2 focus:ring-[#f5a76b]/40 text-sm font-medium"
           />
         </div>
 
@@ -120,7 +120,7 @@ const DiscoverPage = () => {
                 className={`shrink-0 px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all ${
                   active
                     ? 'bg-[#fafafa] text-[#1a1a1a] shadow-sm'
-                    : 'bg-white/70 text-[#a0a0a0] border border-[#2a2a2a]/60 hover:border-[#f5a76b]'
+                    : 'bg-[#1a1a1a]/70 text-[#a0a0a0] border border-[#2a2a2a]/60 hover:border-[#f5a76b]'
                 }`}
               >
                 {chip === 'Trending' ? (
@@ -156,7 +156,7 @@ const DiscoverPage = () => {
               <button
                 key={p.id}
                 onClick={() => navigate(`/p/${p.id}`)}
-                className="group mb-1.5 w-full text-left rounded-3xl overflow-hidden bg-white border border-[#2a2a2a]/50 hover:border-[#f5a76b] hover:shadow-lg hover:shadow-[#f59e4b]/10 transition-all duration-300"
+                className="group mb-1.5 w-full text-left rounded-3xl overflow-hidden bg-[#161616] border border-[#2a2a2a]/50 hover:border-[#f5a76b] hover:shadow-lg hover:shadow-[#f59e4b]/10 transition-all duration-300"
               >
                 {/* Media */}
                 <div className="relative w-full bg-[#1a1a1a] overflow-hidden" style={{ height: `${h}px` }}>
@@ -183,7 +183,7 @@ const DiscoverPage = () => {
                       <Images className="w-3 h-3" /> {p.media_count}
                     </span>
                   )}
-                  <div className="absolute bottom-2 right-2 flex items-center gap-1 px-2 py-0.5 rounded-full bg-white/85 backdrop-blur-sm text-[#fafafa] text-[11px] font-semibold">
+                  <div className="absolute bottom-2 right-2 flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#0a0a0a]/85 backdrop-blur-sm text-[#fafafa] text-[11px] font-semibold">
                     <Heart className="w-3 h-3 fill-[#f97316] text-[#f97316]" />
                     {formatCount(p.like_count)}
                   </div>
