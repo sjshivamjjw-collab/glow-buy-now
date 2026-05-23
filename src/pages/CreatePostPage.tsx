@@ -331,10 +331,10 @@ const CreatePostPage = () => {
 
 
       {/* Media grid */}
-      <label className="text-xs font-semibold text-muted-foreground mb-1 block">Media</label>
+      <label className="text-xs font-semibold text-[#a0a0a0] mb-1 block">Media</label>
       <div className="grid grid-cols-3 gap-2 mb-1">
         {media.map((m, i) => (
-          <div key={i} className="relative aspect-square rounded-xl overflow-hidden bg-secondary">
+          <div key={i} className="relative aspect-square rounded-xl overflow-hidden bg-[#161616] border border-[#2a2a2a]/60">
             {m.kind === 'video' ? (
               <video src={m.previewUrl} className="w-full h-full object-cover" muted playsInline />
             ) : (
@@ -349,7 +349,7 @@ const CreatePostPage = () => {
           <button
             type="button"
             onClick={() => fileRef.current?.click()}
-            className="aspect-square rounded-xl border-2 border-dashed border-border bg-card flex flex-col items-center justify-center text-muted-foreground gap-1 hover:border-primary/50 transition-colors"
+            className="aspect-square rounded-xl border-2 border-dashed border-[#2a2a2a]/60 bg-[#161616] flex flex-col items-center justify-center text-[#a0a0a0] gap-1 hover:border-[#ef4444]/50 transition-colors"
           >
             <ImagePlus className="w-6 h-6" />
             <span className="text-[10px] font-semibold">Add media</span>
@@ -358,12 +358,12 @@ const CreatePostPage = () => {
       </div>
       <input ref={fileRef} type="file" accept="image/*,video/*" multiple className="hidden"
         onChange={e => { handleFiles(e.target.files); e.target.value = ''; }} />
-      <p className="text-[10px] text-muted-foreground mb-5">Up to {MAX_FILES} images or videos · max {MAX_FILE_MB}MB each</p>
+      <p className="text-[10px] text-[#a0a0a0] mb-5">Up to {MAX_FILES} images or videos · max {MAX_FILE_MB}MB each</p>
 
       {/* Title */}
-      <label className="text-xs font-semibold text-muted-foreground mb-1 block">What are you sharing today?</label>
+      <label className="text-xs font-semibold text-[#a0a0a0] mb-1 block">What are you sharing today?</label>
       <input value={title} onChange={e => setTitle(e.target.value)} placeholder="A short and clear title helps more people discover your post" maxLength={140}
-        className="w-full px-4 py-3 mb-4 rounded-xl bg-secondary text-foreground placeholder:text-muted-foreground/70 focus:outline-none focus:ring-2 focus:ring-primary/30 text-sm" />
+        className="w-full px-4 py-3 mb-4 rounded-xl bg-[#161616] border border-[#2a2a2a]/60 text-[#fafafa] placeholder:text-[#6b6b6b] focus:outline-none focus:ring-2 focus:ring-[#ef4444]/40 text-sm" />
 
       {/* Body */}
       {(() => {
@@ -415,7 +415,7 @@ const CreatePostPage = () => {
         };
         return (
           <>
-            <label className="text-xs font-semibold text-muted-foreground mb-1 block">Tell people more...</label>
+            <label className="text-xs font-semibold text-[#a0a0a0] mb-1 block">Tell people more...</label>
             <textarea
               value={body}
               onChange={handleBodyChange}
@@ -424,7 +424,7 @@ const CreatePostPage = () => {
               placeholder={ph}
               maxLength={2000}
               rows={hasSuggestions ? 7 : 5}
-              className="w-full px-4 py-3 mb-4 rounded-xl bg-secondary text-foreground placeholder:text-muted-foreground/70 focus:outline-none focus:ring-2 focus:ring-primary/30 text-sm resize-none"
+              className="w-full px-4 py-3 mb-4 rounded-xl bg-[#161616] border border-[#2a2a2a]/60 text-[#fafafa] placeholder:text-[#6b6b6b] focus:outline-none focus:ring-2 focus:ring-[#ef4444]/40 text-sm resize-none"
             />
           </>
         );
@@ -433,9 +433,9 @@ const CreatePostPage = () => {
 
 
       {/* Location */}
-      <label className="text-xs font-semibold text-muted-foreground mb-1 block">Location</label>
+      <label className="text-xs font-semibold text-[#a0a0a0] mb-1 block">Location</label>
       <div className="relative mb-4">
-        <MapPin className="absolute left-4 top-[22px] -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+        <MapPin className="absolute left-4 top-[22px] -translate-y-1/2 w-4 h-4 text-[#a0a0a0]" />
         <input
           value={location}
           onChange={e => { setLocation(e.target.value); setLocOpen(true); }}
@@ -443,13 +443,13 @@ const CreatePostPage = () => {
           onBlur={() => setTimeout(() => setLocOpen(false), 150)}
           placeholder="e.g. Mumbai, Bandra"
           maxLength={100}
-          className="w-full pl-11 pr-10 py-3 rounded-xl bg-secondary text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 text-sm"
+          className="w-full pl-11 pr-10 py-3 rounded-xl bg-[#161616] border border-[#2a2a2a]/60 text-[#fafafa] placeholder:text-[#a0a0a0] focus:outline-none focus:ring-2 focus:ring-[#ef4444]/40 text-sm"
         />
         {locLoading && (
-          <Loader2 className="absolute right-3 top-[22px] -translate-y-1/2 w-4 h-4 text-muted-foreground animate-spin" />
+          <Loader2 className="absolute right-3 top-[22px] -translate-y-1/2 w-4 h-4 text-[#a0a0a0] animate-spin" />
         )}
         {locOpen && location.trim().length >= 2 && locSuggestions.length > 0 && (
-          <div className="absolute z-20 left-0 right-0 mt-1 rounded-xl bg-card border border-border shadow-lg overflow-hidden max-h-72 overflow-y-auto">
+          <div className="absolute z-20 left-0 right-0 mt-1 rounded-xl bg-[#161616] border border-[#2a2a2a]/60 shadow-lg overflow-hidden max-h-72 overflow-y-auto">
             {locSuggestions.map((s, i) => (
               <button
                 key={i}
@@ -461,12 +461,12 @@ const CreatePostPage = () => {
                   setLocOpen(false);
                   setLocSuggestions([]);
                 }}
-                className="w-full text-left px-3 py-2.5 flex items-start gap-2 hover:bg-secondary transition-colors border-b border-border last:border-b-0"
+                className="w-full text-left px-3 py-2.5 flex items-start gap-2 hover:bg-[#161616] border border-[#2a2a2a]/60 transition-colors border-b border-[#2a2a2a]/60 last:border-b-0"
               >
-                <MapPin className="w-4 h-4 text-muted-foreground shrink-0 mt-0.5" />
+                <MapPin className="w-4 h-4 text-[#a0a0a0] shrink-0 mt-0.5" />
                 <div className="min-w-0">
-                  <p className="text-sm font-semibold text-foreground truncate">{s.name}</p>
-                  <p className="text-[11px] text-muted-foreground truncate">{s.display}</p>
+                  <p className="text-sm font-semibold text-[#fafafa] truncate">{s.name}</p>
+                  <p className="text-[11px] text-[#a0a0a0] truncate">{s.display}</p>
                 </div>
               </button>
             ))}
@@ -476,10 +476,10 @@ const CreatePostPage = () => {
 
 
       {/* Hashtags */}
-      <label className="text-xs font-semibold text-muted-foreground mb-1 block">Hashtags</label>
-      <div className="px-3 py-2 mb-1 rounded-xl bg-secondary flex flex-wrap gap-1.5 items-center min-h-[44px]">
+      <label className="text-xs font-semibold text-[#a0a0a0] mb-1 block">Hashtags</label>
+      <div className="px-3 py-2 mb-1 rounded-xl bg-[#161616] border border-[#2a2a2a]/60 flex flex-wrap gap-1.5 items-center min-h-[44px]">
         {hashtags.map(h => (
-          <span key={h} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-primary/10 text-primary text-xs font-semibold">
+          <span key={h} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#ef4444]/15 text-[#ef4444] text-xs font-semibold">
             #{h}
             <button onClick={() => setHashtags(prev => prev.filter(x => x !== h))} aria-label="Remove">
               <X className="w-3 h-3" />
@@ -487,41 +487,41 @@ const CreatePostPage = () => {
           </span>
         ))}
         <div className="relative flex-1 min-w-[120px]">
-          <Hash className="absolute left-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
+          <Hash className="absolute left-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#a0a0a0]" />
           <input value={hashtagInput} onChange={e => setHashtagInput(e.target.value)} onKeyDown={handleHashtagKey} onBlur={commitHashtag}
             placeholder={hashtags.length ? '' : 'travel, foodie…'}
-            className="w-full pl-7 pr-1 py-1 bg-transparent text-foreground placeholder:text-muted-foreground focus:outline-none text-sm" />
+            className="w-full pl-7 pr-1 py-1 bg-transparent text-[#fafafa] placeholder:text-[#a0a0a0] focus:outline-none text-sm" />
         </div>
       </div>
-      <p className="text-[10px] text-muted-foreground mb-5">Press space, comma, or enter to add.</p>
+      <p className="text-[10px] text-[#a0a0a0] mb-5">Press space, comma, or enter to add.</p>
 
       {/* Music */}
-      <label className="text-xs font-semibold text-muted-foreground mb-1 block">Music (optional)</label>
+      <label className="text-xs font-semibold text-[#a0a0a0] mb-1 block">Music (optional)</label>
       {musicFile ? (
-        <div className="mb-1 rounded-xl bg-secondary p-3 flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
+        <div className="mb-1 rounded-xl bg-[#161616] border border-[#2a2a2a]/60 p-3 flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-[#ef4444]/15 text-[#ef4444] flex items-center justify-center shrink-0">
             <Music className="w-5 h-5" />
           </div>
           <div className="flex-1 min-w-0">
             <input value={musicTitle} onChange={e => setMusicTitle(e.target.value)} placeholder="Track title"
-              className="w-full bg-transparent text-foreground text-sm font-semibold focus:outline-none truncate" />
-            <p className="text-[10px] text-muted-foreground truncate">{musicFile.name}</p>
+              className="w-full bg-transparent text-[#fafafa] text-sm font-semibold focus:outline-none truncate" />
+            <p className="text-[10px] text-[#a0a0a0] truncate">{musicFile.name}</p>
           </div>
           <button onClick={() => { setMusicFile(null); setMusicTitle(''); }} aria-label="Remove music"
-            className="w-8 h-8 rounded-full bg-background flex items-center justify-center">
-            <X className="w-4 h-4 text-foreground" />
+            className="w-8 h-8 rounded-full bg-[#0a0a0a] flex items-center justify-center">
+            <X className="w-4 h-4 text-[#fafafa]" />
           </button>
         </div>
       ) : (
         <button type="button" onClick={() => audioRef.current?.click()}
-          className="w-full mb-1 rounded-xl border-2 border-dashed border-border bg-card p-4 flex items-center gap-3 text-muted-foreground hover:border-primary/50 transition-colors">
+          className="w-full mb-1 rounded-xl border-2 border-dashed border-[#2a2a2a]/60 bg-[#161616] p-4 flex items-center gap-3 text-[#a0a0a0] hover:border-[#ef4444]/50 transition-colors">
           <Music className="w-5 h-5" />
           <span className="text-sm font-semibold">Add a music track</span>
         </button>
       )}
       <input ref={audioRef} type="file" accept="audio/*" className="hidden"
         onChange={e => { handleAudio(e.target.files?.[0] || null); e.target.value = ''; }} />
-      <p className="text-[10px] text-muted-foreground mb-6">MP3 / M4A / WAV · max {MAX_AUDIO_MB}MB</p>
+      <p className="text-[10px] text-[#a0a0a0] mb-6">MP3 / M4A / WAV · max {MAX_AUDIO_MB}MB</p>
 
       <button onClick={handleSubmit} disabled={submitting}
         className="w-full py-3.5 rounded-2xl bg-primary text-primary-foreground font-bold text-sm disabled:opacity-60 flex items-center justify-center gap-2">
