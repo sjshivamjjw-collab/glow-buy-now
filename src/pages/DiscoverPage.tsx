@@ -17,7 +17,25 @@ interface TrendingPost {
   cover_url: string | null;
   cover_kind: 'image' | 'video' | null;
   media_count: number;
+  category?: string | null;
 }
+
+const CATEGORY_META: Record<string, { label: string }> = {
+  everyday_vibes: { label: 'Daily Life' },
+  showcase: { label: 'Show & Tell' },
+  review: { label: 'Review' },
+  real_talk: { label: 'Advice' },
+  hidden_gems: { label: 'Hidden Gems' },
+};
+
+const CATEGORY_FILTERS = [
+  { key: 'everyday_vibes', label: 'Daily Life' },
+  { key: 'review', label: 'Reviews' },
+  { key: 'showcase', label: 'Show & Tell' },
+  { key: 'real_talk', label: 'Advice' },
+  { key: 'hidden_gems', label: 'Hidden Gems' },
+];
+
 
 interface AuthorInfo {
   id: string;
@@ -39,10 +57,19 @@ const DiscoverPage = () => {
   const [query, setQuery] = useState('');
   const [activeChip, setActiveChip] = useState<string>('For you');
 
+
   useEffect(() => {
     const load = async () => {
       const { data } = await supabase.rpc('get_trending_posts' as any, { _limit: 80, _offset: 0 });
       const list = (data as TrendingPost[] | null) ?? [];
+      // get_trending_posts doesn't return category — fetch it separately
+      if (list.length) {
+        const ids = list.map(p => p.id);
+        const { data: catRows } = await supabase.from('posts' as any).select('id, category').in('id', ids);
+        const catMap: Record<string, string | null> = {};
+        ((catRows as any[]) || []).forEach(r => { catMap[r.id] = r.category; });
+        list.forEach(p => { p.category = catMap[p.id] ?? null; });
+      }
       setPosts(list);
       if (list.length) {
         const ids = Array.from(new Set(list.map(p => p.user_id)));
@@ -56,16 +83,16 @@ const DiscoverPage = () => {
     load();
   }, []);
 
-  const chips = useMemo(() => ['For you', 'Trending'], []);
+  const chips = useMemo(() => ['For you', 'Trending', ...CATEGORY_FILTERS.map(c => c.label)], []);
+  const labelToKey = useMemo(() => Object.fromEntries(CATEGORY_FILTERS.map(c => [c.label, c.key])), []);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
     let list = posts;
-    if (activeChip.startsWith('#')) {
-      const tag = activeChip.slice(1).toLowerCase();
-      list = list.filter(p => p.hashtags.some(h => h.toLowerCase() === tag));
-    } else if (activeChip === 'Trending') {
+    if (activeChip === 'Trending') {
       list = [...list].sort((a, b) => (b.like_count + b.comment_count) - (a.like_count + a.comment_count));
+    } else if (labelToKey[activeChip]) {
+      list = list.filter(p => p.category === labelToKey[activeChip]);
     }
     if (!q) return list;
     const tag = q.startsWith('#') ? q.slice(1) : q;
@@ -75,7 +102,8 @@ const DiscoverPage = () => {
       (p.location || '').toLowerCase().includes(q) ||
       p.hashtags.some(h => h.toLowerCase().includes(tag))
     );
-  }, [posts, query, activeChip]);
+  }, [posts, query, activeChip, labelToKey]);
+
 
   return (
     <div className="min-h-screen max-w-lg mx-auto pb-24 font-[Figtree] bg-[linear-gradient(180deg,#0a0a0a_0%,#111111_40%,#000000_100%)]">
@@ -167,11 +195,18 @@ const DiscoverPage = () => {
                       </span>
                     </div>
                   )}
+                  {p.category && CATEGORY_META[p.category] && (
+                    <span className="absolute top-2 left-2 px-2 py-0.5 rounded-full bg-gradient-to-br from-[#ef4444] to-[#dc2626] text-white text-[10px] font-bold shadow-md shadow-black/40">
+                      {CATEGORY_META[p.category].label}
+                    </span>
+                  )}
                   {p.media_count > 1 && (
-                    <span className="absolute top-2 left-2 px-2 py-0.5 rounded-full bg-black/55 backdrop-blur-sm text-white text-[10px] font-bold flex items-center gap-1">
+                    <span className="absolute bottom-2 right-2 px-2 py-0.5 rounded-full bg-black/55 backdrop-blur-sm text-white text-[10px] font-bold flex items-center gap-1">
                       <Images className="w-3 h-3" /> {p.media_count}
                     </span>
                   )}
+
+
                 </div>
 
                 {/* Footer */}
