@@ -373,12 +373,29 @@ const PostDetailPage = () => {
             </button>
           </div>
         )}
+        {mention.open && (
+          <div className="px-3 pb-2">
+            <MentionSuggestions
+              items={mention.items}
+              active={mention.active}
+              onPick={mention.applyItem}
+              onHover={mention.setActive}
+              variant="dark"
+            />
+          </div>
+        )}
         <div className="px-3 py-2 flex items-center gap-2 border-t border-[#2a2a2a]/40">
           <input
+            ref={draftInputRef}
             value={draft}
-            onChange={e => setDraft(e.target.value)}
-            onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleComment(); } }}
-            placeholder={replyTo ? 'Write a reply…' : 'Add a comment…'}
+            onChange={e => { setDraft(e.target.value); setDraftCursor(e.target.selectionStart); }}
+            onSelect={e => setDraftCursor((e.target as HTMLInputElement).selectionStart)}
+            onKeyUp={e => setDraftCursor((e.target as HTMLInputElement).selectionStart)}
+            onKeyDown={e => {
+              if (mention.handleKeyDown(e)) return;
+              if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleComment(); }
+            }}
+            placeholder={replyTo ? 'Write a reply…' : 'Add a comment… use @ to tag people'}
             className="flex-1 px-4 py-2.5 rounded-full bg-[#1a1a1a]/80 border border-[#2a2a2a]/60 text-[#fafafa] placeholder:text-[#ef4444]/60 focus:outline-none focus:ring-2 focus:ring-[#ef4444]/40 text-sm font-medium"
           />
           <button
