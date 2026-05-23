@@ -126,8 +126,8 @@ const DiscoverPage = () => {
       {/* Header */}
       <div className="sticky top-0 z-20 backdrop-blur-xl bg-[#0a0a0a]/70 border-b border-[#2a2a2a]/40 px-4 pt-12 pb-3">
         <div className="mb-3">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#dc2626]/80 mb-0.5">
-            Welcome back
+          <p className="text-[11px] font-semibold tracking-[0.08em] text-[#dc2626]/80 mb-0.5">
+            Welcome Back
           </p>
           <h1 className="font-[Outfit] text-3xl font-extrabold tracking-tight text-[#fafafa]">
             {firstName}
