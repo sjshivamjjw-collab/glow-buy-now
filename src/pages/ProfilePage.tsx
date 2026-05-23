@@ -194,16 +194,6 @@ const ProfilePage = () => {
         <PostsGrid posts={posts} onOpen={id => navigate(`/p/${id}`)} />
       </div>
 
-      <div className="rounded-2xl bg-[#161616] border border-[#2a2a2a]/60 overflow-hidden mb-6">
-        {menuItems.map((item, i) => (
-          <button key={item.label} onClick={() => navigate(item.path)}
-            className={`w-full flex items-center gap-3 px-5 py-4 text-left hover:bg-[#1a1a1a] transition-colors ${i > 0 ? 'border-t border-[#2a2a2a]/60' : ''}`}>
-            <item.icon className="w-5 h-5 text-[#a0a0a0]" />
-            <span className="flex-1 text-[#fafafa] font-medium text-sm">{item.label}</span>
-            <ChevronRight className="w-4 h-4 text-[#a0a0a0]" />
-          </button>
-        ))}
-      </div>
 
       <button onClick={handleLogout} className="w-full flex items-center justify-center gap-2 py-4 rounded-2xl bg-[#ef4444]/10 border border-[#ef4444]/30 text-[#ef4444] font-semibold">
         <LogOut className="w-5 h-5" />
