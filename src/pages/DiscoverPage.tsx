@@ -292,12 +292,12 @@ const DiscoverPage = () => {
                         {author?.username ? `@${author.username}` : author?.name || 'User'}
                       </span>
                     </div>
-                    <div className="flex items-center gap-2 shrink-0">
-                      <span className="flex items-center gap-0.5 text-[11px] text-[#ef4444] font-medium">
-                        <Heart className="w-3 h-3 fill-[#ef4444] text-[#ef4444]" />{formatCount(p.like_count)}
+                    <div className="flex items-center gap-2.5 shrink-0">
+                      <span className="flex items-center gap-1 text-[13px] text-[#ef4444] font-semibold">
+                        <Heart className="w-4 h-4 fill-[#ef4444] text-[#ef4444]" />{formatCount(p.like_count)}
                       </span>
-                      <span className="flex items-center gap-0.5 text-[11px] text-[#ef4444] font-medium">
-                        <MessageCircle className="w-3 h-3" />{formatCount(p.comment_count)}
+                      <span className="flex items-center gap-1 text-[13px] text-[#ef4444] font-semibold">
+                        <MessageCircle className="w-4 h-4" />{formatCount(p.comment_count)}
                       </span>
                     </div>
                   </div>
