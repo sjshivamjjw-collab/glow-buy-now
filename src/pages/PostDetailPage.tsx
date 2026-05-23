@@ -53,6 +53,8 @@ const PostDetailPage = () => {
   const [replyTo, setReplyTo] = useState<CommentRow | null>(null);
   const draftInputRef = useRef<HTMLInputElement>(null);
   const [draftCursor, setDraftCursor] = useState<number | null>(null);
+  const commentsSectionRef = useRef<HTMLDivElement>(null);
+  const [showCommentBar, setShowCommentBar] = useState(false);
   const mention = useMentionAutocomplete({
     value: draft,
     cursor: draftCursor,
