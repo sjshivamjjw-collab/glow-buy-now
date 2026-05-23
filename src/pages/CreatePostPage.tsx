@@ -322,7 +322,7 @@ const CreatePostPage = () => {
 
       {/* Body */}
       <label className="text-xs font-semibold text-muted-foreground mb-1 block">Description</label>
-      <textarea value={body} onChange={e => setBody(e.target.value)} placeholder="Tell people more…" maxLength={2000} rows={5}
+      <textarea value={body} onChange={e => setBody(e.target.value)} placeholder="Tell people more..." maxLength={2000} rows={5}
         className="w-full px-4 py-3 mb-4 rounded-xl bg-secondary text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 text-sm resize-none" />
 
       {/* Location */}
