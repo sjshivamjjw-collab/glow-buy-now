@@ -7,6 +7,7 @@ import { ArrowLeft, Heart, MessageCircle, MapPin, Loader2, Send, Trash2, Chevron
 import { formatDistanceToNow } from 'date-fns';
 import { useMentionAutocomplete } from '@/hooks/useMentionAutocomplete';
 import { MentionSuggestions } from '@/components/MentionSuggestions';
+import { getCommentPrompt } from '@/lib/commentPrompts';
 
 
 const CATEGORY_META: Record<string, { label: string }> = {
