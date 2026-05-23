@@ -1,6 +1,7 @@
 import { useEffect, useState, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 import { Search, Sparkles, Heart, MessageCircle, Loader2, Play, Images, MapPin, TrendingUp, ChevronDown, Check } from 'lucide-react';
 import { formatCount } from '@/lib/utils';
 
@@ -51,6 +52,8 @@ const RIGHT_HEIGHTS = [230, 250, 220, 245, 235, 240];
 
 const DiscoverPage = () => {
   const navigate = useNavigate();
+  const { userName } = useAuth();
+  const firstName = (userName || '').trim().split(' ')[0] || 'there';
   const [posts, setPosts] = useState<TrendingPost[]>([]);
   const [authors, setAuthors] = useState<Record<string, AuthorInfo>>({});
   const [loading, setLoading] = useState(true);
@@ -123,8 +126,11 @@ const DiscoverPage = () => {
       {/* Header */}
       <div className="sticky top-0 z-20 backdrop-blur-xl bg-[#0a0a0a]/70 border-b border-[#2a2a2a]/40 px-4 pt-12 pb-3">
         <div className="mb-3">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#dc2626]/80 mb-0.5">
+            Welcome back
+          </p>
           <h1 className="font-[Outfit] text-3xl font-extrabold tracking-tight text-[#fafafa]">
-            Discover
+            {firstName}
           </h1>
         </div>
 
