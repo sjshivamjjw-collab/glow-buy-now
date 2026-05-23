@@ -217,13 +217,51 @@ const CreatePostPage = () => {
     );
   }
 
+  // STEP 1b — pick a review subcategory
+  if (category === 'review' && !reviewSub) {
+    return (
+      <div className="min-h-screen bg-background max-w-lg mx-auto px-4 pt-4 pb-32">
+        <div className="flex items-center gap-3 mb-4">
+          <button onClick={() => setCategory(null)} className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center">
+            <ArrowLeft className="w-5 h-5 text-foreground" />
+          </button>
+          <h1 className="text-xl font-bold text-foreground">New post</h1>
+        </div>
+        <h2 className="text-2xl font-bold text-foreground mb-1">What are you reviewing?</h2>
+        <p className="text-sm text-muted-foreground mb-5">Pick the closest one</p>
+
+        <div className="grid grid-cols-2 gap-3">
+          {REVIEW_SUBCATEGORIES.map(s => {
+            const Icon = s.icon;
+            return (
+              <button
+                key={s.key}
+                onClick={() => setReviewSub(s.key)}
+                className="text-left rounded-2xl bg-card border border-border p-3 flex flex-col gap-1.5 active:scale-[0.98] hover:border-primary/40 transition-all"
+              >
+                <div className={`w-8 h-8 rounded-lg bg-gradient-to-br ${s.accent} flex items-center justify-center`}>
+                  <Icon className="w-4 h-4" />
+                </div>
+                <p className="font-bold text-foreground text-[13px] leading-tight mt-0.5">{s.title}</p>
+                <p className="text-[11px] text-muted-foreground leading-snug">{s.subtitle}</p>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+    );
+  }
+
 
   // STEP 2 — fill in the post
   const Icon = selectedCategory!.icon;
+  const goBackFromForm = () => {
+    if (category === 'review') { setReviewSub(null); } else { setCategory(null); }
+  };
   return (
     <div className="min-h-screen bg-background max-w-lg mx-auto px-4 pt-4 pb-32">
       <div className="flex items-center gap-3 mb-4">
-        <button onClick={() => setCategory(null)} className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center">
+        <button onClick={goBackFromForm} className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center">
           <ArrowLeft className="w-5 h-5 text-foreground" />
         </button>
         <h1 className="text-xl font-bold text-foreground">New post</h1>
@@ -231,7 +269,7 @@ const CreatePostPage = () => {
 
       {/* Selected category chip */}
       <button
-        onClick={() => setCategory(null)}
+        onClick={goBackFromForm}
         className={`w-full rounded-2xl bg-gradient-to-br ${selectedCategory!.accent} p-3 mb-5 flex items-center gap-3 border border-border`}
       >
         <div className="w-10 h-10 rounded-xl bg-background/60 flex items-center justify-center">
@@ -239,7 +277,10 @@ const CreatePostPage = () => {
         </div>
         <div className="flex-1 text-left min-w-0">
           <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide">Category</p>
-          <p className="font-bold text-foreground text-sm">{selectedCategory!.title}</p>
+          <p className="font-bold text-foreground text-sm truncate">
+            {selectedCategory!.title}
+            {selectedReviewSub && <span className="text-foreground/70"> · {selectedReviewSub.title}</span>}
+          </p>
         </div>
         <span className="text-xs font-semibold text-foreground/70">Change</span>
       </button>
