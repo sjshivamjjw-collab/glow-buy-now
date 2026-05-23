@@ -83,16 +83,16 @@ const DiscoverPage = () => {
   }, [posts, query, activeChip]);
 
   return (
-    <div className="min-h-screen max-w-lg mx-auto pb-24 font-[Figtree] bg-[linear-gradient(180deg,#fdf6f9_0%,#faf3f7_40%,#f6eef5_100%)]">
+    <div className="min-h-screen max-w-lg mx-auto pb-24 font-[Figtree] bg-[linear-gradient(180deg,#fff7f0_0%,#fdeede_40%,#fbe4cd_100%)]">
       {/* Header */}
-      <div className="sticky top-0 z-20 backdrop-blur-xl bg-[#fdf6f9]/70 border-b border-[#e8c5d0]/40 px-4 pt-12 pb-3">
+      <div className="sticky top-0 z-20 backdrop-blur-xl bg-[#fff7f0]/70 border-b border-[#f5cba8]/40 px-4 pt-12 pb-3">
         <div className="flex items-center justify-between mb-3">
-          <h1 className="font-[Outfit] text-3xl font-extrabold tracking-tight text-[#3a1f3a]">
+          <h1 className="font-[Outfit] text-3xl font-extrabold tracking-tight text-[#4a2410]">
             Discover
           </h1>
           <button
             onClick={() => navigate('/post/new')}
-            className="w-10 h-10 rounded-full bg-gradient-to-br from-[#c9a0dc] to-[#9b72cf] text-white flex items-center justify-center shadow-md shadow-[#9b72cf]/30 active:scale-95 transition-transform"
+            className="w-10 h-10 rounded-full bg-gradient-to-br from-[#f5a76b] to-[#e07a3c] text-white flex items-center justify-center shadow-md shadow-[#e07a3c]/30 active:scale-95 transition-transform"
             aria-label="Create post"
           >
             <Sparkles className="w-5 h-5" />
@@ -100,12 +100,12 @@ const DiscoverPage = () => {
         </div>
 
         <div className="relative">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#9b72cf]" />
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#e07a3c]" />
           <input
             value={query}
             onChange={e => setQuery(e.target.value)}
             placeholder="Search posts, people, #tags…"
-            className="w-full pl-11 pr-4 py-3 rounded-full bg-white/80 border border-[#e8c5d0]/60 text-[#3a1f3a] placeholder:text-[#9b72cf]/60 focus:outline-none focus:ring-2 focus:ring-[#c9a0dc]/40 text-sm font-medium"
+            className="w-full pl-11 pr-4 py-3 rounded-full bg-white/80 border border-[#f5cba8]/60 text-[#4a2410] placeholder:text-[#e07a3c]/60 focus:outline-none focus:ring-2 focus:ring-[#f5a76b]/40 text-sm font-medium"
           />
         </div>
 
@@ -119,8 +119,8 @@ const DiscoverPage = () => {
                 onClick={() => setActiveChip(chip)}
                 className={`shrink-0 px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all ${
                   active
-                    ? 'bg-[#3a1f3a] text-[#f8e8ee] shadow-sm'
-                    : 'bg-white/70 text-[#6b4a6b] border border-[#e8c5d0]/60 hover:border-[#c9a0dc]'
+                    ? 'bg-[#4a2410] text-[#fdecd9] shadow-sm'
+                    : 'bg-white/70 text-[#8a5a3a] border border-[#f5cba8]/60 hover:border-[#f5a76b]'
                 }`}
               >
                 {chip === 'Trending' ? (
@@ -135,17 +135,17 @@ const DiscoverPage = () => {
       <div className="px-3 pt-4">
         {loading ? (
           <div className="flex items-center justify-center py-24">
-            <Loader2 className="w-6 h-6 animate-spin text-[#9b72cf]" />
+            <Loader2 className="w-6 h-6 animate-spin text-[#e07a3c]" />
           </div>
         ) : filtered.length === 0 ? (
           <div className="text-center py-20 px-6">
-            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#f8e8ee] to-[#c9a0dc]/40 flex items-center justify-center mx-auto mb-4">
-              <Sparkles className="w-7 h-7 text-[#9b72cf]" />
+            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#fdecd9] to-[#f5a76b]/40 flex items-center justify-center mx-auto mb-4">
+              <Sparkles className="w-7 h-7 text-[#e07a3c]" />
             </div>
-            <p className="font-[Outfit] text-[#3a1f3a] font-bold text-lg mb-1">Nothing here yet</p>
-            <p className="text-[#6b4a6b] text-sm mb-5">Be the first to share something beautiful.</p>
+            <p className="font-[Outfit] text-[#4a2410] font-bold text-lg mb-1">Nothing here yet</p>
+            <p className="text-[#8a5a3a] text-sm mb-5">Be the first to share something beautiful.</p>
             <button onClick={() => navigate('/post/new')}
-              className="px-5 py-2.5 rounded-full bg-gradient-to-br from-[#c9a0dc] to-[#9b72cf] text-white text-sm font-semibold shadow-md shadow-[#9b72cf]/30">
+              className="px-5 py-2.5 rounded-full bg-gradient-to-br from-[#f5a76b] to-[#e07a3c] text-white text-sm font-semibold shadow-md shadow-[#e07a3c]/30">
               Create a post
             </button>
           </div>
@@ -156,10 +156,10 @@ const DiscoverPage = () => {
               <button
                 key={p.id}
                 onClick={() => navigate(`/p/${p.id}`)}
-                className="group mb-1.5 w-full text-left rounded-3xl overflow-hidden bg-white border border-[#e8c5d0]/50 hover:border-[#c9a0dc] hover:shadow-lg hover:shadow-[#9b72cf]/10 transition-all duration-300"
+                className="group mb-1.5 w-full text-left rounded-3xl overflow-hidden bg-white border border-[#f5cba8]/50 hover:border-[#f5a76b] hover:shadow-lg hover:shadow-[#e07a3c]/10 transition-all duration-300"
               >
                 {/* Media */}
-                <div className="relative w-full bg-[#f8e8ee] overflow-hidden" style={{ height: `${h}px` }}>
+                <div className="relative w-full bg-[#fdecd9] overflow-hidden" style={{ height: `${h}px` }}>
                   {p.cover_url ? (
                     p.cover_kind === 'video' ? (
                       <>
@@ -172,8 +172,8 @@ const DiscoverPage = () => {
                       <img src={p.cover_url} alt={p.title || ''} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" />
                     )
                   ) : (
-                    <div className="w-full h-full bg-gradient-to-br from-[#f8e8ee] via-[#e8c5d0]/60 to-[#c9a0dc]/40 flex items-center justify-center p-4">
-                      <span className="font-[Outfit] text-[#3a1f3a] text-sm font-semibold line-clamp-5 text-center">
+                    <div className="w-full h-full bg-gradient-to-br from-[#fdecd9] via-[#f5cba8]/60 to-[#f5a76b]/40 flex items-center justify-center p-4">
+                      <span className="font-[Outfit] text-[#4a2410] text-sm font-semibold line-clamp-5 text-center">
                         {p.title || p.body || 'Post'}
                       </span>
                     </div>
@@ -183,8 +183,8 @@ const DiscoverPage = () => {
                       <Images className="w-3 h-3" /> {p.media_count}
                     </span>
                   )}
-                  <div className="absolute bottom-2 right-2 flex items-center gap-1 px-2 py-0.5 rounded-full bg-white/85 backdrop-blur-sm text-[#3a1f3a] text-[11px] font-semibold">
-                    <Heart className="w-3 h-3 fill-[#e84d8a] text-[#e84d8a]" />
+                  <div className="absolute bottom-2 right-2 flex items-center gap-1 px-2 py-0.5 rounded-full bg-white/85 backdrop-blur-sm text-[#4a2410] text-[11px] font-semibold">
+                    <Heart className="w-3 h-3 fill-[#f97316] text-[#f97316]" />
                     {formatCount(p.like_count)}
                   </div>
                 </div>
@@ -192,27 +192,27 @@ const DiscoverPage = () => {
                 {/* Footer */}
                 <div className="px-3 pt-2.5 pb-3">
                   {p.title && (
-                    <p className="font-[Outfit] font-semibold text-[#3a1f3a] text-sm leading-snug line-clamp-2 mb-1.5">
+                    <p className="font-[Outfit] font-semibold text-[#4a2410] text-sm leading-snug line-clamp-2 mb-1.5">
                       {p.title}
                     </p>
                   )}
                   {p.location && (
-                    <p className="flex items-center gap-1 text-[10px] text-[#9b72cf] font-medium mb-2 truncate">
+                    <p className="flex items-center gap-1 text-[10px] text-[#e07a3c] font-medium mb-2 truncate">
                       <MapPin className="w-2.5 h-2.5" />{p.location}
                     </p>
                   )}
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-1.5 min-w-0">
                       {author?.avatar_url ? (
-                        <img src={author.avatar_url} className="w-5 h-5 rounded-full object-cover shrink-0 ring-1 ring-[#e8c5d0]" alt="" />
+                        <img src={author.avatar_url} className="w-5 h-5 rounded-full object-cover shrink-0 ring-1 ring-[#f5cba8]" alt="" />
                       ) : (
-                        <div className="w-5 h-5 rounded-full bg-gradient-to-br from-[#e8c5d0] to-[#c9a0dc] shrink-0" />
+                        <div className="w-5 h-5 rounded-full bg-gradient-to-br from-[#f5cba8] to-[#f5a76b] shrink-0" />
                       )}
-                      <span className="truncate text-[11px] font-semibold text-[#6b4a6b]">
+                      <span className="truncate text-[11px] font-semibold text-[#8a5a3a]">
                         {author?.username ? `@${author.username}` : author?.name || 'User'}
                       </span>
                     </div>
-                    <span className="flex items-center gap-0.5 text-[11px] text-[#9b72cf] font-medium shrink-0">
+                    <span className="flex items-center gap-0.5 text-[11px] text-[#e07a3c] font-medium shrink-0">
                       <MessageCircle className="w-3 h-3" />{formatCount(p.comment_count)}
                     </span>
                   </div>
