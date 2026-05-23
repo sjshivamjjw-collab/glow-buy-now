@@ -152,7 +152,7 @@ const PostDetailPage = () => {
 
       {/* Media carousel */}
       {currentMedia && (
-        <div className="relative w-full bg-secondary aspect-square">
+        <div className="relative w-full bg-secondary aspect-[4/5] max-h-[60vh] rounded-xl overflow-hidden">
           {currentMedia.kind === 'video' ? (
             <video src={currentMedia.url} className="w-full h-full object-contain" controls playsInline />
           ) : (
