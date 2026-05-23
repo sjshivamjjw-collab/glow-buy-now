@@ -71,6 +71,7 @@ const CreatePostPage = () => {
   const [submitting, setSubmitting] = useState(false);
 
   const selectedCategory = CATEGORIES.find(c => c.key === category);
+  const selectedReviewSub = REVIEW_SUBCATEGORIES.find(s => s.key === reviewSub);
 
   const handleFiles = (files: FileList | null) => {
     if (!files) return;
