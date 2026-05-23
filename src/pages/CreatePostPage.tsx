@@ -407,7 +407,7 @@ const CreatePostPage = () => {
               placeholder={ph}
               maxLength={2000}
               rows={hasSuggestions ? 7 : 5}
-              className="w-full px-4 py-3 mb-4 rounded-xl bg-[#f5f5f5] border border-[#e5e5e5] text-[#0a0a0a] placeholder:text-[#a0a0a0] focus:outline-none focus:ring-2 focus:ring-[#ef4444]/40 text-sm resize-none"
+              className="w-full px-4 py-3 mb-4 rounded-xl bg-[#f5f5f5] border border-[#e5e5e5] text-[#0a0a0a] placeholder:text-[#a0a0a0] focus:outline-none focus:ring-2 focus:ring-[#ef4444]/40 text-[13px] resize-none"
             />
           </>
         );
