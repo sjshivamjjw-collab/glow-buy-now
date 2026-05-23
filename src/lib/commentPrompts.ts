@@ -42,8 +42,8 @@ export const getCommentPrompt = (
 ): string => {
   if (isReply) return 'Write a reply…';
   if (category === 'review' && reviewSub && REVIEW_SUB_PROMPTS[reviewSub]) {
-    return REVIEW_SUB_PROMPTS[reviewSub] + ' (use @ to tag)';
+    return REVIEW_SUB_PROMPTS[reviewSub];
   }
   if (category && CATEGORY_PROMPTS[category]) return CATEGORY_PROMPTS[category];
-  return 'Add a comment… use @ to tag people';
+  return 'Add a comment…';
 };
