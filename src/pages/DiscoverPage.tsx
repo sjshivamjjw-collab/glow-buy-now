@@ -87,7 +87,7 @@ const DiscoverPage = () => {
           </h1>
           <button
             onClick={() => navigate('/post/new')}
-            className="w-10 h-10 rounded-full bg-gradient-to-br from-[#f5a76b] to-[#f59e4b] text-white flex items-center justify-center shadow-md shadow-[#f59e4b]/30 active:scale-95 transition-transform"
+            className="w-10 h-10 rounded-full bg-gradient-to-br from-[#ef4444] to-[#dc2626] text-white flex items-center justify-center shadow-md shadow-[#dc2626]/30 active:scale-95 transition-transform"
             aria-label="Create post"
           >
             <Sparkles className="w-5 h-5" />
@@ -95,12 +95,12 @@ const DiscoverPage = () => {
         </div>
 
         <div className="relative">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#f59e4b]" />
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#dc2626]" />
           <input
             value={query}
             onChange={e => setQuery(e.target.value)}
             placeholder="Search posts, people, #tags…"
-            className="w-full pl-11 pr-4 py-3 rounded-full bg-[#1a1a1a]/80 border border-[#2a2a2a]/60 text-[#fafafa] placeholder:text-[#f59e4b]/60 focus:outline-none focus:ring-2 focus:ring-[#f5a76b]/40 text-sm font-medium"
+            className="w-full pl-11 pr-4 py-3 rounded-full bg-[#1a1a1a]/80 border border-[#2a2a2a]/60 text-[#fafafa] placeholder:text-[#dc2626]/60 focus:outline-none focus:ring-2 focus:ring-[#ef4444]/40 text-sm font-medium"
           />
         </div>
 
@@ -115,7 +115,7 @@ const DiscoverPage = () => {
                 className={`shrink-0 px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all ${
                   active
                     ? 'bg-[#fafafa] text-[#1a1a1a] shadow-sm'
-                    : 'bg-[#1a1a1a]/70 text-[#a0a0a0] border border-[#2a2a2a]/60 hover:border-[#f5a76b]'
+                    : 'bg-[#1a1a1a]/70 text-[#a0a0a0] border border-[#2a2a2a]/60 hover:border-[#ef4444]'
                 }`}
               >
                 {chip === 'Trending' ? (
@@ -130,17 +130,17 @@ const DiscoverPage = () => {
       <div className="px-3 pt-4">
         {loading ? (
           <div className="flex items-center justify-center py-24">
-            <Loader2 className="w-6 h-6 animate-spin text-[#f59e4b]" />
+            <Loader2 className="w-6 h-6 animate-spin text-[#dc2626]" />
           </div>
         ) : filtered.length === 0 ? (
           <div className="text-center py-20 px-6">
-            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#1a1a1a] to-[#f5a76b]/40 flex items-center justify-center mx-auto mb-4">
-              <Sparkles className="w-7 h-7 text-[#f59e4b]" />
+            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#1a1a1a] to-[#ef4444]/40 flex items-center justify-center mx-auto mb-4">
+              <Sparkles className="w-7 h-7 text-[#dc2626]" />
             </div>
             <p className="font-[Outfit] text-[#fafafa] font-bold text-lg mb-1">Nothing here yet</p>
             <p className="text-[#a0a0a0] text-sm mb-5">Be the first to share something beautiful.</p>
             <button onClick={() => navigate('/post/new')}
-              className="px-5 py-2.5 rounded-full bg-gradient-to-br from-[#f5a76b] to-[#f59e4b] text-white text-sm font-semibold shadow-md shadow-[#f59e4b]/30">
+              className="px-5 py-2.5 rounded-full bg-gradient-to-br from-[#ef4444] to-[#dc2626] text-white text-sm font-semibold shadow-md shadow-[#dc2626]/30">
               Create a post
             </button>
           </div>
@@ -151,7 +151,7 @@ const DiscoverPage = () => {
               <button
                 key={p.id}
                 onClick={() => navigate(`/p/${p.id}`)}
-                className="group mb-1.5 w-full text-left rounded-3xl overflow-hidden bg-[#161616] border border-[#2a2a2a]/50 hover:border-[#f5a76b] hover:shadow-lg hover:shadow-[#f59e4b]/10 transition-all duration-300"
+                className="group mb-1.5 w-full text-left rounded-3xl overflow-hidden bg-[#161616] border border-[#2a2a2a]/50 hover:border-[#ef4444] hover:shadow-lg hover:shadow-[#dc2626]/10 transition-all duration-300"
               >
                 {/* Media */}
                 <div className="relative w-full bg-[#1a1a1a] overflow-hidden" style={{ height: `${h}px` }}>
@@ -167,7 +167,7 @@ const DiscoverPage = () => {
                       <img src={p.cover_url} alt={p.title || ''} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" />
                     )
                   ) : (
-                    <div className="w-full h-full bg-gradient-to-br from-[#1a1a1a] via-[#2a2a2a]/60 to-[#f5a76b]/40 flex items-center justify-center p-4">
+                    <div className="w-full h-full bg-gradient-to-br from-[#1a1a1a] via-[#2a2a2a]/60 to-[#ef4444]/40 flex items-center justify-center p-4">
                       <span className="font-[Outfit] text-[#fafafa] text-sm font-semibold line-clamp-5 text-center">
                         {p.title || p.body || 'Post'}
                       </span>
@@ -188,7 +188,7 @@ const DiscoverPage = () => {
                     </p>
                   )}
                   {p.location && (
-                    <p className="flex items-center gap-1 text-[10px] text-[#f59e4b] font-medium mb-2 truncate">
+                    <p className="flex items-center gap-1 text-[10px] text-[#dc2626] font-medium mb-2 truncate">
                       <MapPin className="w-2.5 h-2.5" />{p.location}
                     </p>
                   )}
@@ -197,7 +197,7 @@ const DiscoverPage = () => {
                       {author?.avatar_url ? (
                         <img src={author.avatar_url} className="w-5 h-5 rounded-full object-cover shrink-0 ring-1 ring-[#2a2a2a]" alt="" />
                       ) : (
-                        <div className="w-5 h-5 rounded-full bg-gradient-to-br from-[#2a2a2a] to-[#f5a76b] shrink-0" />
+                        <div className="w-5 h-5 rounded-full bg-gradient-to-br from-[#2a2a2a] to-[#ef4444] shrink-0" />
                       )}
                       <span className="truncate text-[11px] font-semibold text-[#a0a0a0]">
                         {author?.username ? `@${author.username}` : author?.name || 'User'}
