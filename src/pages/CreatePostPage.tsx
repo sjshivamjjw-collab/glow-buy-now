@@ -360,7 +360,7 @@ const CreatePostPage = () => {
       
 
       {/* Title */}
-      <label className="text-xs font-semibold text-[#6b6b6b] mb-1 block">What are you sharing today? <span className="text-[#ef4444]">*</span></label>
+      <label className="text-xs font-semibold text-[#6b6b6b] mb-1 mt-6 block">What are you sharing today? <span className="text-[#ef4444]">*</span></label>
       <input value={title} onChange={e => setTitle(e.target.value.slice(0, 75))} placeholder="A short and clear title helps more people discover your post" maxLength={75}
         className="w-full px-4 py-3 mb-4 rounded-xl bg-[#f5f5f5] border border-[#e5e5e5] text-[#0a0a0a] placeholder:text-[#a0a0a0] focus:outline-none focus:ring-2 focus:ring-[#ef4444]/40 text-sm" />
 
