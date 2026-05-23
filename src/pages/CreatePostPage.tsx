@@ -314,19 +314,19 @@ const CreatePostPage = () => {
       {/* Selected category chip */}
       <button
         onClick={goBackFromForm}
-        className={`w-full rounded-2xl bg-gradient-to-br ${selectedCategory!.accent} p-3 mb-5 flex items-center gap-3 border border-[#2a2a2a]/70`}
+        className="w-full rounded-2xl bg-white p-3 mb-5 flex items-center gap-3 border border-[#2a2a2a]/40 shadow-[0_4px_16px_-8px_rgba(0,0,0,0.5)]"
       >
-        <div className="w-10 h-10 rounded-xl bg-[#0a0a0a]/70 flex items-center justify-center">
-          <Icon className="w-5 h-5" />
+        <div className="w-10 h-10 rounded-xl bg-[#0a0a0a] flex items-center justify-center">
+          <Icon className="w-5 h-5 text-white" />
         </div>
         <div className="flex-1 text-left min-w-0">
-          <p className="text-[10px] font-semibold text-[#a0a0a0] uppercase tracking-wide">Category</p>
-          <p className="font-bold text-[#fafafa] text-sm truncate">
+          <p className="text-[10px] font-semibold text-[#6b6b6b] uppercase tracking-wide">Category</p>
+          <p className="font-bold text-[#0a0a0a] text-sm truncate">
             {selectedCategory!.title}
-            {selectedReviewSub && <span className="text-[#fafafa]/70"> · {selectedReviewSub.title}</span>}
+            {selectedReviewSub && <span className="text-[#0a0a0a]/60"> · {selectedReviewSub.title}</span>}
           </p>
         </div>
-        <span className="text-xs font-semibold text-[#fafafa]/80">Change</span>
+        <span className="text-xs font-semibold text-[#0a0a0a]/70">Change</span>
       </button>
 
 
