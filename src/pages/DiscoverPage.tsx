@@ -81,18 +81,12 @@ const DiscoverPage = () => {
     <div className="min-h-screen max-w-lg mx-auto pb-24 font-[Figtree] bg-[linear-gradient(180deg,#0a0a0a_0%,#111111_40%,#000000_100%)]">
       {/* Header */}
       <div className="sticky top-0 z-20 backdrop-blur-xl bg-[#0a0a0a]/70 border-b border-[#2a2a2a]/40 px-4 pt-12 pb-3">
-        <div className="flex items-center justify-between mb-3">
+        <div className="mb-3">
           <h1 className="font-[Outfit] text-3xl font-extrabold tracking-tight text-[#fafafa]">
             Discover
           </h1>
-          <button
-            onClick={() => navigate('/post/new')}
-            className="w-10 h-10 rounded-full bg-gradient-to-br from-[#ef4444] to-[#dc2626] text-white flex items-center justify-center shadow-md shadow-[#dc2626]/30 active:scale-95 transition-transform"
-            aria-label="Create post"
-          >
-            <Sparkles className="w-5 h-5" />
-          </button>
         </div>
+
 
         <div className="relative">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#dc2626]" />
