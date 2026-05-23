@@ -377,7 +377,7 @@ const PostDetailPage = () => {
       </div>
 
       {/* Comment box */}
-      <div className="fixed bottom-[68px] left-0 right-0 z-[60] bg-[#0a0a0a]/95 backdrop-blur-xl border-t border-[#2a2a2a]/40 max-w-lg mx-auto">
+      <div className={`fixed bottom-[68px] left-0 right-0 z-[60] bg-[#0a0a0a]/95 backdrop-blur-xl border-t border-[#2a2a2a]/40 max-w-lg mx-auto transition-all duration-200 ${showCommentBar ? 'translate-y-0 opacity-100 pointer-events-auto' : 'translate-y-full opacity-0 pointer-events-none'}`}>
         {replyTo && (
           <div className="px-3 pt-2 pb-1 flex items-center justify-between text-xs text-[#a0a0a0]">
             <span>Replying to <span className="text-[#fafafa] font-semibold">{authors[replyTo.user_id]?.name || authors[replyTo.user_id]?.username || 'User'}</span></span>
