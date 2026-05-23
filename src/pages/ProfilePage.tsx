@@ -117,45 +117,48 @@ const ProfilePage = () => {
     <div className="min-h-screen bg-[linear-gradient(180deg,#0a0a0a_0%,#111111_40%,#000000_100%)] max-w-lg mx-auto px-4 pt-14 pb-24">
       <h1 className="text-xl font-bold text-[#fafafa] mb-6">Profile</h1>
 
-      <div className="flex items-center gap-5 mb-5">
-        <button
-          type="button"
-          onClick={() => fileInputRef.current?.click()}
-          disabled={uploadingAvatar}
-          className="relative w-20 h-20 rounded-full bg-[#161616] ring-1 ring-[#2a2a2a] flex items-center justify-center overflow-hidden group disabled:opacity-60"
-          aria-label="Change profile photo"
-        >
-          {displayAvatar ? (
-            <img src={displayAvatar} alt={displayName} className="w-full h-full object-cover" />
-          ) : (
-            <span className="text-3xl font-bold text-[#a0a0a0]">{displayName[0]?.toUpperCase() || '?'}</span>
-          )}
-          <span className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-            <Camera className="w-5 h-5 text-white" />
-          </span>
-          {uploadingAvatar && (
-            <span className="absolute inset-0 bg-black/50 flex items-center justify-center text-white text-[10px] font-semibold">Uploading…</span>
-          )}
-        </button>
-        <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleAvatarChange} />
-        <div className="flex-1 grid grid-cols-3 gap-2 text-center">
-          <div><p className="font-bold text-[#fafafa]">{formatCount(posts.length)}</p><p className="text-[11px] text-[#a0a0a0]">Posts</p></div>
-          <div><p className="font-bold text-[#fafafa]">{formatCount(followers)}</p><p className="text-[11px] text-[#a0a0a0]">Followers</p></div>
-          <div><p className="font-bold text-[#fafafa]">{formatCount(following)}</p><p className="text-[11px] text-[#a0a0a0]">Following</p></div>
-        </div>
-      </div>
-
-      {!editing ? (
-        <div className="mb-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="font-bold text-[#fafafa]">{displayName}</p>
-              {displayUsername && <p className="text-[#a0a0a0] text-sm">@{displayUsername}</p>}
-            </div>
-            <button onClick={handleEdit} className="px-3 py-1.5 rounded-xl bg-[#161616] border border-[#2a2a2a]/60 text-[#fafafa] text-sm font-semibold">Edit</button>
+      <div className="relative rounded-3xl bg-gradient-to-br from-[#141414] to-[#0d0d0d] border border-[#2a2a2a]/70 p-5 mb-5 shadow-[0_8px_32px_-12px_rgba(0,0,0,0.6)]">
+        <div className="flex items-center gap-5">
+          <button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={uploadingAvatar}
+            className="relative w-20 h-20 rounded-full bg-[#161616] ring-2 ring-[#ef4444]/40 ring-offset-2 ring-offset-[#0d0d0d] flex items-center justify-center overflow-hidden group disabled:opacity-60 shrink-0"
+            aria-label="Change profile photo"
+          >
+            {displayAvatar ? (
+              <img src={displayAvatar} alt={displayName} className="w-full h-full object-cover" />
+            ) : (
+              <span className="text-3xl font-bold text-[#a0a0a0]">{displayName[0]?.toUpperCase() || '?'}</span>
+            )}
+            <span className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+              <Camera className="w-5 h-5 text-white" />
+            </span>
+            {uploadingAvatar && (
+              <span className="absolute inset-0 bg-black/50 flex items-center justify-center text-white text-[10px] font-semibold">Uploading…</span>
+            )}
+          </button>
+          <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleAvatarChange} />
+          <div className="flex-1 grid grid-cols-3 text-center divide-x divide-[#2a2a2a]/60">
+            <div className="px-1"><p className="font-bold text-[#fafafa] text-lg leading-tight">{formatCount(posts.length)}</p><p className="text-[10px] text-[#a0a0a0] uppercase tracking-wider mt-0.5">Posts</p></div>
+            <div className="px-1"><p className="font-bold text-[#fafafa] text-lg leading-tight">{formatCount(followers)}</p><p className="text-[10px] text-[#a0a0a0] uppercase tracking-wider mt-0.5">Followers</p></div>
+            <div className="px-1"><p className="font-bold text-[#fafafa] text-lg leading-tight">{formatCount(following)}</p><p className="text-[10px] text-[#a0a0a0] uppercase tracking-wider mt-0.5">Following</p></div>
           </div>
         </div>
-      ) : (
+
+        {!editing && (
+          <div className="mt-4 pt-4 border-t border-[#2a2a2a]/60 flex items-center justify-between">
+            <div className="min-w-0">
+              <p className="font-bold text-[#fafafa] truncate">{displayName}</p>
+              {displayUsername && <p className="text-[#a0a0a0] text-sm truncate">@{displayUsername}</p>}
+            </div>
+            <button onClick={handleEdit} className="px-4 py-1.5 rounded-full bg-[#1f1f1f] border border-[#2a2a2a] hover:border-[#ef4444]/50 text-[#fafafa] text-xs font-semibold transition-colors shrink-0 ml-3">Edit profile</button>
+          </div>
+        )}
+      </div>
+
+      {editing && (
+
         <div className="mt-2 space-y-3 mb-4">
           <input value={editName} onChange={e => setEditName(e.target.value)} placeholder="Your name"
             className="w-full px-4 py-3 rounded-xl bg-[#161616] border border-[#2a2a2a]/60 text-[#fafafa] placeholder:text-[#6b6b6b] focus:outline-none focus:ring-2 focus:ring-[#ef4444]/40 text-sm" />
