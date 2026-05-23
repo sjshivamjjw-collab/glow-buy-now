@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
-import { ArrowLeft, Heart, MessageCircle, MapPin, Loader2, Send, Trash2, ChevronLeft, ChevronRight, Bookmark } from 'lucide-react';
+import { ArrowLeft, Heart, MessageCircle, MapPin, Loader2, Send, Trash2, ChevronLeft, ChevronRight, Bookmark, Share2 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 
 interface PostRow {
@@ -140,11 +140,27 @@ const PostDetailPage = () => {
         <button onClick={() => navigate(-1)} className="w-10 h-10 rounded-full bg-[#1a1a1a] border border-[#2a2a2a]/60 flex items-center justify-center active:scale-95 transition-transform">
           <ArrowLeft className="w-5 h-5 text-[#fafafa]" />
         </button>
-        {isOwn && (
-          <button onClick={handleDeletePost} className="px-3 py-2 rounded-full bg-[#ef4444]/10 text-[#ef4444] border border-[#ef4444]/30 text-xs font-semibold flex items-center gap-1">
-            <Trash2 className="w-3.5 h-3.5" /> Delete
+        <div className="flex items-center gap-2">
+          <button
+            onClick={async () => {
+              const url = `${window.location.origin}/p/${post.id}`;
+              const shareData = { title: post.title || 'Check out this post', text: post.body || '', url };
+              try {
+                if (navigator.share) await navigator.share(shareData);
+                else { await navigator.clipboard.writeText(url); toast({ title: 'Link copied' }); }
+              } catch {}
+            }}
+            className="w-10 h-10 rounded-full bg-[#1a1a1a] border border-[#2a2a2a]/60 flex items-center justify-center active:scale-95 transition-transform"
+            aria-label="Share"
+          >
+            <Share2 className="w-5 h-5 text-[#fafafa]" />
           </button>
-        )}
+          {isOwn && (
+            <button onClick={handleDeletePost} className="px-3 py-2 rounded-full bg-[#ef4444]/10 text-[#ef4444] border border-[#ef4444]/30 text-xs font-semibold flex items-center gap-1">
+              <Trash2 className="w-3.5 h-3.5" /> Delete
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Author header */}
@@ -264,7 +280,7 @@ const PostDetailPage = () => {
       </div>
 
       {/* Comment box */}
-      <div className="fixed bottom-0 left-0 right-0 z-40 bg-[#0a0a0a]/90 backdrop-blur-xl border-t border-[#2a2a2a]/40 max-w-lg mx-auto px-3 py-2 flex items-center gap-2 safe-bottom">
+      <div className="fixed bottom-[68px] left-0 right-0 z-[60] bg-[#0a0a0a]/95 backdrop-blur-xl border-t border-[#2a2a2a]/40 max-w-lg mx-auto px-3 py-2 flex items-center gap-2">
         <input
           value={draft}
           onChange={e => setDraft(e.target.value)}
