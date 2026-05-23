@@ -330,7 +330,7 @@ const CreatePostPage = () => {
 
 
       {/* Media grid */}
-      <label className="text-xs font-semibold text-[#6b6b6b] mb-1 block">Media</label>
+      <label className="text-xs font-semibold text-[#6b6b6b] mb-1 block">Media <span className="text-[#ef4444]">*</span></label>
       <div className="grid grid-cols-3 gap-2 mb-1">
         {media.map((m, i) => (
           <div key={i} className="relative aspect-square rounded-xl overflow-hidden bg-[#f5f5f5] border border-[#e5e5e5]">
