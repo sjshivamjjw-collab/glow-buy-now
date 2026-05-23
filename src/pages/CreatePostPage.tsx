@@ -524,10 +524,11 @@ const CreatePostPage = () => {
       <p className="text-[10px] text-[#a0a0a0] mb-6">MP3 / M4A / WAV · max {MAX_AUDIO_MB}MB</p>
 
       <button onClick={handleSubmit} disabled={submitting}
-        className="w-full py-3.5 rounded-2xl bg-primary text-primary-foreground font-bold text-sm disabled:opacity-60 flex items-center justify-center gap-2">
+        className="w-full py-3.5 rounded-2xl bg-gradient-to-br from-[#ef4444] to-[#dc2626] text-white font-bold text-sm disabled:opacity-60 flex items-center justify-center gap-2 shadow-[0_8px_24px_-8px_rgba(239,68,68,0.5)]">
         {submitting && <Loader2 className="w-4 h-4 animate-spin" />}
         {submitting ? 'Posting…' : 'Share post'}
       </button>
+
     </div>
   );
 };
