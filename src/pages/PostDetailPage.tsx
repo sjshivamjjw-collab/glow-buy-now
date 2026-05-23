@@ -66,6 +66,14 @@ const PostDetailPage = () => {
         ((profs as any[]) || []).forEach(pp => { map[pp.id] = pp; });
         setAuthors(map);
       }
+      if (userId && commentList.length) {
+        const { data: cl } = await supabase
+          .from('post_comment_likes' as any)
+          .select('comment_id')
+          .eq('user_id', userId)
+          .in('comment_id', commentList.map((cc: CommentRow) => cc.id));
+        setLikedComments(new Set(((cl as any[]) || []).map(r => r.comment_id)));
+      }
       setLoading(false);
     };
     load();
