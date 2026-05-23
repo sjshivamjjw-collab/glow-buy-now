@@ -1,7 +1,7 @@
 import { useEffect, useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { Search, Sparkles, Heart, MessageCircle, Loader2, Play, Images } from 'lucide-react';
+import { Search, Sparkles, Heart, MessageCircle, Loader2, Play, Images, MapPin, TrendingUp } from 'lucide-react';
 import { formatCount } from '@/lib/utils';
 
 interface TrendingPost {
@@ -26,12 +26,17 @@ interface AuthorInfo {
   avatar_url: string | null;
 }
 
+// Deterministic staggered heights for richer masonry feel when images
+// don't expose their natural ratio yet.
+const HEIGHT_POOL = [180, 220, 260, 300, 240, 200, 280, 230];
+
 const DiscoverPage = () => {
   const navigate = useNavigate();
   const [posts, setPosts] = useState<TrendingPost[]>([]);
   const [authors, setAuthors] = useState<Record<string, AuthorInfo>>({});
   const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState('');
+  const [activeChip, setActiveChip] = useState<string>('For you');
 
   useEffect(() => {
     const load = async () => {
@@ -50,103 +55,177 @@ const DiscoverPage = () => {
     load();
   }, []);
 
+  const chips = useMemo(() => {
+    const counts = new Map<string, number>();
+    posts.forEach(p => p.hashtags.forEach(h => counts.set(h, (counts.get(h) || 0) + 1)));
+    const top = Array.from(counts.entries()).sort((a, b) => b[1] - a[1]).slice(0, 6).map(([h]) => `#${h}`);
+    return ['For you', 'Trending', ...top];
+  }, [posts]);
+
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    if (!q) return posts;
+    let list = posts;
+    if (activeChip.startsWith('#')) {
+      const tag = activeChip.slice(1).toLowerCase();
+      list = list.filter(p => p.hashtags.some(h => h.toLowerCase() === tag));
+    } else if (activeChip === 'Trending') {
+      list = [...list].sort((a, b) => (b.like_count + b.comment_count) - (a.like_count + a.comment_count));
+    }
+    if (!q) return list;
     const tag = q.startsWith('#') ? q.slice(1) : q;
-    return posts.filter(p =>
+    return list.filter(p =>
       (p.title || '').toLowerCase().includes(q) ||
       (p.body || '').toLowerCase().includes(q) ||
       (p.location || '').toLowerCase().includes(q) ||
       p.hashtags.some(h => h.toLowerCase().includes(tag))
     );
-  }, [posts, query]);
+  }, [posts, query, activeChip]);
 
   return (
-    <div className="min-h-screen bg-background max-w-lg mx-auto px-4 pt-14 pb-24">
-      <div className="flex items-center justify-between mb-4">
-        <h1 className="text-2xl font-extrabold text-foreground tracking-tight">Discover</h1>
-      </div>
-
-      <div className="relative mb-5">
-        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-        <input
-          value={query}
-          onChange={e => setQuery(e.target.value)}
-          placeholder="Search posts, #tags…"
-          className="w-full pl-11 pr-4 py-3 rounded-2xl bg-secondary text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 text-sm"
-        />
-      </div>
-
-      {loading ? (
-        <div className="flex items-center justify-center py-20">
-          <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
-        </div>
-      ) : filtered.length === 0 ? (
-        <div className="text-center py-20">
-          <Sparkles className="w-10 h-10 mx-auto text-muted-foreground mb-3" />
-          <p className="text-foreground font-semibold mb-1">No posts yet</p>
-          <p className="text-muted-foreground text-sm mb-4">Be the first to share something.</p>
-          <button onClick={() => navigate('/post/new')}
-            className="px-4 py-2 rounded-xl bg-primary text-primary-foreground text-sm font-semibold">
-            Create a post
+    <div className="min-h-screen max-w-lg mx-auto pb-24 font-[Figtree] bg-[linear-gradient(180deg,#fdf6f9_0%,#faf3f7_40%,#f6eef5_100%)]">
+      {/* Header */}
+      <div className="sticky top-0 z-20 backdrop-blur-xl bg-[#fdf6f9]/70 border-b border-[#e8c5d0]/40 px-4 pt-12 pb-3">
+        <div className="flex items-center justify-between mb-3">
+          <h1 className="font-[Outfit] text-3xl font-extrabold tracking-tight text-[#3a1f3a]">
+            Discover
+          </h1>
+          <button
+            onClick={() => navigate('/post/new')}
+            className="w-10 h-10 rounded-full bg-gradient-to-br from-[#c9a0dc] to-[#9b72cf] text-white flex items-center justify-center shadow-md shadow-[#9b72cf]/30 active:scale-95 transition-transform"
+            aria-label="Create post"
+          >
+            <Sparkles className="w-5 h-5" />
           </button>
         </div>
-      ) : (
-        <div className="grid grid-cols-2 gap-3">
-          {filtered.map(p => {
-            const author = authors[p.user_id];
+
+        <div className="relative">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#9b72cf]" />
+          <input
+            value={query}
+            onChange={e => setQuery(e.target.value)}
+            placeholder="Search posts, people, #tags…"
+            className="w-full pl-11 pr-4 py-3 rounded-full bg-white/80 border border-[#e8c5d0]/60 text-[#3a1f3a] placeholder:text-[#9b72cf]/60 focus:outline-none focus:ring-2 focus:ring-[#c9a0dc]/40 text-sm font-medium"
+          />
+        </div>
+
+        {/* Filter chips */}
+        <div className="flex gap-2 overflow-x-auto -mx-4 px-4 mt-3 scrollbar-none">
+          {chips.map(chip => {
+            const active = chip === activeChip;
             return (
               <button
-                key={p.id}
-                onClick={() => navigate(`/p/${p.id}`)}
-                className="w-full text-left rounded-2xl overflow-hidden bg-card border border-border hover:border-primary/50 transition-colors flex flex-col"
+                key={chip}
+                onClick={() => setActiveChip(chip)}
+                className={`shrink-0 px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all ${
+                  active
+                    ? 'bg-[#3a1f3a] text-[#f8e8ee] shadow-sm'
+                    : 'bg-white/70 text-[#6b4a6b] border border-[#e8c5d0]/60 hover:border-[#c9a0dc]'
+                }`}
               >
-                <div className="relative aspect-square bg-secondary overflow-hidden">
-                  {p.cover_url ? (
-                    p.cover_kind === 'video' ? (
-                      <>
-                        <video src={p.cover_url} className="w-full h-full object-cover" muted playsInline preload="metadata" />
-                        <span className="absolute top-2 right-2 w-7 h-7 rounded-full bg-black/60 flex items-center justify-center">
-                          <Play className="w-3.5 h-3.5 text-white fill-white" />
-                        </span>
-                      </>
-                    ) : (
-                      <img src={p.cover_url} alt={p.title || ''} className="w-full h-full object-cover" loading="lazy" />
-                    )
-                  ) : (
-                    <div className="w-full h-full bg-gradient-to-br from-primary/20 via-accent/10 to-secondary flex items-center justify-center p-3">
-                      <span className="text-foreground text-xs font-semibold line-clamp-4 text-center">{p.title || p.body || 'Post'}</span>
-                    </div>
-                  )}
-                  {p.media_count > 1 && (
-                    <span className="absolute top-2 left-2 px-1.5 py-0.5 rounded-md bg-black/60 text-white text-[10px] font-bold flex items-center gap-0.5">
-                      <Images className="w-3 h-3" /> {p.media_count}
-                    </span>
-                  )}
-                </div>
-                <div className="p-2.5">
-                  {p.title && <p className="font-bold text-foreground text-xs line-clamp-2 leading-snug mb-1">{p.title}</p>}
-                  <div className="flex items-center justify-between text-[13px]">
-                    <div className="flex items-center gap-2 text-muted-foreground min-w-0">
-                      {author?.avatar_url ? (
-                        <img src={author.avatar_url} className="w-6 h-6 rounded-full object-cover shrink-0" alt="" />
-                      ) : (
-                        <div className="w-6 h-6 rounded-full bg-secondary shrink-0" />
-                      )}
-                      <span className="truncate font-medium">{author?.username ? `@${author.username}` : author?.name || 'User'}</span>
-                    </div>
-                    <div className="flex items-center gap-2.5 text-muted-foreground shrink-0">
-                      <span className="flex items-center gap-1"><Heart className="w-4 h-4" />{formatCount(p.like_count)}</span>
-                      <span className="flex items-center gap-1"><MessageCircle className="w-4 h-4" />{formatCount(p.comment_count)}</span>
-                    </div>
-                  </div>
-                </div>
+                {chip === 'Trending' ? (
+                  <span className="flex items-center gap-1"><TrendingUp className="w-3 h-3" />{chip}</span>
+                ) : chip}
               </button>
             );
           })}
         </div>
-      )}
+      </div>
+
+      <div className="px-3 pt-4">
+        {loading ? (
+          <div className="flex items-center justify-center py-24">
+            <Loader2 className="w-6 h-6 animate-spin text-[#9b72cf]" />
+          </div>
+        ) : filtered.length === 0 ? (
+          <div className="text-center py-20 px-6">
+            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#f8e8ee] to-[#c9a0dc]/40 flex items-center justify-center mx-auto mb-4">
+              <Sparkles className="w-7 h-7 text-[#9b72cf]" />
+            </div>
+            <p className="font-[Outfit] text-[#3a1f3a] font-bold text-lg mb-1">Nothing here yet</p>
+            <p className="text-[#6b4a6b] text-sm mb-5">Be the first to share something beautiful.</p>
+            <button onClick={() => navigate('/post/new')}
+              className="px-5 py-2.5 rounded-full bg-gradient-to-br from-[#c9a0dc] to-[#9b72cf] text-white text-sm font-semibold shadow-md shadow-[#9b72cf]/30">
+              Create a post
+            </button>
+          </div>
+        ) : (
+          <div className="columns-2 gap-3 [column-fill:_balance]">
+            {filtered.map((p, idx) => {
+              const author = authors[p.user_id];
+              const h = HEIGHT_POOL[idx % HEIGHT_POOL.length];
+              return (
+                <button
+                  key={p.id}
+                  onClick={() => navigate(`/p/${p.id}`)}
+                  className="group mb-3 break-inside-avoid w-full text-left rounded-3xl overflow-hidden bg-white border border-[#e8c5d0]/50 hover:border-[#c9a0dc] hover:shadow-lg hover:shadow-[#9b72cf]/10 transition-all duration-300"
+                >
+                  {/* Media */}
+                  <div className="relative w-full bg-[#f8e8ee] overflow-hidden" style={{ height: `${h}px` }}>
+                    {p.cover_url ? (
+                      p.cover_kind === 'video' ? (
+                        <>
+                          <video src={p.cover_url} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" muted playsInline preload="metadata" />
+                          <span className="absolute top-2 right-2 w-8 h-8 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center">
+                            <Play className="w-3.5 h-3.5 text-white fill-white" />
+                          </span>
+                        </>
+                      ) : (
+                        <img src={p.cover_url} alt={p.title || ''} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" />
+                      )
+                    ) : (
+                      <div className="w-full h-full bg-gradient-to-br from-[#f8e8ee] via-[#e8c5d0]/60 to-[#c9a0dc]/40 flex items-center justify-center p-4">
+                        <span className="font-[Outfit] text-[#3a1f3a] text-sm font-semibold line-clamp-5 text-center">
+                          {p.title || p.body || 'Post'}
+                        </span>
+                      </div>
+                    )}
+                    {p.media_count > 1 && (
+                      <span className="absolute top-2 left-2 px-2 py-0.5 rounded-full bg-black/55 backdrop-blur-sm text-white text-[10px] font-bold flex items-center gap-1">
+                        <Images className="w-3 h-3" /> {p.media_count}
+                      </span>
+                    )}
+
+                    {/* Likes overlay on media */}
+                    <div className="absolute bottom-2 right-2 flex items-center gap-1 px-2 py-0.5 rounded-full bg-white/85 backdrop-blur-sm text-[#3a1f3a] text-[11px] font-semibold">
+                      <Heart className="w-3 h-3 fill-[#e84d8a] text-[#e84d8a]" />
+                      {formatCount(p.like_count)}
+                    </div>
+                  </div>
+
+                  {/* Footer */}
+                  <div className="px-3 pt-2.5 pb-3">
+                    {p.title && (
+                      <p className="font-[Outfit] font-semibold text-[#3a1f3a] text-sm leading-snug line-clamp-2 mb-1.5">
+                        {p.title}
+                      </p>
+                    )}
+                    {p.location && (
+                      <p className="flex items-center gap-1 text-[10px] text-[#9b72cf] font-medium mb-2 truncate">
+                        <MapPin className="w-2.5 h-2.5" />{p.location}
+                      </p>
+                    )}
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-1.5 min-w-0">
+                        {author?.avatar_url ? (
+                          <img src={author.avatar_url} className="w-5 h-5 rounded-full object-cover shrink-0 ring-1 ring-[#e8c5d0]" alt="" />
+                        ) : (
+                          <div className="w-5 h-5 rounded-full bg-gradient-to-br from-[#e8c5d0] to-[#c9a0dc] shrink-0" />
+                        )}
+                        <span className="truncate text-[11px] font-semibold text-[#6b4a6b]">
+                          {author?.username ? `@${author.username}` : author?.name || 'User'}
+                        </span>
+                      </div>
+                      <span className="flex items-center gap-0.5 text-[11px] text-[#9b72cf] font-medium shrink-0">
+                        <MessageCircle className="w-3 h-3" />{formatCount(p.comment_count)}
+                      </span>
+                    </div>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        )}
+      </div>
     </div>
   );
 };
