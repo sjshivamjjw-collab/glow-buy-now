@@ -64,6 +64,10 @@ const CreatePostPage = () => {
   const [title, setTitle] = useState('');
   const [body, setBody] = useState('');
   const [location, setLocation] = useState('');
+  const [locSuggestions, setLocSuggestions] = useState<{ name: string; display: string }[]>([]);
+  const [locOpen, setLocOpen] = useState(false);
+  const [locLoading, setLocLoading] = useState(false);
+  const locJustPicked = useRef(false);
   const [hashtagInput, setHashtagInput] = useState('');
   const [hashtags, setHashtags] = useState<string[]>([]);
   const [musicFile, setMusicFile] = useState<File | null>(null);
