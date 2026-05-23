@@ -220,15 +220,15 @@ const CreatePostPage = () => {
   // STEP 1 — pick a category
   if (!category) {
     return (
-      <div className="min-h-screen bg-[linear-gradient(180deg,#0a0a0a_0%,#111111_40%,#000000_100%)] max-w-lg mx-auto px-4 pt-4 pb-32">
+      <div className="min-h-screen bg-white max-w-lg mx-auto px-4 pt-4 pb-32">
         <div className="flex items-center gap-3 mb-4">
-          <button onClick={() => navigate(-1)} className="w-10 h-10 rounded-xl bg-[#161616] border border-[#2a2a2a]/60 flex items-center justify-center">
-            <ArrowLeft className="w-5 h-5 text-[#fafafa]" />
+          <button onClick={() => navigate(-1)} className="w-10 h-10 rounded-xl bg-[#f5f5f5] border border-[#e5e5e5] flex items-center justify-center">
+            <ArrowLeft className="w-5 h-5 text-[#0a0a0a]" />
           </button>
-          <h1 className="text-xl font-bold text-[#fafafa]">New post</h1>
+          <h1 className="text-xl font-bold text-[#0a0a0a]">New post</h1>
         </div>
-        <h2 className="text-2xl font-bold text-[#fafafa] mb-1">What are you posting about?</h2>
-        <p className="text-sm text-[#a0a0a0] mb-5">Pick the closest one — takes one second</p>
+        <h2 className="text-2xl font-bold text-[#0a0a0a] mb-1">What are you posting about?</h2>
+        <p className="text-sm text-[#6b6b6b] mb-5">Pick the closest one — takes one second</p>
 
         <div className="grid grid-cols-1 gap-3">
           {CATEGORIES.map(c => {
@@ -237,16 +237,16 @@ const CreatePostPage = () => {
               <button
                 key={c.key}
                 onClick={() => setCategory(c.key)}
-                className="text-left rounded-2xl bg-gradient-to-br from-[#141414] to-[#0d0d0d] border border-[#2a2a2a]/70 p-5 flex items-start gap-4 active:scale-[0.98] hover:border-[#ef4444]/50 transition-all shadow-[0_8px_24px_-12px_rgba(0,0,0,0.6)]"
+                className="text-left rounded-2xl bg-gradient-to-br from-white to-[#fafafa] border border-[#e5e5e5] p-5 flex items-start gap-4 active:scale-[0.98] hover:border-[#ef4444]/50 transition-all shadow-[0_4px_16px_-8px_rgba(0,0,0,0.1)]"
               >
                 <div className={`w-12 h-12 shrink-0 rounded-xl bg-gradient-to-br ${c.accent} flex items-center justify-center`}>
                   <Icon className="w-6 h-6" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="font-bold text-[#fafafa] text-base leading-tight mb-1">{c.title}</p>
-                  <p className="text-[13px] text-[#a0a0a0] leading-snug">{c.subtitle}</p>
+                  <p className="font-bold text-[#0a0a0a] text-base leading-tight mb-1">{c.title}</p>
+                  <p className="text-[13px] text-[#6b6b6b] leading-snug">{c.subtitle}</p>
                 </div>
-                <ChevronRight className="w-5 h-5 text-[#a0a0a0] mt-1 shrink-0" />
+                <ChevronRight className="w-5 h-5 text-[#6b6b6b] mt-1 shrink-0" />
               </button>
             );
           })}
@@ -259,15 +259,15 @@ const CreatePostPage = () => {
   // STEP 1b — pick a review subcategory
   if (category === 'review' && !reviewSub) {
     return (
-      <div className="min-h-screen bg-[linear-gradient(180deg,#0a0a0a_0%,#111111_40%,#000000_100%)] max-w-lg mx-auto px-4 pt-4 pb-32">
+      <div className="min-h-screen bg-white max-w-lg mx-auto px-4 pt-4 pb-32">
         <div className="flex items-center gap-3 mb-4">
-          <button onClick={() => setCategory(null)} className="w-10 h-10 rounded-xl bg-[#161616] border border-[#2a2a2a]/60 flex items-center justify-center">
-            <ArrowLeft className="w-5 h-5 text-[#fafafa]" />
+          <button onClick={() => setCategory(null)} className="w-10 h-10 rounded-xl bg-[#f5f5f5] border border-[#e5e5e5] flex items-center justify-center">
+            <ArrowLeft className="w-5 h-5 text-[#0a0a0a]" />
           </button>
-          <h1 className="text-xl font-bold text-[#fafafa]">New post</h1>
+          <h1 className="text-xl font-bold text-[#0a0a0a]">New post</h1>
         </div>
-        <h2 className="text-2xl font-bold text-[#fafafa] mb-1">What are you reviewing?</h2>
-        <p className="text-sm text-[#a0a0a0] mb-5">Pick the closest one</p>
+        <h2 className="text-2xl font-bold text-[#0a0a0a] mb-1">What are you reviewing?</h2>
+        <p className="text-sm text-[#6b6b6b] mb-5">Pick the closest one</p>
 
         <div className="grid grid-cols-1 gap-3">
           {REVIEW_SUBCATEGORIES.map(s => {
@@ -276,16 +276,16 @@ const CreatePostPage = () => {
               <button
                 key={s.key}
                 onClick={() => setReviewSub(s.key)}
-                className="text-left rounded-2xl bg-gradient-to-br from-[#141414] to-[#0d0d0d] border border-[#2a2a2a]/70 p-5 flex items-start gap-4 active:scale-[0.98] hover:border-[#ef4444]/50 transition-all shadow-[0_8px_24px_-12px_rgba(0,0,0,0.6)]"
+                className="text-left rounded-2xl bg-gradient-to-br from-white to-[#fafafa] border border-[#e5e5e5] p-5 flex items-start gap-4 active:scale-[0.98] hover:border-[#ef4444]/50 transition-all shadow-[0_4px_16px_-8px_rgba(0,0,0,0.1)]"
               >
                 <div className={`w-12 h-12 shrink-0 rounded-xl bg-gradient-to-br ${s.accent} flex items-center justify-center`}>
                   <Icon className="w-6 h-6" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="font-bold text-[#fafafa] text-base leading-tight mb-1">{s.title}</p>
-                  <p className="text-[13px] text-[#a0a0a0] leading-snug">{s.subtitle}</p>
+                  <p className="font-bold text-[#0a0a0a] text-base leading-tight mb-1">{s.title}</p>
+                  <p className="text-[13px] text-[#6b6b6b] leading-snug">{s.subtitle}</p>
                 </div>
-                <ChevronRight className="w-5 h-5 text-[#a0a0a0] mt-1 shrink-0" />
+                <ChevronRight className="w-5 h-5 text-[#6b6b6b] mt-1 shrink-0" />
               </button>
             );
           })}
@@ -302,28 +302,28 @@ const CreatePostPage = () => {
     if (category === 'review') { setReviewSub(null); } else { setCategory(null); }
   };
   return (
-    <div className="min-h-screen bg-[linear-gradient(180deg,#0a0a0a_0%,#111111_40%,#000000_100%)] max-w-lg mx-auto px-4 pt-4 pb-32">
+    <div className="min-h-screen bg-white max-w-lg mx-auto px-4 pt-4 pb-32">
       <div className="flex items-center gap-3 mb-4">
-        <button onClick={goBackFromForm} className="w-10 h-10 rounded-xl bg-[#161616] border border-[#2a2a2a]/60 flex items-center justify-center">
-          <ArrowLeft className="w-5 h-5 text-[#fafafa]" />
+        <button onClick={goBackFromForm} className="w-10 h-10 rounded-xl bg-[#f5f5f5] border border-[#e5e5e5] flex items-center justify-center">
+          <ArrowLeft className="w-5 h-5 text-[#0a0a0a]" />
         </button>
-        <h1 className="text-xl font-bold text-[#fafafa]">New post</h1>
+        <h1 className="text-xl font-bold text-[#0a0a0a]">New post</h1>
       </div>
 
 
 
 
       {/* Media grid */}
-      <label className="text-xs font-semibold text-[#a0a0a0] mb-1 block">Media</label>
+      <label className="text-xs font-semibold text-[#6b6b6b] mb-1 block">Media</label>
       <div className="grid grid-cols-3 gap-2 mb-1">
         {media.map((m, i) => (
-          <div key={i} className="relative aspect-square rounded-xl overflow-hidden bg-[#161616] border border-[#2a2a2a]/60">
+          <div key={i} className="relative aspect-square rounded-xl overflow-hidden bg-[#f5f5f5] border border-[#e5e5e5]">
             {m.kind === 'video' ? (
               <video src={m.previewUrl} className="w-full h-full object-cover" muted playsInline />
             ) : (
               <img src={m.previewUrl} alt="" className="w-full h-full object-cover" />
             )}
-            <button onClick={() => removeMedia(i)} aria-label="Remove" className="absolute top-1 right-1 w-6 h-6 rounded-full bg-black/60 text-white flex items-center justify-center">
+            <button onClick={() => removeMedia(i)} aria-label="Remove" className="absolute top-1 right-1 w-6 h-6 rounded-full bg-black/50 text-white flex items-center justify-center">
               <X className="w-3.5 h-3.5" />
             </button>
           </div>
@@ -332,7 +332,7 @@ const CreatePostPage = () => {
           <button
             type="button"
             onClick={() => fileRef.current?.click()}
-            className="aspect-square rounded-xl border-2 border-dashed border-[#2a2a2a]/60 bg-[#161616] flex flex-col items-center justify-center text-[#a0a0a0] gap-1 hover:border-[#ef4444]/50 transition-colors"
+            className="aspect-square rounded-xl border-2 border-dashed border-[#e5e5e5] bg-[#f5f5f5] flex flex-col items-center justify-center text-[#6b6b6b] gap-1 hover:border-[#ef4444]/50 transition-colors"
           >
             <ImagePlus className="w-6 h-6" />
             <span className="text-[10px] font-semibold">Add media</span>
@@ -344,9 +344,9 @@ const CreatePostPage = () => {
       
 
       {/* Title */}
-      <label className="text-xs font-semibold text-[#a0a0a0] mb-1 block">What are you sharing today?</label>
+      <label className="text-xs font-semibold text-[#6b6b6b] mb-1 block">What are you sharing today?</label>
       <input value={title} onChange={e => setTitle(e.target.value)} placeholder="A short and clear title helps more people discover your post" maxLength={140}
-        className="w-full px-4 py-3 mb-4 rounded-xl bg-[#161616] border border-[#2a2a2a]/60 text-[#fafafa] placeholder:text-[#6b6b6b] focus:outline-none focus:ring-2 focus:ring-[#ef4444]/40 text-sm" />
+        className="w-full px-4 py-3 mb-4 rounded-xl bg-[#f5f5f5] border border-[#e5e5e5] text-[#0a0a0a] placeholder:text-[#a0a0a0] focus:outline-none focus:ring-2 focus:ring-[#ef4444]/40 text-sm" />
 
       {/* Body */}
       {(() => {
@@ -398,7 +398,7 @@ const CreatePostPage = () => {
         };
         return (
           <>
-            <label className="text-xs font-semibold text-[#a0a0a0] mb-1 block">Tell people more...</label>
+            <label className="text-xs font-semibold text-[#6b6b6b] mb-1 block">Tell people more...</label>
             <textarea
               value={body}
               onChange={handleBodyChange}
@@ -407,7 +407,7 @@ const CreatePostPage = () => {
               placeholder={ph}
               maxLength={2000}
               rows={hasSuggestions ? 7 : 5}
-              className="w-full px-4 py-3 mb-4 rounded-xl bg-[#161616] border border-[#2a2a2a]/60 text-[#fafafa] placeholder:text-[#6b6b6b] focus:outline-none focus:ring-2 focus:ring-[#ef4444]/40 text-sm resize-none"
+              className="w-full px-4 py-3 mb-4 rounded-xl bg-[#f5f5f5] border border-[#e5e5e5] text-[#0a0a0a] placeholder:text-[#a0a0a0] focus:outline-none focus:ring-2 focus:ring-[#ef4444]/40 text-sm resize-none"
             />
           </>
         );
@@ -416,9 +416,9 @@ const CreatePostPage = () => {
 
 
       {/* Location */}
-      <label className="text-xs font-semibold text-[#a0a0a0] mb-1 block">Location</label>
+      <label className="text-xs font-semibold text-[#6b6b6b] mb-1 block">Location</label>
       <div className="relative mb-4">
-        <MapPin className="absolute left-4 top-[22px] -translate-y-1/2 w-4 h-4 text-[#a0a0a0]" />
+        <MapPin className="absolute left-4 top-[22px] -translate-y-1/2 w-4 h-4 text-[#6b6b6b]" />
         <input
           value={location}
           onChange={e => { setLocation(e.target.value); setLocOpen(true); }}
@@ -426,13 +426,13 @@ const CreatePostPage = () => {
           onBlur={() => setTimeout(() => setLocOpen(false), 150)}
           placeholder="e.g. Mumbai, Bandra"
           maxLength={100}
-          className="w-full pl-11 pr-10 py-3 rounded-xl bg-[#161616] border border-[#2a2a2a]/60 text-[#fafafa] placeholder:text-[#a0a0a0] focus:outline-none focus:ring-2 focus:ring-[#ef4444]/40 text-sm"
+          className="w-full pl-11 pr-10 py-3 rounded-xl bg-[#f5f5f5] border border-[#e5e5e5] text-[#0a0a0a] placeholder:text-[#a0a0a0] focus:outline-none focus:ring-2 focus:ring-[#ef4444]/40 text-sm"
         />
         {locLoading && (
-          <Loader2 className="absolute right-3 top-[22px] -translate-y-1/2 w-4 h-4 text-[#a0a0a0] animate-spin" />
+          <Loader2 className="absolute right-3 top-[22px] -translate-y-1/2 w-4 h-4 text-[#6b6b6b] animate-spin" />
         )}
         {locOpen && location.trim().length >= 2 && locSuggestions.length > 0 && (
-          <div className="absolute z-20 left-0 right-0 mt-1 rounded-xl bg-[#161616] border border-[#2a2a2a]/60 shadow-lg overflow-hidden max-h-72 overflow-y-auto scrollbar-hide">
+          <div className="absolute z-20 left-0 right-0 mt-1 rounded-xl bg-[#f5f5f5] border border-[#e5e5e5] shadow-lg overflow-hidden max-h-72 overflow-y-auto scrollbar-hide">
             {locSuggestions.map((s, i) => (
               <button
                 key={i}
@@ -444,12 +444,12 @@ const CreatePostPage = () => {
                   setLocOpen(false);
                   setLocSuggestions([]);
                 }}
-                className="w-full text-left px-3 py-2.5 flex items-start gap-2 hover:bg-[#161616] border border-[#2a2a2a]/60 transition-colors border-b border-[#2a2a2a]/60 last:border-b-0"
+                className="w-full text-left px-3 py-2.5 flex items-start gap-2 hover:bg-[#f5f5f5] border border-[#e5e5e5] transition-colors border-b border-[#e5e5e5] last:border-b-0"
               >
-                <MapPin className="w-4 h-4 text-[#a0a0a0] shrink-0 mt-0.5" />
+                <MapPin className="w-4 h-4 text-[#6b6b6b] shrink-0 mt-0.5" />
                 <div className="min-w-0">
-                  <p className="text-sm font-semibold text-[#fafafa] truncate">{s.name}</p>
-                  <p className="text-[11px] text-[#a0a0a0] truncate">{s.display}</p>
+                  <p className="text-sm font-semibold text-[#0a0a0a] truncate">{s.name}</p>
+                  <p className="text-[11px] text-[#6b6b6b] truncate">{s.display}</p>
                 </div>
               </button>
             ))}
@@ -459,8 +459,8 @@ const CreatePostPage = () => {
 
 
       {/* Hashtags */}
-      <label className="text-xs font-semibold text-[#a0a0a0] mb-1 block">Hashtags</label>
-      <div className="px-3 py-2 mb-1 rounded-xl bg-[#161616] border border-[#2a2a2a]/60 flex flex-wrap gap-1.5 items-center min-h-[44px]">
+      <label className="text-xs font-semibold text-[#6b6b6b] mb-1 block">Hashtags</label>
+      <div className="px-3 py-2 mb-1 rounded-xl bg-[#f5f5f5] border border-[#e5e5e5] flex flex-wrap gap-1.5 items-center min-h-[44px]">
         {hashtags.map(h => (
           <span key={h} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#ef4444]/15 text-[#ef4444] text-xs font-semibold">
             #{h}
@@ -470,41 +470,41 @@ const CreatePostPage = () => {
           </span>
         ))}
         <div className="relative flex-1 min-w-[120px]">
-          <Hash className="absolute left-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#a0a0a0]" />
+          <Hash className="absolute left-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#6b6b6b]" />
           <input value={hashtagInput} onChange={e => setHashtagInput(e.target.value)} onKeyDown={handleHashtagKey} onBlur={commitHashtag}
             placeholder={hashtags.length ? '' : 'travel, foodie…'}
-            className="w-full pl-7 pr-1 py-1 bg-transparent text-[#fafafa] placeholder:text-[#a0a0a0] focus:outline-none text-sm" />
+            className="w-full pl-7 pr-1 py-1 bg-transparent text-[#0a0a0a] placeholder:text-[#a0a0a0] focus:outline-none text-sm" />
         </div>
       </div>
-      <p className="text-[10px] text-[#a0a0a0] mb-5">Press space, comma, or enter to add.</p>
+      <p className="text-[10px] text-[#6b6b6b] mb-5">Press space, comma, or enter to add.</p>
 
       {/* Music */}
-      <label className="text-xs font-semibold text-[#a0a0a0] mb-1 block">Music (optional)</label>
+      <label className="text-xs font-semibold text-[#6b6b6b] mb-1 block">Music (optional)</label>
       {musicFile ? (
-        <div className="mb-1 rounded-xl bg-[#161616] border border-[#2a2a2a]/60 p-3 flex items-center gap-3">
+        <div className="mb-1 rounded-xl bg-[#f5f5f5] border border-[#e5e5e5] p-3 flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-[#ef4444]/15 text-[#ef4444] flex items-center justify-center shrink-0">
             <Music className="w-5 h-5" />
           </div>
           <div className="flex-1 min-w-0">
             <input value={musicTitle} onChange={e => setMusicTitle(e.target.value)} placeholder="Track title"
-              className="w-full bg-transparent text-[#fafafa] text-sm font-semibold focus:outline-none truncate" />
-            <p className="text-[10px] text-[#a0a0a0] truncate">{musicFile.name}</p>
+              className="w-full bg-transparent text-[#0a0a0a] text-sm font-semibold focus:outline-none truncate" />
+            <p className="text-[10px] text-[#6b6b6b] truncate">{musicFile.name}</p>
           </div>
           <button onClick={() => { setMusicFile(null); setMusicTitle(''); }} aria-label="Remove music"
-            className="w-8 h-8 rounded-full bg-[#0a0a0a] flex items-center justify-center">
-            <X className="w-4 h-4 text-[#fafafa]" />
+            className="w-8 h-8 rounded-full bg-[#e5e5e5] flex items-center justify-center">
+            <X className="w-4 h-4 text-[#0a0a0a]" />
           </button>
         </div>
       ) : (
         <button type="button" onClick={() => audioRef.current?.click()}
-          className="w-full mb-1 rounded-xl border-2 border-dashed border-[#2a2a2a]/60 bg-[#161616] p-4 flex items-center gap-3 text-[#a0a0a0] hover:border-[#ef4444]/50 transition-colors">
+          className="w-full mb-1 rounded-xl border-2 border-dashed border-[#e5e5e5] bg-[#f5f5f5] p-4 flex items-center gap-3 text-[#6b6b6b] hover:border-[#ef4444]/50 transition-colors">
           <Music className="w-5 h-5" />
           <span className="text-sm font-semibold">Add a music track</span>
         </button>
       )}
       <input ref={audioRef} type="file" accept="audio/*" className="hidden"
         onChange={e => { handleAudio(e.target.files?.[0] || null); e.target.value = ''; }} />
-      <p className="text-[10px] text-[#a0a0a0] mb-6">MP3 / M4A / WAV · max {MAX_AUDIO_MB}MB</p>
+      <p className="text-[10px] text-[#6b6b6b] mb-6">MP3 / M4A / WAV · max {MAX_AUDIO_MB}MB</p>
 
       <button onClick={handleSubmit} disabled={submitting}
         className="w-full py-3.5 rounded-2xl bg-gradient-to-br from-[#ef4444] to-[#dc2626] text-white font-bold text-sm disabled:opacity-60 flex items-center justify-center gap-2 shadow-[0_8px_24px_-8px_rgba(239,68,68,0.5)]">
