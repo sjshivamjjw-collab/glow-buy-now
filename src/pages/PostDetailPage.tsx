@@ -37,6 +37,8 @@ const PostDetailPage = () => {
   const [draft, setDraft] = useState('');
   const [mediaIdx, setMediaIdx] = useState(0);
   const [saved, setSaved] = useState(false);
+  const [likedComments, setLikedComments] = useState<Set<string>>(new Set());
+  const [replyTo, setReplyTo] = useState<CommentRow | null>(null);
 
   useEffect(() => {
     if (!id) return;
