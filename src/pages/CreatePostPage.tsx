@@ -220,36 +220,39 @@ const CreatePostPage = () => {
   // STEP 1 — pick a category
   if (!category) {
     return (
-      <div className="min-h-screen bg-background max-w-lg mx-auto px-4 pt-4 pb-32">
+      <div className="min-h-screen bg-[linear-gradient(180deg,#0a0a0a_0%,#111111_40%,#000000_100%)] max-w-lg mx-auto px-4 pt-4 pb-32">
         <div className="flex items-center gap-3 mb-4">
-          <button onClick={() => navigate(-1)} className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center">
-            <ArrowLeft className="w-5 h-5 text-foreground" />
+          <button onClick={() => navigate(-1)} className="w-10 h-10 rounded-xl bg-[#161616] border border-[#2a2a2a]/60 flex items-center justify-center">
+            <ArrowLeft className="w-5 h-5 text-[#fafafa]" />
           </button>
-          <h1 className="text-xl font-bold text-foreground">New post</h1>
+          <h1 className="text-xl font-bold text-[#fafafa]">New post</h1>
         </div>
-        <h2 className="text-2xl font-bold text-foreground mb-1">What are you posting about?</h2>
-        <p className="text-sm text-muted-foreground mb-5">Pick the closest one — takes one second</p>
+        <h2 className="text-2xl font-bold text-[#fafafa] mb-1">What are you posting about?</h2>
+        <p className="text-sm text-[#a0a0a0] mb-5">Pick the closest one — takes one second</p>
 
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 gap-3">
           {CATEGORIES.map(c => {
             const Icon = c.icon;
             return (
               <button
                 key={c.key}
                 onClick={() => setCategory(c.key)}
-                className="text-left rounded-2xl bg-card border border-border p-3 flex flex-col gap-1.5 active:scale-[0.98] hover:border-primary/40 transition-all"
+                className="text-left rounded-2xl bg-gradient-to-br from-[#141414] to-[#0d0d0d] border border-[#2a2a2a]/70 p-5 flex items-start gap-4 active:scale-[0.98] hover:border-[#ef4444]/50 transition-all shadow-[0_8px_24px_-12px_rgba(0,0,0,0.6)]"
               >
-                <div className={`w-8 h-8 rounded-lg bg-gradient-to-br ${c.accent} flex items-center justify-center`}>
-                  <Icon className="w-4 h-4" />
+                <div className={`w-12 h-12 shrink-0 rounded-xl bg-gradient-to-br ${c.accent} flex items-center justify-center`}>
+                  <Icon className="w-6 h-6" />
                 </div>
-                <p className="font-bold text-foreground text-[13px] leading-tight mt-0.5">{c.title}</p>
-                <p className="text-[11px] text-muted-foreground leading-snug">{c.subtitle}</p>
+                <div className="flex-1 min-w-0">
+                  <p className="font-bold text-[#fafafa] text-base leading-tight mb-1">{c.title}</p>
+                  <p className="text-[13px] text-[#a0a0a0] leading-snug">{c.subtitle}</p>
+                </div>
+                <ChevronRight className="w-5 h-5 text-[#a0a0a0] mt-1 shrink-0" />
               </button>
-
             );
           })}
         </div>
       </div>
+
     );
   }
 
