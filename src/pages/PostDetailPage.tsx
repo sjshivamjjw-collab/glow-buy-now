@@ -226,6 +226,11 @@ const PostDetailPage = () => {
           ) : (
             <img src={currentMedia.url} alt="" className="w-full h-full object-contain" />
           )}
+          {post.category && CATEGORY_META[post.category] && (
+            <span className="absolute top-2 left-2 z-10 px-2 py-0.5 rounded-md bg-black/55 backdrop-blur-sm text-white/90 text-[10px] font-medium tracking-wide">
+              {CATEGORY_META[post.category].label}
+            </span>
+          )}
           {media.length > 1 && (
             <>
               <button
