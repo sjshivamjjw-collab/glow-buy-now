@@ -432,7 +432,7 @@ const CreatePostPage = () => {
           <Loader2 className="absolute right-3 top-[22px] -translate-y-1/2 w-4 h-4 text-[#a0a0a0] animate-spin" />
         )}
         {locOpen && location.trim().length >= 2 && locSuggestions.length > 0 && (
-          <div className="absolute z-20 left-0 right-0 mt-1 rounded-xl bg-[#161616] border border-[#2a2a2a]/60 shadow-lg overflow-hidden max-h-72 overflow-y-auto">
+          <div className="absolute z-20 left-0 right-0 mt-1 rounded-xl bg-[#161616] border border-[#2a2a2a]/60 shadow-lg overflow-hidden max-h-72 overflow-y-auto scrollbar-hide">
             {locSuggestions.map((s, i) => (
               <button
                 key={i}
