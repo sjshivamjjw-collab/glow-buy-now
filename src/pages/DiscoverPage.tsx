@@ -187,11 +187,6 @@ const DiscoverPage = () => {
                       {p.title}
                     </p>
                   )}
-                  {p.location && (
-                    <p className="flex items-center gap-1 text-[10px] text-[#dc2626] font-medium mb-2 truncate">
-                      <MapPin className="w-2.5 h-2.5" />{p.location}
-                    </p>
-                  )}
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-1.5 min-w-0">
                       {author?.avatar_url ? (
