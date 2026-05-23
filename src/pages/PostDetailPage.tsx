@@ -314,7 +314,7 @@ const PostDetailPage = () => {
       </div>
 
       {/* Comments */}
-      <div className="px-4 mt-6">
+      <div ref={commentsSectionRef} className="px-4 mt-6">
         <h3 className="font-[Outfit] text-sm font-bold text-[#a0a0a0] mb-3">Comments</h3>
         {comments.length === 0 ? (
           <p className="text-sm text-[#a0a0a0] text-center py-6">Be the first to comment.</p>
