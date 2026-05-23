@@ -28,7 +28,8 @@ interface AuthorInfo {
 
 // Deterministic staggered heights for richer masonry feel when images
 // don't expose their natural ratio yet.
-const HEIGHT_POOL = [180, 220, 260, 300, 240, 200, 280, 230];
+const LEFT_HEIGHTS = [280, 320, 260, 300, 290, 310];
+const RIGHT_HEIGHTS = [180, 220, 200, 240, 190, 210];
 
 const DiscoverPage = () => {
   const navigate = useNavigate();
@@ -148,83 +149,88 @@ const DiscoverPage = () => {
               Create a post
             </button>
           </div>
-        ) : (
-          <div className="columns-2 gap-3 [column-fill:_balance]">
-            {filtered.map((p, idx) => {
-              const author = authors[p.user_id];
-              const h = HEIGHT_POOL[idx % HEIGHT_POOL.length];
-              return (
-                <button
-                  key={p.id}
-                  onClick={() => navigate(`/p/${p.id}`)}
-                  className="group mb-3 break-inside-avoid w-full text-left rounded-3xl overflow-hidden bg-white border border-[#e8c5d0]/50 hover:border-[#c9a0dc] hover:shadow-lg hover:shadow-[#9b72cf]/10 transition-all duration-300"
-                >
-                  {/* Media */}
-                  <div className="relative w-full bg-[#f8e8ee] overflow-hidden" style={{ height: `${h}px` }}>
-                    {p.cover_url ? (
-                      p.cover_kind === 'video' ? (
-                        <>
-                          <video src={p.cover_url} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" muted playsInline preload="metadata" />
-                          <span className="absolute top-2 right-2 w-8 h-8 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center">
-                            <Play className="w-3.5 h-3.5 text-white fill-white" />
-                          </span>
-                        </>
-                      ) : (
-                        <img src={p.cover_url} alt={p.title || ''} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" />
-                      )
+        ) : (() => {
+          const renderCard = (p: TrendingPost, h: number) => {
+            const author = authors[p.user_id];
+            return (
+              <button
+                key={p.id}
+                onClick={() => navigate(`/p/${p.id}`)}
+                className="group mb-3 w-full text-left rounded-3xl overflow-hidden bg-white border border-[#e8c5d0]/50 hover:border-[#c9a0dc] hover:shadow-lg hover:shadow-[#9b72cf]/10 transition-all duration-300"
+              >
+                {/* Media */}
+                <div className="relative w-full bg-[#f8e8ee] overflow-hidden" style={{ height: `${h}px` }}>
+                  {p.cover_url ? (
+                    p.cover_kind === 'video' ? (
+                      <>
+                        <video src={p.cover_url} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" muted playsInline preload="metadata" />
+                        <span className="absolute top-2 right-2 w-8 h-8 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center">
+                          <Play className="w-3.5 h-3.5 text-white fill-white" />
+                        </span>
+                      </>
                     ) : (
-                      <div className="w-full h-full bg-gradient-to-br from-[#f8e8ee] via-[#e8c5d0]/60 to-[#c9a0dc]/40 flex items-center justify-center p-4">
-                        <span className="font-[Outfit] text-[#3a1f3a] text-sm font-semibold line-clamp-5 text-center">
-                          {p.title || p.body || 'Post'}
-                        </span>
-                      </div>
-                    )}
-                    {p.media_count > 1 && (
-                      <span className="absolute top-2 left-2 px-2 py-0.5 rounded-full bg-black/55 backdrop-blur-sm text-white text-[10px] font-bold flex items-center gap-1">
-                        <Images className="w-3 h-3" /> {p.media_count}
-                      </span>
-                    )}
-
-                    {/* Likes overlay on media */}
-                    <div className="absolute bottom-2 right-2 flex items-center gap-1 px-2 py-0.5 rounded-full bg-white/85 backdrop-blur-sm text-[#3a1f3a] text-[11px] font-semibold">
-                      <Heart className="w-3 h-3 fill-[#e84d8a] text-[#e84d8a]" />
-                      {formatCount(p.like_count)}
-                    </div>
-                  </div>
-
-                  {/* Footer */}
-                  <div className="px-3 pt-2.5 pb-3">
-                    {p.title && (
-                      <p className="font-[Outfit] font-semibold text-[#3a1f3a] text-sm leading-snug line-clamp-2 mb-1.5">
-                        {p.title}
-                      </p>
-                    )}
-                    {p.location && (
-                      <p className="flex items-center gap-1 text-[10px] text-[#9b72cf] font-medium mb-2 truncate">
-                        <MapPin className="w-2.5 h-2.5" />{p.location}
-                      </p>
-                    )}
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-1.5 min-w-0">
-                        {author?.avatar_url ? (
-                          <img src={author.avatar_url} className="w-5 h-5 rounded-full object-cover shrink-0 ring-1 ring-[#e8c5d0]" alt="" />
-                        ) : (
-                          <div className="w-5 h-5 rounded-full bg-gradient-to-br from-[#e8c5d0] to-[#c9a0dc] shrink-0" />
-                        )}
-                        <span className="truncate text-[11px] font-semibold text-[#6b4a6b]">
-                          {author?.username ? `@${author.username}` : author?.name || 'User'}
-                        </span>
-                      </div>
-                      <span className="flex items-center gap-0.5 text-[11px] text-[#9b72cf] font-medium shrink-0">
-                        <MessageCircle className="w-3 h-3" />{formatCount(p.comment_count)}
+                      <img src={p.cover_url} alt={p.title || ''} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" />
+                    )
+                  ) : (
+                    <div className="w-full h-full bg-gradient-to-br from-[#f8e8ee] via-[#e8c5d0]/60 to-[#c9a0dc]/40 flex items-center justify-center p-4">
+                      <span className="font-[Outfit] text-[#3a1f3a] text-sm font-semibold line-clamp-5 text-center">
+                        {p.title || p.body || 'Post'}
                       </span>
                     </div>
+                  )}
+                  {p.media_count > 1 && (
+                    <span className="absolute top-2 left-2 px-2 py-0.5 rounded-full bg-black/55 backdrop-blur-sm text-white text-[10px] font-bold flex items-center gap-1">
+                      <Images className="w-3 h-3" /> {p.media_count}
+                    </span>
+                  )}
+                  <div className="absolute bottom-2 right-2 flex items-center gap-1 px-2 py-0.5 rounded-full bg-white/85 backdrop-blur-sm text-[#3a1f3a] text-[11px] font-semibold">
+                    <Heart className="w-3 h-3 fill-[#e84d8a] text-[#e84d8a]" />
+                    {formatCount(p.like_count)}
                   </div>
-                </button>
-              );
-            })}
-          </div>
-        )}
+                </div>
+
+                {/* Footer */}
+                <div className="px-3 pt-2.5 pb-3">
+                  {p.title && (
+                    <p className="font-[Outfit] font-semibold text-[#3a1f3a] text-sm leading-snug line-clamp-2 mb-1.5">
+                      {p.title}
+                    </p>
+                  )}
+                  {p.location && (
+                    <p className="flex items-center gap-1 text-[10px] text-[#9b72cf] font-medium mb-2 truncate">
+                      <MapPin className="w-2.5 h-2.5" />{p.location}
+                    </p>
+                  )}
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-1.5 min-w-0">
+                      {author?.avatar_url ? (
+                        <img src={author.avatar_url} className="w-5 h-5 rounded-full object-cover shrink-0 ring-1 ring-[#e8c5d0]" alt="" />
+                      ) : (
+                        <div className="w-5 h-5 rounded-full bg-gradient-to-br from-[#e8c5d0] to-[#c9a0dc] shrink-0" />
+                      )}
+                      <span className="truncate text-[11px] font-semibold text-[#6b4a6b]">
+                        {author?.username ? `@${author.username}` : author?.name || 'User'}
+                      </span>
+                    </div>
+                    <span className="flex items-center gap-0.5 text-[11px] text-[#9b72cf] font-medium shrink-0">
+                      <MessageCircle className="w-3 h-3" />{formatCount(p.comment_count)}
+                    </span>
+                  </div>
+                </div>
+              </button>
+            );
+          };
+
+          const leftItems = filtered.filter((_, i) => i % 2 === 0);
+          const rightItems = filtered.filter((_, i) => i % 2 === 1);
+
+          return (
+            <div className="grid grid-cols-2 gap-3">
+              <div>{leftItems.map((p, i) => renderCard(p, LEFT_HEIGHTS[i % LEFT_HEIGHTS.length]))}</div>
+              <div>{rightItems.map((p, i) => renderCard(p, RIGHT_HEIGHTS[i % RIGHT_HEIGHTS.length]))}</div>
+            </div>
+          );
+        })()}
       </div>
     </div>
   );
