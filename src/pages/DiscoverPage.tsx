@@ -156,7 +156,7 @@ const DiscoverPage = () => {
               <button
                 key={p.id}
                 onClick={() => navigate(`/p/${p.id}`)}
-                className="group mb-3 w-full text-left rounded-3xl overflow-hidden bg-white border border-[#e8c5d0]/50 hover:border-[#c9a0dc] hover:shadow-lg hover:shadow-[#9b72cf]/10 transition-all duration-300"
+                className="group mb-1.5 w-full text-left rounded-3xl overflow-hidden bg-white border border-[#e8c5d0]/50 hover:border-[#c9a0dc] hover:shadow-lg hover:shadow-[#9b72cf]/10 transition-all duration-300"
               >
                 {/* Media */}
                 <div className="relative w-full bg-[#f8e8ee] overflow-hidden" style={{ height: `${h}px` }}>
@@ -225,7 +225,7 @@ const DiscoverPage = () => {
           const rightItems = filtered.filter((_, i) => i % 2 === 1);
 
           return (
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 gap-1.5">
               <div>{leftItems.map((p, i) => renderCard(p, LEFT_HEIGHTS[i % LEFT_HEIGHTS.length]))}</div>
               <div>{rightItems.map((p, i) => renderCard(p, RIGHT_HEIGHTS[i % RIGHT_HEIGHTS.length]))}</div>
             </div>
