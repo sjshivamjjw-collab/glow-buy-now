@@ -246,17 +246,10 @@ const DiscoverPage = () => {
                     </div>
                   )}
                   {p.media_count > 1 && (
-                    <span className="absolute bottom-2 left-2 px-2 py-0.5 rounded-full bg-black/55 backdrop-blur-sm text-white text-[10px] font-bold flex items-center gap-1">
-                      <Images className="w-3 h-3" /> {p.media_count}
-                    </span>
-                  )}
-                  {p.media_count > 1 && (
                     <span className="absolute bottom-2 right-2 px-2 py-0.5 rounded-full bg-black/55 backdrop-blur-sm text-white text-[10px] font-bold flex items-center gap-1">
                       <Images className="w-3 h-3" /> {p.media_count}
                     </span>
                   )}
-
-
                 </div>
 
                 {/* Footer */}
@@ -265,6 +258,11 @@ const DiscoverPage = () => {
                     <p className="font-[Outfit] font-semibold text-[#fafafa] text-sm leading-snug line-clamp-2 mb-1.5">
                       {p.title}
                     </p>
+                  )}
+                  {p.category && CATEGORY_META[p.category] && (
+                    <span className="inline-block mb-2 px-2 py-0.5 rounded-full bg-[#ef4444]/15 text-[#ef4444] text-[10px] font-bold border border-[#ef4444]/30">
+                      {CATEGORY_META[p.category].label}
+                    </span>
                   )}
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-1.5 min-w-0">
