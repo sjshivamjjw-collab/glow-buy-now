@@ -331,6 +331,7 @@ const CreatePostPage = () => {
           trip: 'Example of things you can include:\n\n🛌 How was the comfort, cleanliness, views, and amenities?\n\n💡 Any insider tricks on free upgrades or things to not miss out on?\n\n📢 What would you tell someone who is just about to book this?',
           product: 'Example of things you can include:\n\n⏳ How long have you been using it — and how\u2019s it been?\n\n👍 What impressed you, and what fell short?\n\n💸 Was it worth the price?',
           media: 'Example of things you can include:\n\n🧠 What did you like or dislike the most about it?\n\n👥 What type of person would actually love this, and who should completely skip it?',
+          activity: 'Example of things you can include:\n\n🎶 What was the energy and vibe actually like in person?\n\n💸 Looking back, did it feel worth the time and money?',
         };
         const subPh = category === 'review' && reviewSub ? REVIEW_SUB_PLACEHOLDERS[reviewSub] : undefined;
         const ph = subPh ?? BODY_PLACEHOLDERS[category!] ?? 'Tell people more...';
