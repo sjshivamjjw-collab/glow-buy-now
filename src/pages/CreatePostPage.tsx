@@ -332,7 +332,7 @@ const CreatePostPage = () => {
           <>
             <label className="text-xs font-semibold text-muted-foreground mb-1 block">Tell people more...</label>
             <textarea value={body} onChange={e => setBody(e.target.value)} placeholder={ph} maxLength={2000} rows={hasSuggestions ? 7 : 5}
-              className="w-full px-4 py-3 mb-4 rounded-xl bg-secondary text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-primary/30 text-sm resize-none" />
+              className="w-full px-4 py-3 mb-4 rounded-xl bg-secondary text-foreground placeholder:text-muted-foreground/70 focus:outline-none focus:ring-2 focus:ring-primary/30 text-sm resize-none" />
           </>
         );
       })()}
