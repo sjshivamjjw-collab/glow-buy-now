@@ -51,6 +51,20 @@ const PostDetailPage = () => {
   const [saved, setSaved] = useState(false);
   const [likedComments, setLikedComments] = useState<Set<string>>(new Set());
   const [replyTo, setReplyTo] = useState<CommentRow | null>(null);
+  const draftInputRef = useRef<HTMLInputElement>(null);
+  const [draftCursor, setDraftCursor] = useState<number | null>(null);
+  const mention = useMentionAutocomplete({
+    value: draft,
+    cursor: draftCursor,
+    onPick: ({ value, cursor }) => {
+      setDraft(value);
+      requestAnimationFrame(() => {
+        const el = draftInputRef.current;
+        if (el) { el.focus(); el.setSelectionRange(cursor, cursor); setDraftCursor(cursor); }
+      });
+    },
+  });
+
 
   useEffect(() => {
     if (!id) return;
