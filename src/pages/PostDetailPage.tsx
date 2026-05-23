@@ -275,7 +275,7 @@ const PostDetailPage = () => {
         {comments.length === 0 ? (
           <p className="text-sm text-[#a0a0a0] text-center py-6">Be the first to comment.</p>
         ) : (
-          <ul className="space-y-3">
+          <ul className="space-y-1">
             {comments.filter(c => !c.parent_id).map(top => {
               const thread = [top, ...comments.filter(r => r.parent_id === top.id)];
               return thread.map((c, idx) => {
@@ -286,7 +286,7 @@ const PostDetailPage = () => {
                 return (
                   <li
                     key={c.id}
-                    className={`flex gap-2.5 p-3 rounded-2xl bg-[#161616] border border-[#2a2a2a]/50 ${isReply ? 'ml-8' : ''}`}
+                    className={`flex gap-2.5 py-1.5 ${isReply ? 'ml-8' : ''}`}
                   >
                     {a?.avatar_url ? (
                       <img src={a.avatar_url} className="w-8 h-8 rounded-full object-cover shrink-0 ring-1 ring-[#2a2a2a]" alt="" />
