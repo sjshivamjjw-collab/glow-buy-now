@@ -78,9 +78,12 @@ const PostMusicPlayer = ({ url, title }: { url: string; title: string | null }) 
         window.addEventListener('keydown', onFirstGesture, { once: true });
       });
     }
+    const onStop = () => { audioRef.current?.pause(); };
+    window.addEventListener('post-music-stop', onStop);
     return () => {
       window.removeEventListener('pointerdown', onFirstGesture);
       window.removeEventListener('keydown', onFirstGesture);
+      window.removeEventListener('post-music-stop', onStop);
       audioRef.current?.pause();
       audioRef.current = null;
     };
