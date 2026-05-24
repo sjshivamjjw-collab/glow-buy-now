@@ -10,10 +10,10 @@ import {
 } from 'lucide-react';
 import { useMentionAutocomplete } from '@/hooks/useMentionAutocomplete';
 import { MentionSuggestions } from '@/components/MentionSuggestions';
+import { MusicPicker, type PickedTrack } from '@/components/MusicPicker';
 
 const MAX_FILES = 10;
 const MAX_FILE_MB = 25;
-const MAX_AUDIO_MB = 15;
 
 type CategoryKey = 'everyday_vibes' | 'showcase' | 'trip' | 'review' | 'real_talk' | 'hidden_gems';
 type ReviewSubKey = 'restaurant' | 'hotel' | 'product' | 'media' | 'activity';
@@ -58,7 +58,6 @@ const CreatePostPage = () => {
   const { userId } = useAuth();
   const { toast } = useToast();
   const fileRef = useRef<HTMLInputElement>(null);
-  const audioRef = useRef<HTMLInputElement>(null);
 
   const [category, setCategory] = useState<CategoryKey | null>(null);
   const [reviewSub, setReviewSub] = useState<ReviewSubKey | null>(null);
@@ -85,8 +84,8 @@ const CreatePostPage = () => {
   const locJustPicked = useRef(false);
   const [hashtagInput, setHashtagInput] = useState('');
   const [hashtags, setHashtags] = useState<string[]>([]);
-  const [musicFile, setMusicFile] = useState<File | null>(null);
-  const [musicTitle, setMusicTitle] = useState('');
+  const [music, setMusic] = useState<PickedTrack | null>(null);
+  const [musicPickerOpen, setMusicPickerOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
   const selectedCategory = CATEGORIES.find(c => c.key === category);
@@ -156,15 +155,6 @@ const CreatePostPage = () => {
     });
   };
 
-  const handleAudio = (f: File | null) => {
-    if (!f) return;
-    if (f.size > MAX_AUDIO_MB * 1024 * 1024) {
-      toast({ title: 'Audio too large', description: `Max ${MAX_AUDIO_MB}MB`, variant: 'destructive' });
-      return;
-    }
-    setMusicFile(f);
-    if (!musicTitle) setMusicTitle(f.name.replace(/\.[^.]+$/, ''));
-  };
 
   const commitHashtag = () => {
     const raw = hashtagInput.trim().replace(/^#+/, '').toLowerCase();
@@ -199,16 +189,8 @@ const CreatePostPage = () => {
     }
     setSubmitting(true);
     try {
-      let musicUrl: string | null = null;
-      if (musicFile) {
-        const ext = musicFile.name.split('.').pop() || 'mp3';
-        const path = `${userId}/music/${Date.now()}.${ext}`;
-        const { error: aErr } = await supabase.storage.from('post-media').upload(path, musicFile, {
-          contentType: musicFile.type || 'audio/mpeg', upsert: false,
-        });
-        if (aErr) throw aErr;
-        musicUrl = supabase.storage.from('post-media').getPublicUrl(path).data.publicUrl;
-      }
+      const musicUrl = music?.previewUrl ?? null;
+      const musicLabel = music ? `${music.title} — ${music.artist}` : null;
 
       const { data: post, error: postErr } = await supabase.from('posts' as any).insert({
         user_id: userId,
@@ -219,7 +201,7 @@ const CreatePostPage = () => {
         location: location.trim() || null,
         hashtags,
         music_url: musicUrl,
-        music_title: musicFile ? (musicTitle.trim() || null) : null,
+        music_title: musicLabel,
       }).select('id').single();
       if (postErr || !post) throw postErr || new Error('Failed to create post');
       const postId = (post as any).id as string;
@@ -531,31 +513,37 @@ const CreatePostPage = () => {
 
       {/* Music */}
       <label className="text-xs font-semibold text-[#6b6b6b] mb-1 block">Music (optional)</label>
-      {musicFile ? (
+      {music ? (
         <div className="mb-1 rounded-xl bg-[#f5f5f5] border border-[#e5e5e5] p-3 flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-[#ef4444]/15 text-[#ef4444] flex items-center justify-center shrink-0">
-            <Music className="w-5 h-5" />
+          <div className="w-10 h-10 rounded-xl overflow-hidden bg-[#ef4444]/15 text-[#ef4444] flex items-center justify-center shrink-0">
+            {music.artworkUrl ? (
+              <img src={music.artworkUrl} alt="" className="w-full h-full object-cover" />
+            ) : (
+              <Music className="w-5 h-5" />
+            )}
           </div>
           <div className="flex-1 min-w-0">
-            <input value={musicTitle} onChange={e => setMusicTitle(e.target.value)} placeholder="Track title"
-              className="w-full bg-transparent text-[#0a0a0a] text-sm font-semibold focus:outline-none truncate" />
-            <p className="text-[10px] text-[#6b6b6b] truncate">{musicFile.name}</p>
+            <p className="text-sm font-semibold text-[#0a0a0a] truncate">{music.title}</p>
+            <p className="text-[11px] text-[#6b6b6b] truncate">{music.artist}</p>
           </div>
-          <button onClick={() => { setMusicFile(null); setMusicTitle(''); }} aria-label="Remove music"
+          <button onClick={() => setMusicPickerOpen(true)} className="text-[11px] font-semibold text-[#ef4444] px-2">
+            Change
+          </button>
+          <button onClick={() => setMusic(null)} aria-label="Remove music"
             className="w-8 h-8 rounded-full bg-[#e5e5e5] flex items-center justify-center">
             <X className="w-4 h-4 text-[#0a0a0a]" />
           </button>
         </div>
       ) : (
-        <button type="button" onClick={() => audioRef.current?.click()}
+        <button type="button" onClick={() => setMusicPickerOpen(true)}
           className="w-full mb-1 rounded-xl border-2 border-dashed border-[#e5e5e5] bg-[#f5f5f5] p-4 flex items-center gap-3 text-[#6b6b6b] hover:border-[#ef4444]/50 transition-colors">
           <Music className="w-5 h-5" />
           <span className="text-sm font-semibold">Add a music track</span>
         </button>
       )}
-      <input ref={audioRef} type="file" accept="audio/*" className="hidden"
-        onChange={e => { handleAudio(e.target.files?.[0] || null); e.target.value = ''; }} />
-      <p className="text-[10px] text-[#6b6b6b] mb-6">MP3 / M4A / WAV · max {MAX_AUDIO_MB}MB</p>
+      <p className="text-[10px] text-[#6b6b6b] mb-6">Pick from millions of songs · 30-sec preview</p>
+
+      <MusicPicker open={musicPickerOpen} onClose={() => setMusicPickerOpen(false)} onPick={setMusic} />
 
       <button onClick={handleSubmit} disabled={submitting}
         className="w-full py-3.5 rounded-2xl bg-gradient-to-br from-[#ef4444] to-[#dc2626] text-white font-bold text-sm disabled:opacity-60 flex items-center justify-center gap-2 shadow-[0_8px_24px_-8px_rgba(239,68,68,0.5)]">
