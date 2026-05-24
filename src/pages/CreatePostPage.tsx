@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import { useMentionAutocomplete } from '@/hooks/useMentionAutocomplete';
 import { MentionSuggestions } from '@/components/MentionSuggestions';
+import { MusicPicker, type PickedTrack } from '@/components/MusicPicker';
 
 const MAX_FILES = 10;
 const MAX_FILE_MB = 25;
