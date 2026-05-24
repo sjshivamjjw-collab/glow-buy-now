@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Search, X, Play, Pause, Loader2, Music } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 
 export interface PickedTrack {
   title: string;
@@ -29,30 +30,58 @@ export const MusicPicker = ({ open, onClose, onPick }: Props) => {
   const [activeChip, setActiveChip] = useState<string>('Top Hits');
   const [results, setResults] = useState<ITunesTrack[]>([]);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [playingId, setPlayingId] = useState<number | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const reqIdRef = useRef(0);
 
-  // Fetch results (debounced)
+  // Fetch results (debounced) via edge function proxy
   useEffect(() => {
     if (!open) return;
     const term = (q.trim() || activeChip).trim();
-    if (!term) { setResults([]); return; }
+    if (!term) { setResults([]); setError(null); return; }
     setLoading(true);
-    const ctrl = new AbortController();
+    setError(null);
+    const myReq = ++reqIdRef.current;
     const t = setTimeout(async () => {
       try {
-        const url = `https://itunes.apple.com/search?media=music&entity=song&limit=30&term=${encodeURIComponent(term)}`;
-        const res = await fetch(url, { signal: ctrl.signal });
-        const json = await res.json();
-        const list: ITunesTrack[] = (json.results || []).filter((r: ITunesTrack) => !!r.previewUrl);
+        const { data, error: invokeErr } = await supabase.functions.invoke('itunes-search', {
+          method: 'GET',
+          headers: {},
+          body: undefined,
+          // Pass term/limit via query string
+          // @ts-expect-error - supabase-js v2 supports query string via 'queryParams' is not standard; fallback below
+        });
+        // The invoke signature above doesn't support query params reliably across versions,
+        // so use a direct fetch to the function URL.
+        let list: ITunesTrack[] = [];
+        let errMsg: string | null = null;
+        if (!data) {
+          const projectUrl = (import.meta as any).env.VITE_SUPABASE_URL;
+          const anonKey = (import.meta as any).env.VITE_SUPABASE_PUBLISHABLE_KEY;
+          const url = `${projectUrl}/functions/v1/itunes-search?term=${encodeURIComponent(term)}&limit=30`;
+          const res = await fetch(url, {
+            headers: { apikey: anonKey, Authorization: `Bearer ${anonKey}` },
+          });
+          const json = await res.json();
+          list = (json.results || []) as ITunesTrack[];
+          errMsg = json.error || (invokeErr ? invokeErr.message : null);
+        } else {
+          list = ((data as any).results || []) as ITunesTrack[];
+          errMsg = (data as any).error || null;
+        }
+        if (myReq !== reqIdRef.current) return;
         setResults(list);
+        setError(list.length === 0 && errMsg ? errMsg : null);
       } catch (e) {
-        if ((e as any).name !== 'AbortError') setResults([]);
+        if (myReq !== reqIdRef.current) return;
+        setResults([]);
+        setError((e as Error).message || 'Search failed');
       } finally {
-        setLoading(false);
+        if (myReq === reqIdRef.current) setLoading(false);
       }
     }, 300);
-    return () => { clearTimeout(t); ctrl.abort(); };
+    return () => { clearTimeout(t); };
   }, [q, activeChip, open]);
 
   // Stop audio on close
