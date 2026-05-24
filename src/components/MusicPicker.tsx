@@ -181,18 +181,13 @@ export const MusicPicker = ({ open, onClose, onPick }: Props) => {
                 ) : (
                   <Music className="w-5 h-5 text-[#a0a0a0] m-auto" />
                 )}
-                <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                <div className="absolute inset-0 bg-black/45 flex items-center justify-center">
                   {playingId === t.trackId ? (
-                    <Pause className="w-4 h-4 text-white" />
+                    <Pause className="w-5 h-5 text-white" />
                   ) : (
-                    <Play className="w-4 h-4 text-white" />
+                    <Play className="w-5 h-5 text-white" fill="currentColor" />
                   )}
                 </div>
-                {playingId === t.trackId && (
-                  <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
-                    <Pause className="w-4 h-4 text-white" />
-                  </div>
-                )}
               </button>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-semibold text-[#0a0a0a] truncate">{t.trackName}</p>
