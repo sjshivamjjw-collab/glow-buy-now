@@ -541,7 +541,7 @@ const CreatePostPage = () => {
           <span className="text-sm font-semibold">Add a music track</span>
         </button>
       )}
-      <p className="text-[10px] text-[#6b6b6b] mb-6">Pick from millions of songs · 30-sec preview</p>
+      <div className="mb-6" />
 
       <MusicPicker open={musicPickerOpen} onClose={() => setMusicPickerOpen(false)} onPick={setMusic} />
 
