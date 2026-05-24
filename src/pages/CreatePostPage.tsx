@@ -513,31 +513,37 @@ const CreatePostPage = () => {
 
       {/* Music */}
       <label className="text-xs font-semibold text-[#6b6b6b] mb-1 block">Music (optional)</label>
-      {musicFile ? (
+      {music ? (
         <div className="mb-1 rounded-xl bg-[#f5f5f5] border border-[#e5e5e5] p-3 flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-[#ef4444]/15 text-[#ef4444] flex items-center justify-center shrink-0">
-            <Music className="w-5 h-5" />
+          <div className="w-10 h-10 rounded-xl overflow-hidden bg-[#ef4444]/15 text-[#ef4444] flex items-center justify-center shrink-0">
+            {music.artworkUrl ? (
+              <img src={music.artworkUrl} alt="" className="w-full h-full object-cover" />
+            ) : (
+              <Music className="w-5 h-5" />
+            )}
           </div>
           <div className="flex-1 min-w-0">
-            <input value={musicTitle} onChange={e => setMusicTitle(e.target.value)} placeholder="Track title"
-              className="w-full bg-transparent text-[#0a0a0a] text-sm font-semibold focus:outline-none truncate" />
-            <p className="text-[10px] text-[#6b6b6b] truncate">{musicFile.name}</p>
+            <p className="text-sm font-semibold text-[#0a0a0a] truncate">{music.title}</p>
+            <p className="text-[11px] text-[#6b6b6b] truncate">{music.artist}</p>
           </div>
-          <button onClick={() => { setMusicFile(null); setMusicTitle(''); }} aria-label="Remove music"
+          <button onClick={() => setMusicPickerOpen(true)} className="text-[11px] font-semibold text-[#ef4444] px-2">
+            Change
+          </button>
+          <button onClick={() => setMusic(null)} aria-label="Remove music"
             className="w-8 h-8 rounded-full bg-[#e5e5e5] flex items-center justify-center">
             <X className="w-4 h-4 text-[#0a0a0a]" />
           </button>
         </div>
       ) : (
-        <button type="button" onClick={() => audioRef.current?.click()}
+        <button type="button" onClick={() => setMusicPickerOpen(true)}
           className="w-full mb-1 rounded-xl border-2 border-dashed border-[#e5e5e5] bg-[#f5f5f5] p-4 flex items-center gap-3 text-[#6b6b6b] hover:border-[#ef4444]/50 transition-colors">
           <Music className="w-5 h-5" />
           <span className="text-sm font-semibold">Add a music track</span>
         </button>
       )}
-      <input ref={audioRef} type="file" accept="audio/*" className="hidden"
-        onChange={e => { handleAudio(e.target.files?.[0] || null); e.target.value = ''; }} />
-      <p className="text-[10px] text-[#6b6b6b] mb-6">MP3 / M4A / WAV · max {MAX_AUDIO_MB}MB</p>
+      <p className="text-[10px] text-[#6b6b6b] mb-6">Pick from millions of songs · 30-sec preview</p>
+
+      <MusicPicker open={musicPickerOpen} onClose={() => setMusicPickerOpen(false)} onPick={setMusic} />
 
       <button onClick={handleSubmit} disabled={submitting}
         className="w-full py-3.5 rounded-2xl bg-gradient-to-br from-[#ef4444] to-[#dc2626] text-white font-bold text-sm disabled:opacity-60 flex items-center justify-center gap-2 shadow-[0_8px_24px_-8px_rgba(239,68,68,0.5)]">
