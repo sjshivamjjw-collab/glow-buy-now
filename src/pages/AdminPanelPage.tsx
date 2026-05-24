@@ -231,6 +231,18 @@ const AdminPanelPage = () => {
     setRevokingUser(null);
   };
 
+  const handleDeletePost = async (postId: string) => {
+    setDeletingPostId(postId);
+    const { error } = await supabase.from('posts' as any).delete().eq('id', postId);
+    setDeletingPostId(null);
+    if (error) {
+      toast({ title: 'Failed to delete post', description: error.message, variant: 'destructive' });
+      return;
+    }
+    setPosts(prev => prev.filter(p => p.id !== postId));
+    toast({ title: 'Post deleted' });
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-background max-w-lg mx-auto flex items-center justify-center">
