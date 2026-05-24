@@ -177,9 +177,16 @@ export const MusicPicker = ({ open, onClose, onPick }: Props) => {
             </div>
           )}
           {!loading && results.length === 0 && (
-            <div className="flex flex-col items-center justify-center py-10 text-[#a0a0a0] text-sm">
+            <div className="flex flex-col items-center justify-center py-10 text-[#a0a0a0] text-sm text-center px-6">
               <Music className="w-8 h-8 mb-2" />
-              No tracks found
+              {error ? (
+                <>
+                  <p className="text-[#ef4444] font-semibold mb-1">Couldn't load songs</p>
+                  <p className="text-xs">{error}</p>
+                </>
+              ) : (
+                'No tracks found'
+              )}
             </div>
           )}
           {results.map((t) => (
