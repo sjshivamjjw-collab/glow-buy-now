@@ -137,7 +137,7 @@ const AuthPage = () => {
                   transition={{ delay: 0.4 }}
                   className="text-muted-foreground text-center mt-3 text-lg"
                 >
-                  Accelerating Ambition
+                  For the little moments of everyday life
                 </motion.p>
               </div>
             </div>
