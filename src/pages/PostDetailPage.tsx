@@ -30,6 +30,8 @@ interface PostRow {
   like_count: number;
   comment_count: number;
   created_at: string;
+  music_url: string | null;
+  music_title: string | null;
 }
 interface MediaRow { id: string; url: string; kind: 'image' | 'video'; sort_order: number; }
 interface CommentRow { id: string; user_id: string; body: string; created_at: string; parent_id: string | null; like_count: number; }
