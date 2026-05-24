@@ -43,37 +43,23 @@ export const MusicPicker = ({ open, onClose, onPick }: Props) => {
     setLoading(true);
     setError(null);
     const myReq = ++reqIdRef.current;
+    const ctrl = new AbortController();
     const t = setTimeout(async () => {
       try {
-        const { data, error: invokeErr } = await supabase.functions.invoke('itunes-search', {
-          method: 'GET',
-          headers: {},
-          body: undefined,
-          // Pass term/limit via query string
-          // @ts-expect-error - supabase-js v2 supports query string via 'queryParams' is not standard; fallback below
+        const projectUrl = (import.meta as any).env.VITE_SUPABASE_URL;
+        const anonKey = (import.meta as any).env.VITE_SUPABASE_PUBLISHABLE_KEY;
+        const url = `${projectUrl}/functions/v1/itunes-search?term=${encodeURIComponent(term)}&limit=30`;
+        const res = await fetch(url, {
+          signal: ctrl.signal,
+          headers: { apikey: anonKey, Authorization: `Bearer ${anonKey}` },
         });
-        // The invoke signature above doesn't support query params reliably across versions,
-        // so use a direct fetch to the function URL.
-        let list: ITunesTrack[] = [];
-        let errMsg: string | null = null;
-        if (!data) {
-          const projectUrl = (import.meta as any).env.VITE_SUPABASE_URL;
-          const anonKey = (import.meta as any).env.VITE_SUPABASE_PUBLISHABLE_KEY;
-          const url = `${projectUrl}/functions/v1/itunes-search?term=${encodeURIComponent(term)}&limit=30`;
-          const res = await fetch(url, {
-            headers: { apikey: anonKey, Authorization: `Bearer ${anonKey}` },
-          });
-          const json = await res.json();
-          list = (json.results || []) as ITunesTrack[];
-          errMsg = json.error || (invokeErr ? invokeErr.message : null);
-        } else {
-          list = ((data as any).results || []) as ITunesTrack[];
-          errMsg = (data as any).error || null;
-        }
+        const json = await res.json();
         if (myReq !== reqIdRef.current) return;
+        const list: ITunesTrack[] = (json.results || []) as ITunesTrack[];
         setResults(list);
-        setError(list.length === 0 && errMsg ? errMsg : null);
+        setError(list.length === 0 && json.error ? json.error : null);
       } catch (e) {
+        if ((e as any).name === 'AbortError') return;
         if (myReq !== reqIdRef.current) return;
         setResults([]);
         setError((e as Error).message || 'Search failed');
@@ -81,7 +67,7 @@ export const MusicPicker = ({ open, onClose, onPick }: Props) => {
         if (myReq === reqIdRef.current) setLoading(false);
       }
     }, 300);
-    return () => { clearTimeout(t); };
+    return () => { clearTimeout(t); ctrl.abort(); };
   }, [q, activeChip, open]);
 
   // Stop audio on close
