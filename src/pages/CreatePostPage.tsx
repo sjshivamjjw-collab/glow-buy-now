@@ -429,7 +429,7 @@ const CreatePostPage = () => {
           review: 'You can include:\n\n✨ What did you try? Highlight the must-tries or absolute skips.\n\n🪑 How was the seating or service? (e.g., ideal for dates, laptop work, group hangs).\n\n💰 How was the overall experience and did it justify the price?',
           real_talk: 'You can include:\n\n🧠 What is the exact context and situation one faces?\n\n🪜 What are the key steps to take or avoid?',
           hidden_gems: 'You can include:\n\n💎 What makes this feel special, underrated or genuinely useful?\n\n🔍 How did you discover it — and how can others find it too?\n\n✨ Any tips for someone planning to try or explore it?',
-          trip: 'You can include:\n\n🗺️ What surprised you most — and what felt overrated?\n\n🚕 Best ways to get around, and when\u2019s the best time to visit?\n\n💸 What did it roughly cost, and what would you strongly recommend?',
+          trip: 'You can include:\n\n🗺️ What surprised you most — and what felt overrated?\n\n🚕 Best ways to get around, and when\u2019s the best time to visit?\n\n💸 What was the detailed cost breakdown and tips to save money?',
         };
         const REVIEW_SUB_PLACEHOLDERS: Partial<Record<ReviewSubKey, string>> = {
           hotel: 'You can include:\n\n🛏️ How were the comfort, cleanliness, views & amenities overall?\n\n✨ Any insider tips, upgrades or things people shouldn\u2019t miss?\n\n💭 What would you tell someone thinking of booking this?',
