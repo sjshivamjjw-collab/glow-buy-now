@@ -15,8 +15,8 @@ const MAX_FILES = 10;
 const MAX_FILE_MB = 25;
 const MAX_AUDIO_MB = 15;
 
-type CategoryKey = 'everyday_vibes' | 'showcase' | 'review' | 'real_talk' | 'hidden_gems';
-type ReviewSubKey = 'restaurant' | 'hotel' | 'trip' | 'product' | 'media' | 'activity';
+type CategoryKey = 'everyday_vibes' | 'showcase' | 'trip' | 'review' | 'real_talk' | 'hidden_gems';
+type ReviewSubKey = 'restaurant' | 'hotel' | 'product' | 'media' | 'activity';
 
 const REVIEW_SUBCATEGORIES: {
   key: ReviewSubKey;
@@ -27,7 +27,6 @@ const REVIEW_SUBCATEGORIES: {
 }[] = [
   { key: 'restaurant', title: 'Restaurant / Bar / Food Joint', subtitle: 'Cafés, bars, street food and dining spots', icon: UtensilsCrossed, accent: 'from-orange-500/20 to-red-400/20 text-orange-500' },
   { key: 'hotel', title: 'Hotel / Stay / Hostel', subtitle: 'Where you stayed and how it felt', icon: BedDouble, accent: 'from-indigo-500/20 to-blue-400/20 text-indigo-500' },
-  { key: 'trip', title: 'Trip / Vacation', subtitle: 'A full journey or getaway', icon: Plane, accent: 'from-sky-500/20 to-cyan-400/20 text-sky-500' },
   { key: 'product', title: 'Product', subtitle: 'Something you bought and tried', icon: ShoppingBag, accent: 'from-violet-500/20 to-fuchsia-400/20 text-violet-500' },
   { key: 'media', title: 'Book / Film / Podcast', subtitle: 'What you read, watched, or listened to', icon: BookOpen, accent: 'from-amber-500/20 to-yellow-400/20 text-amber-500' },
   { key: 'activity', title: 'Activity / Experience / Event', subtitle: 'A class, concert, tour, or event', icon: Ticket, accent: 'from-emerald-500/20 to-teal-400/20 text-emerald-500' },
@@ -42,6 +41,7 @@ const CATEGORIES: {
 }[] = [
   { key: 'everyday_vibes', title: 'Daily Life', subtitle: 'Things you see, do & experience through the day', icon: Sparkles, accent: 'from-pink-500/20 to-orange-400/20 text-pink-500' },
   { key: 'showcase', title: 'Show & Tell', subtitle: 'Something you styled, designed, decorated or bought', icon: Palette, accent: 'from-violet-500/20 to-fuchsia-400/20 text-violet-500' },
+  { key: 'trip', title: 'Trip / Vacation', subtitle: 'A full journey or getaway', icon: Plane, accent: 'from-sky-500/20 to-cyan-400/20 text-sky-500' },
   { key: 'review', title: 'Review', subtitle: 'A place, product, food spot, or experience you tried', icon: Star, accent: 'from-amber-500/20 to-yellow-400/20 text-amber-500' },
   { key: 'real_talk', title: 'Advice and Tips', subtitle: 'Share advice, recommendation or life lesson', icon: MessageSquareQuote, accent: 'from-sky-500/20 to-cyan-400/20 text-sky-500' },
   { key: 'hidden_gems', title: 'Hidden Gems & Life Hacks', subtitle: 'Share a secret local spot, rare find, or cool shortcut', icon: Gem, accent: 'from-emerald-500/20 to-teal-400/20 text-emerald-500' },
@@ -388,9 +388,9 @@ const CreatePostPage = () => {
           review: 'You can include:\n\n✨ What did you try? Highlight the must-tries or absolute skips.\n\n🪑 How was the seating or service? (e.g., ideal for dates, laptop work, group hangs).\n\n💰 How was the overall experience and did it justify the price?',
           real_talk: 'You can include:\n\n🧠 What is the exact context and situation one faces?\n\n🪜 What are the key steps to take or avoid?',
           hidden_gems: 'You can include:\n\n💎 What makes this feel special, underrated or genuinely useful?\n\n🔍 How did you discover it — and how can others find it too?\n\n✨ Any tips for someone planning to try or explore it?',
+          trip: 'You can include:\n\n🛌 How was the comfort, cleanliness, views, and amenities?\n\n💡 Any insider tricks on free upgrades or things to not miss out on?\n\n📢 What would you tell someone who is just about to book this?',
         };
         const REVIEW_SUB_PLACEHOLDERS: Partial<Record<ReviewSubKey, string>> = {
-          trip: 'You can include:\n\n🛌 How was the comfort, cleanliness, views, and amenities?\n\n💡 Any insider tricks on free upgrades or things to not miss out on?\n\n📢 What would you tell someone who is just about to book this?',
           product: 'You can include:\n\n⏳ How long have you been using it — and how\u2019s it been?\n\n👍 What impressed you, and what fell short?\n\n💸 Was it worth the price?',
           media: 'You can include:\n\n🧠 What did you like or dislike the most about it?\n\n👥 What type of person would actually love this, and who should completely skip it?',
           activity: 'You can include:\n\n🎶 What was the energy and vibe actually like in person?\n\n💸 Looking back, did it feel worth the time and money?',
