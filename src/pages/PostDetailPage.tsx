@@ -336,7 +336,7 @@ const PostDetailPage = () => {
       {currentMedia && (
         <div className="relative mx-3 w-[calc(100%-1.5rem)] bg-[#161616] border border-[#2a2a2a]/50 aspect-[4/5] max-h-[60vh] rounded-3xl overflow-hidden">
           {currentMedia.kind === 'video' ? (
-            <video src={currentMedia.url} className="w-full h-full object-contain" controls playsInline />
+            <video src={currentMedia.url} className="w-full h-full object-contain" controls playsInline autoPlay muted loop />
           ) : (
             <img src={currentMedia.url} alt="" className="w-full h-full object-contain" />
           )}
