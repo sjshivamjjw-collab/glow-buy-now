@@ -73,10 +73,22 @@ export const MusicPicker = ({ open, onClose, onPick }: Props) => {
     }
     audioRef.current?.pause();
     const audio = new Audio(track.previewUrl);
-    audio.play().catch(() => {});
-    audio.onended = () => setPlayingId(null);
+    audio.crossOrigin = 'anonymous';
+    audio.preload = 'auto';
     audioRef.current = audio;
     setPlayingId(track.trackId);
+    audio.onended = () => setPlayingId(null);
+    audio.onerror = () => {
+      console.error('[MusicPicker] audio error', track.previewUrl);
+      setPlayingId(null);
+    };
+    const p = audio.play();
+    if (p && typeof p.catch === 'function') {
+      p.catch((err) => {
+        console.error('[MusicPicker] play() rejected', err);
+        setPlayingId(null);
+      });
+    }
   };
 
   const pick = (track: ITunesTrack) => {
