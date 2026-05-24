@@ -155,15 +155,6 @@ const CreatePostPage = () => {
     });
   };
 
-  const handleAudio = (f: File | null) => {
-    if (!f) return;
-    if (f.size > MAX_AUDIO_MB * 1024 * 1024) {
-      toast({ title: 'Audio too large', description: `Max ${MAX_AUDIO_MB}MB`, variant: 'destructive' });
-      return;
-    }
-    setMusicFile(f);
-    if (!musicTitle) setMusicTitle(f.name.replace(/\.[^.]+$/, ''));
-  };
 
   const commitHashtag = () => {
     const raw = hashtagInput.trim().replace(/^#+/, '').toLowerCase();
