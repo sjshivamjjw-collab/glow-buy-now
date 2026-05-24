@@ -66,7 +66,7 @@ const AdminPanelPage = () => {
 
   useEffect(() => {
     const load = async () => {
-      const [appsRes, ordersRes, profilesRes, prodCountRes, cancelRes, returnRes, streamsRes, sellersRes] = await Promise.all([
+      const [appsRes, ordersRes, profilesRes, prodCountRes, cancelRes, returnRes, streamsRes, sellersRes, postsRes] = await Promise.all([
         supabase.from('seller_applications').select('*').order('created_at', { ascending: false }),
         supabase.from('orders').select('*, order_items(*, products(title, images, seller_id)), profiles:seller_id(name, phone)').order('created_at', { ascending: false }),
         supabase.from('profiles').select('id, name, phone, created_at'),
@@ -75,6 +75,7 @@ const AdminPanelPage = () => {
         supabase.from('return_requests').select('*, orders(id, total_amount, status, buyer_id, seller_id), profiles:requested_by(name, phone)').order('created_at', { ascending: false }),
         supabase.from('livestreams').select('*').order('created_at', { ascending: false }),
         supabase.from('user_roles').select('user_id').eq('role', 'creator'),
+        supabase.from('posts' as any).select('*, post_media(url, kind, sort_order)').order('created_at', { ascending: false }),
       ]);
 
       if (appsRes.data) setApplications(appsRes.data);
@@ -87,6 +88,12 @@ const AdminPanelPage = () => {
       if (streamsRes.data) {
         const profilesById = new Map((profilesRes.data || []).map((p: any) => [p.id, p]));
         setLivestreams(streamsRes.data.map((s: any) => ({ ...s, profiles: profilesById.get(s.seller_id) })));
+      }
+      if (postsRes.data) {
+        setPosts(postsRes.data as any[]);
+        const map: Record<string, any> = {};
+        (profilesRes.data || []).forEach((p: any) => { map[p.id] = p; });
+        setPostAuthors(map);
       }
       setLoading(false);
     };
