@@ -371,8 +371,19 @@ const CreatePostPage = () => {
         </button>
         <h1 className="text-xl font-bold text-[#0a0a0a]">New post</h1>
       </div>
-
-
+      {draftRestored && (
+        <div className="mb-4 flex items-center justify-between gap-3 px-3 py-2 rounded-xl bg-[#ef4444]/5 border border-[#ef4444]/20">
+          <p className="text-xs text-[#0a0a0a]">
+            Picked up where you left off — your draft was saved.
+          </p>
+          <button
+            onClick={discardDraft}
+            className="text-xs font-semibold text-[#ef4444] hover:underline shrink-0"
+          >
+            Discard
+          </button>
+        </div>
+      )}
 
 
       {/* Media grid */}
