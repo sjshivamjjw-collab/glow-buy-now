@@ -103,23 +103,41 @@ const DiscoverPage = () => {
   const baseChips = useMemo(() => ['For you', 'Trending'], []);
   const labelToKey = useMemo(() => Object.fromEntries(CATEGORY_FILTERS.map(c => [c.label, c.key])), []);
 
+  const fuse = useMemo(() => new Fuse(posts, {
+    keys: [
+      { name: 'title', weight: 0.4 },
+      { name: 'hashtags', weight: 0.25 },
+      { name: 'location', weight: 0.2 },
+      { name: 'body', weight: 0.15 },
+    ],
+    threshold: 0.4,
+    ignoreLocation: true,
+    minMatchCharLength: 2,
+  }), [posts]);
+
   const filtered = useMemo(() => {
-    const q = query.trim().toLowerCase();
     let list = posts;
     if (activeChip === 'Trending') {
       list = [...list].sort((a, b) => (b.like_count + b.comment_count) - (a.like_count + a.comment_count));
     } else if (activeChip === 'Category' && activeCategory) {
       list = list.filter(p => p.category === activeCategory);
     }
+    const q = query.trim().replace(/^#/, '');
     if (!q) return list;
-    const tag = q.startsWith('#') ? q.slice(1) : q;
-    return list.filter(p =>
-      (p.title || '').toLowerCase().includes(q) ||
-      (p.body || '').toLowerCase().includes(q) ||
-      (p.location || '').toLowerCase().includes(q) ||
-      p.hashtags.some(h => h.toLowerCase().includes(tag))
-    );
-  }, [posts, query, activeChip, activeCategory]);
+    // Fuzzy search across the (chip/category-prefiltered) list
+    const scoped = list === posts ? fuse : new Fuse(list, {
+      keys: [
+        { name: 'title', weight: 0.4 },
+        { name: 'hashtags', weight: 0.25 },
+        { name: 'location', weight: 0.2 },
+        { name: 'body', weight: 0.15 },
+      ],
+      threshold: 0.4,
+      ignoreLocation: true,
+      minMatchCharLength: 2,
+    });
+    return scoped.search(q).map(r => r.item);
+  }, [posts, query, activeChip, activeCategory, fuse]);
 
 
   return (
