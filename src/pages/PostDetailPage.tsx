@@ -365,9 +365,8 @@ const PostDetailPage = () => {
         </div>
       )}
 
-      {post.music_url && (
-        <PostMusicPlayer url={post.music_url} title={post.music_title} />
-      )}
+
+
 
       {/* Actions */}
 
