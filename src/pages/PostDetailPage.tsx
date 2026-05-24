@@ -99,19 +99,15 @@ const PostMusicPlayer = ({ url, title }: { url: string; title: string | null }) 
   };
 
   return (
-    <div className="mx-3 mt-3 flex items-center gap-3 px-3 py-2.5 rounded-2xl bg-[#161616] border border-[#2a2a2a]/50">
+    <div className="inline-flex items-center gap-1.5 max-w-full px-2 py-0.5 rounded-full bg-[#1a1a1a]/80 border border-[#2a2a2a]/60">
+      <Music className={`w-3 h-3 text-[#ef4444] shrink-0 ${playing ? 'animate-pulse' : ''}`} />
       <button
         onClick={toggle}
-        className="w-10 h-10 rounded-full bg-[#ef4444] text-white flex items-center justify-center shrink-0 active:scale-95 transition-transform"
+        className="text-[10px] font-medium text-[#fafafa]/90 truncate max-w-[200px] hover:text-[#ef4444]"
         aria-label={playing ? 'Pause music' : 'Play music'}
       >
-        {playing ? <Pause className="w-4 h-4" fill="currentColor" /> : <Play className="w-4 h-4 ml-0.5" fill="currentColor" />}
+        {title || 'Music'}
       </button>
-      <Music className="w-4 h-4 text-[#ef4444] shrink-0" />
-      <div className="flex-1 min-w-0">
-        <p className="text-sm font-semibold text-[#fafafa] truncate">{title || 'Music'}</p>
-        <p className="text-[10px] text-[#a0a0a0]">{playing ? 'Now playing · 30-sec preview' : 'Tap to play · 30-sec preview'}</p>
-      </div>
     </div>
   );
 };
