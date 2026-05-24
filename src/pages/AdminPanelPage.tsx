@@ -4,6 +4,7 @@ import {
   ArrowLeft, Users, ShoppingBag, Radio, Package, IndianRupee,
   TrendingUp, Eye, Clock, Check, X, ChevronDown, ChevronUp,
   ExternalLink, AlertCircle, Search, CalendarIcon, Loader2, ShieldOff,
+  FileText, Trash2, Heart, MessageCircle,
 } from 'lucide-react';
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
