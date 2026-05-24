@@ -47,6 +47,9 @@ const AdminPanelPage = () => {
   const [cancellationRequests, setCancellationRequests] = useState<any[]>([]);
   const [returnRequests, setReturnRequests] = useState<any[]>([]);
   const [livestreams, setLivestreams] = useState<any[]>([]);
+  const [posts, setPosts] = useState<any[]>([]);
+  const [postAuthors, setPostAuthors] = useState<Record<string, any>>({});
+  const [deletingPostId, setDeletingPostId] = useState<string | null>(null);
   const [sellerIds, setSellerIds] = useState<Set<string>>(new Set());
   const [revokingUser, setRevokingUser] = useState<any>(null);
   const [revoking, setRevoking] = useState(false);
