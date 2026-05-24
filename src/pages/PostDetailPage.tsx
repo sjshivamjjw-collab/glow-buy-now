@@ -41,27 +41,62 @@ const PostMusicPlayer = ({ url, title }: { url: string; title: string | null }) 
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [playing, setPlaying] = useState(false);
 
-  const toggle = () => {
+  const ensureAudio = () => {
     let a = audioRef.current;
     if (!a) {
       a = new Audio(url);
       a.crossOrigin = 'anonymous';
       a.preload = 'auto';
+      a.loop = true;
       a.onended = () => setPlaying(false);
       a.onerror = () => setPlaying(false);
+      a.onplay = () => setPlaying(true);
+      a.onpause = () => setPlaying(false);
       audioRef.current = a;
     }
+    return a;
+  };
+
+  // Try to autoplay on mount. Browsers usually block sound until user gesture,
+  // so we attempt muted autoplay first, then unmute on the first user tap anywhere.
+  useEffect(() => {
+    const a = ensureAudio();
+    a.muted = false;
+    const tryPlay = a.play();
+    const onFirstGesture = () => {
+      const au = audioRef.current;
+      if (!au) return;
+      au.muted = false;
+      au.play().catch(() => {});
+      window.removeEventListener('pointerdown', onFirstGesture);
+      window.removeEventListener('keydown', onFirstGesture);
+    };
+    if (tryPlay && typeof tryPlay.catch === 'function') {
+      tryPlay.catch(() => {
+        // Autoplay blocked — wait for any user interaction on the page.
+        window.addEventListener('pointerdown', onFirstGesture, { once: true });
+        window.addEventListener('keydown', onFirstGesture, { once: true });
+      });
+    }
+    return () => {
+      window.removeEventListener('pointerdown', onFirstGesture);
+      window.removeEventListener('keydown', onFirstGesture);
+      audioRef.current?.pause();
+      audioRef.current = null;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [url]);
+
+  const toggle = () => {
+    const a = ensureAudio();
     if (playing) {
       a.pause();
-      setPlaying(false);
     } else {
-      setPlaying(true);
+      a.muted = false;
       const p = a.play();
       if (p && typeof p.catch === 'function') p.catch(() => setPlaying(false));
     }
   };
-
-  useEffect(() => () => { audioRef.current?.pause(); audioRef.current = null; }, []);
 
   return (
     <div className="mx-3 mt-3 flex items-center gap-3 px-3 py-2.5 rounded-2xl bg-[#161616] border border-[#2a2a2a]/50">
@@ -75,7 +110,7 @@ const PostMusicPlayer = ({ url, title }: { url: string; title: string | null }) 
       <Music className="w-4 h-4 text-[#ef4444] shrink-0" />
       <div className="flex-1 min-w-0">
         <p className="text-sm font-semibold text-[#fafafa] truncate">{title || 'Music'}</p>
-        <p className="text-[10px] text-[#a0a0a0]">30-sec preview</p>
+        <p className="text-[10px] text-[#a0a0a0]">{playing ? 'Now playing · 30-sec preview' : 'Tap to play · 30-sec preview'}</p>
       </div>
     </div>
   );
