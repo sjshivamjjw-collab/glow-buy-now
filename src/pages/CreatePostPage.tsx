@@ -14,7 +14,6 @@ import { MusicPicker, type PickedTrack } from '@/components/MusicPicker';
 
 const MAX_FILES = 10;
 const MAX_FILE_MB = 25;
-const MAX_AUDIO_MB = 15;
 
 type CategoryKey = 'everyday_vibes' | 'showcase' | 'trip' | 'review' | 'real_talk' | 'hidden_gems';
 type ReviewSubKey = 'restaurant' | 'hotel' | 'product' | 'media' | 'activity';
