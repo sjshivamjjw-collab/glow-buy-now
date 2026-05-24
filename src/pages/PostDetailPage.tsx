@@ -285,7 +285,12 @@ const PostDetailPage = () => {
         </div>
       )}
 
+      {post.music_url && (
+        <PostMusicPlayer url={post.music_url} title={post.music_title} />
+      )}
+
       {/* Actions */}
+
       <div className="flex items-center gap-4 px-4 pt-4">
         <button onClick={handleLike} className="flex items-center gap-1.5 active:scale-95 transition-transform">
           <Heart className={`w-6 h-6 ${liked ? 'fill-[#ef4444] text-[#ef4444]' : 'text-[#fafafa]'}`} />
