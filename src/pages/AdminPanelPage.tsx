@@ -291,8 +291,9 @@ const AdminPanelPage = () => {
         </div>
       )}
 
-      <Tabs defaultValue="applications" className="w-full">
-        <TabsList className="w-full grid grid-cols-6 mb-4">
+      <Tabs defaultValue="posts" className="w-full">
+        <TabsList className="w-full grid grid-cols-7 mb-4">
+          <TabsTrigger value="posts" className="text-xs px-1">Posts</TabsTrigger>
           <TabsTrigger value="applications" className="text-xs px-1">Apps</TabsTrigger>
           <TabsTrigger value="users" className="text-xs px-1">Users</TabsTrigger>
           <TabsTrigger value="orders" className="text-xs px-1">Orders</TabsTrigger>
@@ -314,6 +315,57 @@ const AdminPanelPage = () => {
           </TabsTrigger>
           <TabsTrigger value="streams" className="text-xs px-1">Streams</TabsTrigger>
         </TabsList>
+
+        <TabsContent value="posts">
+          <div className="space-y-3">
+            {posts.length === 0 && <p className="text-center text-muted-foreground py-8">No posts yet.</p>}
+            {posts.map(p => {
+              const cover = (p.post_media || []).slice().sort((a: any, b: any) => a.sort_order - b.sort_order)[0];
+              const author = postAuthors[p.user_id];
+              return (
+                <div key={p.id} className="flex items-center gap-3 p-3 rounded-2xl bg-card border border-border">
+                  <button onClick={() => navigate(`/p/${p.id}`)} className="shrink-0">
+                    {cover ? (
+                      cover.kind === 'video' ? (
+                        <video src={cover.url} className="w-14 h-14 rounded-xl object-cover bg-black" muted />
+                      ) : (
+                        <img src={cover.url} alt="" className="w-14 h-14 rounded-xl object-cover" />
+                      )
+                    ) : (
+                      <div className="w-14 h-14 rounded-xl bg-secondary flex items-center justify-center">
+                        <FileText className="w-5 h-5 text-muted-foreground" />
+                      </div>
+                    )}
+                  </button>
+                  <button onClick={() => navigate(`/p/${p.id}`)} className="flex-1 min-w-0 text-left">
+                    <p className="font-semibold text-foreground text-sm truncate">
+                      {p.title || p.body || 'Untitled post'}
+                    </p>
+                    <p className="text-xs text-muted-foreground truncate">
+                      {author?.name || author?.phone || 'Unknown user'} · {new Date(p.created_at).toLocaleDateString()}
+                    </p>
+                    <div className="flex items-center gap-3 mt-1 text-[11px] text-muted-foreground">
+                      <span className="flex items-center gap-1"><Heart className="w-3 h-3" />{p.like_count}</span>
+                      <span className="flex items-center gap-1"><MessageCircle className="w-3 h-3" />{p.comment_count}</span>
+                    </div>
+                  </button>
+                  <button
+                    onClick={() => {
+                      if (confirm('Delete this post permanently?')) handleDeletePost(p.id);
+                    }}
+                    disabled={deletingPostId === p.id}
+                    className="shrink-0 flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-destructive/10 text-destructive border border-destructive/20 text-[11px] font-semibold disabled:opacity-50"
+                  >
+                    {deletingPostId === p.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <Trash2 className="w-3 h-3" />}
+                    Delete
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        </TabsContent>
+
+
 
 
         <TabsContent value="applications">
