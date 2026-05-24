@@ -4,6 +4,7 @@ import {
   ArrowLeft, Users, ShoppingBag, Radio, Package, IndianRupee,
   TrendingUp, Eye, Clock, Check, X, ChevronDown, ChevronUp,
   ExternalLink, AlertCircle, Search, CalendarIcon, Loader2, ShieldOff,
+  FileText, Trash2, Heart, MessageCircle,
 } from 'lucide-react';
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
@@ -46,6 +47,9 @@ const AdminPanelPage = () => {
   const [cancellationRequests, setCancellationRequests] = useState<any[]>([]);
   const [returnRequests, setReturnRequests] = useState<any[]>([]);
   const [livestreams, setLivestreams] = useState<any[]>([]);
+  const [posts, setPosts] = useState<any[]>([]);
+  const [postAuthors, setPostAuthors] = useState<Record<string, any>>({});
+  const [deletingPostId, setDeletingPostId] = useState<string | null>(null);
   const [sellerIds, setSellerIds] = useState<Set<string>>(new Set());
   const [revokingUser, setRevokingUser] = useState<any>(null);
   const [revoking, setRevoking] = useState(false);
@@ -62,7 +66,7 @@ const AdminPanelPage = () => {
 
   useEffect(() => {
     const load = async () => {
-      const [appsRes, ordersRes, profilesRes, prodCountRes, cancelRes, returnRes, streamsRes, sellersRes] = await Promise.all([
+      const [appsRes, ordersRes, profilesRes, prodCountRes, cancelRes, returnRes, streamsRes, sellersRes, postsRes] = await Promise.all([
         supabase.from('seller_applications').select('*').order('created_at', { ascending: false }),
         supabase.from('orders').select('*, order_items(*, products(title, images, seller_id)), profiles:seller_id(name, phone)').order('created_at', { ascending: false }),
         supabase.from('profiles').select('id, name, phone, created_at'),
@@ -71,6 +75,7 @@ const AdminPanelPage = () => {
         supabase.from('return_requests').select('*, orders(id, total_amount, status, buyer_id, seller_id), profiles:requested_by(name, phone)').order('created_at', { ascending: false }),
         supabase.from('livestreams').select('*').order('created_at', { ascending: false }),
         supabase.from('user_roles').select('user_id').eq('role', 'creator'),
+        supabase.from('posts' as any).select('*, post_media(url, kind, sort_order)').order('created_at', { ascending: false }),
       ]);
 
       if (appsRes.data) setApplications(appsRes.data);
@@ -83,6 +88,12 @@ const AdminPanelPage = () => {
       if (streamsRes.data) {
         const profilesById = new Map((profilesRes.data || []).map((p: any) => [p.id, p]));
         setLivestreams(streamsRes.data.map((s: any) => ({ ...s, profiles: profilesById.get(s.seller_id) })));
+      }
+      if (postsRes.data) {
+        setPosts(postsRes.data as any[]);
+        const map: Record<string, any> = {};
+        (profilesRes.data || []).forEach((p: any) => { map[p.id] = p; });
+        setPostAuthors(map);
       }
       setLoading(false);
     };
@@ -220,6 +231,18 @@ const AdminPanelPage = () => {
     setRevokingUser(null);
   };
 
+  const handleDeletePost = async (postId: string) => {
+    setDeletingPostId(postId);
+    const { error } = await supabase.from('posts' as any).delete().eq('id', postId);
+    setDeletingPostId(null);
+    if (error) {
+      toast({ title: 'Failed to delete post', description: error.message, variant: 'destructive' });
+      return;
+    }
+    setPosts(prev => prev.filter(p => p.id !== postId));
+    toast({ title: 'Post deleted' });
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-background max-w-lg mx-auto flex items-center justify-center">
@@ -244,6 +267,7 @@ const AdminPanelPage = () => {
       <div className="grid grid-cols-2 gap-3 mb-6">
         {[
           { label: 'Total Users', value: users.length, icon: Users, color: 'text-blue-500' },
+          { label: 'Total Posts', value: posts.length, icon: FileText, color: 'text-purple-500' },
           { label: 'Live Now', value: liveNow, icon: Radio, color: 'text-red-500' },
           { label: 'Total Products', value: productCount, icon: Package, color: 'text-orange-500' },
           { label: 'Total Orders', value: orders.length, icon: TrendingUp, color: 'text-green-500' },
@@ -267,8 +291,9 @@ const AdminPanelPage = () => {
         </div>
       )}
 
-      <Tabs defaultValue="applications" className="w-full">
-        <TabsList className="w-full grid grid-cols-6 mb-4">
+      <Tabs defaultValue="posts" className="w-full">
+        <TabsList className="w-full grid grid-cols-7 mb-4">
+          <TabsTrigger value="posts" className="text-xs px-1">Posts</TabsTrigger>
           <TabsTrigger value="applications" className="text-xs px-1">Apps</TabsTrigger>
           <TabsTrigger value="users" className="text-xs px-1">Users</TabsTrigger>
           <TabsTrigger value="orders" className="text-xs px-1">Orders</TabsTrigger>
@@ -290,6 +315,57 @@ const AdminPanelPage = () => {
           </TabsTrigger>
           <TabsTrigger value="streams" className="text-xs px-1">Streams</TabsTrigger>
         </TabsList>
+
+        <TabsContent value="posts">
+          <div className="space-y-3">
+            {posts.length === 0 && <p className="text-center text-muted-foreground py-8">No posts yet.</p>}
+            {posts.map(p => {
+              const cover = (p.post_media || []).slice().sort((a: any, b: any) => a.sort_order - b.sort_order)[0];
+              const author = postAuthors[p.user_id];
+              return (
+                <div key={p.id} className="flex items-center gap-3 p-3 rounded-2xl bg-card border border-border">
+                  <button onClick={() => navigate(`/p/${p.id}`)} className="shrink-0">
+                    {cover ? (
+                      cover.kind === 'video' ? (
+                        <video src={cover.url} className="w-14 h-14 rounded-xl object-cover bg-black" muted />
+                      ) : (
+                        <img src={cover.url} alt="" className="w-14 h-14 rounded-xl object-cover" />
+                      )
+                    ) : (
+                      <div className="w-14 h-14 rounded-xl bg-secondary flex items-center justify-center">
+                        <FileText className="w-5 h-5 text-muted-foreground" />
+                      </div>
+                    )}
+                  </button>
+                  <button onClick={() => navigate(`/p/${p.id}`)} className="flex-1 min-w-0 text-left">
+                    <p className="font-semibold text-foreground text-sm truncate">
+                      {p.title || p.body || 'Untitled post'}
+                    </p>
+                    <p className="text-xs text-muted-foreground truncate">
+                      {author?.name || author?.phone || 'Unknown user'} · {new Date(p.created_at).toLocaleDateString()}
+                    </p>
+                    <div className="flex items-center gap-3 mt-1 text-[11px] text-muted-foreground">
+                      <span className="flex items-center gap-1"><Heart className="w-3 h-3" />{p.like_count}</span>
+                      <span className="flex items-center gap-1"><MessageCircle className="w-3 h-3" />{p.comment_count}</span>
+                    </div>
+                  </button>
+                  <button
+                    onClick={() => {
+                      if (confirm('Delete this post permanently?')) handleDeletePost(p.id);
+                    }}
+                    disabled={deletingPostId === p.id}
+                    className="shrink-0 flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-destructive/10 text-destructive border border-destructive/20 text-[11px] font-semibold disabled:opacity-50"
+                  >
+                    {deletingPostId === p.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <Trash2 className="w-3 h-3" />}
+                    Delete
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        </TabsContent>
+
+
 
 
         <TabsContent value="applications">
