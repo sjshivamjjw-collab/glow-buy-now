@@ -267,6 +267,7 @@ const AdminPanelPage = () => {
       <div className="grid grid-cols-2 gap-3 mb-6">
         {[
           { label: 'Total Users', value: users.length, icon: Users, color: 'text-blue-500' },
+          { label: 'Total Posts', value: posts.length, icon: FileText, color: 'text-purple-500' },
           { label: 'Live Now', value: liveNow, icon: Radio, color: 'text-red-500' },
           { label: 'Total Products', value: productCount, icon: Package, color: 'text-orange-500' },
           { label: 'Total Orders', value: orders.length, icon: TrendingUp, color: 'text-green-500' },
