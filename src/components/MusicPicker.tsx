@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Search, X, Play, Pause, Loader2, Music } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
+
 
 export interface PickedTrack {
   title: string;
