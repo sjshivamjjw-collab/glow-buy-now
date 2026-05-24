@@ -391,6 +391,7 @@ const CreatePostPage = () => {
           trip: 'You can include:\n\n🗺️ What surprised you most — and what felt overrated?\n\n🚕 Best ways to get around, and when\u2019s the best time to visit?\n\n💸 What did it roughly cost, and what would you strongly recommend?',
         };
         const REVIEW_SUB_PLACEHOLDERS: Partial<Record<ReviewSubKey, string>> = {
+          hotel: 'You can include:\n\n🛏️ How were the comfort, cleanliness, views & amenities overall?\n\n✨ Any insider tips, upgrades or things people shouldn\u2019t miss?\n\n💭 What would you tell someone thinking of booking this?',
           product: 'You can include:\n\n⏳ How long have you been using it — and how\u2019s it been?\n\n👍 What impressed you, and what fell short?\n\n💸 Was it worth the price?',
           media: 'You can include:\n\n🧠 What did you like or dislike the most about it?\n\n👥 What type of person would actually love this, and who should completely skip it?',
           activity: 'You can include:\n\n🎶 What was the energy and vibe actually like in person?\n\n💸 Looking back, did it feel worth the time and money?',
