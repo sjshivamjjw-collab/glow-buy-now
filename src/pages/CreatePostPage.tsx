@@ -53,17 +53,38 @@ interface PendingMedia {
   kind: 'image' | 'video';
 }
 
+const DRAFT_KEY = 'createPostDraft:v1';
+
+interface PersistedDraft {
+  category: CategoryKey | null;
+  reviewSub: ReviewSubKey | null;
+  title: string;
+  body: string;
+  location: string;
+  hashtags: string[];
+  music: PickedTrack | null;
+}
+
 const CreatePostPage = () => {
   const navigate = useNavigate();
   const { userId } = useAuth();
   const { toast } = useToast();
   const fileRef = useRef<HTMLInputElement>(null);
 
-  const [category, setCategory] = useState<CategoryKey | null>(null);
-  const [reviewSub, setReviewSub] = useState<ReviewSubKey | null>(null);
+  // Hydrate once from localStorage so users return to exactly where they left off.
+  const initial = (() => {
+    try {
+      const raw = localStorage.getItem(DRAFT_KEY);
+      if (!raw) return null;
+      return JSON.parse(raw) as PersistedDraft;
+    } catch { return null; }
+  })();
+
+  const [category, setCategory] = useState<CategoryKey | null>(initial?.category ?? null);
+  const [reviewSub, setReviewSub] = useState<ReviewSubKey | null>(initial?.reviewSub ?? null);
   const [media, setMedia] = useState<PendingMedia[]>([]);
-  const [title, setTitle] = useState('');
-  const [body, setBody] = useState('');
+  const [title, setTitle] = useState(initial?.title ?? '');
+  const [body, setBody] = useState(initial?.body ?? '');
   const bodyRef = useRef<HTMLTextAreaElement>(null);
   const [bodyCursor, setBodyCursor] = useState<number | null>(null);
   const bodyMention = useMentionAutocomplete({
@@ -77,16 +98,42 @@ const CreatePostPage = () => {
       });
     },
   });
-  const [location, setLocation] = useState('');
+  const [location, setLocation] = useState(initial?.location ?? '');
   const [locSuggestions, setLocSuggestions] = useState<{ name: string; display: string }[]>([]);
   const [locOpen, setLocOpen] = useState(false);
   const [locLoading, setLocLoading] = useState(false);
   const locJustPicked = useRef(false);
   const [hashtagInput, setHashtagInput] = useState('');
-  const [hashtags, setHashtags] = useState<string[]>([]);
-  const [music, setMusic] = useState<PickedTrack | null>(null);
+  const [hashtags, setHashtags] = useState<string[]>(initial?.hashtags ?? []);
+  const [music, setMusic] = useState<PickedTrack | null>(initial?.music ?? null);
   const [musicPickerOpen, setMusicPickerOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [draftRestored] = useState(() => !!(initial && (initial.title || initial.body || initial.location || initial.hashtags?.length || initial.category)));
+
+  // Persist draft on any change (debounced).
+  useEffect(() => {
+    const t = setTimeout(() => {
+      const draft: PersistedDraft = { category, reviewSub, title, body, location, hashtags, music };
+      const hasContent = !!(category || title || body || location || hashtags.length || music);
+      try {
+        if (hasContent) localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
+        else localStorage.removeItem(DRAFT_KEY);
+      } catch {}
+    }, 250);
+    return () => clearTimeout(t);
+  }, [category, reviewSub, title, body, location, hashtags, music]);
+
+  const clearDraft = () => {
+    try { localStorage.removeItem(DRAFT_KEY); } catch {}
+  };
+
+  const discardDraft = () => {
+    clearDraft();
+    setCategory(null); setReviewSub(null); setTitle(''); setBody('');
+    setLocation(''); setHashtags([]); setMusic(null);
+    toast({ title: 'Draft discarded' });
+  };
+
 
   const selectedCategory = CATEGORIES.find(c => c.key === category);
   const selectedReviewSub = REVIEW_SUBCATEGORIES.find(s => s.key === reviewSub);
