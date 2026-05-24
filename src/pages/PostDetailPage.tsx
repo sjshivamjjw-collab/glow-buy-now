@@ -336,7 +336,31 @@ const PostDetailPage = () => {
       {currentMedia && (
         <div className="relative mx-3 w-[calc(100%-1.5rem)] bg-[#161616] border border-[#2a2a2a]/50 aspect-[4/5] max-h-[60vh] rounded-3xl overflow-hidden">
           {currentMedia.kind === 'video' ? (
-            <video src={currentMedia.url} className="w-full h-full object-contain" controls playsInline autoPlay muted loop />
+            <video
+              ref={(el) => {
+                if (!el) return;
+                // Pause when tab hidden or scrolled offscreen to save battery/data
+                const onVis = () => { if (document.hidden) el.pause(); };
+                document.addEventListener('visibilitychange', onVis);
+                const io = new IntersectionObserver(([entry]) => {
+                  if (!entry.isIntersecting) el.pause();
+                  else el.play().catch(() => {});
+                }, { threshold: 0.25 });
+                io.observe(el);
+                (el as any).__cleanup = () => {
+                  document.removeEventListener('visibilitychange', onVis);
+                  io.disconnect();
+                };
+              }}
+              src={currentMedia.url}
+              className="w-full h-full object-contain"
+              controls
+              playsInline
+              autoPlay
+              muted
+              loop
+              preload="metadata"
+            />
           ) : (
             <img src={currentMedia.url} alt="" className="w-full h-full object-contain" />
           )}
