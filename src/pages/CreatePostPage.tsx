@@ -189,16 +189,8 @@ const CreatePostPage = () => {
     }
     setSubmitting(true);
     try {
-      let musicUrl: string | null = null;
-      if (musicFile) {
-        const ext = musicFile.name.split('.').pop() || 'mp3';
-        const path = `${userId}/music/${Date.now()}.${ext}`;
-        const { error: aErr } = await supabase.storage.from('post-media').upload(path, musicFile, {
-          contentType: musicFile.type || 'audio/mpeg', upsert: false,
-        });
-        if (aErr) throw aErr;
-        musicUrl = supabase.storage.from('post-media').getPublicUrl(path).data.publicUrl;
-      }
+      const musicUrl = music?.previewUrl ?? null;
+      const musicLabel = music ? `${music.title} — ${music.artist}` : null;
 
       const { data: post, error: postErr } = await supabase.from('posts' as any).insert({
         user_id: userId,
@@ -209,7 +201,7 @@ const CreatePostPage = () => {
         location: location.trim() || null,
         hashtags,
         music_url: musicUrl,
-        music_title: musicFile ? (musicTitle.trim() || null) : null,
+        music_title: musicLabel,
       }).select('id').single();
       if (postErr || !post) throw postErr || new Error('Failed to create post');
       const postId = (post as any).id as string;
