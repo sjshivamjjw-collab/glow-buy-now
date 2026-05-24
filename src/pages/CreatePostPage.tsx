@@ -84,8 +84,8 @@ const CreatePostPage = () => {
   const locJustPicked = useRef(false);
   const [hashtagInput, setHashtagInput] = useState('');
   const [hashtags, setHashtags] = useState<string[]>([]);
-  const [musicFile, setMusicFile] = useState<File | null>(null);
-  const [musicTitle, setMusicTitle] = useState('');
+  const [music, setMusic] = useState<PickedTrack | null>(null);
+  const [musicPickerOpen, setMusicPickerOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
   const selectedCategory = CATEGORIES.find(c => c.key === category);
