@@ -58,7 +58,6 @@ const CreatePostPage = () => {
   const { userId } = useAuth();
   const { toast } = useToast();
   const fileRef = useRef<HTMLInputElement>(null);
-  const audioRef = useRef<HTMLInputElement>(null);
 
   const [category, setCategory] = useState<CategoryKey | null>(null);
   const [reviewSub, setReviewSub] = useState<ReviewSubKey | null>(null);
