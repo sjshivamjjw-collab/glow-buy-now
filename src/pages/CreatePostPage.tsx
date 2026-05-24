@@ -268,6 +268,7 @@ const CreatePostPage = () => {
         if (mErr) throw mErr;
       }
 
+      clearDraft();
       toast({ title: 'Posted!' });
       navigate(`/p/${postId}`);
     } catch (e: any) {
