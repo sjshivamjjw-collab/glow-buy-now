@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
-import { ArrowLeft, Heart, MessageCircle, MapPin, Loader2, Send, Trash2, ChevronLeft, ChevronRight, Bookmark, Share2, Reply, X } from 'lucide-react';
+import { ArrowLeft, Heart, MessageCircle, MapPin, Loader2, Send, Trash2, ChevronLeft, ChevronRight, Bookmark, Share2, Reply, X, Music, Play, Pause } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { useMentionAutocomplete } from '@/hooks/useMentionAutocomplete';
 import { MentionSuggestions } from '@/components/MentionSuggestions';
@@ -30,10 +30,56 @@ interface PostRow {
   like_count: number;
   comment_count: number;
   created_at: string;
+  music_url: string | null;
+  music_title: string | null;
 }
 interface MediaRow { id: string; url: string; kind: 'image' | 'video'; sort_order: number; }
 interface CommentRow { id: string; user_id: string; body: string; created_at: string; parent_id: string | null; like_count: number; }
 interface AuthorInfo { id: string; name: string | null; username: string | null; avatar_url: string | null; }
+
+const PostMusicPlayer = ({ url, title }: { url: string; title: string | null }) => {
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const [playing, setPlaying] = useState(false);
+
+  const toggle = () => {
+    let a = audioRef.current;
+    if (!a) {
+      a = new Audio(url);
+      a.crossOrigin = 'anonymous';
+      a.preload = 'auto';
+      a.onended = () => setPlaying(false);
+      a.onerror = () => setPlaying(false);
+      audioRef.current = a;
+    }
+    if (playing) {
+      a.pause();
+      setPlaying(false);
+    } else {
+      setPlaying(true);
+      const p = a.play();
+      if (p && typeof p.catch === 'function') p.catch(() => setPlaying(false));
+    }
+  };
+
+  useEffect(() => () => { audioRef.current?.pause(); audioRef.current = null; }, []);
+
+  return (
+    <div className="mx-3 mt-3 flex items-center gap-3 px-3 py-2.5 rounded-2xl bg-[#161616] border border-[#2a2a2a]/50">
+      <button
+        onClick={toggle}
+        className="w-10 h-10 rounded-full bg-[#ef4444] text-white flex items-center justify-center shrink-0 active:scale-95 transition-transform"
+        aria-label={playing ? 'Pause music' : 'Play music'}
+      >
+        {playing ? <Pause className="w-4 h-4" fill="currentColor" /> : <Play className="w-4 h-4 ml-0.5" fill="currentColor" />}
+      </button>
+      <Music className="w-4 h-4 text-[#ef4444] shrink-0" />
+      <div className="flex-1 min-w-0">
+        <p className="text-sm font-semibold text-[#fafafa] truncate">{title || 'Music'}</p>
+        <p className="text-[10px] text-[#a0a0a0]">30-sec preview</p>
+      </div>
+    </div>
+  );
+};
 
 const PostDetailPage = () => {
   const { id } = useParams<{ id: string }>();
@@ -283,7 +329,12 @@ const PostDetailPage = () => {
         </div>
       )}
 
+      {post.music_url && (
+        <PostMusicPlayer url={post.music_url} title={post.music_title} />
+      )}
+
       {/* Actions */}
+
       <div className="flex items-center gap-4 px-4 pt-4">
         <button onClick={handleLike} className="flex items-center gap-1.5 active:scale-95 transition-transform">
           <Heart className={`w-6 h-6 ${liked ? 'fill-[#ef4444] text-[#ef4444]' : 'text-[#fafafa]'}`} />
