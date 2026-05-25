@@ -64,10 +64,44 @@ const CATEGORIES: {
 ];
 
 interface PendingMedia {
+  id: string;
   file: File;
   previewUrl: string;
   kind: 'image' | 'video';
 }
+
+const SortableMediaTile = ({ m, onRemove }: { m: PendingMedia; onRemove: () => void }) => {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: m.id });
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    zIndex: isDragging ? 10 : undefined,
+    opacity: isDragging ? 0.8 : 1,
+  };
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      {...attributes}
+      {...listeners}
+      className="relative aspect-square rounded-xl overflow-hidden bg-[#f5f5f5] border border-[#e5e5e5] touch-none cursor-grab active:cursor-grabbing"
+    >
+      {m.kind === 'video' ? (
+        <video src={m.previewUrl} className="w-full h-full object-cover pointer-events-none" muted playsInline />
+      ) : (
+        <img src={m.previewUrl} alt="" className="w-full h-full object-cover pointer-events-none" />
+      )}
+      <button
+        onPointerDown={e => e.stopPropagation()}
+        onClick={e => { e.stopPropagation(); onRemove(); }}
+        aria-label="Remove"
+        className="absolute top-1 right-1 w-6 h-6 rounded-full bg-black/60 text-white flex items-center justify-center"
+      >
+        <X className="w-3.5 h-3.5" />
+      </button>
+    </div>
+  );
+};
 
 const DRAFT_KEY = 'createPostDraft:v1';
 
