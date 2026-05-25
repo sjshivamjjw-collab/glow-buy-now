@@ -306,7 +306,7 @@ const DiscoverPage = () => {
                 {/* Footer */}
                 <div className="px-3 pt-2.5 pb-3">
                   {p.title && (
-                    <p className="font-[Outfit] font-semibold text-[#fafafa] text-sm leading-snug line-clamp-2 mb-1.5">
+                    <p className="font-[Outfit] font-semibold text-[#fafafa] text-sm leading-snug line-clamp-3 mb-1.5">
                       {p.title}
                     </p>
                   )}
