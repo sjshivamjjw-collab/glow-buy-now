@@ -90,6 +90,7 @@ const AppRoutes = () => {
                   <Route path="/" element={<DiscoverPage />} />
                   <Route path="/onboarding" element={<Navigate to="/" replace />} />
                   <Route path="/post/new" element={<CreatePostPage />} />
+                  <Route path="/p/:id/edit" element={<EditPostPage />} />
                   <Route path="/p/:id" element={<PostDetailPage />} />
                   <Route path="/u/:userId" element={<UserProfilePage />} />
                   <Route path="/notifications" element={<NotificationsPage />} />
