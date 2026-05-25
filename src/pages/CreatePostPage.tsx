@@ -252,6 +252,7 @@ const CreatePostPage = () => {
         user_id: userId,
         category,
         review_subcategory: category === 'review' ? reviewSub : null,
+        review_recommendation: category === 'review' ? recommendation : null,
         title: title.trim() || null,
         body: body.trim() || null,
         location: location.trim() || null,
