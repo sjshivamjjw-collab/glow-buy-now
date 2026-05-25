@@ -240,7 +240,7 @@ const CreatePostPage = () => {
         return;
       }
       const kind: 'image' | 'video' = file.type.startsWith('video/') ? 'video' : 'image';
-      next.push({ file, previewUrl: URL.createObjectURL(file), kind });
+      next.push({ id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`, file, previewUrl: URL.createObjectURL(file), kind });
     });
     setMedia(prev => [...prev, ...next]);
   };
