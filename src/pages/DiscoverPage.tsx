@@ -40,12 +40,6 @@ const CATEGORY_FILTERS = [
   { key: 'hidden_gems', label: 'Hidden Gems' },
 ];
 
-// Aspect-ratio bounds for masonry tiles. Tiles render at the media's natural
-// ratio, clamped so portrait images don't get extremely tall and landscape
-// images stay tall enough to feel like cards.
-const MIN_ASPECT = 0.7;   // tallest tile (portrait) — height = width / 0.7
-const MAX_ASPECT = 1.4;   // shortest tile (landscape) — height = width / 1.4
-const FALLBACK_ASPECT = 0.85;
 
 interface AuthorInfo {
   id: string;
@@ -54,14 +48,16 @@ interface AuthorInfo {
   avatar_url: string | null;
 }
 
+// Deterministic staggered heights for richer masonry feel when images
+// don't expose their natural ratio yet.
+const LEFT_HEIGHTS = [280, 300, 270, 290, 285, 295];
+const RIGHT_HEIGHTS = [230, 250, 220, 245, 235, 240];
 
 const DiscoverPage = () => {
   const navigate = useNavigate();
   const { userName, userAvatar } = useAuth() as any;
   const firstName = (userName || '').trim().split(' ')[0] || 'there';
   const [posts, setPosts] = useState<TrendingPost[]>([]);
-  const [aspectRatios, setAspectRatios] = useState<Record<string, number>>({});
-
   const [authors, setAuthors] = useState<Record<string, AuthorInfo>>({});
   const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState('');
@@ -257,10 +253,8 @@ const DiscoverPage = () => {
             </button>
           </div>
         ) : (() => {
-          const renderCard = (p: TrendingPost) => {
+          const renderCard = (p: TrendingPost, h: number) => {
             const author = authors[p.user_id];
-            const ratio = aspectRatios[p.id] ?? FALLBACK_ASPECT;
-            const clamped = Math.min(MAX_ASPECT, Math.max(MIN_ASPECT, ratio));
             return (
               <button
                 key={p.id}
@@ -268,7 +262,7 @@ const DiscoverPage = () => {
                 className="group mb-1.5 w-full text-left rounded-3xl overflow-hidden bg-[#161616] border border-[#2a2a2a]/50 hover:border-[#ef4444] hover:shadow-lg hover:shadow-[#dc2626]/10 transition-all duration-300"
               >
                 {/* Media */}
-                <div className="relative w-full bg-[#1a1a1a] overflow-hidden" style={{ aspectRatio: `${clamped}` }}>
+                <div className="relative w-full bg-[#1a1a1a] overflow-hidden" style={{ height: `${h}px` }}>
                   {p.cover_url ? (
                     p.cover_kind === 'video' ? (
                       <>
@@ -282,30 +276,13 @@ const DiscoverPage = () => {
                           preload="metadata"
                           autoPlay
                           loop
-                          onLoadedMetadata={(e) => {
-                            const v = e.currentTarget;
-                            if (v.videoWidth && v.videoHeight) {
-                              setAspectRatios(prev => prev[p.id] ? prev : { ...prev, [p.id]: v.videoWidth / v.videoHeight });
-                            }
-                          }}
                         />
                         <span className="absolute top-2 right-2 w-8 h-8 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center">
                           <Play className="w-3.5 h-3.5 text-white fill-white" />
                         </span>
                       </>
                     ) : (
-                      <img
-                        src={p.cover_url}
-                        alt={p.title || ''}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                        loading="lazy"
-                        onLoad={(e) => {
-                          const img = e.currentTarget;
-                          if (img.naturalWidth && img.naturalHeight) {
-                            setAspectRatios(prev => prev[p.id] ? prev : { ...prev, [p.id]: img.naturalWidth / img.naturalHeight });
-                          }
-                        }}
-                      />
+                      <img src={p.cover_url} alt={p.title || ''} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" />
                     )
                   ) : (
                     <div className="w-full h-full bg-gradient-to-br from-[#1a1a1a] via-[#2a2a2a]/60 to-[#ef4444]/40 flex items-center justify-center p-4">
@@ -365,12 +342,11 @@ const DiscoverPage = () => {
 
           return (
             <div className="grid grid-cols-2 gap-1.5">
-              <div>{leftItems.map(p => renderCard(p))}</div>
-              <div>{rightItems.map(p => renderCard(p))}</div>
+              <div>{leftItems.map((p, i) => renderCard(p, LEFT_HEIGHTS[i % LEFT_HEIGHTS.length]))}</div>
+              <div>{rightItems.map((p, i) => renderCard(p, RIGHT_HEIGHTS[i % RIGHT_HEIGHTS.length]))}</div>
             </div>
           );
         })()}
-
       </div>
     </div>
   );
