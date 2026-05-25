@@ -440,31 +440,35 @@ const CreatePostPage = () => {
 
 
       {/* Media grid */}
-      <label className="text-xs font-semibold text-[#6b6b6b] mb-1 block">Media <span className="text-[#ef4444]">*</span></label>
-      <div className="grid grid-cols-3 gap-2 mb-1">
-        {media.map((m, i) => (
-          <div key={i} className="relative aspect-square rounded-xl overflow-hidden bg-[#f5f5f5] border border-[#e5e5e5]">
-            {m.kind === 'video' ? (
-              <video src={m.previewUrl} className="w-full h-full object-cover" muted playsInline />
-            ) : (
-              <img src={m.previewUrl} alt="" className="w-full h-full object-cover" />
-            )}
-            <button onClick={() => removeMedia(i)} aria-label="Remove" className="absolute top-1 right-1 w-6 h-6 rounded-full bg-black/50 text-white flex items-center justify-center">
-              <X className="w-3.5 h-3.5" />
-            </button>
-          </div>
-        ))}
-        {media.length < MAX_FILES && (
-          <button
-            type="button"
-            onClick={() => fileRef.current?.click()}
-            className="aspect-square rounded-xl border-2 border-dashed border-[#e5e5e5] bg-[#f5f5f5] flex flex-col items-center justify-center text-[#6b6b6b] gap-1 hover:border-[#ef4444]/50 transition-colors"
-          >
-            <ImagePlus className="w-6 h-6" />
-            <span className="text-[10px] font-semibold">Add media</span>
-          </button>
+      <label className="text-xs font-semibold text-[#6b6b6b] mb-1 block">
+        Media <span className="text-[#ef4444]">*</span>
+        {media.length > 1 && (
+          <span className="ml-2 font-normal text-[#9b9b9b]">· drag to reorder</span>
         )}
-      </div>
+      </label>
+      <DndContext
+        sensors={sensors}
+        collisionDetection={closestCenter}
+        onDragEnd={handleDragEnd}
+      >
+        <SortableContext items={media.map(m => m.id)} strategy={rectSortingStrategy}>
+          <div className="grid grid-cols-3 gap-2 mb-1">
+            {media.map((m, i) => (
+              <SortableMediaTile key={m.id} m={m} onRemove={() => removeMedia(i)} />
+            ))}
+            {media.length < MAX_FILES && (
+              <button
+                type="button"
+                onClick={() => fileRef.current?.click()}
+                className="aspect-square rounded-xl border-2 border-dashed border-[#e5e5e5] bg-[#f5f5f5] flex flex-col items-center justify-center text-[#6b6b6b] gap-1 hover:border-[#ef4444]/50 transition-colors"
+              >
+                <ImagePlus className="w-6 h-6" />
+                <span className="text-[10px] font-semibold">Add media</span>
+              </button>
+            )}
+          </div>
+        </SortableContext>
+      </DndContext>
       <input ref={fileRef} type="file" accept="image/*,video/*" multiple className="hidden"
         onChange={e => { handleFiles(e.target.files); e.target.value = ''; }} />
       
