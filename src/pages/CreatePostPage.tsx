@@ -492,8 +492,9 @@ const CreatePostPage = () => {
 
       {/* Title */}
       <label className="text-xs font-semibold text-[#6b6b6b] mb-1 mt-6 block">What are you sharing today? <span className="text-[#ef4444]">*</span></label>
-      <input value={title} onChange={e => setTitle(e.target.value.slice(0, 75))} placeholder="Short and specific title helps..." maxLength={75}
-        className="w-full px-4 py-3 mb-4 rounded-xl bg-[#f5f5f5] border border-[#e5e5e5] text-[#0a0a0a] placeholder:text-[#a0a0a0] focus:outline-none focus:ring-2 focus:ring-[#ef4444]/40 text-sm" />
+      <input value={title} onChange={e => setTitle(e.target.value.slice(0, 90))} placeholder="Short and specific title helps..." maxLength={90}
+        className="w-full px-4 py-3 mb-1 rounded-xl bg-[#f5f5f5] border border-[#e5e5e5] text-[#0a0a0a] placeholder:text-[#a0a0a0] focus:outline-none focus:ring-2 focus:ring-[#ef4444]/40 text-sm" />
+      <div className="text-[10px] text-[#9b9b9b] text-right mb-4">{title.length}/90</div>
 
       {/* Body */}
       {(() => {
