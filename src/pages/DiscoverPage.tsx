@@ -47,17 +47,6 @@ const MIN_ASPECT = 0.7;   // tallest tile (portrait) — height = width / 0.7
 const MAX_ASPECT = 1.4;   // shortest tile (landscape) — height = width / 1.4
 const FALLBACK_ASPECT = 0.85;
 
-
-const CATEGORY_FILTERS = [
-  { key: 'everyday_vibes', label: 'Daily Life' },
-  { key: 'trip', label: 'Travel Diaries' },
-  { key: 'review', label: 'Reviews' },
-  { key: 'showcase', label: 'Show & Tell' },
-  { key: 'real_talk', label: 'Advice' },
-  { key: 'hidden_gems', label: 'Hidden Gems' },
-];
-
-
 interface AuthorInfo {
   id: string;
   name: string | null;
@@ -65,10 +54,6 @@ interface AuthorInfo {
   avatar_url: string | null;
 }
 
-// Deterministic staggered heights for richer masonry feel when images
-// don't expose their natural ratio yet.
-const LEFT_HEIGHTS = [280, 300, 270, 290, 285, 295];
-const RIGHT_HEIGHTS = [230, 250, 220, 245, 235, 240];
 
 const DiscoverPage = () => {
   const navigate = useNavigate();
