@@ -60,6 +60,8 @@ const DiscoverPage = () => {
   const { userName, userAvatar } = useAuth() as any;
   const firstName = (userName || '').trim().split(' ')[0] || 'there';
   const [posts, setPosts] = useState<TrendingPost[]>([]);
+  const [aspectRatios, setAspectRatios] = useState<Record<string, number>>({});
+
   const [authors, setAuthors] = useState<Record<string, AuthorInfo>>({});
   const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState('');
