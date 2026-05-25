@@ -1,0 +1,1 @@
+ALTER TABLE public.posts ADD COLUMN IF NOT EXISTS review_recommendation TEXT CHECK (review_recommendation IN ('loved','mixed','not_for_me'));

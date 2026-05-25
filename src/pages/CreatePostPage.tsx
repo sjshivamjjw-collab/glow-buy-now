@@ -17,6 +17,13 @@ const MAX_FILE_MB = 25;
 
 type CategoryKey = 'everyday_vibes' | 'showcase' | 'trip' | 'review' | 'real_talk' | 'hidden_gems';
 type ReviewSubKey = 'restaurant' | 'hotel' | 'product' | 'media' | 'activity';
+type RecommendationKey = 'loved' | 'mixed' | 'not_for_me';
+
+const RECOMMENDATION_OPTIONS: { key: RecommendationKey; emoji: string; label: string }[] = [
+  { key: 'loved', emoji: '❤️', label: 'Loved it' },
+  { key: 'mixed', emoji: '🤔', label: 'Mixed feelings' },
+  { key: 'not_for_me', emoji: '👎', label: 'Not for me' },
+];
 
 const REVIEW_SUBCATEGORIES: {
   key: ReviewSubKey;
@@ -58,6 +65,7 @@ const DRAFT_KEY = 'createPostDraft:v1';
 interface PersistedDraft {
   category: CategoryKey | null;
   reviewSub: ReviewSubKey | null;
+  recommendation: RecommendationKey | null;
   title: string;
   body: string;
   location: string;
@@ -82,6 +90,7 @@ const CreatePostPage = () => {
 
   const [category, setCategory] = useState<CategoryKey | null>(initial?.category ?? null);
   const [reviewSub, setReviewSub] = useState<ReviewSubKey | null>(initial?.reviewSub ?? null);
+  const [recommendation, setRecommendation] = useState<RecommendationKey | null>(initial?.recommendation ?? null);
   const [media, setMedia] = useState<PendingMedia[]>([]);
   const [title, setTitle] = useState(initial?.title ?? '');
   const [body, setBody] = useState(initial?.body ?? '');
@@ -113,7 +122,7 @@ const CreatePostPage = () => {
   // Persist draft on any change (debounced).
   useEffect(() => {
     const t = setTimeout(() => {
-      const draft: PersistedDraft = { category, reviewSub, title, body, location, hashtags, music };
+      const draft: PersistedDraft = { category, reviewSub, recommendation, title, body, location, hashtags, music };
       const hasContent = !!(category || title || body || location || hashtags.length || music);
       try {
         if (hasContent) localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
@@ -121,7 +130,7 @@ const CreatePostPage = () => {
       } catch {}
     }, 250);
     return () => clearTimeout(t);
-  }, [category, reviewSub, title, body, location, hashtags, music]);
+  }, [category, reviewSub, recommendation, title, body, location, hashtags, music]);
 
   const clearDraft = () => {
     try { localStorage.removeItem(DRAFT_KEY); } catch {}
@@ -129,7 +138,7 @@ const CreatePostPage = () => {
 
   const discardDraft = () => {
     clearDraft();
-    setCategory(null); setReviewSub(null); setTitle(''); setBody('');
+    setCategory(null); setReviewSub(null); setRecommendation(null); setTitle(''); setBody('');
     setLocation(''); setHashtags([]); setMusic(null);
     toast({ title: 'Draft discarded' });
   };
@@ -243,6 +252,7 @@ const CreatePostPage = () => {
         user_id: userId,
         category,
         review_subcategory: category === 'review' ? reviewSub : null,
+        review_recommendation: category === 'review' ? recommendation : null,
         title: title.trim() || null,
         body: body.trim() || null,
         location: location.trim() || null,
@@ -504,6 +514,35 @@ const CreatePostPage = () => {
           </>
         );
       })()}
+
+      {/* Recommendation (review only) */}
+      {category === 'review' && (
+        <>
+          <label className="text-xs font-semibold text-[#6b6b6b] mb-1 block">Would you recommend it?</label>
+          <div className="grid grid-cols-3 gap-2 mb-4">
+            {RECOMMENDATION_OPTIONS.map(opt => {
+              const active = recommendation === opt.key;
+              return (
+                <button
+                  key={opt.key}
+                  type="button"
+                  onClick={() => setRecommendation(active ? null : opt.key)}
+                  className={`flex flex-col items-center justify-center gap-1 px-2 py-3 rounded-xl border text-[12px] font-medium transition-colors ${
+                    active
+                      ? 'bg-[#ef4444]/10 border-[#ef4444] text-[#ef4444]'
+                      : 'bg-[#f5f5f5] border-[#e5e5e5] text-[#0a0a0a] hover:border-[#d4d4d4]'
+                  }`}
+                >
+                  <span className="text-lg leading-none">{opt.emoji}</span>
+                  <span>{opt.label}</span>
+                </button>
+              );
+            })}
+          </div>
+        </>
+      )}
+
+
 
 
 
