@@ -90,6 +90,7 @@ const CreatePostPage = () => {
 
   const [category, setCategory] = useState<CategoryKey | null>(initial?.category ?? null);
   const [reviewSub, setReviewSub] = useState<ReviewSubKey | null>(initial?.reviewSub ?? null);
+  const [recommendation, setRecommendation] = useState<RecommendationKey | null>(initial?.recommendation ?? null);
   const [media, setMedia] = useState<PendingMedia[]>([]);
   const [title, setTitle] = useState(initial?.title ?? '');
   const [body, setBody] = useState(initial?.body ?? '');
