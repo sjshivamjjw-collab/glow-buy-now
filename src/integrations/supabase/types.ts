@@ -723,7 +723,6 @@ export type Database = {
       }
       profiles: {
         Row: {
-          auth_secret: string | null
           avatar_url: string | null
           city: string | null
           created_at: string
@@ -737,7 +736,6 @@ export type Database = {
           username: string | null
         }
         Insert: {
-          auth_secret?: string | null
           avatar_url?: string | null
           city?: string | null
           created_at?: string
@@ -751,7 +749,6 @@ export type Database = {
           username?: string | null
         }
         Update: {
-          auth_secret?: string | null
           avatar_url?: string | null
           city?: string | null
           created_at?: string

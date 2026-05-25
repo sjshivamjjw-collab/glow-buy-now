@@ -80,10 +80,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           const normalizedPhone = (profile?.phone || parsed.phone || session.user.phone || '').startsWith('+')
             ? (profile?.phone || parsed.phone || session.user.phone || '')
             : `+${profile?.phone || parsed.phone || session.user.phone || ''}`;
-          const isAdmin = roles.includes('admin') || parsed.isAdmin;
-          const isCreator = roles.includes('creator') || isAdmin || parsed.isCreator;
+          // Server is the source of truth for roles — never trust localStorage flags.
+          const isAdmin = roles.includes('admin');
+          const isCreator = roles.includes('creator') || isAdmin;
           const isDemoPhone = DEMO_PHONES.has(normalizedPhone);
-          let primaryRole: UserRole = parsed.role || 'shopper';
+          let primaryRole: UserRole = 'shopper';
           if (isAdmin) primaryRole = 'admin';
           else if (isCreator) primaryRole = 'creator';
           const refreshed: AuthState = {
@@ -194,7 +195,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       (async () => {
         const { data } = await supabase.from('user_roles').select('role').eq('user_id', prev.userId!);
         const roles = (data || []).map(r => r.role as string);
-        const isAdmin = prev.isAdmin || roles.includes('admin');
+        const isAdmin = roles.includes('admin');
         const isCreator = roles.includes('creator') || isAdmin;
         let primaryRole: UserRole = prev.role || 'shopper';
         if (isAdmin) primaryRole = 'admin';
