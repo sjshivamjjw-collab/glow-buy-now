@@ -515,6 +515,35 @@ const CreatePostPage = () => {
         );
       })()}
 
+      {/* Recommendation (review only) */}
+      {category === 'review' && (
+        <>
+          <label className="text-xs font-semibold text-[#6b6b6b] mb-1 block">Would you recommend it?</label>
+          <div className="grid grid-cols-3 gap-2 mb-4">
+            {RECOMMENDATION_OPTIONS.map(opt => {
+              const active = recommendation === opt.key;
+              return (
+                <button
+                  key={opt.key}
+                  type="button"
+                  onClick={() => setRecommendation(active ? null : opt.key)}
+                  className={`flex flex-col items-center justify-center gap-1 px-2 py-3 rounded-xl border text-[12px] font-medium transition-colors ${
+                    active
+                      ? 'bg-[#ef4444]/10 border-[#ef4444] text-[#ef4444]'
+                      : 'bg-[#f5f5f5] border-[#e5e5e5] text-[#0a0a0a] hover:border-[#d4d4d4]'
+                  }`}
+                >
+                  <span className="text-lg leading-none">{opt.emoji}</span>
+                  <span>{opt.label}</span>
+                </button>
+              );
+            })}
+          </div>
+        </>
+      )}
+
+
+
 
 
       {/* Location */}
