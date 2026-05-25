@@ -87,7 +87,23 @@ const SortableMediaTile = ({ m, onRemove }: { m: PendingMedia; onRemove: () => v
       className="relative aspect-square rounded-xl overflow-hidden bg-[#f5f5f5] border border-[#e5e5e5] touch-none cursor-grab active:cursor-grabbing"
     >
       {m.kind === 'video' ? (
-        <video src={m.previewUrl} className="w-full h-full object-cover pointer-events-none" muted playsInline />
+        <>
+          <video
+            src={m.previewUrl}
+            className="w-full h-full object-cover pointer-events-none"
+            muted
+            playsInline
+            autoPlay
+            loop
+            preload="auto"
+            // @ts-ignore - iOS Safari attribute
+            webkit-playsinline="true"
+          />
+          <div className="absolute bottom-1 left-1 px-1.5 py-0.5 rounded bg-black/60 text-white text-[10px] font-medium flex items-center gap-1 pointer-events-none">
+            <span>▶</span>
+            <span className="truncate max-w-[80px]">{m.file.name}</span>
+          </div>
+        </>
       ) : (
         <img src={m.previewUrl} alt="" className="w-full h-full object-cover pointer-events-none" />
       )}
