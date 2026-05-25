@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
-import { ArrowLeft, Heart, MessageCircle, MapPin, Loader2, Send, Trash2, ChevronLeft, ChevronRight, Bookmark, Share2, Reply, X, Music, Play, Pause } from 'lucide-react';
+import { ArrowLeft, Heart, MessageCircle, MapPin, Loader2, Send, Trash2, ChevronLeft, ChevronRight, Bookmark, Share2, Reply, X, Music, Play, Pause, Pencil } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { useMentionAutocomplete } from '@/hooks/useMentionAutocomplete';
 import { MentionSuggestions } from '@/components/MentionSuggestions';
@@ -305,9 +305,14 @@ const PostDetailPage = () => {
             <Share2 className="w-5 h-5 text-[#fafafa]" />
           </button>
           {isOwn && (
-            <button onClick={handleDeletePost} className="px-3 py-2 rounded-full bg-[#ef4444]/10 text-[#ef4444] border border-[#ef4444]/30 text-xs font-semibold flex items-center gap-1">
-              <Trash2 className="w-3.5 h-3.5" /> Delete
-            </button>
+            <>
+              <button onClick={() => navigate(`/p/${post.id}/edit`)} className="px-3 py-2 rounded-full bg-[#1a1a1a] border border-[#2a2a2a]/60 text-[#fafafa] text-xs font-semibold flex items-center gap-1" aria-label="Edit post">
+                <Pencil className="w-3.5 h-3.5" /> Edit
+              </button>
+              <button onClick={handleDeletePost} className="px-3 py-2 rounded-full bg-[#ef4444]/10 text-[#ef4444] border border-[#ef4444]/30 text-xs font-semibold flex items-center gap-1">
+                <Trash2 className="w-3.5 h-3.5" /> Delete
+              </button>
+            </>
           )}
         </div>
       </div>
