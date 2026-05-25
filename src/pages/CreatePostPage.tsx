@@ -65,6 +65,7 @@ const DRAFT_KEY = 'createPostDraft:v1';
 interface PersistedDraft {
   category: CategoryKey | null;
   reviewSub: ReviewSubKey | null;
+  recommendation: RecommendationKey | null;
   title: string;
   body: string;
   location: string;
