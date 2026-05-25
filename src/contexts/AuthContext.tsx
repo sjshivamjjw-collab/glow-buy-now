@@ -43,7 +43,6 @@ const DEMO_PHONES = new Set([
   '+911111111111',
   '+919821046171',
   '+919821046170',
-  '+919619846170',
 ]);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
