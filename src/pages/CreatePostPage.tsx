@@ -122,7 +122,7 @@ const CreatePostPage = () => {
   // Persist draft on any change (debounced).
   useEffect(() => {
     const t = setTimeout(() => {
-      const draft: PersistedDraft = { category, reviewSub, title, body, location, hashtags, music };
+      const draft: PersistedDraft = { category, reviewSub, recommendation, title, body, location, hashtags, music };
       const hasContent = !!(category || title || body || location || hashtags.length || music);
       try {
         if (hasContent) localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
@@ -130,7 +130,7 @@ const CreatePostPage = () => {
       } catch {}
     }, 250);
     return () => clearTimeout(t);
-  }, [category, reviewSub, title, body, location, hashtags, music]);
+  }, [category, reviewSub, recommendation, title, body, location, hashtags, music]);
 
   const clearDraft = () => {
     try { localStorage.removeItem(DRAFT_KEY); } catch {}
@@ -138,7 +138,7 @@ const CreatePostPage = () => {
 
   const discardDraft = () => {
     clearDraft();
-    setCategory(null); setReviewSub(null); setTitle(''); setBody('');
+    setCategory(null); setReviewSub(null); setRecommendation(null); setTitle(''); setBody('');
     setLocation(''); setHashtags([]); setMusic(null);
     toast({ title: 'Draft discarded' });
   };
