@@ -30,6 +30,7 @@ const REVIEW_SUB_PROMPTS: Record<string, string> = {
 const CATEGORY_PROMPTS: Record<string, string> = {
   everyday_vibes: 'Thoughts?',
   showcase: 'Curious about anything here? Ask.',
+  trip: 'Done this trip? Planning it? Ask away.',
   real_talk: 'Been through this? Got a different take?',
   hidden_gems: 'Tried this? Know something even better?',
   review: 'Tried this? Agree, disagree, or got a question?',
