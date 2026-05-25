@@ -11,6 +11,15 @@ import {
 import { useMentionAutocomplete } from '@/hooks/useMentionAutocomplete';
 import { MentionSuggestions } from '@/components/MentionSuggestions';
 import { MusicPicker, type PickedTrack } from '@/components/MusicPicker';
+import {
+  DndContext, closestCenter, KeyboardSensor, PointerSensor, TouchSensor,
+  useSensor, useSensors, type DragEndEvent,
+} from '@dnd-kit/core';
+import {
+  SortableContext, arrayMove, rectSortingStrategy, sortableKeyboardCoordinates,
+  useSortable,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 
 const MAX_FILES = 10;
 const MAX_FILE_MB = 25;
@@ -55,10 +64,44 @@ const CATEGORIES: {
 ];
 
 interface PendingMedia {
+  id: string;
   file: File;
   previewUrl: string;
   kind: 'image' | 'video';
 }
+
+const SortableMediaTile = ({ m, onRemove }: { m: PendingMedia; onRemove: () => void }) => {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: m.id });
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    zIndex: isDragging ? 10 : undefined,
+    opacity: isDragging ? 0.8 : 1,
+  };
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      {...attributes}
+      {...listeners}
+      className="relative aspect-square rounded-xl overflow-hidden bg-[#f5f5f5] border border-[#e5e5e5] touch-none cursor-grab active:cursor-grabbing"
+    >
+      {m.kind === 'video' ? (
+        <video src={m.previewUrl} className="w-full h-full object-cover pointer-events-none" muted playsInline />
+      ) : (
+        <img src={m.previewUrl} alt="" className="w-full h-full object-cover pointer-events-none" />
+      )}
+      <button
+        onPointerDown={e => e.stopPropagation()}
+        onClick={e => { e.stopPropagation(); onRemove(); }}
+        aria-label="Remove"
+        className="absolute top-1 right-1 w-6 h-6 rounded-full bg-black/60 text-white flex items-center justify-center"
+      >
+        <X className="w-3.5 h-3.5" />
+      </button>
+    </div>
+  );
+};
 
 const DRAFT_KEY = 'createPostDraft:v1';
 
@@ -197,7 +240,7 @@ const CreatePostPage = () => {
         return;
       }
       const kind: 'image' | 'video' = file.type.startsWith('video/') ? 'video' : 'image';
-      next.push({ file, previewUrl: URL.createObjectURL(file), kind });
+      next.push({ id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`, file, previewUrl: URL.createObjectURL(file), kind });
     });
     setMedia(prev => [...prev, ...next]);
   };
@@ -208,6 +251,23 @@ const CreatePostPage = () => {
       URL.revokeObjectURL(copy[i].previewUrl);
       copy.splice(i, 1);
       return copy;
+    });
+  };
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 150, tolerance: 5 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
+  );
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+    setMedia(prev => {
+      const oldIndex = prev.findIndex(m => m.id === active.id);
+      const newIndex = prev.findIndex(m => m.id === over.id);
+      if (oldIndex === -1 || newIndex === -1) return prev;
+      return arrayMove(prev, oldIndex, newIndex);
     });
   };
 
@@ -397,31 +457,35 @@ const CreatePostPage = () => {
 
 
       {/* Media grid */}
-      <label className="text-xs font-semibold text-[#6b6b6b] mb-1 block">Media <span className="text-[#ef4444]">*</span></label>
-      <div className="grid grid-cols-3 gap-2 mb-1">
-        {media.map((m, i) => (
-          <div key={i} className="relative aspect-square rounded-xl overflow-hidden bg-[#f5f5f5] border border-[#e5e5e5]">
-            {m.kind === 'video' ? (
-              <video src={m.previewUrl} className="w-full h-full object-cover" muted playsInline />
-            ) : (
-              <img src={m.previewUrl} alt="" className="w-full h-full object-cover" />
-            )}
-            <button onClick={() => removeMedia(i)} aria-label="Remove" className="absolute top-1 right-1 w-6 h-6 rounded-full bg-black/50 text-white flex items-center justify-center">
-              <X className="w-3.5 h-3.5" />
-            </button>
-          </div>
-        ))}
-        {media.length < MAX_FILES && (
-          <button
-            type="button"
-            onClick={() => fileRef.current?.click()}
-            className="aspect-square rounded-xl border-2 border-dashed border-[#e5e5e5] bg-[#f5f5f5] flex flex-col items-center justify-center text-[#6b6b6b] gap-1 hover:border-[#ef4444]/50 transition-colors"
-          >
-            <ImagePlus className="w-6 h-6" />
-            <span className="text-[10px] font-semibold">Add media</span>
-          </button>
+      <label className="text-xs font-semibold text-[#6b6b6b] mb-1 block">
+        Media <span className="text-[#ef4444]">*</span>
+        {media.length > 1 && (
+          <span className="ml-2 font-normal text-[#9b9b9b]">· drag to reorder</span>
         )}
-      </div>
+      </label>
+      <DndContext
+        sensors={sensors}
+        collisionDetection={closestCenter}
+        onDragEnd={handleDragEnd}
+      >
+        <SortableContext items={media.map(m => m.id)} strategy={rectSortingStrategy}>
+          <div className="grid grid-cols-3 gap-2 mb-1">
+            {media.map((m, i) => (
+              <SortableMediaTile key={m.id} m={m} onRemove={() => removeMedia(i)} />
+            ))}
+            {media.length < MAX_FILES && (
+              <button
+                type="button"
+                onClick={() => fileRef.current?.click()}
+                className="aspect-square rounded-xl border-2 border-dashed border-[#e5e5e5] bg-[#f5f5f5] flex flex-col items-center justify-center text-[#6b6b6b] gap-1 hover:border-[#ef4444]/50 transition-colors"
+              >
+                <ImagePlus className="w-6 h-6" />
+                <span className="text-[10px] font-semibold">Add media</span>
+              </button>
+            )}
+          </div>
+        </SortableContext>
+      </DndContext>
       <input ref={fileRef} type="file" accept="image/*,video/*" multiple className="hidden"
         onChange={e => { handleFiles(e.target.files); e.target.value = ''; }} />
       
