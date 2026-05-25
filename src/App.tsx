@@ -11,6 +11,7 @@ import DiscoverPage from "@/pages/DiscoverPage";
 const AuthPage = lazy(() => import("@/pages/AuthPage"));
 const OnboardingPage = lazy(() => import("@/pages/OnboardingPage"));
 const CreatePostPage = lazy(() => import("@/pages/CreatePostPage"));
+const EditPostPage = lazy(() => import("@/pages/EditPostPage"));
 const PostDetailPage = lazy(() => import("@/pages/PostDetailPage"));
 const UserProfilePage = lazy(() => import("@/pages/UserProfilePage"));
 const ProfilePage = lazy(() => import("@/pages/ProfilePage"));
