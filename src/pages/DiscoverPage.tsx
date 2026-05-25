@@ -40,6 +40,23 @@ const CATEGORY_FILTERS = [
   { key: 'hidden_gems', label: 'Hidden Gems' },
 ];
 
+// Aspect-ratio bounds for masonry tiles. Tiles render at the media's natural
+// ratio, clamped so portrait images don't get extremely tall and landscape
+// images stay tall enough to feel like cards.
+const MIN_ASPECT = 0.7;   // tallest tile (portrait) — height = width / 0.7
+const MAX_ASPECT = 1.4;   // shortest tile (landscape) — height = width / 1.4
+const FALLBACK_ASPECT = 0.85;
+
+
+const CATEGORY_FILTERS = [
+  { key: 'everyday_vibes', label: 'Daily Life' },
+  { key: 'trip', label: 'Travel Diaries' },
+  { key: 'review', label: 'Reviews' },
+  { key: 'showcase', label: 'Show & Tell' },
+  { key: 'real_talk', label: 'Advice' },
+  { key: 'hidden_gems', label: 'Hidden Gems' },
+];
+
 
 interface AuthorInfo {
   id: string;
