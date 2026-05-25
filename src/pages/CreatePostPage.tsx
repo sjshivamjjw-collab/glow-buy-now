@@ -17,6 +17,13 @@ const MAX_FILE_MB = 25;
 
 type CategoryKey = 'everyday_vibes' | 'showcase' | 'trip' | 'review' | 'real_talk' | 'hidden_gems';
 type ReviewSubKey = 'restaurant' | 'hotel' | 'product' | 'media' | 'activity';
+type RecommendationKey = 'loved' | 'mixed' | 'not_for_me';
+
+const RECOMMENDATION_OPTIONS: { key: RecommendationKey; emoji: string; label: string }[] = [
+  { key: 'loved', emoji: '❤️', label: 'Loved it' },
+  { key: 'mixed', emoji: '🤔', label: 'Mixed feelings' },
+  { key: 'not_for_me', emoji: '👎', label: 'Not for me' },
+];
 
 const REVIEW_SUBCATEGORIES: {
   key: ReviewSubKey;
