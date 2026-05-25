@@ -264,7 +264,17 @@ const DiscoverPage = () => {
                   {p.cover_url ? (
                     p.cover_kind === 'video' ? (
                       <>
-                        <video src={p.cover_url} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" muted playsInline preload="metadata" />
+                        <video
+                          src={`${p.cover_url}#t=0.1`}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                          muted
+                          playsInline
+                          // @ts-ignore - iOS Safari attribute to show first frame
+                          webkit-playsinline="true"
+                          preload="metadata"
+                          autoPlay
+                          loop
+                        />
                         <span className="absolute top-2 right-2 w-8 h-8 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center">
                           <Play className="w-3.5 h-3.5 text-white fill-white" />
                         </span>
