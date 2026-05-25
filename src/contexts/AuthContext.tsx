@@ -195,7 +195,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       (async () => {
         const { data } = await supabase.from('user_roles').select('role').eq('user_id', prev.userId!);
         const roles = (data || []).map(r => r.role as string);
-        const isAdmin = prev.isAdmin || roles.includes('admin');
+        const isAdmin = roles.includes('admin');
         const isCreator = roles.includes('creator') || isAdmin;
         let primaryRole: UserRole = prev.role || 'shopper';
         if (isAdmin) primaryRole = 'admin';
