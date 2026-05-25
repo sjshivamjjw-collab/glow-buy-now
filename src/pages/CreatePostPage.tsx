@@ -11,6 +11,15 @@ import {
 import { useMentionAutocomplete } from '@/hooks/useMentionAutocomplete';
 import { MentionSuggestions } from '@/components/MentionSuggestions';
 import { MusicPicker, type PickedTrack } from '@/components/MusicPicker';
+import {
+  DndContext, closestCenter, KeyboardSensor, PointerSensor, TouchSensor,
+  useSensor, useSensors, type DragEndEvent,
+} from '@dnd-kit/core';
+import {
+  SortableContext, arrayMove, rectSortingStrategy, sortableKeyboardCoordinates,
+  useSortable,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 
 const MAX_FILES = 10;
 const MAX_FILE_MB = 25;
