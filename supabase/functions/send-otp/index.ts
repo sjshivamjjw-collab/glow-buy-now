@@ -47,10 +47,17 @@ Deno.serve(async (req) => {
       "+910000000005",
       "+910000000006",
       "+910000000007",
+      "+917471660869",
     ];
+    // Per-phone OTP overrides (default dev OTP is "123456")
+    const DEV_PHONE_OTPS: Record<string, string> = {
+      "+917471660869": "121212",
+    };
     const isDevPhone = DEV_PHONES.includes(normalizedPhone);
 
-    const code = isDevPhone ? "123456" : String(Math.floor(100000 + Math.random() * 900000));
+    const code = isDevPhone
+      ? (DEV_PHONE_OTPS[normalizedPhone] ?? "123456")
+      : String(Math.floor(100000 + Math.random() * 900000));
     const expiresAt = new Date(Date.now() + 5 * 60 * 1000); // 5 min
 
     // Store OTP
