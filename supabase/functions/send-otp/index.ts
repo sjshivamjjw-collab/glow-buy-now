@@ -48,6 +48,7 @@ Deno.serve(async (req) => {
       "+910000000006",
       "+910000000007",
       "+917471660869",
+      "+916584115104",
     ];
     // Per-phone OTP overrides (default dev OTP is "123456")
     const DEV_PHONE_OTPS: Record<string, string> = {
