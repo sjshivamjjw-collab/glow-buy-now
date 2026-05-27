@@ -5,6 +5,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { ArrowLeft, Loader2, UserPlus, UserCheck } from 'lucide-react';
 import { formatCount } from '@/lib/utils';
+import LazyVideoThumbnail from '@/components/LazyVideoThumbnail';
 
 interface Profile { id: string; name: string | null; username: string | null; avatar_url: string | null; }
 interface PostThumb { id: string; cover_url: string | null; cover_kind: string | null; like_count: number; }
@@ -129,8 +130,8 @@ export const PostsGrid = ({ posts, onOpen }: { posts: PostThumb[]; onOpen: (id: 
         <button key={p.id} onClick={() => onOpen(p.id)} className="aspect-square bg-secondary rounded-xl overflow-hidden">
           {p.cover_url ? (
             p.cover_kind === 'video'
-              ? <video src={p.cover_url} muted playsInline preload="metadata" className="w-full h-full object-cover" />
-              : <img src={p.cover_url} alt="" className="w-full h-full object-cover" loading="lazy" />
+              ? <LazyVideoThumbnail src={p.cover_url} className="w-full h-full" />
+              : <img src={p.cover_url} alt="" className="w-full h-full object-cover" loading="lazy" decoding="async" />
           ) : (
             <div className="w-full h-full bg-gradient-to-br from-primary/20 to-secondary" />
           )}
