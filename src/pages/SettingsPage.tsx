@@ -104,9 +104,6 @@ const SettingsPage = () => {
             </button>
           </div>
           <div className="border-t border-border">
-            <Row icon={MapPin} label="Saved addresses" onClick={() => navigate('/addresses')} />
-          </div>
-          <div className="border-t border-border">
             <Row icon={Bell} label="Notifications inbox" onClick={() => navigate('/notifications')} />
           </div>
         </div>
