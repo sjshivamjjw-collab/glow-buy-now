@@ -79,7 +79,7 @@ const DiscoverPage = () => {
 
   useEffect(() => {
     const load = async () => {
-      const { data } = await supabase.rpc('get_trending_posts' as any, { _limit: 80, _offset: 0 });
+      const { data } = await supabase.rpc('get_trending_posts' as any, { _limit: 30, _offset: 0 });
       const list = (data as TrendingPost[] | null) ?? [];
       // get_trending_posts doesn't return category — fetch it separately
       if (list.length) {
