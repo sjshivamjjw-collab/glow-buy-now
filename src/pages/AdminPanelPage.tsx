@@ -1,36 +1,20 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  ArrowLeft, Users, ShoppingBag, Radio, Package, IndianRupee,
-  TrendingUp, Eye, Clock, Check, X, ChevronDown, ChevronUp,
-  ExternalLink, AlertCircle, Search, CalendarIcon, Loader2, ShieldOff,
+  ArrowLeft, Users, Radio, Check, X, ChevronDown, ChevronUp,
+  ExternalLink, AlertCircle, Search, Loader2, ShieldOff,
   FileText, Trash2, Heart, MessageCircle,
 } from 'lucide-react';
-import {
-  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
-  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
-import { format } from 'date-fns';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Calendar } from '@/components/ui/calendar';
-import { Button } from '@/components/ui/button';
 
-
-import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 
 const statusBadge: Record<string, string> = {
   pending: 'bg-yellow-500/10 text-yellow-600 border-yellow-500/20',
   approved: 'bg-green-500/10 text-green-600 border-green-500/20',
   rejected: 'bg-red-500/10 text-red-600 border-red-500/20',
-  confirmed: 'bg-blue-500/10 text-blue-600 border-blue-500/20',
-  shipped: 'bg-blue-500/10 text-blue-600 border-blue-500/20',
-  delivered: 'bg-green-500/10 text-green-600 border-green-500/20',
-  cancelled: 'bg-red-500/10 text-red-600 border-red-500/20',
   live: 'bg-red-500/10 text-red-500 border-red-500/20',
   scheduled: 'bg-blue-500/10 text-blue-500 border-blue-500/20',
 };
@@ -41,11 +25,7 @@ const AdminPanelPage = () => {
   const { userId } = useAuth();
 
   const [applications, setApplications] = useState<any[]>([]);
-  const [orders, setOrders] = useState<any[]>([]);
   const [users, setUsers] = useState<any[]>([]);
-  const [productCount, setProductCount] = useState(0);
-  const [cancellationRequests, setCancellationRequests] = useState<any[]>([]);
-  const [returnRequests, setReturnRequests] = useState<any[]>([]);
   const [livestreams, setLivestreams] = useState<any[]>([]);
   const [posts, setPosts] = useState<any[]>([]);
   const [postAuthors, setPostAuthors] = useState<Record<string, any>>({});
@@ -60,31 +40,20 @@ const AdminPanelPage = () => {
   const [rejectionReason, setRejectionReason] = useState('');
   const [appFilter, setAppFilter] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
-  const [orderSellerFilter, setOrderSellerFilter] = useState('all');
-  const [orderDateFrom, setOrderDateFrom] = useState<Date | undefined>();
-  const [orderDateTo, setOrderDateTo] = useState<Date | undefined>();
 
   useEffect(() => {
     const load = async () => {
-      const [appsRes, ordersRes, profilesRes, prodCountRes, cancelRes, returnRes, streamsRes, sellersRes, postsRes] = await Promise.all([
+      const [appsRes, profilesRes, streamsRes, sellersRes, postsRes] = await Promise.all([
         supabase.from('seller_applications').select('*').order('created_at', { ascending: false }),
-        supabase.from('orders').select('*, order_items(*, products(title, images, seller_id)), profiles:seller_id(name, phone)').order('created_at', { ascending: false }),
         supabase.from('profiles').select('id, name, phone, created_at'),
-        supabase.from('products').select('*', { count: 'exact', head: true }),
-        supabase.from('cancellation_requests').select('*, orders(id, total_amount, status, buyer_id, seller_id), profiles:requested_by(name, phone)').order('created_at', { ascending: false }),
-        supabase.from('return_requests').select('*, orders(id, total_amount, status, buyer_id, seller_id), profiles:requested_by(name, phone)').order('created_at', { ascending: false }),
         supabase.from('livestreams').select('*').order('created_at', { ascending: false }),
         supabase.from('user_roles').select('user_id').eq('role', 'creator'),
         supabase.from('posts' as any).select('*, post_media(url, kind, sort_order)').order('created_at', { ascending: false }),
       ]);
 
       if (appsRes.data) setApplications(appsRes.data);
-      if (ordersRes.data) setOrders(ordersRes.data);
       if (profilesRes.data) setUsers(profilesRes.data);
       if (sellersRes.data) setSellerIds(new Set(sellersRes.data.map((r: any) => r.user_id)));
-      setProductCount(prodCountRes.count || 0);
-      if (cancelRes.data) setCancellationRequests(cancelRes.data);
-      if (returnRes.data) setReturnRequests(returnRes.data);
       if (streamsRes.data) {
         const profilesById = new Map((profilesRes.data || []).map((p: any) => [p.id, p]));
         setLivestreams(streamsRes.data.map((s: any) => ({ ...s, profiles: profilesById.get(s.seller_id) })));
@@ -100,36 +69,8 @@ const AdminPanelPage = () => {
     load();
   }, []);
 
-
-  // Stats
-  const totalRevenue = orders.reduce((sum, o) => sum + Number(o.total_amount), 0);
   const pendingApps = applications.filter(a => a.status === 'pending').length;
-  const pendingCancellations = cancellationRequests.filter(c => c.status === 'pending').length;
-  const pendingReturns = returnRequests.filter(r => r.status === 'pending').length;
   const liveNow = livestreams.filter(s => s.status === 'live').length;
-
-
-  const filteredOrders = useMemo(() => {
-    return orders.filter(order => {
-      if (orderSellerFilter !== 'all' && order.seller_id !== orderSellerFilter) return false;
-      const orderDate = new Date(order.created_at);
-      if (orderDateFrom && orderDate < orderDateFrom) return false;
-      if (orderDateTo) {
-        const end = new Date(orderDateTo);
-        end.setHours(23, 59, 59, 999);
-        if (orderDate > end) return false;
-      }
-      return true;
-    });
-  }, [orders, orderSellerFilter, orderDateFrom, orderDateTo]);
-
-  const uniqueSellers = useMemo(() => {
-    const map = new Map<string, string>();
-    orders.forEach(o => {
-      if (o.profiles?.name) map.set(o.seller_id, o.profiles.name);
-    });
-    return Array.from(map.entries());
-  }, [orders]);
 
   const handleApprove = async (id: string) => {
     const { error } = await supabase.from('seller_applications').update({
@@ -140,7 +81,7 @@ const AdminPanelPage = () => {
 
     if (!error) {
       setApplications(prev => prev.map(a => a.id === id ? { ...a, status: 'approved' } : a));
-      toast({ title: 'Application Approved ✅', description: 'Seller access granted.' });
+      toast({ title: 'Application Approved ✅', description: 'Creator access granted.' });
     }
   };
 
@@ -164,48 +105,6 @@ const AdminPanelPage = () => {
     }
   };
 
-  const handleCancellationDecision = async (requestId: string, decision: 'approved' | 'rejected', orderId: string) => {
-    const { error } = await supabase.from('cancellation_requests').update({
-      status: decision,
-      reviewed_by: userId,
-      reviewed_at: new Date().toISOString(),
-    }).eq('id', requestId);
-
-    if (error) {
-      toast({ title: 'Failed to update', variant: 'destructive' });
-      return;
-    }
-
-    if (decision === 'approved') {
-      await supabase.from('orders').update({ status: 'cancelled' }).eq('id', orderId);
-      setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status: 'cancelled' } : o));
-    }
-
-    setCancellationRequests(prev => prev.map(c => c.id === requestId ? { ...c, status: decision } : c));
-    toast({ title: decision === 'approved' ? 'Cancellation approved — order cancelled' : 'Cancellation rejected' });
-  };
-
-  const handleReturnDecision = async (requestId: string, decision: 'approved' | 'rejected', orderId: string) => {
-    const { error } = await supabase.from('return_requests').update({
-      status: decision,
-      reviewed_by: userId,
-      reviewed_at: new Date().toISOString(),
-    }).eq('id', requestId);
-
-    if (error) {
-      toast({ title: 'Failed to update', variant: 'destructive' });
-      return;
-    }
-
-    if (decision === 'approved') {
-      await supabase.from('orders').update({ status: 'cancelled' as any }).eq('id', orderId);
-      setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status: 'cancelled' } : o));
-    }
-
-    setReturnRequests(prev => prev.map(r => r.id === requestId ? { ...r, status: decision } : r));
-    toast({ title: decision === 'approved' ? 'Return approved — order cancelled' : 'Return rejected' });
-  };
-
   const filteredApps = appFilter === 'all' ? applications : applications.filter(a => a.status === appFilter);
 
   const handleRevokeSeller = async () => {
@@ -224,10 +123,10 @@ const AdminPanelPage = () => {
     });
     setApplications(prev => prev.map(a =>
       a.user_id === revokingUser.id && a.status === 'approved'
-        ? { ...a, status: 'rejected', rejection_reason: a.rejection_reason || 'Seller access revoked by admin' }
+        ? { ...a, status: 'rejected', rejection_reason: a.rejection_reason || 'Creator access revoked by admin' }
         : a
     ));
-    toast({ title: 'Seller access revoked', description: `${revokingUser.name || revokingUser.phone} is no longer a seller.` });
+    toast({ title: 'Creator access revoked', description: `${revokingUser.name || revokingUser.phone} is no longer a creator.` });
     setRevokingUser(null);
   };
 
@@ -263,15 +162,11 @@ const AdminPanelPage = () => {
         </div>
       </div>
 
-      {/* Overview cards */}
       <div className="grid grid-cols-2 gap-3 mb-6">
         {[
           { label: 'Total Users', value: users.length, icon: Users, color: 'text-blue-500' },
           { label: 'Total Posts', value: posts.length, icon: FileText, color: 'text-purple-500' },
           { label: 'Live Now', value: liveNow, icon: Radio, color: 'text-red-500' },
-          { label: 'Total Products', value: productCount, icon: Package, color: 'text-orange-500' },
-          { label: 'Total Orders', value: orders.length, icon: TrendingUp, color: 'text-green-500' },
-          { label: 'Revenue', value: `₹${totalRevenue.toLocaleString()}`, icon: IndianRupee, color: 'text-emerald-500' },
           { label: 'Pending Apps', value: pendingApps, icon: AlertCircle, color: 'text-yellow-500' },
         ].map(stat => (
           <div key={stat.label} className="p-4 rounded-2xl bg-card border border-border">
@@ -287,33 +182,16 @@ const AdminPanelPage = () => {
       {pendingApps > 0 && (
         <div className="flex items-center gap-3 p-3 rounded-2xl bg-yellow-500/10 border border-yellow-500/20 mb-5">
           <AlertCircle className="w-5 h-5 text-yellow-600 shrink-0" />
-          <p className="text-sm text-foreground font-medium">{pendingApps} seller application{pendingApps > 1 ? 's' : ''} pending review</p>
+          <p className="text-sm text-foreground font-medium">{pendingApps} creator application{pendingApps > 1 ? 's' : ''} pending review</p>
         </div>
       )}
 
       <Tabs defaultValue="posts" className="w-full">
-        <TabsList className="w-full grid grid-cols-7 mb-4">
-          <TabsTrigger value="posts" className="text-xs px-1">Posts</TabsTrigger>
-          <TabsTrigger value="applications" className="text-xs px-1">Apps</TabsTrigger>
-          <TabsTrigger value="users" className="text-xs px-1">Users</TabsTrigger>
-          <TabsTrigger value="orders" className="text-xs px-1">Orders</TabsTrigger>
-          <TabsTrigger value="cancellations" className="text-xs px-1 relative">
-            Cancel
-            {pendingCancellations > 0 && (
-              <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-destructive text-destructive-foreground text-[9px] font-bold flex items-center justify-center">
-                {pendingCancellations}
-              </span>
-            )}
-          </TabsTrigger>
-          <TabsTrigger value="returns" className="text-xs px-1 relative">
-            Returns
-            {pendingReturns > 0 && (
-              <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-blue-600 text-white text-[9px] font-bold flex items-center justify-center">
-                {pendingReturns}
-              </span>
-            )}
-          </TabsTrigger>
-          <TabsTrigger value="streams" className="text-xs px-1">Streams</TabsTrigger>
+        <TabsList className="w-full grid grid-cols-4 mb-4">
+          <TabsTrigger value="posts" className="text-xs">Posts</TabsTrigger>
+          <TabsTrigger value="applications" className="text-xs">Apps</TabsTrigger>
+          <TabsTrigger value="users" className="text-xs">Users</TabsTrigger>
+          <TabsTrigger value="streams" className="text-xs">Streams</TabsTrigger>
         </TabsList>
 
         <TabsContent value="posts">
@@ -365,9 +243,6 @@ const AdminPanelPage = () => {
           </div>
         </TabsContent>
 
-
-
-
         <TabsContent value="applications">
           <div className="flex gap-2 mb-4 overflow-x-auto pb-1">
             {(['all', 'pending', 'approved', 'rejected'] as const).map(f => (
@@ -401,12 +276,6 @@ const AdminPanelPage = () => {
                   {expanded && (
                     <div className="px-4 pb-4 border-t border-border pt-3 space-y-3">
                       <p className="text-sm text-foreground">{app.description}</p>
-                      {app.gst_tax_id && (
-                        <div>
-                          <p className="text-xs font-semibold text-muted-foreground mb-0.5">GST / Tax ID</p>
-                          <p className="text-sm text-foreground font-mono">{app.gst_tax_id}</p>
-                        </div>
-                      )}
                       {app.social_media_links && Array.isArray(app.social_media_links) && app.social_media_links.length > 0 && (
                         <div>
                           <p className="text-xs font-semibold text-muted-foreground mb-0.5">Social</p>
@@ -455,7 +324,6 @@ const AdminPanelPage = () => {
           </div>
         </TabsContent>
 
-        {/* USERS */}
         <TabsContent value="users">
           <div className="relative mb-4">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -476,7 +344,7 @@ const AdminPanelPage = () => {
                     <div className="flex items-center gap-2">
                       <p className="font-bold text-foreground text-sm truncate">{user.name || 'No name'}</p>
                       {isSeller && (
-                        <span className="px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-primary/10 text-primary border border-primary/20">SELLER</span>
+                        <span className="px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-primary/10 text-primary border border-primary/20">CREATOR</span>
                       )}
                     </div>
                     <p className="text-xs text-muted-foreground">{user.phone || 'No phone'}</p>
@@ -496,170 +364,6 @@ const AdminPanelPage = () => {
           </div>
         </TabsContent>
 
-        {/* ORDERS */}
-        <TabsContent value="orders">
-          <div className="space-y-3 mb-4">
-            <Select value={orderSellerFilter} onValueChange={setOrderSellerFilter}>
-              <SelectTrigger className="w-full rounded-xl bg-card border-border text-sm">
-                <SelectValue placeholder="Filter by seller" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Sellers</SelectItem>
-                {uniqueSellers.map(([id, name]) => (
-                  <SelectItem key={id} value={id}>{name}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-
-            <div className="flex gap-2">
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button variant="outline" className={cn("flex-1 justify-start text-left text-sm rounded-xl", !orderDateFrom && "text-muted-foreground")}>
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {orderDateFrom ? format(orderDateFrom, "dd MMM yyyy") : "From date"}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar mode="single" selected={orderDateFrom} onSelect={setOrderDateFrom} initialFocus className={cn("p-3 pointer-events-auto")} />
-                </PopoverContent>
-              </Popover>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button variant="outline" className={cn("flex-1 justify-start text-left text-sm rounded-xl", !orderDateTo && "text-muted-foreground")}>
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {orderDateTo ? format(orderDateTo, "dd MMM yyyy") : "To date"}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar mode="single" selected={orderDateTo} onSelect={setOrderDateTo} initialFocus className={cn("p-3 pointer-events-auto")} />
-                </PopoverContent>
-              </Popover>
-            </div>
-
-            {(orderSellerFilter !== 'all' || orderDateFrom || orderDateTo) && (
-              <button onClick={() => { setOrderSellerFilter('all'); setOrderDateFrom(undefined); setOrderDateTo(undefined); }}
-                className="text-xs text-primary font-semibold">Clear filters</button>
-            )}
-          </div>
-
-          <div className="space-y-3">
-            {filteredOrders.length === 0 && <p className="text-center text-muted-foreground py-8">No orders match the filters.</p>}
-            {filteredOrders.map(order => {
-              const firstItem = order.order_items?.[0];
-              const productTitle = firstItem?.products?.title || 'Product';
-              const productImg = firstItem?.products?.images?.[0];
-              const sellerName = order.profiles?.name || 'Unknown';
-              return (
-                <div key={order.id} className="flex items-center gap-3 p-4 rounded-2xl bg-card border border-border">
-                  {productImg ? (
-                    <img src={productImg} alt={productTitle} className="w-12 h-12 rounded-xl object-cover" />
-                  ) : (
-                    <div className="w-12 h-12 rounded-xl bg-secondary flex items-center justify-center"><Package className="w-5 h-5 text-muted-foreground" /></div>
-                  )}
-                  <div className="flex-1 min-w-0">
-                    <p className="font-bold text-foreground text-sm truncate">{productTitle}</p>
-                    <p className="text-xs text-muted-foreground">Seller: {sellerName}</p>
-                    <p className="text-xs text-muted-foreground">{new Date(order.created_at).toLocaleDateString()}</p>
-                  </div>
-                  <div className="text-right shrink-0">
-                    <p className="font-bold text-foreground text-sm">₹{Math.round(order.total_amount)}</p>
-                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${statusBadge[order.status]}`}>
-                      {order.status.toUpperCase()}
-                    </span>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </TabsContent>
-
-        {/* CANCELLATIONS */}
-        <TabsContent value="cancellations">
-          <div className="space-y-3">
-            {cancellationRequests.length === 0 && <p className="text-center text-muted-foreground py-8">No cancellation requests.</p>}
-            {cancellationRequests.map(req => {
-              const sellerName = req.profiles?.name || req.profiles?.phone || 'Seller';
-              const orderAmount = req.orders?.total_amount ? `₹${Math.round(req.orders.total_amount)}` : '';
-              return (
-                <div key={req.id} className="p-4 rounded-2xl bg-card border border-border space-y-3">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="font-bold text-foreground text-sm">Order #{req.order_id?.slice(-4)}</p>
-                      <p className="text-xs text-muted-foreground">By: {sellerName} {orderAmount && `· ${orderAmount}`}</p>
-                      <p className="text-xs text-muted-foreground">{new Date(req.created_at).toLocaleDateString()}</p>
-                    </div>
-                    <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold border capitalize ${
-                      req.status === 'pending' ? statusBadge.pending :
-                      req.status === 'approved' ? statusBadge.approved :
-                      statusBadge.rejected
-                    }`}>
-                      {req.status}
-                    </span>
-                  </div>
-                  <p className="text-sm text-muted-foreground bg-secondary p-3 rounded-xl">{req.reason || 'No reason provided'}</p>
-                  {req.status === 'pending' && (
-                    <div className="flex gap-2">
-                      <button onClick={() => handleCancellationDecision(req.id, 'approved', req.order_id)}
-                        className="flex-1 flex items-center justify-center gap-1.5 py-3 rounded-xl bg-green-600 text-white font-semibold text-sm">
-                        <Check className="w-4 h-4" /> Approve
-                      </button>
-                      <button onClick={() => handleCancellationDecision(req.id, 'rejected', req.order_id)}
-                        className="flex-1 flex items-center justify-center gap-1.5 py-3 rounded-xl bg-destructive/10 text-destructive font-semibold text-sm border border-destructive/20">
-                        <X className="w-4 h-4" /> Reject
-                      </button>
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        </TabsContent>
-
-        {/* RETURNS */}
-        <TabsContent value="returns">
-          <div className="space-y-3">
-            {returnRequests.length === 0 && <p className="text-center text-muted-foreground py-8">No return requests.</p>}
-            {returnRequests.map(req => {
-              const requesterName = req.profiles?.name || req.profiles?.phone || 'Buyer';
-              const orderAmount = req.orders?.total_amount ? `₹${Math.round(req.orders.total_amount)}` : '';
-              return (
-                <div key={req.id} className="p-4 rounded-2xl bg-card border border-border space-y-3">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="font-bold text-foreground text-sm">Order #{req.order_id?.slice(-4)}</p>
-                      <p className="text-xs text-muted-foreground">By: {requesterName} {orderAmount && `· ${orderAmount}`}</p>
-                      <p className="text-xs text-muted-foreground">{new Date(req.created_at).toLocaleDateString()}</p>
-                    </div>
-                    <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold border capitalize ${
-                      req.status === 'pending' ? statusBadge.pending :
-                      req.status === 'approved' ? statusBadge.approved :
-                      statusBadge.rejected
-                    }`}>
-                      {req.status}
-                    </span>
-                  </div>
-                  <p className="text-sm text-muted-foreground bg-secondary p-3 rounded-xl">{req.reason || 'No reason provided'}</p>
-                  {req.status === 'pending' && (
-                    <div className="flex gap-2">
-                      <button onClick={() => handleReturnDecision(req.id, 'approved', req.order_id)}
-                        className="flex-1 flex items-center justify-center gap-1.5 py-3 rounded-xl bg-green-600 text-white font-semibold text-sm">
-                        <Check className="w-4 h-4" /> Approve
-                      </button>
-                      <button onClick={() => handleReturnDecision(req.id, 'rejected', req.order_id)}
-                        className="flex-1 flex items-center justify-center gap-1.5 py-3 rounded-xl bg-destructive/10 text-destructive font-semibold text-sm border border-destructive/20">
-                        <X className="w-4 h-4" /> Reject
-                      </button>
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        </TabsContent>
-
-        {/* STREAMS */}
-
-
         <TabsContent value="streams">
           <div className="space-y-3">
             {livestreams.length === 0 && (
@@ -677,18 +381,11 @@ const AdminPanelPage = () => {
                 )}
                 <div className="flex-1 min-w-0">
                   <p className="font-bold text-foreground text-sm truncate">{stream.title}</p>
-                  <p className="text-xs text-muted-foreground">{stream.profiles?.name || stream.profiles?.phone || 'Seller'}</p>
-                  <div className="flex items-center gap-2 mt-1">
-                    {stream.status === 'live' && (
-                      <span className="flex items-center gap-1 text-[10px] text-muted-foreground"><Eye className="w-3 h-3" /> {stream.viewer_count}</span>
-                    )}
-                    {stream.scheduled_at && (
-                      <span className="flex items-center gap-1 text-[10px] text-muted-foreground"><Clock className="w-3 h-3" /> {new Date(stream.scheduled_at).toLocaleString()}</span>
-                    )}
-                  </div>
+                  <p className="text-xs text-muted-foreground truncate">{stream.profiles?.name || 'Unknown creator'}</p>
+                  <p className="text-[10px] text-muted-foreground">{new Date(stream.created_at).toLocaleDateString()}</p>
                 </div>
-                <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold border ${statusBadge[stream.status]}`}>
-                  {stream.status.toUpperCase()}
+                <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${statusBadge[stream.status] || statusBadge.scheduled}`}>
+                  {String(stream.status).toUpperCase()}
                 </span>
               </div>
             ))}
@@ -696,29 +393,22 @@ const AdminPanelPage = () => {
         </TabsContent>
       </Tabs>
 
-
-
-
-      <AlertDialog open={!!revokingUser} onOpenChange={(open) => !open && !revoking && setRevokingUser(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Revoke seller access?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This will remove seller permissions for <span className="font-semibold text-foreground">{revokingUser?.name || revokingUser?.phone}</span>, deactivate all their products, and end their livestreams. Existing order history is preserved. They can re-apply later.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={revoking}>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              disabled={revoking}
-              onClick={(e) => { e.preventDefault(); handleRevokeSeller(); }}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            >
-              {revoking ? 'Revoking…' : 'Revoke seller'}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      {revokingUser && (
+        <div className="fixed inset-0 bg-foreground/60 z-50 flex items-end sm:items-center justify-center p-4" onClick={() => setRevokingUser(null)}>
+          <div className="bg-card rounded-3xl p-6 w-full max-w-sm" onClick={e => e.stopPropagation()}>
+            <h3 className="text-foreground font-bold text-lg mb-2">Revoke creator access?</h3>
+            <p className="text-muted-foreground text-sm mb-5">
+              <span className="font-semibold text-foreground">{revokingUser.name || revokingUser.phone}</span> will no longer be able to go live.
+            </p>
+            <div className="flex gap-3">
+              <button onClick={() => setRevokingUser(null)} className="flex-1 py-3 rounded-xl bg-secondary text-foreground font-semibold">Cancel</button>
+              <button onClick={handleRevokeSeller} disabled={revoking} className="flex-1 py-3 rounded-xl bg-destructive text-destructive-foreground font-semibold disabled:opacity-50">
+                {revoking ? 'Revoking…' : 'Revoke'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

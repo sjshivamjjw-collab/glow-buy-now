@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Bell, MapPin, Lock, FileText, Shield, RotateCcw, LogOut, ChevronRight, Trash2 } from 'lucide-react';
+import { ArrowLeft, Bell, Lock, FileText, Shield, LogOut, ChevronRight, Trash2 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
@@ -104,9 +104,6 @@ const SettingsPage = () => {
             </button>
           </div>
           <div className="border-t border-border">
-            <Row icon={MapPin} label="Saved addresses" onClick={() => navigate('/addresses')} />
-          </div>
-          <div className="border-t border-border">
             <Row icon={Bell} label="Notifications inbox" onClick={() => navigate('/notifications')} />
           </div>
         </div>
@@ -117,7 +114,6 @@ const SettingsPage = () => {
         <div className="rounded-2xl bg-card border border-border overflow-hidden">
           <Row icon={Shield} label="Privacy Policy" onClick={() => navigate('/privacy')} />
           <div className="border-t border-border"><Row icon={FileText} label="Terms of Service" onClick={() => navigate('/terms')} /></div>
-          <div className="border-t border-border"><Row icon={RotateCcw} label="Refunds & Cancellations" onClick={() => navigate('/refunds')} /></div>
         </div>
       </div>
 

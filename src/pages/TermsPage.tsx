@@ -3,9 +3,9 @@ import LegalPageLayout from '@/components/LegalPageLayout';
 const TermsPage = () => (
   <LegalPageLayout title="Terms of Service">
     <p>
-      Welcome to Ripple ("we", "us", "our"). By creating an account or using the
-      Ripple application and website (the "Service"), you agree to these Terms
-      of Service. Please read them carefully.
+      Welcome to Ripple ("we", "us", "our"). By creating an account or using
+      the Ripple application and website (the "Service"), you agree to these
+      Terms of Service. Please read them carefully.
     </p>
 
     <h2>1. Eligibility & Accounts</h2>
@@ -16,72 +16,58 @@ const TermsPage = () => (
       for OTP verification, and to keep that information up to date.
     </p>
 
-    <h2>2. Buyers</h2>
+    <h2>2. Your Content</h2>
     <ul>
-      <li>You agree to pay the full listed price (including any applicable taxes and shipping) for items you order.</li>
-      <li>You agree to provide accurate shipping information.</li>
-      <li>Cash on Delivery (COD) orders must be accepted at delivery; repeated refusal may result in account suspension.</li>
+      <li>You retain ownership of the posts, photos, videos, comments, and other content you share on Ripple.</li>
+      <li>You grant Ripple a non-exclusive, worldwide licence to host, display, distribute, and promote your content within the Service.</li>
+      <li>You are responsible for the content you post and must have all necessary rights to share it.</li>
     </ul>
 
-    <h2>3. Sellers</h2>
+    <h2>3. Community Guidelines</h2>
+    <p>You may not post, share, or promote:</p>
     <ul>
-      <li>Sellers must be approved through our seller application process before listing products or going live.</li>
-      <li>Sellers are solely responsible for their listings, product quality, descriptions, pricing, inventory, dispatch, and after-sales service.</li>
-      <li>Sellers must comply with all applicable Indian laws, including GST, consumer protection, and labelling requirements.</li>
-      <li>Sellers must dispatch paid orders within the timelines stated on their listings.</li>
+      <li>Hate speech, harassment, threats, or content that targets people based on identity.</li>
+      <li>Sexually explicit content, graphic violence, or content that endangers minors.</li>
+      <li>Spam, misleading claims, impersonation, or content that infringes intellectual property.</li>
+      <li>Content that promotes illegal activity or violates Indian law.</li>
     </ul>
 
-    <h2>4. Prohibited Items & Conduct</h2>
-    <p>You may not list, sell, promote, or transact in:</p>
-    <ul>
-      <li>Items prohibited or restricted under Indian law (including weapons, narcotics, counterfeit goods, hazardous materials, and regulated medical products).</li>
-      <li>Adult content, hate speech, harassment, or content that infringes intellectual property rights.</li>
-      <li>Misleading claims, fake reviews, or manipulated stock/price information.</li>
-    </ul>
-
-    <h2>5. Livestream Conduct</h2>
+    <h2>4. Livestream & Chat Conduct</h2>
     <p>
-      Live broadcasts and chat messages must be respectful and lawful. We reserve
-      the right to terminate streams, remove messages, or suspend accounts that
-      violate these standards.
+      Live broadcasts, comments, and chat messages must be respectful and lawful.
+      We reserve the right to end streams, remove content, or suspend accounts
+      that violate these standards.
     </p>
 
-    <h2>6. Payments</h2>
-    <p>
-      Online payments are processed by Razorpay. By making an online payment you
-      also agree to Razorpay's terms. COD is available on eligible orders subject
-      to a per-order limit set by Ripple.
-    </p>
-
-    <h2>7. Intellectual Property</h2>
+    <h2>5. Intellectual Property</h2>
     <p>
       The Ripple name, logo, and platform are owned by us. Content uploaded by
-      sellers remains theirs, but they grant Ripple a non-exclusive licence to
-      display, distribute, and promote that content within the Service.
+      users remains theirs, subject to the licence in Section 2.
     </p>
 
-    <h2>8. Disclaimers & Liability</h2>
+    <h2>6. Disclaimers & Liability</h2>
     <p>
       The Service is provided "as is" without warranties of any kind. To the
       maximum extent permitted by law, Ripple is not liable for indirect,
       incidental, or consequential damages arising from your use of the Service.
-      We are an intermediary between buyers and sellers and are not the seller
-      of record.
+      Ripple is a platform for sharing content; we do not endorse user-posted
+      recommendations, reviews, or opinions.
     </p>
 
-    <h2>9. Termination</h2>
+    <h2>7. Termination</h2>
     <p>
       We may suspend or terminate your account at any time for breach of these
-      terms or applicable law.
+      terms or applicable law. You may delete your account from Settings at any
+      time.
     </p>
 
-    <h2>10. Governing Law</h2>
+    <h2>8. Governing Law</h2>
     <p>
-      These terms are governed by the laws of India. Any disputes are subject to
-      the exclusive jurisdiction of the courts at Mumbai, Maharashtra.
+      These terms are governed by the laws of India. Any disputes are subject
+      to the exclusive jurisdiction of the courts at Mumbai, Maharashtra.
     </p>
 
-    <h2>11. Contact</h2>
+    <h2>9. Contact</h2>
     <p>
       For questions about these terms, see our <a href="/contact">Contact Us</a> page.
     </p>

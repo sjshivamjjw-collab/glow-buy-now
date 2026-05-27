@@ -18,10 +18,6 @@ const Footer = ({ standalone = false }: FooterProps) => {
         <span className="text-[11px] text-muted-foreground">·</span>
         <Link to="/privacy" className={linkCls}>Privacy</Link>
         <span className="text-[11px] text-muted-foreground">·</span>
-        <Link to="/refunds" className={linkCls}>Refunds</Link>
-        <span className="text-[11px] text-muted-foreground">·</span>
-        <Link to="/shipping" className={linkCls}>Shipping</Link>
-        <span className="text-[11px] text-muted-foreground">·</span>
         <Link to="/contact" className={linkCls}>Contact</Link>
         <span className="text-[11px] text-muted-foreground">·</span>
         <Link to="/about" className={linkCls}>About</Link>
