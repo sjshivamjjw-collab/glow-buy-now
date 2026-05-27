@@ -286,16 +286,13 @@ const OnboardingPage = () => {
               </div>
             </div>
 
-            <div className="pb-12 pt-4 space-y-3">
+            <div className="pb-12 pt-4">
               <button
                 onClick={handleFinish}
                 disabled={saving}
                 className="w-full py-4 rounded-2xl bg-primary text-primary-foreground font-bold text-lg flex items-center justify-center gap-2 active:scale-[0.98] transition-transform disabled:opacity-50"
               >
                 {saving ? 'Setting up…' : 'Get Started 🚀'}
-              </button>
-              <button onClick={handleFinish} disabled={saving} className="w-full py-3 text-muted-foreground text-sm font-medium">
-                Skip for now
               </button>
             </div>
           </motion.div>
