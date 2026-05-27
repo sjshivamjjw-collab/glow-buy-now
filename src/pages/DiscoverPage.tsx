@@ -5,6 +5,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { Search, Sparkles, Heart, MessageCircle, Loader2, Play, Images, MapPin, TrendingUp, ChevronDown, Check } from 'lucide-react';
 import { formatCount } from '@/lib/utils';
+import LazyVideoThumbnail from '@/components/LazyVideoThumbnail';
 
 interface TrendingPost {
   id: string;
@@ -266,15 +267,7 @@ const DiscoverPage = () => {
                   {p.cover_url ? (
                     p.cover_kind === 'video' ? (
                       <>
-                        <video
-                          src={`${p.cover_url}#t=0.1`}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                          muted
-                          playsInline
-                          // @ts-ignore - iOS Safari attribute to show first frame
-                          webkit-playsinline="true"
-                          preload="metadata"
-                        />
+                        <LazyVideoThumbnail src={p.cover_url} className="w-full h-full group-hover:scale-105 transition-transform duration-500" />
                         <span className="absolute top-2 right-2 w-8 h-8 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center">
                           <Play className="w-3.5 h-3.5 text-white fill-white" />
                         </span>
