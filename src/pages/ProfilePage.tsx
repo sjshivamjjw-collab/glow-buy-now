@@ -105,6 +105,24 @@ const ProfilePage = () => {
     }
   };
 
+  const handleRemoveAvatar = async () => {
+    if (!userId) return;
+    if (!displayAvatar) return;
+    if (!window.confirm('Remove your profile photo?')) return;
+    setUploadingAvatar(true);
+    try {
+      const { error: updErr } = await supabase.from('profiles').update({ avatar_url: null }).eq('id', userId);
+      if (updErr) throw updErr;
+      setProfile(prev => prev ? { ...prev, avatar_url: null } : prev);
+      updateProfile({ avatar_url: null });
+      toast({ title: 'Profile photo removed' });
+    } catch (err: any) {
+      toast({ title: 'Failed to remove photo', description: err.message, variant: 'destructive' });
+    } finally {
+      setUploadingAvatar(false);
+    }
+  };
+
   const handleLogout = () => { logout(); navigate('/auth'); };
 
   const menuItems = [
