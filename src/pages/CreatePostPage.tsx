@@ -93,9 +93,8 @@ const SortableMediaTile = ({ m, onRemove }: { m: PendingMedia; onRemove: () => v
             className="w-full h-full object-cover pointer-events-none"
             muted
             playsInline
-            autoPlay
-            loop
-            preload="auto"
+            controls
+            preload="metadata"
             // @ts-ignore - iOS Safari attribute
             webkit-playsinline="true"
           />
