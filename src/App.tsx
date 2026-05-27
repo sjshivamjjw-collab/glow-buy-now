@@ -21,8 +21,6 @@ const AdminPanelPage = lazy(() => import("@/pages/AdminPanelPage"));
 const SettingsPage = lazy(() => import("@/pages/SettingsPage"));
 const TermsPage = lazy(() => import("@/pages/TermsPage"));
 const PrivacyPage = lazy(() => import("@/pages/PrivacyPage"));
-const RefundsPage = lazy(() => import("@/pages/RefundsPage"));
-const ShippingPage = lazy(() => import("@/pages/ShippingPage"));
 const ContactPage = lazy(() => import("@/pages/ContactPage"));
 const AboutPage = lazy(() => import("@/pages/AboutPage"));
 const NotFound = lazy(() => import("@/pages/NotFound"));
@@ -39,8 +37,6 @@ const publicLegalRoutes = (
   <>
     <Route path="/terms" element={<TermsPage />} />
     <Route path="/privacy" element={<PrivacyPage />} />
-    <Route path="/refunds" element={<RefundsPage />} />
-    <Route path="/shipping" element={<ShippingPage />} />
     <Route path="/contact" element={<ContactPage />} />
     <Route path="/about" element={<AboutPage />} />
   </>
