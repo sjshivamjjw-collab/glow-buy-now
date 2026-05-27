@@ -3,7 +3,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { Settings, LogOut, ChevronRight, Bell, HelpCircle, ShieldCheck, Check, X, Camera, Plus, Share2 } from 'lucide-react';
+import { Settings, LogOut, ChevronRight, Bell, HelpCircle, ShieldCheck, Check, X, Camera, Plus, Share2, Trash2 } from 'lucide-react';
 
 import { PostsGrid } from '@/pages/UserProfilePage';
 import { formatCount } from '@/lib/utils';
@@ -105,6 +105,24 @@ const ProfilePage = () => {
     }
   };
 
+  const handleRemoveAvatar = async () => {
+    if (!userId) return;
+    if (!displayAvatar) return;
+    if (!window.confirm('Remove your profile photo?')) return;
+    setUploadingAvatar(true);
+    try {
+      const { error: updErr } = await supabase.from('profiles').update({ avatar_url: null }).eq('id', userId);
+      if (updErr) throw updErr;
+      setProfile(prev => prev ? { ...prev, avatar_url: null } : prev);
+      updateProfile({ avatar_url: null });
+      toast({ title: 'Profile photo removed' });
+    } catch (err: any) {
+      toast({ title: 'Failed to remove photo', description: err.message, variant: 'destructive' });
+    } finally {
+      setUploadingAvatar(false);
+    }
+  };
+
   const handleLogout = () => { logout(); navigate('/auth'); };
 
   const menuItems = [
@@ -186,6 +204,26 @@ const ProfilePage = () => {
       {editing && (
 
         <div className="mt-2 space-y-3 mb-4">
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={uploadingAvatar}
+              className="flex-1 px-4 py-2 rounded-xl bg-[#161616] border border-[#2a2a2a]/60 text-[#fafafa] text-sm font-semibold flex items-center justify-center gap-2 disabled:opacity-50"
+            >
+              <Camera className="w-4 h-4" /> {displayAvatar ? 'Change photo' : 'Add photo'}
+            </button>
+            {displayAvatar && (
+              <button
+                type="button"
+                onClick={handleRemoveAvatar}
+                disabled={uploadingAvatar}
+                className="px-4 py-2 rounded-xl bg-[#ef4444]/10 border border-[#ef4444]/30 text-[#ef4444] text-sm font-semibold flex items-center justify-center gap-2 disabled:opacity-50"
+              >
+                <Trash2 className="w-4 h-4" /> Remove
+              </button>
+            )}
+          </div>
           <input value={editName} onChange={e => setEditName(e.target.value)} placeholder="Your name"
             className="w-full px-4 py-3 rounded-xl bg-[#161616] border border-[#2a2a2a]/60 text-[#fafafa] placeholder:text-[#6b6b6b] focus:outline-none focus:ring-2 focus:ring-[#ef4444]/40 text-sm" />
           <input value={editUsername} onChange={e => setEditUsername(e.target.value)} placeholder="username"
