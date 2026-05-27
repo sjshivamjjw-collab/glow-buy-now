@@ -305,6 +305,25 @@ const CreatePostPage = () => {
     }
   };
 
+  const uploadWithRetry = async (path: string, file: File, attempts = 3) => {
+    let lastErr: any;
+    for (let i = 0; i < attempts; i++) {
+      try {
+        const { error } = await supabase.storage.from('post-media').upload(path, file, {
+          contentType: file.type || undefined,
+          upsert: false,
+        });
+        if (!error) return;
+        lastErr = error;
+      } catch (e) {
+        lastErr = e;
+      }
+      // Backoff before retrying transient network failures.
+      await new Promise(r => setTimeout(r, 600 * (i + 1)));
+    }
+    throw lastErr || new Error('Upload failed');
+  };
+
   const handleSubmit = async () => {
     if (!userId || !category) return;
     if (media.length === 0) {
@@ -319,7 +338,12 @@ const CreatePostPage = () => {
       toast({ title: 'Add a description', description: 'Tell people more about your post', variant: 'destructive' });
       return;
     }
+    if (typeof navigator !== 'undefined' && navigator.onLine === false) {
+      toast({ title: 'You are offline', description: 'Check your connection and try again', variant: 'destructive' });
+      return;
+    }
     setSubmitting(true);
+    let createdPostId: string | null = null;
     try {
       const musicUrl = music?.previewUrl ?? null;
       const musicLabel = music ? `${music.title} — ${music.artist}` : null;
@@ -338,15 +362,13 @@ const CreatePostPage = () => {
       }).select('id').single();
       if (postErr || !post) throw postErr || new Error('Failed to create post');
       const postId = (post as any).id as string;
+      createdPostId = postId;
 
       for (let i = 0; i < media.length; i++) {
         const m = media[i];
         const ext = m.file.name.split('.').pop() || (m.kind === 'video' ? 'mp4' : 'jpg');
         const path = `${userId}/${postId}/${i}-${Date.now()}.${ext}`;
-        const { error: upErr } = await supabase.storage.from('post-media').upload(path, m.file, {
-          contentType: m.file.type || undefined, upsert: false,
-        });
-        if (upErr) throw upErr;
+        await uploadWithRetry(path, m.file);
         const url = supabase.storage.from('post-media').getPublicUrl(path).data.publicUrl;
         const { error: mErr } = await supabase.from('post_media' as any).insert({
           post_id: postId, url, kind: m.kind, sort_order: i,
@@ -359,7 +381,19 @@ const CreatePostPage = () => {
       navigate(`/p/${postId}`);
     } catch (e: any) {
       console.error(e);
-      toast({ title: 'Could not post', description: e?.message || 'Try again', variant: 'destructive' });
+      // Best-effort cleanup of an orphan post if media uploads failed mid-way.
+      if (createdPostId) {
+        try { await supabase.from('posts' as any).delete().eq('id', createdPostId); } catch {}
+      }
+      const raw = e?.message || '';
+      const isNetwork = /failed to fetch|network|load failed|networkerror/i.test(raw);
+      toast({
+        title: 'Could not post',
+        description: isNetwork
+          ? 'Network issue uploading your post. If you use Brave Shields or an ad blocker, try disabling it for this site, then retry.'
+          : (raw || 'Try again'),
+        variant: 'destructive',
+      });
     } finally {
       setSubmitting(false);
     }
