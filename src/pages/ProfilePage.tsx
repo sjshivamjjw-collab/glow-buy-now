@@ -204,6 +204,26 @@ const ProfilePage = () => {
       {editing && (
 
         <div className="mt-2 space-y-3 mb-4">
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={uploadingAvatar}
+              className="flex-1 px-4 py-2 rounded-xl bg-[#161616] border border-[#2a2a2a]/60 text-[#fafafa] text-sm font-semibold flex items-center justify-center gap-2 disabled:opacity-50"
+            >
+              <Camera className="w-4 h-4" /> {displayAvatar ? 'Change photo' : 'Add photo'}
+            </button>
+            {displayAvatar && (
+              <button
+                type="button"
+                onClick={handleRemoveAvatar}
+                disabled={uploadingAvatar}
+                className="px-4 py-2 rounded-xl bg-[#ef4444]/10 border border-[#ef4444]/30 text-[#ef4444] text-sm font-semibold flex items-center justify-center gap-2 disabled:opacity-50"
+              >
+                <Trash2 className="w-4 h-4" /> Remove
+              </button>
+            )}
+          </div>
           <input value={editName} onChange={e => setEditName(e.target.value)} placeholder="Your name"
             className="w-full px-4 py-3 rounded-xl bg-[#161616] border border-[#2a2a2a]/60 text-[#fafafa] placeholder:text-[#6b6b6b] focus:outline-none focus:ring-2 focus:ring-[#ef4444]/40 text-sm" />
           <input value={editUsername} onChange={e => setEditUsername(e.target.value)} placeholder="username"
