@@ -3,30 +3,27 @@ import LegalPageLayout from '@/components/LegalPageLayout';
 const AboutPage = () => (
   <LegalPageLayout title="About Ripple">
     <p>
-      Ripple is a mobile-first live commerce marketplace built for India.
-      Sellers go live, show their products in real time, answer buyer questions
-      in chat, and accept orders on the spot — with secure online payments via
-      Razorpay or Cash on Delivery.
+      Ripple is a mobile-first community where people share the everyday
+      things worth sharing — genuine recommendations, honest reviews, travel
+      diaries, food spots, and the little moments from real life.
     </p>
 
     <h2>What we do</h2>
     <ul>
-      <li>Help independent sellers reach buyers through livestream-driven shopping.</li>
-      <li>Give shoppers a fun, interactive way to discover products from real people, not faceless catalogues.</li>
-      <li>Handle the logistics of authentication, ordering, payments, and notifications so sellers can focus on selling.</li>
+      <li>Help people discover places, products, and experiences through the voices of real users — not faceless algorithms.</li>
+      <li>Give creators tools to post, go live, build communities, and connect with people who share their interests.</li>
+      <li>Keep the experience simple, mobile-first, and focused on authentic content.</li>
     </ul>
 
     <h2>How it works</h2>
     <ul>
-      <li><strong>Shoppers</strong> sign in with their phone number, browse live and upcoming streams, and buy in one tap.</li>
-      <li><strong>Sellers</strong> apply to become a seller, list products with sizes and stock, and go live whenever they're ready.</li>
-      <li><strong>Payments</strong> are processed securely via Razorpay, with Cash on Delivery available on eligible orders.</li>
+      <li><strong>Members</strong> sign in with their phone number, follow people and topics they care about, and join the conversation.</li>
+      <li><strong>Creators</strong> share posts, go live, and grow communities around the things they love.</li>
     </ul>
 
     <h2>Where we are</h2>
     <p>
-      We're based in India and currently ship across India. Want to chat?
-      Visit our <a href="/contact">Contact Us</a> page.
+      We're based in India. Want to chat? Visit our <a href="/contact">Contact Us</a> page.
     </p>
   </LegalPageLayout>
 );
