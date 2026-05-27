@@ -10,6 +10,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 import { useToast } from '@/hooks/use-toast';
+import LazyVideoThumbnail from '@/components/LazyVideoThumbnail';
 
 const statusBadge: Record<string, string> = {
   pending: 'bg-yellow-500/10 text-yellow-600 border-yellow-500/20',
@@ -205,9 +206,9 @@ const AdminPanelPage = () => {
                   <button onClick={() => navigate(`/p/${p.id}`)} className="shrink-0">
                     {cover ? (
                       cover.kind === 'video' ? (
-                        <video src={cover.url} className="w-14 h-14 rounded-xl object-cover bg-black" muted />
+                        <LazyVideoThumbnail src={cover.url} className="w-14 h-14 rounded-xl overflow-hidden bg-black" />
                       ) : (
-                        <img src={cover.url} alt="" className="w-14 h-14 rounded-xl object-cover" />
+                        <img src={cover.url} alt="" className="w-14 h-14 rounded-xl object-cover" loading="lazy" decoding="async" />
                       )
                     ) : (
                       <div className="w-14 h-14 rounded-xl bg-secondary flex items-center justify-center">
