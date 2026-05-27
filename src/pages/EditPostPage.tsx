@@ -234,9 +234,8 @@ const EditPostPage = () => {
                     className="w-full h-full object-cover"
                     muted
                     playsInline
-                    autoPlay
-                    loop
-                    preload="auto"
+                    controls
+                    preload="metadata"
                     // @ts-ignore
                     webkit-playsinline="true"
                   />
@@ -260,9 +259,8 @@ const EditPostPage = () => {
                     className="w-full h-full object-cover"
                     muted
                     playsInline
-                    autoPlay
-                    loop
-                    preload="auto"
+                    controls
+                    preload="metadata"
                     // @ts-ignore
                     webkit-playsinline="true"
                   />
