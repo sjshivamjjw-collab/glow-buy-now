@@ -347,32 +347,16 @@ const PostDetailPage = () => {
         <div className="relative mx-3 w-[calc(100%-1.5rem)] bg-[#161616] border border-[#2a2a2a]/50 aspect-[4/5] max-h-[60vh] rounded-3xl overflow-hidden">
           {currentMedia.kind === 'video' ? (
             <video
-              ref={(el) => {
-                if (!el) return;
-                // Pause when tab hidden or scrolled offscreen to save battery/data
-                const onVis = () => { if (document.hidden) el.pause(); };
-                document.addEventListener('visibilitychange', onVis);
-                const io = new IntersectionObserver(([entry]) => {
-                  if (!entry.isIntersecting) el.pause();
-                  else el.play().catch(() => {});
-                }, { threshold: 0.25 });
-                io.observe(el);
-                (el as any).__cleanup = () => {
-                  document.removeEventListener('visibilitychange', onVis);
-                  io.disconnect();
-                };
-              }}
+              ref={videoRef}
               src={currentMedia.url}
               className="w-full h-full object-contain"
               controls
               playsInline
-              autoPlay
               muted
-              loop
               preload="metadata"
             />
           ) : (
-            <img src={currentMedia.url} alt="" className="w-full h-full object-contain cursor-pointer" onClick={() => window.dispatchEvent(new Event('post-music-stop'))} />
+            <img src={currentMedia.url} alt="" className="w-full h-full object-contain cursor-pointer" loading="eager" decoding="async" onClick={() => window.dispatchEvent(new Event('post-music-stop'))} />
           )}
           {post.category && CATEGORY_META[post.category] && (
             <span className="absolute top-2 left-2 z-10 px-2 py-0.5 rounded-md bg-black/55 backdrop-blur-sm text-white/90 text-[10px] font-medium tracking-wide">
