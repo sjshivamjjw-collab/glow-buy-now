@@ -46,7 +46,7 @@ const PostMusicPlayer = ({ url, title }: { url: string; title: string | null }) 
     if (!a) {
       a = new Audio(url);
       a.crossOrigin = 'anonymous';
-      a.preload = 'auto';
+      a.preload = 'metadata';
       a.loop = true;
       a.onended = () => setPlaying(false);
       a.onerror = () => setPlaying(false);
@@ -57,32 +57,10 @@ const PostMusicPlayer = ({ url, title }: { url: string; title: string | null }) 
     return a;
   };
 
-  // Try to autoplay on mount. Browsers usually block sound until user gesture,
-  // so we attempt muted autoplay first, then unmute on the first user tap anywhere.
   useEffect(() => {
-    const a = ensureAudio();
-    a.muted = false;
-    const tryPlay = a.play();
-    const onFirstGesture = () => {
-      const au = audioRef.current;
-      if (!au) return;
-      au.muted = false;
-      au.play().catch(() => {});
-      window.removeEventListener('pointerdown', onFirstGesture);
-      window.removeEventListener('keydown', onFirstGesture);
-    };
-    if (tryPlay && typeof tryPlay.catch === 'function') {
-      tryPlay.catch(() => {
-        // Autoplay blocked — wait for any user interaction on the page.
-        window.addEventListener('pointerdown', onFirstGesture, { once: true });
-        window.addEventListener('keydown', onFirstGesture, { once: true });
-      });
-    }
     const onStop = () => { audioRef.current?.pause(); };
     window.addEventListener('post-music-stop', onStop);
     return () => {
-      window.removeEventListener('pointerdown', onFirstGesture);
-      window.removeEventListener('keydown', onFirstGesture);
       window.removeEventListener('post-music-stop', onStop);
       audioRef.current?.pause();
       audioRef.current = null;
@@ -136,7 +114,9 @@ const PostDetailPage = () => {
   const draftInputRef = useRef<HTMLInputElement>(null);
   const [draftCursor, setDraftCursor] = useState<number | null>(null);
   const commentsSectionRef = useRef<HTMLDivElement>(null);
+  const videoRef = useRef<HTMLVideoElement | null>(null);
   const [showCommentBar, setShowCommentBar] = useState(false);
+  const currentMedia = media[mediaIdx];
   const mention = useMentionAutocomplete({
     value: draft,
     cursor: draftCursor,
@@ -199,6 +179,29 @@ const PostDetailPage = () => {
     io.observe(el);
     return () => io.disconnect();
   }, [loading]);
+
+  useEffect(() => {
+    const el = videoRef.current;
+    if (!el || currentMedia?.kind !== 'video') return;
+    let inView = true;
+    const pause = () => el.pause();
+    const playIfVisible = () => {
+      if (!document.hidden && inView) el.play().catch(() => {});
+    };
+    const onVis = () => { document.hidden ? pause() : playIfVisible(); };
+    const io = new IntersectionObserver(([entry]) => {
+      inView = entry.isIntersecting;
+      inView ? playIfVisible() : pause();
+    }, { threshold: 0.35 });
+    io.observe(el);
+    document.addEventListener('visibilitychange', onVis);
+    playIfVisible();
+    return () => {
+      document.removeEventListener('visibilitychange', onVis);
+      io.disconnect();
+      pause();
+    };
+  }, [currentMedia?.id, currentMedia?.kind]);
 
   const handleLike = async () => {
     if (!userId || !post) { navigate('/auth'); return; }
@@ -281,7 +284,6 @@ const PostDetailPage = () => {
 
   const author = authors[post.user_id];
   const isOwn = userId === post.user_id;
-  const currentMedia = media[mediaIdx];
 
   return (
     <div className="min-h-screen max-w-lg mx-auto pb-32 font-[Figtree] bg-[linear-gradient(180deg,#0a0a0a_0%,#111111_40%,#000000_100%)]">
