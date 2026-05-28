@@ -3,21 +3,30 @@ import type { CapacitorConfig } from '@capacitor/cli';
 /**
  * Capacitor config for Ripple native iOS + Android.
  *
- * The `server.url` block enables hot-reload from the Lovable sandbox while
- * developing on a real device. IMPORTANT: comment this block out (or run with
- * a different config) before producing a release build for the App Store /
- * Play Store — otherwise the store binary will load the sandbox URL instead
- * of the bundled web assets.
+ * Bundle ID `in.myripple.app` is the production identifier registered against
+ * the Apple App Store and Google Play Store listings. DO NOT change this
+ * after the first store submission — bundle IDs are permanent.
+ *
+ * The `server.url` block (currently DISABLED) enables hot-reload from the
+ * Lovable sandbox while developing on a real device. To dev against a phone:
+ *   1. Uncomment the `server` block below
+ *   2. Run `npx cap sync`
+ *   3. Run `npx cap run ios` (or android)
+ *
+ * ⚠️ CRITICAL: The `server` block MUST stay commented out for any release
+ * build (App Store / Play Store / TestFlight). Shipping a binary with the
+ * sandbox URL = app loads Lovable preview instead of bundled assets =
+ * automatic store rejection + broken app for users.
  */
 const config: CapacitorConfig = {
-  appId: 'app.lovable.74c9b69bcd6d42fbb279125200f8f6c7',
+  appId: 'in.myripple.app',
   appName: 'Ripple',
   webDir: 'dist',
-  // 👇 DEV ONLY — remove for release builds
-  server: {
-    url: 'https://74c9b69b-cd6d-42fb-b279-125200f8f6c7.lovableproject.com?forceHideBadge=true',
-    cleartext: true,
-  },
+  // 👇 DEV-ONLY hot reload — keep commented for release builds
+  // server: {
+  //   url: 'https://74c9b69b-cd6d-42fb-b279-125200f8f6c7.lovableproject.com?forceHideBadge=true',
+  //   cleartext: true,
+  // },
   ios: {
     contentInset: 'always',
   },
