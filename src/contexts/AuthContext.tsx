@@ -61,46 +61,50 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     let mounted = true;
+
+    const bootstrapFromSession = async (session: any, savedRaw: string | null) => {
+      const parsed = savedRaw ? (() => { try { return JSON.parse(savedRaw); } catch { return null; } })() : null;
+      const userId = session.user.id;
+      const [{ data: profile }, { data: roleRows }] = await Promise.all([
+        supabase.from('profiles').select('*').eq('id', userId).maybeSingle(),
+        supabase.from('user_roles').select('role').eq('user_id', userId),
+      ]);
+      const roles = (roleRows || []).map(r => r.role as string);
+      const rawPhone = profile?.phone || parsed?.phone || session.user.phone || '';
+      const normalizedPhone = rawPhone ? (rawPhone.startsWith('+') ? rawPhone : `+${rawPhone}`) : '';
+      const isAdmin = roles.includes('admin');
+      const isCreator = roles.includes('creator') || isAdmin;
+      const isDemoPhone = DEMO_PHONES.has(normalizedPhone);
+      let primaryRole: UserRole = 'shopper';
+      if (isAdmin) primaryRole = 'admin';
+      else if (isCreator) primaryRole = 'creator';
+      const userMeta: any = session.user.user_metadata || {};
+      const oauthName = userMeta.full_name || userMeta.name || null;
+      const oauthAvatar = userMeta.avatar_url || userMeta.picture || null;
+      const refreshed: AuthState = {
+        isAuthenticated: true,
+        role: primaryRole,
+        userId,
+        userName: profile?.name || parsed?.userName || oauthName || (isAdmin ? 'Admin' : isDemoPhone ? 'Demo User' : null),
+        userAvatar: profile?.avatar_url || parsed?.userAvatar || oauthAvatar || null,
+        isCreator,
+        isAdmin,
+        phone: normalizedPhone || parsed?.phone || null,
+        loading: false,
+        onboardingCompleted: isDemoPhone || profile?.onboarding_completed === true || parsed?.onboardingCompleted === true,
+      };
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(refreshed));
+      if (mounted) setState(refreshed);
+    };
+
     const restoreSession = async () => {
-      const saved = localStorage.getItem(STORAGE_KEY);
-      if (!saved) {
-        if (mounted) setState(prev => ({ ...prev, loading: false }));
-        return;
-      }
       try {
-        const parsed = JSON.parse(saved);
         const { data: { session } } = await supabase.auth.getSession();
-        if (session?.user?.id && session.user.id === parsed.userId) {
-          const [{ data: profile }, { data: roleRows }] = await Promise.all([
-            supabase.from('profiles').select('*').eq('id', session.user.id).maybeSingle(),
-            supabase.from('user_roles').select('role').eq('user_id', session.user.id),
-          ]);
-          const roles = (roleRows || []).map(r => r.role as string);
-          const normalizedPhone = (profile?.phone || parsed.phone || session.user.phone || '').startsWith('+')
-            ? (profile?.phone || parsed.phone || session.user.phone || '')
-            : `+${profile?.phone || parsed.phone || session.user.phone || ''}`;
-          // Server is the source of truth for roles — never trust localStorage flags.
-          const isAdmin = roles.includes('admin');
-          const isCreator = roles.includes('creator') || isAdmin;
-          const isDemoPhone = DEMO_PHONES.has(normalizedPhone);
-          let primaryRole: UserRole = 'shopper';
-          if (isAdmin) primaryRole = 'admin';
-          else if (isCreator) primaryRole = 'creator';
-          const refreshed: AuthState = {
-            ...parsed,
-            role: primaryRole,
-            userName: profile?.name || parsed.userName || (isAdmin ? 'Admin' : isDemoPhone ? 'Demo User' : null),
-            userAvatar: profile?.avatar_url || parsed.userAvatar || null,
-            isCreator,
-            isAdmin,
-            phone: normalizedPhone || parsed.phone,
-            loading: false,
-            onboardingCompleted: isDemoPhone || profile?.onboarding_completed === true || parsed.onboardingCompleted === true,
-          };
-          localStorage.setItem(STORAGE_KEY, JSON.stringify(refreshed));
-          if (mounted) setState(refreshed);
+        const saved = localStorage.getItem(STORAGE_KEY);
+        if (session?.user?.id) {
+          await bootstrapFromSession(session, saved);
         } else {
-          localStorage.removeItem(STORAGE_KEY);
+          if (saved) localStorage.removeItem(STORAGE_KEY);
           if (mounted) setState(prev => ({ ...prev, loading: false }));
         }
       } catch {
@@ -108,8 +112,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         if (mounted) setState(prev => ({ ...prev, loading: false }));
       }
     };
+
+    const { data: sub } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_IN' && session?.user?.id) {
+        setTimeout(() => {
+          bootstrapFromSession(session, localStorage.getItem(STORAGE_KEY));
+        }, 0);
+      } else if (event === 'SIGNED_OUT') {
+        localStorage.removeItem(STORAGE_KEY);
+      }
+    });
+
     restoreSession();
-    return () => { mounted = false; };
+    return () => { mounted = false; sub.subscription.unsubscribe(); };
   }, []);
 
   const login = (userId: string, phone: string, roles: string[], profile: AuthProfile | null) => {
