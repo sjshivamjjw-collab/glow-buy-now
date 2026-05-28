@@ -26,7 +26,6 @@ const OnboardingPage = () => {
   const [name, setName] = useState('');
   const [gender, setGender] = useState('');
   const [dob, setDob] = useState('');
-  const [city, setCity] = useState('');
   const [saving, setSaving] = useState(false);
   const [usernameError, setUsernameError] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -106,7 +105,6 @@ const OnboardingPage = () => {
           name,
           gender: gender || null,
           date_of_birth: dob || null,
-          city: city.trim() || null,
           onboarding_completed: true,
           ...(avatarUrl ? { avatar_url: avatarUrl } : {}),
         })
@@ -273,17 +271,6 @@ const OnboardingPage = () => {
                 />
               </div>
 
-              {/* City */}
-              <div>
-                <label className="text-sm font-medium text-foreground mb-2 block">City</label>
-                <input
-                  type="text"
-                  placeholder="e.g. Mumbai"
-                  value={city}
-                  onChange={e => setCity(e.target.value.slice(0, 60))}
-                  className="w-full px-4 py-3.5 rounded-2xl bg-secondary text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 text-base"
-                />
-              </div>
             </div>
 
             <div className="pb-12 pt-4">
