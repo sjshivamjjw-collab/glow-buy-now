@@ -4,6 +4,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Radio, ArrowRight, Phone, Smartphone, ShoppingBag, Store } from 'lucide-react';
+import { lovable } from '@/integrations/lovable';
 import rippleLogo from '@/assets/ripple-logo.png';
 import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp';
 import { useToast } from '@/hooks/use-toast';
