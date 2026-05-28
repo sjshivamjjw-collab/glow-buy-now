@@ -148,14 +148,29 @@ const AuthPage = () => {
                 onClick={() => setStep('phone')}
                 className="w-full py-4 rounded-2xl bg-primary text-primary-foreground font-bold text-lg flex items-center justify-center gap-2 active:scale-[0.98] transition-transform"
               >
-                Get Started
+                Continue with phone
                 <ArrowRight className="w-5 h-5" />
               </button>
               <button
-                onClick={() => setStep('phone')}
-                className="w-full py-4 rounded-2xl bg-secondary text-secondary-foreground font-semibold text-lg active:scale-[0.98] transition-transform"
+                onClick={async () => {
+                  try {
+                    const result = await lovable.auth.signInWithOAuth('google', {
+                      redirect_uri: window.location.origin,
+                    });
+                    if (result.error) {
+                      toast({ title: 'Google sign-in failed', description: result.error.message || 'Please try again', variant: 'destructive' });
+                      return;
+                    }
+                    if (result.redirected) return;
+                    navigate('/');
+                  } catch (err: any) {
+                    toast({ title: 'Google sign-in failed', description: err?.message || 'Please try again', variant: 'destructive' });
+                  }
+                }}
+                className="w-full py-4 rounded-2xl bg-card border-2 border-border text-foreground font-semibold text-lg flex items-center justify-center gap-3 active:scale-[0.98] transition-transform"
               >
-                I already have an account
+                <svg className="w-5 h-5" viewBox="0 0 24 24"><path fill="#EA4335" d="M12 10.2v3.9h5.5c-.2 1.4-1.6 4-5.5 4-3.3 0-6-2.7-6-6.1s2.7-6.1 6-6.1c1.9 0 3.1.8 3.8 1.5l2.6-2.5C16.8 3.4 14.6 2.4 12 2.4 6.8 2.4 2.6 6.6 2.6 12s4.2 9.6 9.4 9.6c5.4 0 9-3.8 9-9.2 0-.6-.1-1.1-.2-1.6H12z"/></svg>
+                Continue with Google
               </button>
             </div>
           </motion.div>
