@@ -296,7 +296,7 @@ const PostDetailPage = () => {
           <button
             onClick={async () => {
               const url = `${window.location.origin}/p/${post.id}`;
-              const shareData = { title: post.title || 'Check out this post', text: post.body || '', url };
+              const shareData = { title: post.title || 'Check out this post', text: (post.body || '').replace(/<[^>]+>/g, ''), url };
               try {
                 if (navigator.share) await navigator.share(shareData);
                 else { await navigator.clipboard.writeText(url); toast({ title: 'Link copied' }); }
@@ -407,7 +407,7 @@ const PostDetailPage = () => {
       {/* Body */}
       <div className="px-4 pt-3">
         {post.title && <h2 className="font-[Outfit] text-lg font-bold text-[#fafafa] mb-3 break-words">{post.title}</h2>}
-        {post.body && <p className="text-sm text-[#e5e5e5] whitespace-pre-wrap break-words [overflow-wrap:anywhere] mb-5 leading-relaxed">{renderRichText(post.body)}</p>}
+        {post.body && <div className="text-sm text-[#e5e5e5] whitespace-pre-wrap break-words [overflow-wrap:anywhere] mb-5 leading-relaxed">{renderRichText(post.body)}</div>}
         {post.location && (
           <p className="text-xs text-[#ef4444] font-medium flex items-center gap-1 mb-3"><MapPin className="w-3 h-3" />{post.location}</p>
         )}

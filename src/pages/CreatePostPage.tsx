@@ -13,7 +13,8 @@ import { ImageCropperDialog } from '@/components/ImageCropperDialog';
 import { useMentionAutocomplete } from '@/hooks/useMentionAutocomplete';
 import { MentionSuggestions } from '@/components/MentionSuggestions';
 import { MusicPicker, type PickedTrack } from '@/components/MusicPicker';
-import RichTextToolbar from '@/components/RichTextToolbar';
+import RichTextEditor from '@/components/RichTextEditor';
+import { markdownToHtml, isRichTextEmpty } from '@/lib/richText';
 import {
   DndContext, closestCenter, KeyboardSensor, PointerSensor, TouchSensor,
   useSensor, useSensors, type DragEndEvent,
@@ -165,19 +166,13 @@ const CreatePostPage = () => {
   const [recommendation, setRecommendation] = useState<RecommendationKey | null>(initial?.recommendation ?? null);
   const [media, setMedia] = useState<PendingMedia[]>([]);
   const [title, setTitle] = useState(initial?.title ?? '');
-  const [body, setBody] = useState(initial?.body ?? '');
-  const bodyRef = useRef<HTMLTextAreaElement>(null);
-  const [bodyCursor, setBodyCursor] = useState<number | null>(null);
-  const bodyMention = useMentionAutocomplete({
-    value: body,
-    cursor: bodyCursor,
-    onPick: ({ value, cursor }) => {
-      setBody(value);
-      requestAnimationFrame(() => {
-        const el = bodyRef.current;
-        if (el) { el.focus(); el.setSelectionRange(cursor, cursor); setBodyCursor(cursor); }
-      });
-    },
+  // Body is stored as a small HTML subset produced by RichTextEditor.
+  // For backwards compatibility, any legacy markdown draft is converted on load.
+  const [body, setBody] = useState<string>(() => {
+    const raw = initial?.body ?? '';
+    if (!raw) return '';
+    if (/<(strong|b|em|i|u|br|div|p|span)\b/i.test(raw)) return raw;
+    return markdownToHtml(raw);
   });
   const [location, setLocation] = useState(initial?.location ?? '');
   const [locSuggestions, setLocSuggestions] = useState<{ name: string; display: string }[]>([]);
@@ -398,7 +393,7 @@ const CreatePostPage = () => {
       toast({ title: 'Add a title', description: 'Tell people what you are sharing', variant: 'destructive' });
       return;
     }
-    if (!body.trim()) {
+    if (isRichTextEmpty(body)) {
       toast({ title: 'Add a description', description: 'Tell people more about your post', variant: 'destructive' });
       return;
     }
@@ -418,7 +413,7 @@ const CreatePostPage = () => {
         review_subcategory: category === 'review' ? reviewSub : null,
         review_recommendation: category === 'review' ? recommendation : null,
         title: title.trim() || null,
-        body: body.trim() || null,
+        body: isRichTextEmpty(body) ? null : body,
         location: location.trim() || null,
         hashtags,
         music_url: musicUrl,
@@ -629,69 +624,17 @@ const CreatePostPage = () => {
         const subPh = category === 'review' && reviewSub ? REVIEW_SUB_PLACEHOLDERS[reviewSub] : undefined;
         const ph = subPh ?? BODY_PLACEHOLDERS[category!] ?? 'Tell people more...';
         const hasSuggestions = !!subPh || !!BODY_PLACEHOLDERS[category!];
-        const BULLET = '• ';
-        const handleBodyFocus = () => {
-          if (!body) setBody(BULLET);
-        };
-        const handleBodyChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-          let v = e.target.value;
-          // If user wiped everything, leave it empty so placeholder shows again
-          if (v.trim() === '' || v === '•' || v === BULLET.trim()) { setBody(''); setBodyCursor(0); return; }
-          setBody(v);
-          setBodyCursor(e.target.selectionStart);
-        };
-        const handleBodyKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-          if (bodyMention.handleKeyDown(e)) return;
-          if (e.key === 'Enter') {
-            e.preventDefault();
-            const ta = e.currentTarget;
-            const start = ta.selectionStart;
-            const end = ta.selectionEnd;
-            const before = body.slice(0, start);
-            const after = body.slice(end);
-            // If current line is an empty bullet, exit bullet mode (just newline)
-            const lineStart = before.lastIndexOf('\n') + 1;
-            const currentLine = before.slice(lineStart);
-            const insert = currentLine.trim() === '•' ? '\n' : `\n${BULLET}`;
-            const next = before + insert + after;
-            setBody(next);
-            requestAnimationFrame(() => {
-              const pos = start + insert.length;
-              ta.selectionStart = ta.selectionEnd = pos;
-              setBodyCursor(pos);
-            });
-          }
-        };
         return (
           <>
             <label className="text-xs font-semibold text-[#6b6b6b] mb-1 block">Tell people more... <span className="text-[#ef4444]">*</span> <span className="text-[10px] font-normal">(the more descriptive and accurate, the better)</span></label>
             <div className="relative mb-4">
-              <div className="mb-1.5">
-                <RichTextToolbar textareaRef={bodyRef} value={body} onChange={setBody} />
-              </div>
-              <textarea
-                ref={bodyRef}
+              <RichTextEditor
                 value={body}
-                onChange={handleBodyChange}
-                onFocus={handleBodyFocus}
-                onKeyDown={handleBodyKeyDown}
-                onSelect={e => setBodyCursor((e.target as HTMLTextAreaElement).selectionStart)}
-                onKeyUp={e => setBodyCursor((e.target as HTMLTextAreaElement).selectionStart)}
+                onChange={setBody}
                 placeholder={ph}
                 maxLength={2000}
                 rows={hasSuggestions ? 7 : 5}
-                className="w-full px-4 py-3 rounded-xl bg-[#f5f5f5] border border-[#e5e5e5] text-[#0a0a0a] placeholder:text-[#a0a0a0] focus:outline-none focus:ring-2 focus:ring-[#ef4444]/40 text-[13px] resize-none"
               />
-              {bodyMention.open && (
-                <div className="absolute left-0 right-0 top-full mt-1 z-30">
-                  <MentionSuggestions
-                    items={bodyMention.items}
-                    active={bodyMention.active}
-                    onPick={bodyMention.applyItem}
-                    onHover={bodyMention.setActive}
-                  />
-                </div>
-              )}
             </div>
           </>
         );

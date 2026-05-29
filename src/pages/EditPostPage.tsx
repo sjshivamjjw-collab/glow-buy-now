@@ -5,7 +5,8 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { ArrowLeft, Loader2, MapPin, Hash, X, Check, ImagePlus } from 'lucide-react';
 import { extractStoragePath } from '@/lib/storageUrls';
-import RichTextToolbar from '@/components/RichTextToolbar';
+import RichTextEditor from '@/components/RichTextEditor';
+import { markdownToHtml, isRichTextEmpty } from '@/lib/richText';
 
 const TITLE_MAX = 90;
 const MAX_FILES = 10;
@@ -38,7 +39,7 @@ const EditPostPage = () => {
 
   const [title, setTitle] = useState('');
   const [body, setBody] = useState('');
-  const bodyTextareaRef = useRef<HTMLTextAreaElement>(null);
+  
   const [location, setLocation] = useState('');
   const [hashtags, setHashtags] = useState<string[]>([]);
   const [hashtagInput, setHashtagInput] = useState('');
@@ -57,7 +58,11 @@ const EditPostPage = () => {
       const p: any = data;
       if (p.user_id !== userId) { setNotAllowed(true); setLoading(false); return; }
       setTitle(p.title || '');
-      setBody(p.body || '');
+      {
+        const raw = p.body || '';
+        const isHtml = /<(strong|b|em|i|u|br|div|p|span)\b/i.test(raw);
+        setBody(isHtml ? raw : (raw ? markdownToHtml(raw) : ''));
+      }
       setLocation(p.location || '');
       setHashtags(p.hashtags || []);
 
@@ -131,7 +136,7 @@ const EditPostPage = () => {
   const handleSave = async () => {
     if (!id || !userId) return;
     if (!title.trim()) { toast({ title: 'Add a title', variant: 'destructive' }); return; }
-    if (!body.trim()) { toast({ title: 'Add a description', variant: 'destructive' }); return; }
+    if (isRichTextEmpty(body)) { toast({ title: 'Add a description', variant: 'destructive' }); return; }
     if (totalMedia === 0) { toast({ title: 'Add at least one photo or video', variant: 'destructive' }); return; }
     setSaving(true);
     try {
@@ -172,7 +177,7 @@ const EditPostPage = () => {
       // 4. Update post fields
       const { error } = await supabase.from('posts' as any).update({
         title: title.trim(),
-        body: body.trim(),
+        body: isRichTextEmpty(body) ? null : body,
         location: location.trim() || null,
         hashtags,
       }).eq('id', id);
@@ -314,18 +319,15 @@ const EditPostPage = () => {
 
         <div>
           <label className="block text-xs font-semibold text-[#6b6b6b] uppercase tracking-wide mb-1.5">Description</label>
-          <div className="mb-1.5">
-            <RichTextToolbar textareaRef={bodyTextareaRef} value={body} onChange={setBody} />
-          </div>
-          <textarea
-            ref={bodyTextareaRef}
+          <RichTextEditor
             value={body}
-            onChange={e => setBody(e.target.value)}
+            onChange={setBody}
             placeholder="Write something..."
             rows={6}
-            className="w-full px-4 py-3 rounded-xl bg-[#f5f5f5] border border-[#e5e5e5] text-[#0a0a0a] placeholder:text-[#9b9b9b] focus:outline-none focus:ring-2 focus:ring-[#ef4444]/40 text-sm resize-y"
+            maxLength={2000}
           />
         </div>
+
 
         <div>
           <label className="block text-xs font-semibold text-[#6b6b6b] uppercase tracking-wide mb-1.5">Location</label>
