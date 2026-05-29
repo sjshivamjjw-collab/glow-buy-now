@@ -22,7 +22,7 @@ const CATEGORY_META: Record<string, { label: string }> = {
 
 interface PostRow {
   id: string;
-  user_id: string;
+  user_id: string | null;
   title: string | null;
   body: string | null;
   location: string | null;
@@ -34,6 +34,7 @@ interface PostRow {
   created_at: string;
   music_url: string | null;
   music_title: string | null;
+  is_anonymous?: boolean;
 }
 interface MediaRow { id: string; url: string; kind: 'image' | 'video'; sort_order: number; }
 interface CommentRow { id: string; user_id: string; body: string; created_at: string; parent_id: string | null; like_count: number; }
