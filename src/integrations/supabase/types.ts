@@ -1183,6 +1183,7 @@ export type Database = {
         Args: { _limit?: number; _offset?: number }
         Returns: {
           body: string
+          category: string
           comment_count: number
           cover_kind: string
           cover_url: string
