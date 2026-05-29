@@ -5,6 +5,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { ArrowLeft, Loader2, MapPin, Hash, X, Check, ImagePlus } from 'lucide-react';
 import { extractStoragePath } from '@/lib/storageUrls';
+import RichTextToolbar from '@/components/RichTextToolbar';
 
 const TITLE_MAX = 90;
 const MAX_FILES = 10;
@@ -37,6 +38,7 @@ const EditPostPage = () => {
 
   const [title, setTitle] = useState('');
   const [body, setBody] = useState('');
+  const bodyTextareaRef = useRef<HTMLTextAreaElement>(null);
   const [location, setLocation] = useState('');
   const [hashtags, setHashtags] = useState<string[]>([]);
   const [hashtagInput, setHashtagInput] = useState('');
@@ -312,7 +314,11 @@ const EditPostPage = () => {
 
         <div>
           <label className="block text-xs font-semibold text-[#6b6b6b] uppercase tracking-wide mb-1.5">Description</label>
+          <div className="mb-1.5">
+            <RichTextToolbar textareaRef={bodyTextareaRef} value={body} onChange={setBody} />
+          </div>
           <textarea
+            ref={bodyTextareaRef}
             value={body}
             onChange={e => setBody(e.target.value)}
             placeholder="Write something..."

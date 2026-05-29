@@ -13,6 +13,7 @@ import { ImageCropperDialog } from '@/components/ImageCropperDialog';
 import { useMentionAutocomplete } from '@/hooks/useMentionAutocomplete';
 import { MentionSuggestions } from '@/components/MentionSuggestions';
 import { MusicPicker, type PickedTrack } from '@/components/MusicPicker';
+import RichTextToolbar from '@/components/RichTextToolbar';
 import {
   DndContext, closestCenter, KeyboardSensor, PointerSensor, TouchSensor,
   useSensor, useSensors, type DragEndEvent,
@@ -665,6 +666,9 @@ const CreatePostPage = () => {
           <>
             <label className="text-xs font-semibold text-[#6b6b6b] mb-1 block">Tell people more... <span className="text-[#ef4444]">*</span> <span className="text-[10px] font-normal">(the more descriptive and accurate, the better)</span></label>
             <div className="relative mb-4">
+              <div className="mb-1.5">
+                <RichTextToolbar textareaRef={bodyRef} value={body} onChange={setBody} />
+              </div>
               <textarea
                 ref={bodyRef}
                 value={body}
