@@ -284,8 +284,9 @@ const DiscoverPage = () => {
             <div className="relative flex items-center gap-1.5 mb-2">
               <Sparkles className="w-3 h-3 text-[#ef4444]" />
               <p className="text-[10px] font-semibold uppercase tracking-[0.1em] text-[#dc2626]">
-                People around you are curious about
+                Popular conversations near you
               </p>
+
             </div>
             <div className="relative flex gap-1.5 overflow-x-auto scrollbar-hide -mx-1 px-1">
               {NUDGE_PROMPTS.map(p => (
