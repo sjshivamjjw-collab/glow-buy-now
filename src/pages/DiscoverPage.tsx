@@ -324,9 +324,14 @@ const DiscoverPage = () => {
                         <div className="w-5 h-5 rounded-full bg-gradient-to-br from-[#2a2a2a] to-[#ef4444] shrink-0" />
                       )}
                       <span className="truncate text-[12px] font-semibold text-[#cfcfcf]">
-                        {isAnon
-                          ? RIPPLER_NAME
-                          : author?.username ? `@${author.username}` : author?.name || 'User'}
+                        {isAnon ? (
+                          <>
+                            {RIPPLER_NAME}
+                            <span className="ml-1 text-[10px] font-medium text-[#a0a0a0]">(anonymous)</span>
+                          </>
+                        ) : (
+                          author?.username ? `@${author.username}` : author?.name || 'User'
+                        )}
                       </span>
                     </div>
                     <div className="flex items-center gap-2 shrink-0">
