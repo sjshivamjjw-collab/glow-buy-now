@@ -23,17 +23,17 @@ const ProfilePage = () => {
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [posts, setPosts] = useState<PostThumb[]>([]);
   const [followers, setFollowers] = useState(0);
-  const [following, setFollowing] = useState(0);
+  const [saves, setSaves] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (!userId) return;
     const load = async () => {
-      const [{ data: prof }, { data: rawPosts }, { count: fc }, { count: fgc }] = await Promise.all([
+      const [{ data: prof }, { data: rawPosts }, { count: fc }, { data: savesCount }] = await Promise.all([
         supabase.from('profiles').select('name, username, avatar_url').eq('id', userId).single(),
         supabase.from('posts' as any).select('id, like_count, is_anonymous').eq('user_id', userId).order('created_at', { ascending: false }).limit(60),
         supabase.from('user_follows' as any).select('*', { count: 'exact', head: true }).eq('following_id', userId),
-        supabase.from('user_follows' as any).select('*', { count: 'exact', head: true }).eq('follower_id', userId),
+        supabase.rpc('get_user_post_saves_count' as any, { _user_id: userId }),
       ]);
       if (prof) setProfile(prof);
       const rows = (rawPosts as any[]) || [];
@@ -50,7 +50,7 @@ const ProfilePage = () => {
         setPosts([]);
       }
       setFollowers(fc || 0);
-      setFollowing(fgc || 0);
+      setSaves(typeof savesCount === 'number' ? savesCount : 0);
     };
     load();
   }, [userId]);
@@ -162,7 +162,7 @@ const ProfilePage = () => {
           <div className="flex-1 grid grid-cols-3 text-center divide-x divide-[#2a2a2a]/60">
             <div className="px-1"><p className="font-bold text-[#fafafa] text-lg leading-tight">{formatCount(posts.length)}</p><p className="text-[10px] text-[#a0a0a0] uppercase tracking-wider mt-0.5">Posts</p></div>
             <div className="px-1"><p className="font-bold text-[#fafafa] text-lg leading-tight">{formatCount(followers)}</p><p className="text-[10px] text-[#a0a0a0] uppercase tracking-wider mt-0.5">Followers</p></div>
-            <div className="px-1"><p className="font-bold text-[#fafafa] text-lg leading-tight">{formatCount(following)}</p><p className="text-[10px] text-[#a0a0a0] uppercase tracking-wider mt-0.5">Following</p></div>
+            <div className="px-1"><p className="font-bold text-[#fafafa] text-lg leading-tight">{formatCount(saves)}</p><p className="text-[10px] text-[#a0a0a0] uppercase tracking-wider mt-0.5">Saves</p></div>
           </div>
         </div>
 
