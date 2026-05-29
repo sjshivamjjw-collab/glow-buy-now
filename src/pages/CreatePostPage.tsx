@@ -59,7 +59,7 @@ const CATEGORIES: {
   icon: typeof Sparkles;
   accent: string;
 }[] = [
-  { key: 'everyday_vibes', title: 'Daily Life', subtitle: 'Things you see, do & experience through the day', icon: Sparkles, accent: 'from-pink-500/20 to-orange-400/20 text-pink-500' },
+  { key: 'everyday_vibes', title: 'Daily Life', subtitle: 'Things you did, designed, decorated or bought', icon: Sparkles, accent: 'from-pink-500/20 to-orange-400/20 text-pink-500' },
   { key: 'showcase', title: 'Show & Tell', subtitle: 'Something you styled, designed, decorated or bought', icon: Palette, accent: 'from-violet-500/20 to-fuchsia-400/20 text-violet-500' },
   { key: 'trip', title: 'Travel Diaries', subtitle: 'A full journey or getaway', icon: Plane, accent: 'from-sky-500/20 to-cyan-400/20 text-sky-500' },
   { key: 'review', title: 'Review', subtitle: 'A place, product, food spot, or experience you tried', icon: Star, accent: 'from-amber-500/20 to-yellow-400/20 text-amber-500' },
