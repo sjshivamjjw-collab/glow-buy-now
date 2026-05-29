@@ -821,6 +821,16 @@ const CreatePostPage = () => {
 
       <MusicPicker open={musicPickerOpen} onClose={() => setMusicPickerOpen(false)} onPick={setMusic} />
 
+      <ImageCropperDialog
+        file={currentCropFile}
+        open={cropperOpen}
+        onApply={handleCropApply}
+        onCancel={handleCropCancel}
+        onSkip={editCropId ? undefined : handleCropSkip}
+        title={editCropId ? 'Recrop image' : (cropQueue.length > 1 ? `Crop image (${cropQueue.length} left)` : 'Crop image')}
+      />
+
+
       <button onClick={handleSubmit} disabled={submitting}
         className="w-full py-3.5 rounded-2xl bg-gradient-to-br from-[#ef4444] to-[#dc2626] text-white font-bold text-sm disabled:opacity-60 flex items-center justify-center gap-2 shadow-[0_8px_24px_-8px_rgba(239,68,68,0.5)]">
         {submitting && <Loader2 className="w-4 h-4 animate-spin" />}
