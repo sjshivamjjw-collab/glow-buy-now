@@ -53,17 +53,36 @@ export default function RichTextEditor({
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    // On Enter, drop any active inline formatting so the next line starts
-    // unformatted (matches user expectation: bold a word, hit enter, type
-    // plain text).
-    if (e.key === 'Enter' && !e.shiftKey) {
-      setTimeout(() => {
-        try {
-          if (document.queryCommandState('bold')) document.execCommand('bold');
-          if (document.queryCommandState('italic')) document.execCommand('italic');
-          if (document.queryCommandState('underline')) document.execCommand('underline');
-        } catch {}
-      }, 0);
+    const el = ref.current;
+    // On Enter, auto-continue bullet list: each new line gets a "• " prefix.
+    // If the current line is an empty bullet ("• "), exit the list instead.
+    if (e.key === 'Enter' && !e.shiftKey && el) {
+      e.preventDefault();
+      try {
+        if (document.queryCommandState('bold')) document.execCommand('bold');
+        if (document.queryCommandState('italic')) document.execCommand('italic');
+        if (document.queryCommandState('underline')) document.execCommand('underline');
+      } catch {}
+
+      // Inspect current line's text via selection.
+      const sel = window.getSelection();
+      let currentLine = '';
+      if (sel && sel.rangeCount > 0) {
+        const range = sel.getRangeAt(0).cloneRange();
+        range.setStart(el, 0);
+        currentLine = range.toString().split('\n').pop() ?? '';
+      }
+      const trimmed = currentLine.trim();
+      const isEmptyBullet = trimmed === '•' || trimmed === '';
+
+      if (isEmptyBullet && trimmed === '•') {
+        // Remove the lonely bullet and insert plain newline to exit list.
+        for (let i = 0; i < 2; i++) document.execCommand('delete');
+        document.execCommand('insertHTML', false, '<br><br>');
+      } else {
+        document.execCommand('insertHTML', false, '<br>• ');
+      }
+      onChange(el.innerHTML);
     }
   };
 
