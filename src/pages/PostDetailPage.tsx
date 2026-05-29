@@ -526,11 +526,31 @@ const PostDetailPage = () => {
       <div className="mt-4 mx-3 rounded-2xl bg-[#0a0a0a]/95 border border-[#2a2a2a]/40">
         {replyTo && (
           <div className="px-3 pt-2 pb-1 flex items-center justify-between text-xs text-[#a0a0a0]">
-            <span>Replying to <span className="text-[#fafafa] font-semibold">{authors[replyTo.user_id]?.name || authors[replyTo.user_id]?.username || 'User'}</span></span>
+            <span>
+              Replying to{' '}
+              <span className="text-[#fafafa] font-semibold">
+                {replyTo.is_anonymous
+                  ? RIPPLER_NAME
+                  : (replyTo.user_id && (authors[replyTo.user_id]?.name || authors[replyTo.user_id]?.username)) || 'User'}
+              </span>
+            </span>
             <button onClick={() => setReplyTo(null)} aria-label="Cancel reply" className="p-1 hover:text-[#fafafa]">
               <X className="w-3.5 h-3.5" />
             </button>
           </div>
+        )}
+        {post.is_anonymous && (
+          <label className="px-3 pt-2 flex items-center gap-2 text-[11px] text-[#a0a0a0] cursor-pointer select-none">
+            <input
+              type="checkbox"
+              checked={commentAnonymously}
+              onChange={(e) => setCommentAnonymously(e.target.checked)}
+              className="w-3.5 h-3.5 accent-[#ef4444]"
+            />
+            <span>
+              Comment as <span className="text-[#fafafa] font-semibold">🐧 {RIPPLER_NAME}</span> (anonymous)
+            </span>
+          </label>
         )}
         {mention.open && (
           <div className="px-3 pb-2">
