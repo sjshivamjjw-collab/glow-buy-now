@@ -162,7 +162,7 @@ const ProfilePage = () => {
           <div className="flex-1 grid grid-cols-3 text-center divide-x divide-[#2a2a2a]/60">
             <div className="px-1"><p className="font-bold text-[#fafafa] text-lg leading-tight">{formatCount(posts.length)}</p><p className="text-[10px] text-[#a0a0a0] uppercase tracking-wider mt-0.5">Posts</p></div>
             <div className="px-1"><p className="font-bold text-[#fafafa] text-lg leading-tight">{formatCount(followers)}</p><p className="text-[10px] text-[#a0a0a0] uppercase tracking-wider mt-0.5">Followers</p></div>
-            <div className="px-1"><p className="font-bold text-[#fafafa] text-lg leading-tight">{formatCount(following)}</p><p className="text-[10px] text-[#a0a0a0] uppercase tracking-wider mt-0.5">Following</p></div>
+            <div className="px-1"><p className="font-bold text-[#fafafa] text-lg leading-tight">{formatCount(saves)}</p><p className="text-[10px] text-[#a0a0a0] uppercase tracking-wider mt-0.5">Saves</p></div>
           </div>
         </div>
 
