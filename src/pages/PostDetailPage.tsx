@@ -330,27 +330,42 @@ const PostDetailPage = () => {
       </div>
 
       {/* Author header */}
-      <button
-        onClick={() => navigate(isOwn ? '/profile' : `/u/${post.user_id}`)}
-        className="flex items-center gap-3 w-full px-4 py-3 text-left"
-      >
-        {author?.avatar_url ? (
-          <img src={author.avatar_url} alt="" className="w-10 h-10 rounded-full object-cover ring-1 ring-[#2a2a2a]" />
-        ) : (
-          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#2a2a2a] to-[#ef4444]/40 flex items-center justify-center font-bold text-[#fafafa]">
-            {(author?.name || author?.username || '?')[0]?.toUpperCase()}
+      {isAnon ? (
+        <div className="flex items-center gap-3 w-full px-4 py-3">
+          <PenguinAvatar size={40} />
+          <div className="flex-1 min-w-0">
+            <p className="font-[Outfit] font-bold text-[#fafafa] text-sm truncate">{RIPPLER_NAME}</p>
+            <p className="text-xs text-[#a0a0a0]">{formatDistanceToNow(new Date(post.created_at), { addSuffix: true })} · Anonymous</p>
+            {post.music_url && (
+              <div className="mt-1.5">
+                <PostMusicPlayer url={post.music_url} title={post.music_title} />
+              </div>
+            )}
           </div>
-        )}
-        <div className="flex-1 min-w-0">
-          <p className="font-[Outfit] font-bold text-[#fafafa] text-sm truncate">{author?.name || author?.username || 'User'}</p>
-          <p className="text-xs text-[#a0a0a0]">{formatDistanceToNow(new Date(post.created_at), { addSuffix: true })}</p>
-          {post.music_url && (
-            <div className="mt-1.5" onClick={(e) => e.stopPropagation()}>
-              <PostMusicPlayer url={post.music_url} title={post.music_title} />
+        </div>
+      ) : (
+        <button
+          onClick={() => navigate(isOwn ? '/profile' : `/u/${post.user_id}`)}
+          className="flex items-center gap-3 w-full px-4 py-3 text-left"
+        >
+          {author?.avatar_url ? (
+            <img src={author.avatar_url} alt="" className="w-10 h-10 rounded-full object-cover ring-1 ring-[#2a2a2a]" />
+          ) : (
+            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#2a2a2a] to-[#ef4444]/40 flex items-center justify-center font-bold text-[#fafafa]">
+              {(author?.name || author?.username || '?')[0]?.toUpperCase()}
             </div>
           )}
-        </div>
-      </button>
+          <div className="flex-1 min-w-0">
+            <p className="font-[Outfit] font-bold text-[#fafafa] text-sm truncate">{author?.name || author?.username || 'User'}</p>
+            <p className="text-xs text-[#a0a0a0]">{formatDistanceToNow(new Date(post.created_at), { addSuffix: true })}</p>
+            {post.music_url && (
+              <div className="mt-1.5" onClick={(e) => e.stopPropagation()}>
+                <PostMusicPlayer url={post.music_url} title={post.music_title} />
+              </div>
+            )}
+          </div>
+        </button>
+      )}
 
       {/* Media carousel */}
       {currentMedia && (
