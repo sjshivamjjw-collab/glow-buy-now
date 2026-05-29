@@ -154,7 +154,7 @@ const DiscoverPage = () => {
       minMatchCharLength: 2,
     });
     return scoped.search(q).map(r => r.item);
-  }, [posts, query, activeChip, activeCategory, fuse]);
+  }, [posts, query, activeChip, activeCategory, fuse, interests]);
 
 
   return (
