@@ -38,7 +38,7 @@ interface PostRow {
   is_anonymous?: boolean;
 }
 interface MediaRow { id: string; url: string; kind: 'image' | 'video'; sort_order: number; }
-interface CommentRow { id: string; user_id: string; body: string; created_at: string; parent_id: string | null; like_count: number; }
+interface CommentRow { id: string; user_id: string | null; body: string; created_at: string; parent_id: string | null; like_count: number; is_anonymous?: boolean; }
 interface AuthorInfo { id: string; name: string | null; username: string | null; avatar_url: string | null; }
 
 const PostMusicPlayer = ({ url, title }: { url: string; title: string | null }) => {
