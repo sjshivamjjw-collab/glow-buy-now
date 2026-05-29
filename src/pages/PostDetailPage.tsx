@@ -461,8 +461,9 @@ const PostDetailPage = () => {
             {comments.filter(c => !c.parent_id).map(top => {
               const thread = [top, ...comments.filter(r => r.parent_id === top.id)];
               return thread.map((c, idx) => {
-                const a = authors[c.user_id];
-                const mine = c.user_id === userId;
+                const cAnon = !!c.is_anonymous;
+                const a = !cAnon && c.user_id ? authors[c.user_id] : undefined;
+                const mine = ownComments.has(c.id);
                 const isReply = idx > 0;
                 const cLiked = likedComments.has(c.id);
                 return (
@@ -470,7 +471,9 @@ const PostDetailPage = () => {
                     key={c.id}
                     className={`flex gap-2.5 py-1.5 ${isReply ? 'ml-8' : ''}`}
                   >
-                    {a?.avatar_url ? (
+                    {cAnon ? (
+                      <PenguinAvatar size={32} />
+                    ) : a?.avatar_url ? (
                       <img src={a.avatar_url} className="w-8 h-8 rounded-full object-cover shrink-0 ring-1 ring-[#2a2a2a]" alt="" />
                     ) : (
                       <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#2a2a2a] to-[#ef4444]/40 shrink-0 flex items-center justify-center text-xs font-bold text-[#fafafa]">
@@ -479,7 +482,12 @@ const PostDetailPage = () => {
                     )}
                     <div className="flex-1 min-w-0">
                       <p className="text-xs font-bold text-[#fafafa]">
-                        {a?.name || a?.username || 'User'}
+                        {cAnon ? (
+                          <>
+                            {RIPPLER_NAME}
+                            <span className="ml-1 text-[10px] font-medium text-[#a0a0a0]">(anonymous)</span>
+                          </>
+                        ) : (a?.name || a?.username || 'User')}
                         <span className="ml-2 text-[#a0a0a0] font-normal">{formatDistanceToNow(new Date(c.created_at), { addSuffix: true })}</span>
                       </p>
                       <p className="text-sm text-[#e5e5e5] whitespace-pre-wrap">{c.body}</p>
