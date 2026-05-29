@@ -289,7 +289,7 @@ const DiscoverPage = () => {
           <p className="text-[11px] font-medium text-[#a0a0a0] mb-1.5">
             People around you are curious about...
           </p>
-          <div className="flex gap-1.5 overflow-x-auto no-scrollbar -mx-1 px-1">
+          <div className="flex gap-1.5 overflow-x-auto scrollbar-hide -mx-1 px-1">
             {NUDGE_PROMPTS.map(p => (
               <button
                 key={p.label}
