@@ -6,15 +6,23 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { User, ArrowRight, Check, Camera } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
-type Step = 'basics' | 'details';
+type Step = 'basics' | 'details' | 'interests';
 
-const STEPS: Step[] = ['basics', 'details'];
+const STEPS: Step[] = ['basics', 'details', 'interests'];
 
 const GENDER_OPTIONS = [
   { value: 'male', label: 'Male', emoji: '👨' },
   { value: 'female', label: 'Female', emoji: '👩' },
   { value: 'non-binary', label: 'Non-binary', emoji: '🧑' },
   { value: 'prefer-not-to-say', label: 'Prefer not to say', emoji: '🤐' },
+];
+
+const INTEREST_OPTIONS: { key: string; label: string; emoji: string }[] = [
+  { key: 'everyday_vibes', label: 'Daily Life', emoji: '✨' },
+  { key: 'trip', label: 'Travel Diaries', emoji: '✈️' },
+  { key: 'hidden_gems', label: 'Work Diaries', emoji: '💼' },
+  { key: 'review', label: 'Reviews', emoji: '⭐' },
+  { key: 'real_talk', label: 'Advice & Tips', emoji: '💡' },
 ];
 
 const OnboardingPage = () => {
@@ -26,6 +34,7 @@ const OnboardingPage = () => {
   const [name, setName] = useState('');
   const [gender, setGender] = useState('');
   const [dob, setDob] = useState('');
+  const [interests, setInterests] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
   const [usernameError, setUsernameError] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -105,9 +114,10 @@ const OnboardingPage = () => {
           name,
           gender: gender || null,
           date_of_birth: dob || null,
+          interests,
           onboarding_completed: true,
           ...(avatarUrl ? { avatar_url: avatarUrl } : {}),
-        })
+        } as any)
         .eq('id', userId);
 
       if (error) throw error;
@@ -275,12 +285,51 @@ const OnboardingPage = () => {
 
             <div className="pb-12 pt-4">
               <button
+                onClick={() => setStep('interests')}
+                className="w-full py-4 rounded-2xl bg-primary text-primary-foreground font-bold text-lg flex items-center justify-center gap-2 active:scale-[0.98] transition-transform"
+              >
+                Continue <ArrowRight className="w-5 h-5" />
+              </button>
+            </div>
+          </motion.div>
+        )}
+
+        {step === 'interests' && (
+          <motion.div key="interests" variants={slideVariants} initial="initial" animate="animate" exit="exit" className="flex-1 flex flex-col px-6 pt-8 overflow-y-auto">
+            <button onClick={() => setStep('details')} className="text-muted-foreground text-sm mb-4">← Back</button>
+            <h2 className="text-2xl font-extrabold text-foreground mb-1">What are you into?</h2>
+            <p className="text-muted-foreground mb-6">Pick a few topics — we'll curate your feed around them</p>
+
+            <div className="flex flex-wrap gap-2 flex-1">
+              {INTEREST_OPTIONS.map(opt => {
+                const selected = interests.includes(opt.key);
+                return (
+                  <button
+                    key={opt.key}
+                    onClick={() => setInterests(prev => selected ? prev.filter(k => k !== opt.key) : [...prev, opt.key])}
+                    className={`px-4 py-2.5 rounded-full text-sm font-semibold transition-colors active:scale-95 flex items-center gap-2 ${
+                      selected
+                        ? 'bg-primary text-primary-foreground'
+                        : 'bg-secondary text-foreground border border-border'
+                    }`}
+                  >
+                    <span>{opt.emoji}</span>
+                    <span>{opt.label}</span>
+                    {selected && <Check className="w-3.5 h-3.5" />}
+                  </button>
+                );
+              })}
+            </div>
+
+            <div className="pb-12 pt-4">
+              <button
                 onClick={handleFinish}
                 disabled={saving}
                 className="w-full py-4 rounded-2xl bg-primary text-primary-foreground font-bold text-lg flex items-center justify-center gap-2 active:scale-[0.98] transition-transform disabled:opacity-50"
               >
                 {saving ? 'Setting up…' : 'Get Started 🚀'}
               </button>
+              <p className="text-center text-xs text-muted-foreground mt-3">You can change these anytime in Settings</p>
             </div>
           </motion.div>
         )}

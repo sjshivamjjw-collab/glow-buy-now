@@ -774,6 +774,7 @@ export type Database = {
           gender: string | null
           id: string
           interested_categories: string[] | null
+          interests: string[]
           name: string | null
           onboarding_completed: boolean
           phone: string | null
@@ -787,6 +788,7 @@ export type Database = {
           gender?: string | null
           id: string
           interested_categories?: string[] | null
+          interests?: string[]
           name?: string | null
           onboarding_completed?: boolean
           phone?: string | null
@@ -800,6 +802,7 @@ export type Database = {
           gender?: string | null
           id?: string
           interested_categories?: string[] | null
+          interests?: string[]
           name?: string | null
           onboarding_completed?: boolean
           phone?: string | null

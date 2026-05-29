@@ -57,7 +57,7 @@ const RIGHT_HEIGHTS = [200, 220, 190, 215, 205, 210];
 
 const DiscoverPage = () => {
   const navigate = useNavigate();
-  const { userName, userAvatar } = useAuth() as any;
+  const { userName, userAvatar, userId } = useAuth() as any;
   const firstName = (userName || '').trim().split(' ')[0] || 'there';
   const [posts, setPosts] = useState<TrendingPost[]>([]);
   const [authors, setAuthors] = useState<Record<string, AuthorInfo>>({});
@@ -66,7 +66,15 @@ const DiscoverPage = () => {
   const [activeChip, setActiveChip] = useState<string>('For you');
   const [categoryOpen, setCategoryOpen] = useState(false);
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
+  const [interests, setInterests] = useState<string[]>([]);
   const categoryRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!userId) { setInterests([]); return; }
+    supabase.from('profiles').select('interests' as any).eq('id', userId).maybeSingle().then(({ data }) => {
+      setInterests(((data as any)?.interests as string[] | null) || []);
+    });
+  }, [userId]);
 
   useEffect(() => {
     const onClick = (e: Event) => {
@@ -123,6 +131,13 @@ const DiscoverPage = () => {
       list = [...list].sort((a, b) => (b.like_count + b.comment_count) - (a.like_count + a.comment_count));
     } else if (activeChip === 'Category' && activeCategory) {
       list = list.filter(p => p.category === activeCategory);
+    } else if (activeChip === 'For you' && interests.length > 0) {
+      // Curate: boost posts whose category matches user's chosen interests, keep original order otherwise.
+      list = [...list].sort((a, b) => {
+        const aMatch = a.category && interests.includes(a.category) ? 1 : 0;
+        const bMatch = b.category && interests.includes(b.category) ? 1 : 0;
+        return bMatch - aMatch;
+      });
     }
     const q = query.trim().replace(/^#/, '');
     if (!q) return list;
@@ -139,7 +154,7 @@ const DiscoverPage = () => {
       minMatchCharLength: 2,
     });
     return scoped.search(q).map(r => r.item);
-  }, [posts, query, activeChip, activeCategory, fuse]);
+  }, [posts, query, activeChip, activeCategory, fuse, interests]);
 
 
   return (
