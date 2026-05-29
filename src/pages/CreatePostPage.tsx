@@ -170,7 +170,11 @@ const CreatePostPage = () => {
     } catch { return null; }
   })();
 
-  const [category, setCategory] = useState<CategoryKey | null>(initial?.category ?? null);
+  const [searchParams] = useSearchParams();
+  const presetCategory = searchParams.get('category') as CategoryKey | null;
+  const validCategories: CategoryKey[] = ['everyday_vibes', 'trip', 'review', 'real_talk', 'hidden_gems'];
+  const initialCategory = initial?.category ?? (presetCategory && validCategories.includes(presetCategory) ? presetCategory : null);
+  const [category, setCategory] = useState<CategoryKey | null>(initialCategory);
   const [reviewSub, setReviewSub] = useState<ReviewSubKey | null>(initial?.reviewSub ?? null);
   const [recommendation, setRecommendation] = useState<RecommendationKey | null>(initial?.recommendation ?? null);
   const [media, setMedia] = useState<PendingMedia[]>([]);
