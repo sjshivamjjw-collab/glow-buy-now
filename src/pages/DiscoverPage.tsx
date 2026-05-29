@@ -325,7 +325,7 @@ const DiscoverPage = () => {
               {NUDGE_PROMPTS.map(p => (
                 <button
                   key={p.label}
-                  onClick={() => navigate(`/post/new?category=${p.category}`)}
+                  onClick={() => navigate(`/post/new?category=${p.category}${p.category === 'review' ? '&sub=restaurant' : ''}`)}
                   className="group/chip shrink-0 flex items-center gap-1 px-2.5 py-1.5 rounded-full bg-[#fafafa]/[0.04] backdrop-blur-sm border border-[#fafafa]/10 text-[#fafafa] text-[13px] font-medium whitespace-nowrap hover:bg-[#ef4444]/15 hover:border-[#ef4444]/50 hover:text-white transition-all"
                 >
                   <span className="text-[#ef4444]">+</span>
