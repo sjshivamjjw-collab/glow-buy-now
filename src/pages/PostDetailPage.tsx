@@ -296,7 +296,7 @@ const PostDetailPage = () => {
           <button
             onClick={async () => {
               const url = `${window.location.origin}/p/${post.id}`;
-              const shareData = { title: post.title || 'Check out this post', text: post.body || '', url };
+              const shareData = { title: post.title || 'Check out this post', text: (post.body || '').replace(/<[^>]+>/g, ''), url };
               try {
                 if (navigator.share) await navigator.share(shareData);
                 else { await navigator.clipboard.writeText(url); toast({ title: 'Link copied' }); }
