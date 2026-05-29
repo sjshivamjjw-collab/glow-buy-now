@@ -69,13 +69,31 @@ const DiscoverPage = () => {
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [interests, setInterests] = useState<string[]>([]);
   const categoryRef = useRef<HTMLDivElement>(null);
+  const [collapsed, setCollapsed] = useState(false);
+  const lastScrollY = useRef(0);
 
   useEffect(() => {
-    if (!userId) { setInterests([]); return; }
-    supabase.from('profiles').select('interests' as any).eq('id', userId).maybeSingle().then(({ data }) => {
-      setInterests(((data as any)?.interests as string[] | null) || []);
-    });
-  }, [userId]);
+    const onScroll = () => {
+      const y = window.scrollY;
+      const delta = y - lastScrollY.current;
+      if (y < 40) {
+        setCollapsed(false);
+      } else if (delta > 6) {
+        setCollapsed(true);
+      } else if (delta < -6) {
+        setCollapsed(false);
+      }
+      lastScrollY.current = y;
+    };
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+
+  const NUDGE_PROMPTS: { category: string; label: string }[] = [
+    { category: 'trip', label: 'Best weekend getaway near you?' },
+    { category: 'review', label: 'A restaurant worth the hype?' },
+    { category: 'hidden_gems', label: 'Career advice you wish you knew?' },
+  ];
 
   useEffect(() => {
     const onClick = (e: Event) => {
