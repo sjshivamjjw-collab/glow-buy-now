@@ -624,69 +624,17 @@ const CreatePostPage = () => {
         const subPh = category === 'review' && reviewSub ? REVIEW_SUB_PLACEHOLDERS[reviewSub] : undefined;
         const ph = subPh ?? BODY_PLACEHOLDERS[category!] ?? 'Tell people more...';
         const hasSuggestions = !!subPh || !!BODY_PLACEHOLDERS[category!];
-        const BULLET = '• ';
-        const handleBodyFocus = () => {
-          if (!body) setBody(BULLET);
-        };
-        const handleBodyChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-          let v = e.target.value;
-          // If user wiped everything, leave it empty so placeholder shows again
-          if (v.trim() === '' || v === '•' || v === BULLET.trim()) { setBody(''); setBodyCursor(0); return; }
-          setBody(v);
-          setBodyCursor(e.target.selectionStart);
-        };
-        const handleBodyKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-          if (bodyMention.handleKeyDown(e)) return;
-          if (e.key === 'Enter') {
-            e.preventDefault();
-            const ta = e.currentTarget;
-            const start = ta.selectionStart;
-            const end = ta.selectionEnd;
-            const before = body.slice(0, start);
-            const after = body.slice(end);
-            // If current line is an empty bullet, exit bullet mode (just newline)
-            const lineStart = before.lastIndexOf('\n') + 1;
-            const currentLine = before.slice(lineStart);
-            const insert = currentLine.trim() === '•' ? '\n' : `\n${BULLET}`;
-            const next = before + insert + after;
-            setBody(next);
-            requestAnimationFrame(() => {
-              const pos = start + insert.length;
-              ta.selectionStart = ta.selectionEnd = pos;
-              setBodyCursor(pos);
-            });
-          }
-        };
         return (
           <>
             <label className="text-xs font-semibold text-[#6b6b6b] mb-1 block">Tell people more... <span className="text-[#ef4444]">*</span> <span className="text-[10px] font-normal">(the more descriptive and accurate, the better)</span></label>
             <div className="relative mb-4">
-              <div className="mb-1.5">
-                <RichTextToolbar textareaRef={bodyRef} value={body} onChange={setBody} />
-              </div>
-              <textarea
-                ref={bodyRef}
+              <RichTextEditor
                 value={body}
-                onChange={handleBodyChange}
-                onFocus={handleBodyFocus}
-                onKeyDown={handleBodyKeyDown}
-                onSelect={e => setBodyCursor((e.target as HTMLTextAreaElement).selectionStart)}
-                onKeyUp={e => setBodyCursor((e.target as HTMLTextAreaElement).selectionStart)}
+                onChange={setBody}
                 placeholder={ph}
                 maxLength={2000}
                 rows={hasSuggestions ? 7 : 5}
-                className="w-full px-4 py-3 rounded-xl bg-[#f5f5f5] border border-[#e5e5e5] text-[#0a0a0a] placeholder:text-[#a0a0a0] focus:outline-none focus:ring-2 focus:ring-[#ef4444]/40 text-[13px] resize-none"
               />
-              {bodyMention.open && (
-                <div className="absolute left-0 right-0 top-full mt-1 z-30">
-                  <MentionSuggestions
-                    items={bodyMention.items}
-                    active={bodyMention.active}
-                    onPick={bodyMention.applyItem}
-                    onHover={bodyMention.setActive}
-                  />
-                </div>
-              )}
             </div>
           </>
         );
