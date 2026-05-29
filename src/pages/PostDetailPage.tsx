@@ -142,18 +142,20 @@ const PostDetailPage = () => {
     if (!id) return;
     const load = async () => {
       setLoading(true);
-      const [{ data: p }, { data: m }, { data: c }, likeRes, saveRes, ownRes] = await Promise.all([
-        supabase.from('posts_public' as any).select('*').eq('id', id).maybeSingle(),
+      const [{ data: postRows }, { data: m }, { data: commentRows }, likeRes, saveRes, ownRes] = await Promise.all([
+        // Security-definer RPC returns the post with anonymous owner masked for all signed-in readers.
+        supabase.rpc('get_post_public' as any, { _post_id: id }),
         supabase.from('post_media' as any).select('*').eq('post_id', id).order('sort_order'),
-        // post_comments_public masks user_id for anonymous comments
-        supabase.from('post_comments_public' as any).select('*').eq('post_id', id).order('created_at', { ascending: true }),
+        // Security-definer RPC returns comments with anonymous commenter IDs masked.
+        supabase.rpc('get_post_comments_public' as any, { _post_id: id }),
         userId ? supabase.from('post_likes' as any).select('post_id').eq('post_id', id).eq('user_id', userId).maybeSingle() : Promise.resolve({ data: null }),
         userId ? supabase.from('post_saves' as any).select('post_id').eq('post_id', id).eq('user_id', userId).maybeSingle() : Promise.resolve({ data: null }),
         userId ? supabase.from('posts' as any).select('user_id').eq('id', id).eq('user_id', userId).maybeSingle() : Promise.resolve({ data: null }),
       ]);
+      const p = ((postRows as any[]) || [])[0] || null;
       setPost(p as any);
       setMedia((m as any) || []);
-      const commentList = (c as any) || [];
+      const commentList = (commentRows as any) || [];
       setComments(commentList);
       setLiked(!!likeRes.data);
       setSaved(!!saveRes.data);

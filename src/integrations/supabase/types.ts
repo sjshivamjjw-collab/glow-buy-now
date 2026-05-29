@@ -1117,7 +1117,49 @@ export type Database = {
           username: string
         }[]
       }
+      get_comment_like_state: {
+        Args: { _comment_ids: string[] }
+        Returns: {
+          comment_id: string
+          like_count: number
+          liked_by_me: boolean
+        }[]
+      }
       get_platform_admin_ids: { Args: never; Returns: string[] }
+      get_post_comments_public: {
+        Args: { _post_id: string }
+        Returns: {
+          body: string
+          created_at: string
+          id: string
+          is_anonymous: boolean
+          like_count: number
+          parent_id: string
+          post_id: string
+          user_id: string
+        }[]
+      }
+      get_post_public: {
+        Args: { _post_id: string }
+        Returns: {
+          body: string
+          category: string
+          comment_count: number
+          created_at: string
+          hashtags: string[]
+          id: string
+          is_anonymous: boolean
+          like_count: number
+          location: string
+          music_title: string
+          music_url: string
+          review_recommendation: string
+          review_subcategory: string
+          title: string
+          updated_at: string
+          user_id: string
+        }[]
+      }
       get_public_profiles: {
         Args: { _ids: string[] }
         Returns: {
@@ -1149,6 +1191,7 @@ export type Database = {
         Args: { _limit?: number; _offset?: number }
         Returns: {
           body: string
+          category: string
           comment_count: number
           cover_kind: string
           cover_url: string
