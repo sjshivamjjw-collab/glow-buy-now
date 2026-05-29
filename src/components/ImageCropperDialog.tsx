@@ -81,7 +81,7 @@ async function getCroppedFile(file: File, area: Area, rotation: number): Promise
   return new File([blob], `${baseName}-cropped.jpg`, { type: 'image/jpeg' });
 }
 
-export const ImageCropperDialog = ({ file, open, onCancel, onApply }: Props) => {
+export const ImageCropperDialog = ({ file, open, onCancel, onApply, onSkip, title }: Props) => {
   const [src, setSrc] = useState<string | null>(null);
   const [crop, setCrop] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
