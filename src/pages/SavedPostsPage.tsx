@@ -34,10 +34,10 @@ const SavedPostsPage = () => {
         .order('created_at', { ascending: false });
       const ids = ((saves as any[]) || []).map(s => s.post_id);
       if (!ids.length) { setPosts([]); setLoading(false); return; }
-      const { data: postsData } = await supabase
-        .from('posts_public' as any)
-        .select('id, title, body, like_count, comment_count')
-        .in('id', ids);
+      const postResults = await Promise.all(
+        ids.map(postId => supabase.rpc('get_post_public' as any, { _post_id: postId }))
+      );
+      const postsData = postResults.flatMap(res => ((res.data as any[]) || []));
       const { data: mediaData } = await supabase
         .from('post_media' as any)
         .select('post_id, url, kind, sort_order')
@@ -49,7 +49,7 @@ const SavedPostsPage = () => {
         mediaMap[m.post_id].push({ url: m.url, kind: m.kind });
       });
       const byId: Record<string, any> = {};
-      ((postsData as any[]) || []).forEach(p => { byId[p.id] = p; });
+      postsData.forEach(p => { byId[p.id] = p; });
       const ordered: SavedPost[] = ids
         .filter(id => byId[id])
         .map(id => {
