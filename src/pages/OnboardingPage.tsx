@@ -6,15 +6,23 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { User, ArrowRight, Check, Camera } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
-type Step = 'basics' | 'details';
+type Step = 'basics' | 'details' | 'interests';
 
-const STEPS: Step[] = ['basics', 'details'];
+const STEPS: Step[] = ['basics', 'details', 'interests'];
 
 const GENDER_OPTIONS = [
   { value: 'male', label: 'Male', emoji: '👨' },
   { value: 'female', label: 'Female', emoji: '👩' },
   { value: 'non-binary', label: 'Non-binary', emoji: '🧑' },
   { value: 'prefer-not-to-say', label: 'Prefer not to say', emoji: '🤐' },
+];
+
+const INTEREST_OPTIONS: { key: string; label: string; emoji: string }[] = [
+  { key: 'everyday_vibes', label: 'Daily Life', emoji: '✨' },
+  { key: 'trip', label: 'Travel Diaries', emoji: '✈️' },
+  { key: 'hidden_gems', label: 'Work Diaries', emoji: '💼' },
+  { key: 'review', label: 'Reviews', emoji: '⭐' },
+  { key: 'real_talk', label: 'Advice & Tips', emoji: '💡' },
 ];
 
 const OnboardingPage = () => {
