@@ -34,6 +34,7 @@ const OnboardingPage = () => {
   const [name, setName] = useState('');
   const [gender, setGender] = useState('');
   const [dob, setDob] = useState('');
+  const [interests, setInterests] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
   const [usernameError, setUsernameError] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
