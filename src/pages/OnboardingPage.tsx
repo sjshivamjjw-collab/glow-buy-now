@@ -275,44 +275,32 @@ const OnboardingPage = () => {
                 />
               </div>
 
-            </div>
+              {/* Interests */}
+              <div>
+                <label className="text-sm font-medium text-foreground mb-2 block">What are you into?</label>
+                <p className="text-xs text-muted-foreground mb-2">Pick a few — we'll curate your feed</p>
+                <div className="flex flex-wrap gap-1.5">
+                  {INTEREST_OPTIONS.map(opt => {
+                    const selected = interests.includes(opt.key);
+                    return (
+                      <button
+                        key={opt.key}
+                        onClick={() => setInterests(prev => selected ? prev.filter(k => k !== opt.key) : [...prev, opt.key])}
+                        className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-colors active:scale-95 flex items-center gap-1.5 ${
+                          selected
+                            ? 'bg-primary text-primary-foreground'
+                            : 'bg-secondary text-foreground border border-border'
+                        }`}
+                      >
+                        <span>{opt.emoji}</span>
+                        <span>{opt.label}</span>
+                        {selected && <Check className="w-3 h-3" />}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
 
-            <div className="pb-12 pt-4">
-              <button
-                onClick={() => setStep('interests')}
-                className="w-full py-4 rounded-2xl bg-primary text-primary-foreground font-bold text-lg flex items-center justify-center gap-2 active:scale-[0.98] transition-transform"
-              >
-                Continue <ArrowRight className="w-5 h-5" />
-              </button>
-            </div>
-          </motion.div>
-        )}
-
-        {step === 'interests' && (
-          <motion.div key="interests" variants={slideVariants} initial="initial" animate="animate" exit="exit" className="flex-1 flex flex-col px-6 pt-8 overflow-y-auto">
-            <button onClick={() => setStep('details')} className="text-muted-foreground text-sm mb-4">← Back</button>
-            <h2 className="text-2xl font-extrabold text-foreground mb-1">What are you into?</h2>
-            <p className="text-muted-foreground mb-6">Pick a few topics — we'll curate your feed around them</p>
-
-            <div className="flex flex-wrap gap-2 flex-1">
-              {INTEREST_OPTIONS.map(opt => {
-                const selected = interests.includes(opt.key);
-                return (
-                  <button
-                    key={opt.key}
-                    onClick={() => setInterests(prev => selected ? prev.filter(k => k !== opt.key) : [...prev, opt.key])}
-                    className={`px-4 py-2.5 rounded-full text-sm font-semibold transition-colors active:scale-95 flex items-center gap-2 ${
-                      selected
-                        ? 'bg-primary text-primary-foreground'
-                        : 'bg-secondary text-foreground border border-border'
-                    }`}
-                  >
-                    <span>{opt.emoji}</span>
-                    <span>{opt.label}</span>
-                    {selected && <Check className="w-3.5 h-3.5" />}
-                  </button>
-                );
-              })}
             </div>
 
             <div className="pb-12 pt-4">
@@ -327,6 +315,7 @@ const OnboardingPage = () => {
             </div>
           </motion.div>
         )}
+
       </AnimatePresence>
     </div>
   );
