@@ -279,6 +279,28 @@ const DiscoverPage = () => {
             )}
           </div>
         </div>
+
+        {/* Curiosity nudge rows */}
+        <div
+          className={`overflow-hidden transition-all duration-300 ease-out ${
+            collapsed ? 'max-h-0 opacity-0 mt-0' : 'max-h-24 opacity-100 mt-3'
+          }`}
+        >
+          <p className="text-[11px] font-medium text-[#a0a0a0] mb-1.5">
+            People around you are curious about...
+          </p>
+          <div className="flex gap-1.5 overflow-x-auto no-scrollbar -mx-1 px-1">
+            {NUDGE_PROMPTS.map(p => (
+              <button
+                key={p.label}
+                onClick={() => navigate(`/post/new?category=${p.category}`)}
+                className="shrink-0 px-2.5 py-1 rounded-full bg-[#1a1a1a]/70 border border-[#2a2a2a]/60 text-[#fafafa] text-[11px] font-medium whitespace-nowrap hover:border-[#ef4444] transition-colors"
+              >
+                {p.label}
+              </button>
+            ))}
+          </div>
+        </div>
       </div>
 
       <div className="px-3 pt-4">
