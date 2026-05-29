@@ -450,6 +450,13 @@ export type Database = {
             referencedRelation: "post_comments"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "post_comment_likes_comment_id_fkey"
+            columns: ["comment_id"]
+            isOneToOne: false
+            referencedRelation: "post_comments_public"
+            referencedColumns: ["id"]
+          },
         ]
       }
       post_comments: {
@@ -457,6 +464,7 @@ export type Database = {
           body: string
           created_at: string
           id: string
+          is_anonymous: boolean
           like_count: number
           parent_id: string | null
           post_id: string
@@ -466,6 +474,7 @@ export type Database = {
           body: string
           created_at?: string
           id?: string
+          is_anonymous?: boolean
           like_count?: number
           parent_id?: string | null
           post_id: string
@@ -475,6 +484,7 @@ export type Database = {
           body?: string
           created_at?: string
           id?: string
+          is_anonymous?: boolean
           like_count?: number
           parent_id?: string | null
           post_id?: string
@@ -486,6 +496,13 @@ export type Database = {
             columns: ["parent_id"]
             isOneToOne: false
             referencedRelation: "post_comments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "post_comments_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "post_comments_public"
             referencedColumns: ["id"]
           },
           {
@@ -948,6 +965,68 @@ export type Database = {
       }
     }
     Views: {
+      post_comments_public: {
+        Row: {
+          body: string | null
+          created_at: string | null
+          id: string | null
+          is_anonymous: boolean | null
+          like_count: number | null
+          parent_id: string | null
+          post_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          body?: string | null
+          created_at?: string | null
+          id?: string | null
+          is_anonymous?: boolean | null
+          like_count?: number | null
+          parent_id?: string | null
+          post_id?: string | null
+          user_id?: never
+        }
+        Update: {
+          body?: string | null
+          created_at?: string | null
+          id?: string | null
+          is_anonymous?: boolean | null
+          like_count?: number | null
+          parent_id?: string | null
+          post_id?: string | null
+          user_id?: never
+        }
+        Relationships: [
+          {
+            foreignKeyName: "post_comments_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "post_comments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "post_comments_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "post_comments_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "post_comments_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "posts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "post_comments_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "posts_public"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       posts_public: {
         Row: {
           body: string | null
