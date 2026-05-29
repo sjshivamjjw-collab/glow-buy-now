@@ -69,6 +69,31 @@ const DiscoverPage = () => {
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [interests, setInterests] = useState<string[]>([]);
   const categoryRef = useRef<HTMLDivElement>(null);
+  const [collapsed, setCollapsed] = useState(false);
+  const lastScrollY = useRef(0);
+
+  useEffect(() => {
+    const onScroll = () => {
+      const y = window.scrollY;
+      const delta = y - lastScrollY.current;
+      if (y < 40) {
+        setCollapsed(false);
+      } else if (delta > 6) {
+        setCollapsed(true);
+      } else if (delta < -6) {
+        setCollapsed(false);
+      }
+      lastScrollY.current = y;
+    };
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+
+  const NUDGE_PROMPTS: { category: string; label: string }[] = [
+    { category: 'trip', label: 'Best weekend getaway near you?' },
+    { category: 'review', label: 'A restaurant worth the hype?' },
+    { category: 'hidden_gems', label: 'Career advice you wish you knew?' },
+  ];
 
   useEffect(() => {
     if (!userId) { setInterests([]); return; }
@@ -161,21 +186,27 @@ const DiscoverPage = () => {
     <div className="min-h-screen max-w-lg mx-auto pb-24 font-[Figtree] bg-[linear-gradient(180deg,#0a0a0a_0%,#111111_40%,#000000_100%)]">
       {/* Header */}
       <div className="sticky top-0 z-20 backdrop-blur-xl bg-[#0a0a0a]/70 border-b border-[#2a2a2a]/40 px-4 pt-3 pb-3">
-        <div className="mb-2 flex items-center gap-2.5">
-          {userAvatar ? (
-            <img src={userAvatar} alt={firstName} className="w-9 h-9 rounded-full object-cover ring-1 ring-[#2a2a2a]" />
-          ) : (
-            <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#2a2a2a] to-[#ef4444] flex items-center justify-center text-[#fafafa] text-sm font-bold">
-              {firstName.charAt(0).toUpperCase()}
+        <div
+          className={`overflow-hidden transition-all duration-300 ease-out ${
+            collapsed ? 'max-h-0 opacity-0 mb-0' : 'max-h-20 opacity-100 mb-2'
+          }`}
+        >
+          <div className="flex items-center gap-2.5">
+            {userAvatar ? (
+              <img src={userAvatar} alt={firstName} className="w-9 h-9 rounded-full object-cover ring-1 ring-[#2a2a2a]" />
+            ) : (
+              <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#2a2a2a] to-[#ef4444] flex items-center justify-center text-[#fafafa] text-sm font-bold">
+                {firstName.charAt(0).toUpperCase()}
+              </div>
+            )}
+            <div className="flex flex-col leading-tight">
+              <p className="text-[10px] font-semibold tracking-[0.08em] text-[#dc2626]/80">
+                Welcome Back,
+              </p>
+              <h1 className="font-[Outfit] text-base font-bold tracking-tight text-[#fafafa]">
+                {firstName}
+              </h1>
             </div>
-          )}
-          <div className="flex flex-col leading-tight">
-            <p className="text-[10px] font-semibold tracking-[0.08em] text-[#dc2626]/80">
-              Welcome Back,
-            </p>
-            <h1 className="font-[Outfit] text-base font-bold tracking-tight text-[#fafafa]">
-              {firstName}
-            </h1>
           </div>
         </div>
 
@@ -246,6 +277,28 @@ const DiscoverPage = () => {
                 })}
               </div>
             )}
+          </div>
+        </div>
+
+        {/* Curiosity nudge rows */}
+        <div
+          className={`overflow-hidden transition-all duration-300 ease-out ${
+            collapsed ? 'max-h-0 opacity-0 mt-0' : 'max-h-24 opacity-100 mt-3'
+          }`}
+        >
+          <p className="text-[11px] font-medium text-[#a0a0a0] mb-1.5">
+            People around you are curious about...
+          </p>
+          <div className="flex gap-1.5 overflow-x-auto scrollbar-hide -mx-1 px-1">
+            {NUDGE_PROMPTS.map(p => (
+              <button
+                key={p.label}
+                onClick={() => navigate(`/post/new?category=${p.category}`)}
+                className="shrink-0 px-2.5 py-1 rounded-full bg-[#1a1a1a]/70 border border-[#2a2a2a]/60 text-[#fafafa] text-[11px] font-medium whitespace-nowrap hover:border-[#ef4444] transition-colors"
+              >
+                {p.label}
+              </button>
+            ))}
           </div>
         </div>
       </div>
