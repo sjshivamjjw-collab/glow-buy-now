@@ -96,6 +96,13 @@ const DiscoverPage = () => {
   ];
 
   useEffect(() => {
+    if (!userId) { setInterests([]); return; }
+    supabase.from('profiles').select('interests' as any).eq('id', userId).maybeSingle().then(({ data }) => {
+      setInterests(((data as any)?.interests as string[] | null) || []);
+    });
+  }, [userId]);
+
+  useEffect(() => {
     const onClick = (e: Event) => {
       if (categoryRef.current && !categoryRef.current.contains(e.target as Node)) {
         setCategoryOpen(false);
