@@ -29,11 +29,11 @@ const ProfilePage = () => {
   useEffect(() => {
     if (!userId) return;
     const load = async () => {
-      const [{ data: prof }, { data: rawPosts }, { count: fc }, { count: fgc }] = await Promise.all([
+      const [{ data: prof }, { data: rawPosts }, { count: fc }, { data: savesCount }] = await Promise.all([
         supabase.from('profiles').select('name, username, avatar_url').eq('id', userId).single(),
         supabase.from('posts' as any).select('id, like_count, is_anonymous').eq('user_id', userId).order('created_at', { ascending: false }).limit(60),
         supabase.from('user_follows' as any).select('*', { count: 'exact', head: true }).eq('following_id', userId),
-        supabase.from('user_follows' as any).select('*', { count: 'exact', head: true }).eq('follower_id', userId),
+        supabase.rpc('get_user_post_saves_count' as any, { _user_id: userId }),
       ]);
       if (prof) setProfile(prof);
       const rows = (rawPosts as any[]) || [];
