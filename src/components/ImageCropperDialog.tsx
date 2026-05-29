@@ -8,7 +8,10 @@ interface Props {
   open: boolean;
   onCancel: () => void;
   onApply: (croppedFile: File) => void;
+  onSkip?: () => void;
+  title?: string;
 }
+
 
 type AspectKey = 'free' | '1' | '4_5' | '16_9';
 
