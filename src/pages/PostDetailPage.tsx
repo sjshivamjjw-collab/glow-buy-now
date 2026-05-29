@@ -9,6 +9,7 @@ import { useMentionAutocomplete } from '@/hooks/useMentionAutocomplete';
 import { MentionSuggestions } from '@/components/MentionSuggestions';
 import { getCommentPrompt } from '@/lib/commentPrompts';
 import { renderRichText } from '@/lib/richText';
+import { PenguinAvatar, RIPPLER_NAME } from '@/components/RipplerIdentity';
 
 
 const CATEGORY_META: Record<string, { label: string }> = {
