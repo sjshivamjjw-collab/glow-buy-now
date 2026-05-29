@@ -172,10 +172,14 @@ const CreatePostPage = () => {
 
   const [searchParams] = useSearchParams();
   const presetCategory = searchParams.get('category') as CategoryKey | null;
+  const presetSub = searchParams.get('sub') as ReviewSubKey | null;
   const validCategories: CategoryKey[] = ['everyday_vibes', 'trip', 'review', 'real_talk', 'hidden_gems'];
+  const validReviewSubs: ReviewSubKey[] = ['restaurant', 'hotel', 'product', 'media', 'activity'];
   const initialCategory = initial?.category ?? (presetCategory && validCategories.includes(presetCategory) ? presetCategory : null);
   const [category, setCategory] = useState<CategoryKey | null>(initialCategory);
-  const [reviewSub, setReviewSub] = useState<ReviewSubKey | null>(initial?.reviewSub ?? null);
+  const [reviewSub, setReviewSub] = useState<ReviewSubKey | null>(
+    initial?.reviewSub ?? (initialCategory === 'review' && presetSub && validReviewSubs.includes(presetSub) ? presetSub : null)
+  );
   const [recommendation, setRecommendation] = useState<RecommendationKey | null>(initial?.recommendation ?? null);
   const [media, setMedia] = useState<PendingMedia[]>([]);
   const [title, setTitle] = useState(initial?.title ?? '');
