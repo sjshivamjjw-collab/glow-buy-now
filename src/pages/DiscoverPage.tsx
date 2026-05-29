@@ -10,7 +10,7 @@ import { PenguinAvatar, RIPPLER_NAME } from '@/components/RipplerIdentity';
 
 interface TrendingPost {
   id: string;
-  user_id: string;
+  user_id: string | null;
   title: string | null;
   body: string | null;
   location: string | null;
@@ -22,6 +22,7 @@ interface TrendingPost {
   cover_kind: 'image' | 'video' | null;
   media_count: number;
   category?: string | null;
+  is_anonymous?: boolean;
 }
 
 const CATEGORY_META: Record<string, { label: string }> = {
