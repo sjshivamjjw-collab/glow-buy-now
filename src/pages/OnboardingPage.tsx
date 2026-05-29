@@ -5,6 +5,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { motion, AnimatePresence } from 'framer-motion';
 import { User, ArrowRight, Check, Camera } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { INTEREST_OPTIONS } from '@/lib/interests';
 
 type Step = 'basics' | 'details' | 'interests';
 
@@ -17,13 +18,6 @@ const GENDER_OPTIONS = [
   { value: 'prefer-not-to-say', label: 'Prefer not to say', emoji: '🤐' },
 ];
 
-const INTEREST_OPTIONS: { key: string; label: string; emoji: string }[] = [
-  { key: 'everyday_vibes', label: 'Daily Life', emoji: '✨' },
-  { key: 'trip', label: 'Travel Diaries', emoji: '✈️' },
-  { key: 'hidden_gems', label: 'Work Diaries', emoji: '💼' },
-  { key: 'review', label: 'Reviews', emoji: '⭐' },
-  { key: 'real_talk', label: 'Advice & Tips', emoji: '💡' },
-];
 
 const OnboardingPage = () => {
   const [step, setStep] = useState<Step>('basics');
