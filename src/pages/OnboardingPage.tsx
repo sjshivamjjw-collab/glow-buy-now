@@ -114,9 +114,10 @@ const OnboardingPage = () => {
           name,
           gender: gender || null,
           date_of_birth: dob || null,
+          interests,
           onboarding_completed: true,
           ...(avatarUrl ? { avatar_url: avatarUrl } : {}),
-        })
+        } as any)
         .eq('id', userId);
 
       if (error) throw error;
