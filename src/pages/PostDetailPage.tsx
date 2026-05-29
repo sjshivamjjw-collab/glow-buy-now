@@ -244,20 +244,24 @@ const PostDetailPage = () => {
     if (!userId || !post) { navigate('/auth'); return; }
     const body = draft.trim();
     if (!body) return;
+    const anon = !!post.is_anonymous && commentAnonymously;
     setPosting(true);
     const { data, error } = await supabase.from('post_comments' as any).insert({
-      post_id: post.id, user_id: userId, body, parent_id: replyTo?.id ?? null,
+      post_id: post.id, user_id: userId, body, parent_id: replyTo?.id ?? null, is_anonymous: anon,
     }).select('*').single();
     setPosting(false);
     if (error || !data) {
       toast({ title: 'Could not comment', description: error?.message, variant: 'destructive' });
       return;
     }
-    setComments(prev => [...prev, data as any]);
+    // Mirror the public view: hide own user_id when anonymous so UI consistently shows Rippler.
+    const inserted = { ...(data as any), user_id: anon ? null : (data as any).user_id } as CommentRow;
+    setComments(prev => [...prev, inserted]);
+    setOwnComments(prev => { const n = new Set(prev); n.add(inserted.id); return n; });
     setPost(p => p ? { ...p, comment_count: p.comment_count + 1 } : p);
     setDraft('');
     setReplyTo(null);
-    if (!authors[userId]) {
+    if (!anon && !authors[userId]) {
       const { data: prof } = await supabase.rpc('get_public_profiles' as any, { _ids: [userId] });
       if (prof?.[0]) setAuthors(a => ({ ...a, [userId]: prof[0] as any }));
     }
