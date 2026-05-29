@@ -433,6 +433,7 @@ const CreatePostPage = () => {
         hashtags,
         music_url: musicUrl,
         music_title: musicLabel,
+        is_anonymous: category === 'hidden_gems' && postAnonymously,
       }).select('id').single();
       if (postErr || !post) throw postErr || new Error('Failed to create post');
       const postId = (post as any).id as string;
