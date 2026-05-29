@@ -181,11 +181,8 @@ const DiscoverPage = () => {
     <div className="min-h-screen max-w-lg mx-auto pb-24 font-[Figtree] bg-[linear-gradient(180deg,#0a0a0a_0%,#111111_40%,#000000_100%)]">
       {/* Header */}
       <div className="sticky top-0 z-20 backdrop-blur-xl bg-[#0a0a0a]/70 border-b border-[#2a2a2a]/40 px-4 pt-3 pb-3">
-        <div
-          className={`overflow-hidden transition-all duration-300 ease-out ${
-            collapsed ? 'max-h-0 opacity-0 mb-0' : 'max-h-20 opacity-100 mb-2'
-          }`}
-        >
+        <div className="overflow-hidden mb-2">
+
           <div className="flex items-center gap-2.5">
             {userAvatar ? (
               <img src={userAvatar} alt={firstName} className="w-9 h-9 rounded-full object-cover ring-1 ring-[#2a2a2a]" />
