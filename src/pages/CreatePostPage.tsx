@@ -28,7 +28,7 @@ import { CSS } from '@dnd-kit/utilities';
 const MAX_FILES = 10;
 const MAX_FILE_MB = 25;
 
-type CategoryKey = 'everyday_vibes' | 'showcase' | 'trip' | 'review' | 'real_talk' | 'hidden_gems';
+type CategoryKey = 'everyday_vibes' | 'trip' | 'review' | 'real_talk' | 'hidden_gems';
 type ReviewSubKey = 'restaurant' | 'hotel' | 'product' | 'media' | 'activity';
 type RecommendationKey = 'loved' | 'mixed' | 'not_for_me';
 
@@ -60,7 +60,7 @@ const CATEGORIES: {
   accent: string;
 }[] = [
   { key: 'everyday_vibes', title: 'Daily Life', subtitle: 'Things you did, designed, decorated or bought', icon: Sparkles, accent: 'from-pink-500/20 to-orange-400/20 text-pink-500' },
-  { key: 'showcase', title: 'Show & Tell', subtitle: 'Something you styled, designed, decorated or bought', icon: Palette, accent: 'from-violet-500/20 to-fuchsia-400/20 text-violet-500' },
+  
   { key: 'trip', title: 'Travel Diaries', subtitle: 'A full journey or getaway', icon: Plane, accent: 'from-sky-500/20 to-cyan-400/20 text-sky-500' },
   { key: 'review', title: 'Review', subtitle: 'A place, product, food spot, or experience you tried', icon: Star, accent: 'from-amber-500/20 to-yellow-400/20 text-amber-500' },
   { key: 'hidden_gems', title: 'Workplace Diaries', subtitle: 'Work stories & culture, career lessons, wins & struggles', icon: Gem, accent: 'from-emerald-500/20 to-teal-400/20 text-emerald-500' },
@@ -609,7 +609,7 @@ const CreatePostPage = () => {
       {(() => {
         const BODY_PLACEHOLDERS: Partial<Record<CategoryKey, string>> = {
           everyday_vibes: "You can include:\n\n📅 What's a day in your life looking like lately?\n\n🛠️ What are the items, products, or tools you used here?\n\n⏱️ How long did it take and what's the cost breakdown?",
-          showcase: 'You can include:\n\n🛠️ What are the items, products, or tools you used here?\n\n⏱️ How long did it take and cost breakdown?\n\n🔄 What would you do differently if you were to build it again?',
+          
           review: 'You can include:\n\n✨ What did you try? Highlight the must-tries or absolute skips.\n\n🪑 How was the seating or service? (e.g., ideal for dates, laptop work, group hangs).\n\n💰 How was the overall experience and did it justify the price?',
           real_talk: 'You can include:\n\n🧠 What is the exact context and situation one faces?\n\n🪜 What are the key steps to take or avoid?',
           hidden_gems: "You can include:\n\n💼 What's the reality vs expectation of working here?\n\n🤔 What do you wish you knew before joining?\n\n🚀 Who would thrive or struggle here?",
