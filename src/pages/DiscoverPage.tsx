@@ -317,7 +317,7 @@ const DiscoverPage = () => {
                   <div className="flex items-center justify-between gap-2">
                     <div className="flex items-center gap-1.5 min-w-0 flex-1">
                       {isAnon ? (
-                        <PenguinAvatar size={20} />
+                        <PenguinAvatar size={22} />
                       ) : author?.avatar_url ? (
                         <img src={author.avatar_url} className="w-5 h-5 rounded-full object-cover shrink-0 ring-1 ring-[#2a2a2a]" alt="" />
                       ) : (
