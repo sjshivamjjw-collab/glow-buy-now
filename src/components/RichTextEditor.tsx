@@ -52,6 +52,21 @@ export default function RichTextEditor({
     onChange(el.innerHTML);
   };
 
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    // On Enter, drop any active inline formatting so the next line starts
+    // unformatted (matches user expectation: bold a word, hit enter, type
+    // plain text).
+    if (e.key === 'Enter' && !e.shiftKey) {
+      setTimeout(() => {
+        try {
+          if (document.queryCommandState('bold')) document.execCommand('bold');
+          if (document.queryCommandState('italic')) document.execCommand('italic');
+          if (document.queryCommandState('underline')) document.execCommand('underline');
+        } catch {}
+      }, 0);
+    }
+  };
+
   const handlePaste = (e: React.ClipboardEvent) => {
     // Force plain-text paste so we don't inherit foreign styles/markup.
     e.preventDefault();

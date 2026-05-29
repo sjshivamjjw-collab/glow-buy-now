@@ -137,16 +137,6 @@ export const ImageCropperDialog = ({ file, open, onCancel, onApply, onSkip, titl
             >
               <X className="w-5 h-5" />
             </button>
-            {onSkip && (
-              <button
-                type="button"
-                onClick={onSkip}
-                disabled={working}
-                className="h-11 px-4 rounded-full bg-[#161616] border border-[#2a2a2a] text-white text-sm font-semibold disabled:opacity-50"
-              >
-                Skip
-              </button>
-            )}
             <button
               type="button"
               onClick={handleApply}
