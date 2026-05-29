@@ -5,7 +5,8 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { ArrowLeft, Loader2, MapPin, Hash, X, Check, ImagePlus } from 'lucide-react';
 import { extractStoragePath } from '@/lib/storageUrls';
-import RichTextToolbar from '@/components/RichTextToolbar';
+import RichTextEditor from '@/components/RichTextEditor';
+import { markdownToHtml, isRichTextEmpty } from '@/lib/richText';
 
 const TITLE_MAX = 90;
 const MAX_FILES = 10;
