@@ -35,7 +35,7 @@ const SavedPostsPage = () => {
       const ids = ((saves as any[]) || []).map(s => s.post_id);
       if (!ids.length) { setPosts([]); setLoading(false); return; }
       const { data: postsData } = await supabase
-        .from('posts' as any)
+        .from('posts_public' as any)
         .select('id, title, body, like_count, comment_count')
         .in('id', ids);
       const { data: mediaData } = await supabase
