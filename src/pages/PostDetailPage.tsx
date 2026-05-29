@@ -292,8 +292,8 @@ const PostDetailPage = () => {
   if (loading) return <div className="min-h-screen flex items-center justify-center bg-[#0a0a0a]"><Loader2 className="w-6 h-6 animate-spin text-[#ef4444]" /></div>;
   if (!post) return <div className="min-h-screen flex items-center justify-center bg-[#0a0a0a] text-[#a0a0a0]">Post not found</div>;
 
-  const author = authors[post.user_id];
-  const isOwn = userId === post.user_id;
+  const isAnon = !!post.is_anonymous;
+  const author = !isAnon && post.user_id ? authors[post.user_id] : undefined;
 
   return (
     <div className="min-h-screen max-w-lg mx-auto pb-32 font-[Figtree] bg-[linear-gradient(180deg,#0a0a0a_0%,#111111_40%,#000000_100%)]">
