@@ -1117,6 +1117,14 @@ export type Database = {
           username: string
         }[]
       }
+      get_comment_like_state: {
+        Args: { _comment_ids: string[] }
+        Returns: {
+          comment_id: string
+          like_count: number
+          liked_by_me: boolean
+        }[]
+      }
       get_platform_admin_ids: { Args: never; Returns: string[] }
       get_post_comments_public: {
         Args: { _post_id: string }
