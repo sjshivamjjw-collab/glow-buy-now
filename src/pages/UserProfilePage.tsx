@@ -8,7 +8,7 @@ import { formatCount } from '@/lib/utils';
 import LazyVideoThumbnail from '@/components/LazyVideoThumbnail';
 
 interface Profile { id: string; name: string | null; username: string | null; avatar_url: string | null; }
-interface PostThumb { id: string; cover_url: string | null; cover_kind: string | null; like_count: number; }
+interface PostThumb { id: string; cover_url: string | null; cover_kind: string | null; like_count: number; is_anonymous?: boolean; }
 
 const UserProfilePage = () => {
   const { userId: pageUserId } = useParams<{ userId: string }>();
