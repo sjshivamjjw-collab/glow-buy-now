@@ -192,13 +192,19 @@ const CreatePostPage = () => {
   const [hashtags, setHashtags] = useState<string[]>(initial?.hashtags ?? []);
   const [music, setMusic] = useState<PickedTrack | null>(initial?.music ?? null);
   const [musicPickerOpen, setMusicPickerOpen] = useState(false);
+  const [postAnonymously, setPostAnonymously] = useState<boolean>(initial?.postAnonymously ?? false);
   const [submitting, setSubmitting] = useState(false);
   const [draftRestored] = useState(() => !!(initial && (initial.title || initial.body || initial.location || initial.hashtags?.length || initial.category)));
+
+  // Anonymous toggle only applies to Work Diaries — reset when leaving that category.
+  useEffect(() => {
+    if (category !== 'hidden_gems' && postAnonymously) setPostAnonymously(false);
+  }, [category, postAnonymously]);
 
   // Persist draft on any change (debounced).
   useEffect(() => {
     const t = setTimeout(() => {
-      const draft: PersistedDraft = { category, reviewSub, recommendation, title, body, location, hashtags, music };
+      const draft: PersistedDraft = { category, reviewSub, recommendation, title, body, location, hashtags, music, postAnonymously };
       const hasContent = !!(category || title || body || location || hashtags.length || music);
       try {
         if (hasContent) localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
@@ -206,7 +212,7 @@ const CreatePostPage = () => {
       } catch {}
     }, 250);
     return () => clearTimeout(t);
-  }, [category, reviewSub, recommendation, title, body, location, hashtags, music]);
+  }, [category, reviewSub, recommendation, title, body, location, hashtags, music, postAnonymously]);
 
   const clearDraft = () => {
     try { localStorage.removeItem(DRAFT_KEY); } catch {}
@@ -215,7 +221,7 @@ const CreatePostPage = () => {
   const discardDraft = () => {
     clearDraft();
     setCategory(null); setReviewSub(null); setRecommendation(null); setTitle(''); setBody('');
-    setLocation(''); setHashtags([]); setMusic(null);
+    setLocation(''); setHashtags([]); setMusic(null); setPostAnonymously(false);
     toast({ title: 'Draft discarded' });
   };
 
