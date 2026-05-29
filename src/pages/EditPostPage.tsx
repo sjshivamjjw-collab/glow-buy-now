@@ -315,18 +315,15 @@ const EditPostPage = () => {
 
         <div>
           <label className="block text-xs font-semibold text-[#6b6b6b] uppercase tracking-wide mb-1.5">Description</label>
-          <div className="mb-1.5">
-            <RichTextToolbar textareaRef={bodyTextareaRef} value={body} onChange={setBody} />
-          </div>
-          <textarea
-            ref={bodyTextareaRef}
+          <RichTextEditor
             value={body}
-            onChange={e => setBody(e.target.value)}
+            onChange={setBody}
             placeholder="Write something..."
             rows={6}
-            className="w-full px-4 py-3 rounded-xl bg-[#f5f5f5] border border-[#e5e5e5] text-[#0a0a0a] placeholder:text-[#9b9b9b] focus:outline-none focus:ring-2 focus:ring-[#ef4444]/40 text-sm resize-y"
+            maxLength={2000}
           />
         </div>
+
 
         <div>
           <label className="block text-xs font-semibold text-[#6b6b6b] uppercase tracking-wide mb-1.5">Location</label>
