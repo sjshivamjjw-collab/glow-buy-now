@@ -84,21 +84,29 @@ const DiscoverPage = () => {
     const load = async () => {
       const { data } = await supabase.rpc('get_trending_posts' as any, { _limit: 30, _offset: 0 });
       const list = (data as TrendingPost[] | null) ?? [];
-      // get_trending_posts doesn't return category — fetch it separately
+      // get_trending_posts doesn't return category — fetch it from the public view (which also masks anon authors)
       if (list.length) {
         const ids = list.map(p => p.id);
-        const { data: catRows } = await supabase.from('posts' as any).select('id, category').in('id', ids);
-        const catMap: Record<string, string | null> = {};
-        ((catRows as any[]) || []).forEach(r => { catMap[r.id] = r.category; });
-        list.forEach(p => { p.category = catMap[p.id] ?? null; });
+        const { data: catRows } = await supabase.from('posts_public' as any).select('id, category, is_anonymous').in('id', ids);
+        const catMap: Record<string, { category: string | null; is_anonymous: boolean }> = {};
+        ((catRows as any[]) || []).forEach(r => { catMap[r.id] = { category: r.category, is_anonymous: !!r.is_anonymous }; });
+        list.forEach(p => {
+          const row = catMap[p.id];
+          p.category = row?.category ?? null;
+          // Trust whichever source flags anonymity — defence in depth.
+          p.is_anonymous = !!(p.is_anonymous || row?.is_anonymous);
+          if (p.is_anonymous) p.user_id = null;
+        });
       }
       setPosts(list);
       if (list.length) {
-        const ids = Array.from(new Set(list.map(p => p.user_id)));
-        const { data: profs } = await supabase.rpc('get_public_profiles' as any, { _ids: ids });
-        const map: Record<string, AuthorInfo> = {};
-        ((profs as any[]) || []).forEach(p => { map[p.id] = p; });
-        setAuthors(map);
+        const ids = Array.from(new Set(list.map(p => p.user_id).filter((u): u is string => !!u)));
+        if (ids.length) {
+          const { data: profs } = await supabase.rpc('get_public_profiles' as any, { _ids: ids });
+          const map: Record<string, AuthorInfo> = {};
+          ((profs as any[]) || []).forEach(p => { map[p.id] = p; });
+          setAuthors(map);
+        }
       }
       setLoading(false);
     };
