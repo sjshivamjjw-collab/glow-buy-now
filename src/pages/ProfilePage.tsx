@@ -36,14 +36,16 @@ const ProfilePage = () => {
         supabase.from('user_follows' as any).select('*', { count: 'exact', head: true }).eq('follower_id', userId),
       ]);
       if (prof) setProfile(prof);
-      const ids = ((rawPosts as any[]) || []).map(p => p.id);
+      const rows = (rawPosts as any[]) || [];
+      const ids = rows.map(p => p.id);
       const likeMap: Record<string, number> = {};
-      ((rawPosts as any[]) || []).forEach(p => { likeMap[p.id] = p.like_count; });
+      const anonMap: Record<string, boolean> = {};
+      rows.forEach(p => { likeMap[p.id] = p.like_count; anonMap[p.id] = !!p.is_anonymous; });
       if (ids.length) {
         const { data: media } = await supabase.from('post_media' as any).select('post_id, url, kind, sort_order').in('post_id', ids).order('sort_order');
         const coverMap: Record<string, { url: string; kind: string }> = {};
         ((media as any[]) || []).forEach(m => { if (!coverMap[m.post_id]) coverMap[m.post_id] = { url: m.url, kind: m.kind }; });
-        setPosts(ids.map(id => ({ id, cover_url: coverMap[id]?.url || null, cover_kind: coverMap[id]?.kind || null, like_count: likeMap[id] || 0 })));
+        setPosts(ids.map(id => ({ id, cover_url: coverMap[id]?.url || null, cover_kind: coverMap[id]?.kind || null, like_count: likeMap[id] || 0, is_anonymous: anonMap[id] })));
       } else {
         setPosts([]);
       }
