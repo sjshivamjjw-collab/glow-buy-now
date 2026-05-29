@@ -13,7 +13,8 @@ import { ImageCropperDialog } from '@/components/ImageCropperDialog';
 import { useMentionAutocomplete } from '@/hooks/useMentionAutocomplete';
 import { MentionSuggestions } from '@/components/MentionSuggestions';
 import { MusicPicker, type PickedTrack } from '@/components/MusicPicker';
-import RichTextToolbar from '@/components/RichTextToolbar';
+import RichTextEditor from '@/components/RichTextEditor';
+import { markdownToHtml, isRichTextEmpty } from '@/lib/richText';
 import {
   DndContext, closestCenter, KeyboardSensor, PointerSensor, TouchSensor,
   useSensor, useSensors, type DragEndEvent,
