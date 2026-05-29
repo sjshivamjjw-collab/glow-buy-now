@@ -52,6 +52,21 @@ export default function RichTextEditor({
     onChange(el.innerHTML);
   };
 
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    // On Enter, drop any active inline formatting so the next line starts
+    // unformatted (matches user expectation: bold a word, hit enter, type
+    // plain text).
+    if (e.key === 'Enter' && !e.shiftKey) {
+      setTimeout(() => {
+        try {
+          if (document.queryCommandState('bold')) document.execCommand('bold');
+          if (document.queryCommandState('italic')) document.execCommand('italic');
+          if (document.queryCommandState('underline')) document.execCommand('underline');
+        } catch {}
+      }, 0);
+    }
+  };
+
   const handlePaste = (e: React.ClipboardEvent) => {
     // Force plain-text paste so we don't inherit foreign styles/markup.
     e.preventDefault();
@@ -91,6 +106,7 @@ export default function RichTextEditor({
           aria-multiline="true"
           onInput={handleInput}
           onPaste={handlePaste}
+          onKeyDown={handleKeyDown}
           onFocus={onFocus}
           className={`w-full px-4 py-3 rounded-xl bg-[#f5f5f5] border border-[#e5e5e5] text-[#0a0a0a] focus:outline-none focus:ring-2 focus:ring-[#ef4444]/40 text-[13px] whitespace-pre-wrap break-words [overflow-wrap:anywhere] ${className ?? ''}`}
           style={{ minHeight: `${rows * 1.5 + 1}rem` }}
