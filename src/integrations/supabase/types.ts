@@ -495,6 +495,13 @@ export type Database = {
             referencedRelation: "posts"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "post_comments_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "posts_public"
+            referencedColumns: ["id"]
+          },
         ]
       }
       post_likes: {
@@ -519,6 +526,13 @@ export type Database = {
             columns: ["post_id"]
             isOneToOne: false
             referencedRelation: "posts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "post_likes_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "posts_public"
             referencedColumns: ["id"]
           },
         ]
@@ -556,6 +570,13 @@ export type Database = {
             referencedRelation: "posts"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "post_media_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "posts_public"
+            referencedColumns: ["id"]
+          },
         ]
       }
       post_saves: {
@@ -584,6 +605,7 @@ export type Database = {
           created_at: string
           hashtags: string[]
           id: string
+          is_anonymous: boolean
           like_count: number
           location: string | null
           music_title: string | null
@@ -601,6 +623,7 @@ export type Database = {
           created_at?: string
           hashtags?: string[]
           id?: string
+          is_anonymous?: boolean
           like_count?: number
           location?: string | null
           music_title?: string | null
@@ -618,6 +641,7 @@ export type Database = {
           created_at?: string
           hashtags?: string[]
           id?: string
+          is_anonymous?: boolean
           like_count?: number
           location?: string | null
           music_title?: string | null
@@ -924,6 +948,63 @@ export type Database = {
       }
     }
     Views: {
+      posts_public: {
+        Row: {
+          body: string | null
+          category: string | null
+          comment_count: number | null
+          created_at: string | null
+          hashtags: string[] | null
+          id: string | null
+          is_anonymous: boolean | null
+          like_count: number | null
+          location: string | null
+          music_title: string | null
+          music_url: string | null
+          review_recommendation: string | null
+          review_subcategory: string | null
+          title: string | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          body?: string | null
+          category?: string | null
+          comment_count?: number | null
+          created_at?: string | null
+          hashtags?: string[] | null
+          id?: string | null
+          is_anonymous?: boolean | null
+          like_count?: number | null
+          location?: string | null
+          music_title?: string | null
+          music_url?: string | null
+          review_recommendation?: string | null
+          review_subcategory?: string | null
+          title?: string | null
+          updated_at?: string | null
+          user_id?: never
+        }
+        Update: {
+          body?: string | null
+          category?: string | null
+          comment_count?: number | null
+          created_at?: string | null
+          hashtags?: string[] | null
+          id?: string | null
+          is_anonymous?: boolean | null
+          like_count?: number | null
+          location?: string | null
+          music_title?: string | null
+          music_url?: string | null
+          review_recommendation?: string | null
+          review_subcategory?: string | null
+          title?: string | null
+          updated_at?: string | null
+          user_id?: never
+        }
+        Relationships: []
+      }
       seller_ratings: {
         Row: {
           cancelled_orders: number | null
@@ -995,6 +1076,7 @@ export type Database = {
           created_at: string
           hashtags: string[]
           id: string
+          is_anonymous: boolean
           like_count: number
           location: string
           media_count: number
