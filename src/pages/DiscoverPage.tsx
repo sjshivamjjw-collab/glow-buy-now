@@ -6,6 +6,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Search, Sparkles, Heart, MessageCircle, Loader2, Play, Images, MapPin, TrendingUp, ChevronDown, Check } from 'lucide-react';
 import { formatCount } from '@/lib/utils';
 import LazyVideoThumbnail from '@/components/LazyVideoThumbnail';
+import { PenguinAvatar, RIPPLER_NAME } from '@/components/RipplerIdentity';
 
 interface TrendingPost {
   id: string;
