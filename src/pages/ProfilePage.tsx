@@ -50,7 +50,7 @@ const ProfilePage = () => {
         setPosts([]);
       }
       setFollowers(fc || 0);
-      setFollowing(fgc || 0);
+      setSaves(typeof savesCount === 'number' ? savesCount : 0);
     };
     load();
   }, [userId]);
