@@ -114,7 +114,9 @@ const PostDetailPage = () => {
   const [mediaIdx, setMediaIdx] = useState(0);
   const [saved, setSaved] = useState(false);
   const [likedComments, setLikedComments] = useState<Set<string>>(new Set());
+  const [ownComments, setOwnComments] = useState<Set<string>>(new Set());
   const [replyTo, setReplyTo] = useState<CommentRow | null>(null);
+  const [commentAnonymously, setCommentAnonymously] = useState(false);
   const draftInputRef = useRef<HTMLInputElement>(null);
   const [draftCursor, setDraftCursor] = useState<number | null>(null);
   const commentsSectionRef = useRef<HTMLDivElement>(null);
