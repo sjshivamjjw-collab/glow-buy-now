@@ -265,7 +265,8 @@ const DiscoverPage = () => {
           </div>
         ) : (() => {
           const renderCard = (p: TrendingPost, h: number) => {
-            const author = authors[p.user_id];
+            const author = p.user_id ? authors[p.user_id] : undefined;
+            const isAnon = !!p.is_anonymous;
             return (
               <button
                 key={p.id}
@@ -315,13 +316,17 @@ const DiscoverPage = () => {
                   )}
                   <div className="flex items-center justify-between gap-2">
                     <div className="flex items-center gap-1.5 min-w-0 flex-1">
-                      {author?.avatar_url ? (
+                      {isAnon ? (
+                        <PenguinAvatar size={20} />
+                      ) : author?.avatar_url ? (
                         <img src={author.avatar_url} className="w-5 h-5 rounded-full object-cover shrink-0 ring-1 ring-[#2a2a2a]" alt="" />
                       ) : (
                         <div className="w-5 h-5 rounded-full bg-gradient-to-br from-[#2a2a2a] to-[#ef4444] shrink-0" />
                       )}
                       <span className="truncate text-[12px] font-semibold text-[#cfcfcf]">
-                        {author?.username ? `@${author.username}` : author?.name || 'User'}
+                        {isAnon
+                          ? RIPPLER_NAME
+                          : author?.username ? `@${author.username}` : author?.name || 'User'}
                       </span>
                     </div>
                     <div className="flex items-center gap-2 shrink-0">
