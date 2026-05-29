@@ -165,19 +165,13 @@ const CreatePostPage = () => {
   const [recommendation, setRecommendation] = useState<RecommendationKey | null>(initial?.recommendation ?? null);
   const [media, setMedia] = useState<PendingMedia[]>([]);
   const [title, setTitle] = useState(initial?.title ?? '');
-  const [body, setBody] = useState(initial?.body ?? '');
-  const bodyRef = useRef<HTMLTextAreaElement>(null);
-  const [bodyCursor, setBodyCursor] = useState<number | null>(null);
-  const bodyMention = useMentionAutocomplete({
-    value: body,
-    cursor: bodyCursor,
-    onPick: ({ value, cursor }) => {
-      setBody(value);
-      requestAnimationFrame(() => {
-        const el = bodyRef.current;
-        if (el) { el.focus(); el.setSelectionRange(cursor, cursor); setBodyCursor(cursor); }
-      });
-    },
+  // Body is stored as a small HTML subset produced by RichTextEditor.
+  // For backwards compatibility, any legacy markdown draft is converted on load.
+  const [body, setBody] = useState<string>(() => {
+    const raw = initial?.body ?? '';
+    if (!raw) return '';
+    if (/<(strong|b|em|i|u|br|div|p|span)\b/i.test(raw)) return raw;
+    return markdownToHtml(raw);
   });
   const [location, setLocation] = useState(initial?.location ?? '');
   const [locSuggestions, setLocSuggestions] = useState<{ name: string; display: string }[]>([]);
