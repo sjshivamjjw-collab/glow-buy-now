@@ -31,7 +31,7 @@ const ProfilePage = () => {
     const load = async () => {
       const [{ data: prof }, { data: rawPosts }, { count: fc }, { count: fgc }] = await Promise.all([
         supabase.from('profiles').select('name, username, avatar_url').eq('id', userId).single(),
-        supabase.from('posts' as any).select('id, like_count').eq('user_id', userId).eq('is_anonymous', false).order('created_at', { ascending: false }).limit(60),
+        supabase.from('posts' as any).select('id, like_count, is_anonymous').eq('user_id', userId).order('created_at', { ascending: false }).limit(60),
         supabase.from('user_follows' as any).select('*', { count: 'exact', head: true }).eq('following_id', userId),
         supabase.from('user_follows' as any).select('*', { count: 'exact', head: true }).eq('follower_id', userId),
       ]);
