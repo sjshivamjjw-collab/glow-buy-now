@@ -258,19 +258,69 @@ const CreatePostPage = () => {
   }, [location]);
 
 
+  // Image crop flow state
+  const [cropQueue, setCropQueue] = useState<File[]>([]);
+  const [editCropId, setEditCropId] = useState<string | null>(null);
+  const currentCropFile = editCropId
+    ? media.find(m => m.id === editCropId)?.file ?? null
+    : cropQueue[0] ?? null;
+  const cropperOpen = !!currentCropFile;
+
+  const addMediaFile = (file: File) => {
+    const kind: 'image' | 'video' = file.type.startsWith('video/') ? 'video' : 'image';
+    const entry: PendingMedia = {
+      id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+      file,
+      previewUrl: URL.createObjectURL(file),
+      kind,
+    };
+    setMedia(prev => [...prev, entry]);
+  };
+
   const handleFiles = (files: FileList | null) => {
     if (!files) return;
-    const next: PendingMedia[] = [];
-    Array.from(files).forEach(file => {
-      if (media.length + next.length >= MAX_FILES) return;
+    const arr = Array.from(files);
+    const remaining = MAX_FILES - media.length - cropQueue.length;
+    const accepted: File[] = [];
+    for (const file of arr) {
+      if (accepted.length >= remaining) break;
       if (file.size > MAX_FILE_MB * 1024 * 1024) {
         toast({ title: `${file.name} is too large`, description: `Max ${MAX_FILE_MB}MB per file`, variant: 'destructive' });
-        return;
+        continue;
       }
-      const kind: 'image' | 'video' = file.type.startsWith('video/') ? 'video' : 'image';
-      next.push({ id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`, file, previewUrl: URL.createObjectURL(file), kind });
-    });
-    setMedia(prev => [...prev, ...next]);
+      accepted.push(file);
+    }
+    const images = accepted.filter(f => !f.type.startsWith('video/'));
+    const videos = accepted.filter(f => f.type.startsWith('video/'));
+    videos.forEach(addMediaFile);
+    if (images.length) setCropQueue(prev => [...prev, ...images]);
+  };
+
+  const handleCropApply = (croppedFile: File) => {
+    if (editCropId) {
+      setMedia(prev => prev.map(m => {
+        if (m.id !== editCropId) return m;
+        URL.revokeObjectURL(m.previewUrl);
+        return { ...m, file: croppedFile, previewUrl: URL.createObjectURL(croppedFile) };
+      }));
+      setEditCropId(null);
+    } else {
+      addMediaFile(croppedFile);
+      setCropQueue(prev => prev.slice(1));
+    }
+  };
+
+  const handleCropSkip = () => {
+    if (editCropId) { setEditCropId(null); return; }
+    const [first, ...rest] = cropQueue;
+    if (first) addMediaFile(first);
+    setCropQueue(rest);
+  };
+
+  const handleCropCancel = () => {
+    if (editCropId) { setEditCropId(null); return; }
+    // Cancel discards the current pending image and advances the queue
+    setCropQueue(prev => prev.slice(1));
   };
 
   const removeMedia = (i: number) => {
@@ -281,6 +331,7 @@ const CreatePostPage = () => {
       return copy;
     });
   };
+
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
