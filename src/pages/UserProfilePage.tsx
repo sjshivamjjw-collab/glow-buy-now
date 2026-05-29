@@ -127,13 +127,19 @@ export const PostsGrid = ({ posts, onOpen }: { posts: PostThumb[]; onOpen: (id: 
   return (
     <div className="grid grid-cols-2 gap-2">
       {posts.map(p => (
-        <button key={p.id} onClick={() => onOpen(p.id)} className="aspect-square bg-secondary rounded-xl overflow-hidden">
+        <button key={p.id} onClick={() => onOpen(p.id)} className="relative aspect-square bg-secondary rounded-xl overflow-hidden">
           {p.cover_url ? (
             p.cover_kind === 'video'
               ? <LazyVideoThumbnail src={p.cover_url} className="w-full h-full" />
               : <img src={p.cover_url} alt="" className="w-full h-full object-cover" loading="lazy" decoding="async" />
           ) : (
             <div className="w-full h-full bg-gradient-to-br from-primary/20 to-secondary" />
+          )}
+          {p.is_anonymous && (
+            <span className="absolute top-1.5 left-1.5 inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-[#fef3c7] ring-1 ring-[#fcd34d] text-[10px] font-semibold text-[#1a1a1a]">
+              <img src="https://cdn.jsdelivr.net/npm/openmoji@latest/color/svg/1F427.svg" alt="" className="w-3 h-3" />
+              Rippler
+            </span>
           )}
         </button>
       ))}
