@@ -324,7 +324,7 @@ const EditPostPage = () => {
             onChange={setBody}
             placeholder="Write something..."
             rows={6}
-            maxLength={2000}
+            
           />
         </div>
 

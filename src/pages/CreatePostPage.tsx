@@ -680,7 +680,7 @@ const CreatePostPage = () => {
                 value={body}
                 onChange={setBody}
                 placeholder={ph}
-                maxLength={2000}
+                
                 rows={hasSuggestions ? 7 : 5}
               />
             </div>
