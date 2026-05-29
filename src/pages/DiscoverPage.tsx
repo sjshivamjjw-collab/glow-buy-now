@@ -283,9 +283,10 @@ const DiscoverPage = () => {
             <div className="pointer-events-none absolute -top-10 -right-10 w-32 h-32 rounded-full bg-[#ef4444]/10 blur-2xl" />
             <div className="relative flex items-center gap-1.5 mb-2">
               <Sparkles className="w-3 h-3 text-[#ef4444]" />
-              <p className="text-[10px] font-semibold uppercase tracking-[0.1em] text-[#dc2626]">
+              <p className="text-[11px] font-semibold tracking-[0.02em] text-[#dc2626]">
                 Popular conversations near you
               </p>
+
 
             </div>
             <div className="relative flex gap-1.5 overflow-x-auto scrollbar-hide -mx-1 px-1">
