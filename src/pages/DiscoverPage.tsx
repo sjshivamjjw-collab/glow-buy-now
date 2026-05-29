@@ -75,19 +75,14 @@ const DiscoverPage = () => {
   useEffect(() => {
     const onScroll = () => {
       const y = window.scrollY;
-      const delta = y - lastScrollY.current;
-      if (y < 40) {
-        setCollapsed(false);
-      } else if (delta > 6) {
-        setCollapsed(true);
-      } else if (delta < -6) {
-        setCollapsed(false);
-      }
+      // Only show nudge when truly at top; otherwise keep it collapsed.
+      setCollapsed(y > 20);
       lastScrollY.current = y;
     };
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
+
 
   const NUDGE_PROMPTS: { category: string; label: string }[] = [
     { category: 'trip', label: 'Best weekend getaway near you?' },
