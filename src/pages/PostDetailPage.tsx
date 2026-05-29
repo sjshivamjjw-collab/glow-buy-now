@@ -8,6 +8,7 @@ import { formatDistanceToNow } from 'date-fns';
 import { useMentionAutocomplete } from '@/hooks/useMentionAutocomplete';
 import { MentionSuggestions } from '@/components/MentionSuggestions';
 import { getCommentPrompt } from '@/lib/commentPrompts';
+import { renderRichText } from '@/lib/richText';
 
 
 const CATEGORY_META: Record<string, { label: string }> = {
