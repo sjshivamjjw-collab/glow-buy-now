@@ -152,6 +152,7 @@ interface PersistedDraft {
   location: string;
   hashtags: string[];
   music: PickedTrack | null;
+  postAnonymously?: boolean;
 }
 
 const CreatePostPage = () => {
