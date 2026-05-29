@@ -131,6 +131,13 @@ const DiscoverPage = () => {
       list = [...list].sort((a, b) => (b.like_count + b.comment_count) - (a.like_count + a.comment_count));
     } else if (activeChip === 'Category' && activeCategory) {
       list = list.filter(p => p.category === activeCategory);
+    } else if (activeChip === 'For you' && interests.length > 0) {
+      // Curate: boost posts whose category matches user's chosen interests, keep original order otherwise.
+      list = [...list].sort((a, b) => {
+        const aMatch = a.category && interests.includes(a.category) ? 1 : 0;
+        const bMatch = b.category && interests.includes(b.category) ? 1 : 0;
+        return bMatch - aMatch;
+      });
     }
     const q = query.trim().replace(/^#/, '');
     if (!q) return list;
