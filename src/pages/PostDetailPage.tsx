@@ -38,7 +38,7 @@ interface PostRow {
   is_anonymous?: boolean;
 }
 interface MediaRow { id: string; url: string; kind: 'image' | 'video'; sort_order: number; }
-interface CommentRow { id: string; user_id: string; body: string; created_at: string; parent_id: string | null; like_count: number; }
+interface CommentRow { id: string; user_id: string | null; body: string; created_at: string; parent_id: string | null; like_count: number; is_anonymous?: boolean; }
 interface AuthorInfo { id: string; name: string | null; username: string | null; avatar_url: string | null; }
 
 const PostMusicPlayer = ({ url, title }: { url: string; title: string | null }) => {
@@ -114,7 +114,9 @@ const PostDetailPage = () => {
   const [mediaIdx, setMediaIdx] = useState(0);
   const [saved, setSaved] = useState(false);
   const [likedComments, setLikedComments] = useState<Set<string>>(new Set());
+  const [ownComments, setOwnComments] = useState<Set<string>>(new Set());
   const [replyTo, setReplyTo] = useState<CommentRow | null>(null);
+  const [commentAnonymously, setCommentAnonymously] = useState(false);
   const draftInputRef = useRef<HTMLInputElement>(null);
   const [draftCursor, setDraftCursor] = useState<number | null>(null);
   const commentsSectionRef = useRef<HTMLDivElement>(null);
@@ -141,13 +143,12 @@ const PostDetailPage = () => {
     const load = async () => {
       setLoading(true);
       const [{ data: p }, { data: m }, { data: c }, likeRes, saveRes, ownRes] = await Promise.all([
-        // posts_public masks user_id on anonymous posts
         supabase.from('posts_public' as any).select('*').eq('id', id).maybeSingle(),
         supabase.from('post_media' as any).select('*').eq('post_id', id).order('sort_order'),
-        supabase.from('post_comments' as any).select('*').eq('post_id', id).order('created_at', { ascending: true }),
+        // post_comments_public masks user_id for anonymous comments
+        supabase.from('post_comments_public' as any).select('*').eq('post_id', id).order('created_at', { ascending: true }),
         userId ? supabase.from('post_likes' as any).select('post_id').eq('post_id', id).eq('user_id', userId).maybeSingle() : Promise.resolve({ data: null }),
         userId ? supabase.from('post_saves' as any).select('post_id').eq('post_id', id).eq('user_id', userId).maybeSingle() : Promise.resolve({ data: null }),
-        // Base-table read returns user_id only for owners/admins (RLS-enforced).
         userId ? supabase.from('posts' as any).select('user_id').eq('id', id).eq('user_id', userId).maybeSingle() : Promise.resolve({ data: null }),
       ]);
       setPost(p as any);
@@ -158,9 +159,8 @@ const PostDetailPage = () => {
       setSaved(!!saveRes.data);
       setIsOwn(!!ownRes.data);
       const ids = new Set<string>();
-      // Skip author lookup for anonymous posts — user_id is null in posts_public anyway.
       if (p && (p as any).user_id && !(p as any).is_anonymous) ids.add((p as any).user_id);
-      commentList.forEach((cc: CommentRow) => ids.add(cc.user_id));
+      commentList.forEach((cc: CommentRow) => { if (cc.user_id) ids.add(cc.user_id); });
       if (ids.size) {
         const { data: profs } = await supabase.rpc('get_public_profiles' as any, { _ids: Array.from(ids) });
         const map: Record<string, AuthorInfo> = {};
@@ -168,12 +168,14 @@ const PostDetailPage = () => {
         setAuthors(map);
       }
       if (userId && commentList.length) {
-        const { data: cl } = await supabase
-          .from('post_comment_likes' as any)
-          .select('comment_id')
-          .eq('user_id', userId)
-          .in('comment_id', commentList.map((cc: CommentRow) => cc.id));
+        const ids = commentList.map((cc: CommentRow) => cc.id);
+        const [{ data: cl }, { data: own }] = await Promise.all([
+          supabase.from('post_comment_likes' as any).select('comment_id').eq('user_id', userId).in('comment_id', ids),
+          // Owner can read own anonymous-comment rows via base-table RLS — used only to know which comments are "mine".
+          supabase.from('post_comments' as any).select('id').eq('post_id', id).eq('user_id', userId),
+        ]);
         setLikedComments(new Set(((cl as any[]) || []).map(r => r.comment_id)));
+        setOwnComments(new Set(((own as any[]) || []).map(r => r.id)));
       }
       setLoading(false);
     };
@@ -242,20 +244,24 @@ const PostDetailPage = () => {
     if (!userId || !post) { navigate('/auth'); return; }
     const body = draft.trim();
     if (!body) return;
+    const anon = !!post.is_anonymous && commentAnonymously;
     setPosting(true);
     const { data, error } = await supabase.from('post_comments' as any).insert({
-      post_id: post.id, user_id: userId, body, parent_id: replyTo?.id ?? null,
+      post_id: post.id, user_id: userId, body, parent_id: replyTo?.id ?? null, is_anonymous: anon,
     }).select('*').single();
     setPosting(false);
     if (error || !data) {
       toast({ title: 'Could not comment', description: error?.message, variant: 'destructive' });
       return;
     }
-    setComments(prev => [...prev, data as any]);
+    // Mirror the public view: hide own user_id when anonymous so UI consistently shows Rippler.
+    const inserted = { ...(data as any), user_id: anon ? null : (data as any).user_id } as CommentRow;
+    setComments(prev => [...prev, inserted]);
+    setOwnComments(prev => { const n = new Set(prev); n.add(inserted.id); return n; });
     setPost(p => p ? { ...p, comment_count: p.comment_count + 1 } : p);
     setDraft('');
     setReplyTo(null);
-    if (!authors[userId]) {
+    if (!anon && !authors[userId]) {
       const { data: prof } = await supabase.rpc('get_public_profiles' as any, { _ids: [userId] });
       if (prof?.[0]) setAuthors(a => ({ ...a, [userId]: prof[0] as any }));
     }
@@ -455,8 +461,9 @@ const PostDetailPage = () => {
             {comments.filter(c => !c.parent_id).map(top => {
               const thread = [top, ...comments.filter(r => r.parent_id === top.id)];
               return thread.map((c, idx) => {
-                const a = authors[c.user_id];
-                const mine = c.user_id === userId;
+                const cAnon = !!c.is_anonymous;
+                const a = !cAnon && c.user_id ? authors[c.user_id] : undefined;
+                const mine = ownComments.has(c.id);
                 const isReply = idx > 0;
                 const cLiked = likedComments.has(c.id);
                 return (
@@ -464,7 +471,9 @@ const PostDetailPage = () => {
                     key={c.id}
                     className={`flex gap-2.5 py-1.5 ${isReply ? 'ml-8' : ''}`}
                   >
-                    {a?.avatar_url ? (
+                    {cAnon ? (
+                      <PenguinAvatar size={32} />
+                    ) : a?.avatar_url ? (
                       <img src={a.avatar_url} className="w-8 h-8 rounded-full object-cover shrink-0 ring-1 ring-[#2a2a2a]" alt="" />
                     ) : (
                       <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#2a2a2a] to-[#ef4444]/40 shrink-0 flex items-center justify-center text-xs font-bold text-[#fafafa]">
@@ -473,7 +482,12 @@ const PostDetailPage = () => {
                     )}
                     <div className="flex-1 min-w-0">
                       <p className="text-xs font-bold text-[#fafafa]">
-                        {a?.name || a?.username || 'User'}
+                        {cAnon ? (
+                          <>
+                            {RIPPLER_NAME}
+                            <span className="ml-1 text-[10px] font-medium text-[#a0a0a0]">(anonymous)</span>
+                          </>
+                        ) : (a?.name || a?.username || 'User')}
                         <span className="ml-2 text-[#a0a0a0] font-normal">{formatDistanceToNow(new Date(c.created_at), { addSuffix: true })}</span>
                       </p>
                       <p className="text-sm text-[#e5e5e5] whitespace-pre-wrap">{c.body}</p>
@@ -512,11 +526,31 @@ const PostDetailPage = () => {
       <div className="mt-4 mx-3 rounded-2xl bg-[#0a0a0a]/95 border border-[#2a2a2a]/40">
         {replyTo && (
           <div className="px-3 pt-2 pb-1 flex items-center justify-between text-xs text-[#a0a0a0]">
-            <span>Replying to <span className="text-[#fafafa] font-semibold">{authors[replyTo.user_id]?.name || authors[replyTo.user_id]?.username || 'User'}</span></span>
+            <span>
+              Replying to{' '}
+              <span className="text-[#fafafa] font-semibold">
+                {replyTo.is_anonymous
+                  ? RIPPLER_NAME
+                  : (replyTo.user_id && (authors[replyTo.user_id]?.name || authors[replyTo.user_id]?.username)) || 'User'}
+              </span>
+            </span>
             <button onClick={() => setReplyTo(null)} aria-label="Cancel reply" className="p-1 hover:text-[#fafafa]">
               <X className="w-3.5 h-3.5" />
             </button>
           </div>
+        )}
+        {post.is_anonymous && (
+          <label className="px-3 pt-2 flex items-center gap-2 text-[11px] text-[#a0a0a0] cursor-pointer select-none">
+            <input
+              type="checkbox"
+              checked={commentAnonymously}
+              onChange={(e) => setCommentAnonymously(e.target.checked)}
+              className="w-3.5 h-3.5 accent-[#ef4444]"
+            />
+            <span>
+              Comment as <span className="text-[#fafafa] font-semibold">🐧 {RIPPLER_NAME}</span> (anonymous)
+            </span>
+          </label>
         )}
         {mention.open && (
           <div className="px-3 pb-2">
