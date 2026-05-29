@@ -15,9 +15,10 @@ import { PenguinAvatar, RIPPLER_NAME } from '@/components/RipplerIdentity';
 const CATEGORY_META: Record<string, { label: string }> = {
   everyday_vibes: { label: 'Daily Life' },
   showcase: { label: 'Show & Tell' },
+  trip: { label: 'Travel Diaries' },
   review: { label: 'Review' },
-  real_talk: { label: 'Advice' },
-  hidden_gems: { label: 'Hidden Gems' },
+  real_talk: { label: 'Advice and Tips' },
+  hidden_gems: { label: 'Work Diaries' },
 };
 
 interface PostRow {

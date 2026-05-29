@@ -30,17 +30,16 @@ const CATEGORY_META: Record<string, { label: string }> = {
   showcase: { label: 'Show & Tell' },
   trip: { label: 'Travel Diaries' },
   review: { label: 'Review' },
-  real_talk: { label: 'Advice' },
-  hidden_gems: { label: 'Hidden Gems' },
+  real_talk: { label: 'Advice and Tips' },
+  hidden_gems: { label: 'Work Diaries' },
 };
 
 const CATEGORY_FILTERS = [
   { key: 'everyday_vibes', label: 'Daily Life' },
   { key: 'trip', label: 'Travel Diaries' },
-  { key: 'review', label: 'Reviews' },
-  { key: 'showcase', label: 'Show & Tell' },
-  { key: 'real_talk', label: 'Advice' },
-  { key: 'hidden_gems', label: 'Hidden Gems' },
+  { key: 'review', label: 'Review' },
+  { key: 'real_talk', label: 'Advice and Tips' },
+  { key: 'hidden_gems', label: 'Work Diaries' },
 ];
 
 
