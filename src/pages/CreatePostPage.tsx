@@ -609,7 +609,7 @@ const CreatePostPage = () => {
       {(() => {
         const BODY_PLACEHOLDERS: Partial<Record<CategoryKey, string>> = {
           everyday_vibes: "You can include:\n\n📅 What's a day in your life looking like lately?\n\n🛠️ What are the items, products, or tools you used here?\n\n⏱️ How long did it take and what's the cost breakdown?",
-          showcase: 'You can include:\n\n🛠️ What are the items, products, or tools you used here?\n\n⏱️ How long did it take and cost breakdown?\n\n🔄 What would you do differently if you were to build it again?',
+          
           review: 'You can include:\n\n✨ What did you try? Highlight the must-tries or absolute skips.\n\n🪑 How was the seating or service? (e.g., ideal for dates, laptop work, group hangs).\n\n💰 How was the overall experience and did it justify the price?',
           real_talk: 'You can include:\n\n🧠 What is the exact context and situation one faces?\n\n🪜 What are the key steps to take or avoid?',
           hidden_gems: "You can include:\n\n💼 What's the reality vs expectation of working here?\n\n🤔 What do you wish you knew before joining?\n\n🚀 Who would thrive or struggle here?",
