@@ -9,6 +9,7 @@ import { useMentionAutocomplete } from '@/hooks/useMentionAutocomplete';
 import { MentionSuggestions } from '@/components/MentionSuggestions';
 import { getCommentPrompt } from '@/lib/commentPrompts';
 import { renderRichText } from '@/lib/richText';
+import { PenguinAvatar, RIPPLER_NAME } from '@/components/RipplerIdentity';
 
 
 const CATEGORY_META: Record<string, { label: string }> = {
@@ -21,7 +22,7 @@ const CATEGORY_META: Record<string, { label: string }> = {
 
 interface PostRow {
   id: string;
-  user_id: string;
+  user_id: string | null;
   title: string | null;
   body: string | null;
   location: string | null;
@@ -33,6 +34,7 @@ interface PostRow {
   created_at: string;
   music_url: string | null;
   music_title: string | null;
+  is_anonymous?: boolean;
 }
 interface MediaRow { id: string; url: string; kind: 'image' | 'video'; sort_order: number; }
 interface CommentRow { id: string; user_id: string; body: string; created_at: string; parent_id: string | null; like_count: number; }
@@ -131,16 +133,21 @@ const PostDetailPage = () => {
   });
 
 
+  const [isOwn, setIsOwn] = useState(false);
+
   useEffect(() => {
     if (!id) return;
     const load = async () => {
       setLoading(true);
-      const [{ data: p }, { data: m }, { data: c }, likeRes, saveRes] = await Promise.all([
-        supabase.from('posts' as any).select('*').eq('id', id).maybeSingle(),
+      const [{ data: p }, { data: m }, { data: c }, likeRes, saveRes, ownRes] = await Promise.all([
+        // posts_public masks user_id on anonymous posts
+        supabase.from('posts_public' as any).select('*').eq('id', id).maybeSingle(),
         supabase.from('post_media' as any).select('*').eq('post_id', id).order('sort_order'),
         supabase.from('post_comments' as any).select('*').eq('post_id', id).order('created_at', { ascending: true }),
         userId ? supabase.from('post_likes' as any).select('post_id').eq('post_id', id).eq('user_id', userId).maybeSingle() : Promise.resolve({ data: null }),
         userId ? supabase.from('post_saves' as any).select('post_id').eq('post_id', id).eq('user_id', userId).maybeSingle() : Promise.resolve({ data: null }),
+        // Base-table read returns user_id only for owners/admins (RLS-enforced).
+        userId ? supabase.from('posts' as any).select('user_id').eq('id', id).eq('user_id', userId).maybeSingle() : Promise.resolve({ data: null }),
       ]);
       setPost(p as any);
       setMedia((m as any) || []);
@@ -148,8 +155,10 @@ const PostDetailPage = () => {
       setComments(commentList);
       setLiked(!!likeRes.data);
       setSaved(!!saveRes.data);
+      setIsOwn(!!ownRes.data);
       const ids = new Set<string>();
-      if (p) ids.add((p as any).user_id);
+      // Skip author lookup for anonymous posts — user_id is null in posts_public anyway.
+      if (p && (p as any).user_id && !(p as any).is_anonymous) ids.add((p as any).user_id);
       commentList.forEach((cc: CommentRow) => ids.add(cc.user_id));
       if (ids.size) {
         const { data: profs } = await supabase.rpc('get_public_profiles' as any, { _ids: Array.from(ids) });
@@ -283,8 +292,8 @@ const PostDetailPage = () => {
   if (loading) return <div className="min-h-screen flex items-center justify-center bg-[#0a0a0a]"><Loader2 className="w-6 h-6 animate-spin text-[#ef4444]" /></div>;
   if (!post) return <div className="min-h-screen flex items-center justify-center bg-[#0a0a0a] text-[#a0a0a0]">Post not found</div>;
 
-  const author = authors[post.user_id];
-  const isOwn = userId === post.user_id;
+  const isAnon = !!post.is_anonymous;
+  const author = !isAnon && post.user_id ? authors[post.user_id] : undefined;
 
   return (
     <div className="min-h-screen max-w-lg mx-auto pb-32 font-[Figtree] bg-[linear-gradient(180deg,#0a0a0a_0%,#111111_40%,#000000_100%)]">
@@ -321,27 +330,42 @@ const PostDetailPage = () => {
       </div>
 
       {/* Author header */}
-      <button
-        onClick={() => navigate(isOwn ? '/profile' : `/u/${post.user_id}`)}
-        className="flex items-center gap-3 w-full px-4 py-3 text-left"
-      >
-        {author?.avatar_url ? (
-          <img src={author.avatar_url} alt="" className="w-10 h-10 rounded-full object-cover ring-1 ring-[#2a2a2a]" />
-        ) : (
-          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#2a2a2a] to-[#ef4444]/40 flex items-center justify-center font-bold text-[#fafafa]">
-            {(author?.name || author?.username || '?')[0]?.toUpperCase()}
+      {isAnon ? (
+        <div className="flex items-center gap-3 w-full px-4 py-3">
+          <PenguinAvatar size={40} />
+          <div className="flex-1 min-w-0">
+            <p className="font-[Outfit] font-bold text-[#fafafa] text-sm truncate">{RIPPLER_NAME}</p>
+            <p className="text-xs text-[#a0a0a0]">{formatDistanceToNow(new Date(post.created_at), { addSuffix: true })} · Anonymous</p>
+            {post.music_url && (
+              <div className="mt-1.5">
+                <PostMusicPlayer url={post.music_url} title={post.music_title} />
+              </div>
+            )}
           </div>
-        )}
-        <div className="flex-1 min-w-0">
-          <p className="font-[Outfit] font-bold text-[#fafafa] text-sm truncate">{author?.name || author?.username || 'User'}</p>
-          <p className="text-xs text-[#a0a0a0]">{formatDistanceToNow(new Date(post.created_at), { addSuffix: true })}</p>
-          {post.music_url && (
-            <div className="mt-1.5" onClick={(e) => e.stopPropagation()}>
-              <PostMusicPlayer url={post.music_url} title={post.music_title} />
+        </div>
+      ) : (
+        <button
+          onClick={() => navigate(isOwn ? '/profile' : `/u/${post.user_id}`)}
+          className="flex items-center gap-3 w-full px-4 py-3 text-left"
+        >
+          {author?.avatar_url ? (
+            <img src={author.avatar_url} alt="" className="w-10 h-10 rounded-full object-cover ring-1 ring-[#2a2a2a]" />
+          ) : (
+            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#2a2a2a] to-[#ef4444]/40 flex items-center justify-center font-bold text-[#fafafa]">
+              {(author?.name || author?.username || '?')[0]?.toUpperCase()}
             </div>
           )}
-        </div>
-      </button>
+          <div className="flex-1 min-w-0">
+            <p className="font-[Outfit] font-bold text-[#fafafa] text-sm truncate">{author?.name || author?.username || 'User'}</p>
+            <p className="text-xs text-[#a0a0a0]">{formatDistanceToNow(new Date(post.created_at), { addSuffix: true })}</p>
+            {post.music_url && (
+              <div className="mt-1.5" onClick={(e) => e.stopPropagation()}>
+                <PostMusicPlayer url={post.music_url} title={post.music_title} />
+              </div>
+            )}
+          </div>
+        </button>
+      )}
 
       {/* Media carousel */}
       {currentMedia && (

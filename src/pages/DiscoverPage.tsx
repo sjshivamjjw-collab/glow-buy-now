@@ -6,10 +6,11 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Search, Sparkles, Heart, MessageCircle, Loader2, Play, Images, MapPin, TrendingUp, ChevronDown, Check } from 'lucide-react';
 import { formatCount } from '@/lib/utils';
 import LazyVideoThumbnail from '@/components/LazyVideoThumbnail';
+import { PenguinAvatar, RIPPLER_NAME } from '@/components/RipplerIdentity';
 
 interface TrendingPost {
   id: string;
-  user_id: string;
+  user_id: string | null;
   title: string | null;
   body: string | null;
   location: string | null;
@@ -21,6 +22,7 @@ interface TrendingPost {
   cover_kind: 'image' | 'video' | null;
   media_count: number;
   category?: string | null;
+  is_anonymous?: boolean;
 }
 
 const CATEGORY_META: Record<string, { label: string }> = {
@@ -82,21 +84,29 @@ const DiscoverPage = () => {
     const load = async () => {
       const { data } = await supabase.rpc('get_trending_posts' as any, { _limit: 30, _offset: 0 });
       const list = (data as TrendingPost[] | null) ?? [];
-      // get_trending_posts doesn't return category — fetch it separately
+      // get_trending_posts doesn't return category — fetch it from the public view (which also masks anon authors)
       if (list.length) {
         const ids = list.map(p => p.id);
-        const { data: catRows } = await supabase.from('posts' as any).select('id, category').in('id', ids);
-        const catMap: Record<string, string | null> = {};
-        ((catRows as any[]) || []).forEach(r => { catMap[r.id] = r.category; });
-        list.forEach(p => { p.category = catMap[p.id] ?? null; });
+        const { data: catRows } = await supabase.from('posts_public' as any).select('id, category, is_anonymous').in('id', ids);
+        const catMap: Record<string, { category: string | null; is_anonymous: boolean }> = {};
+        ((catRows as any[]) || []).forEach(r => { catMap[r.id] = { category: r.category, is_anonymous: !!r.is_anonymous }; });
+        list.forEach(p => {
+          const row = catMap[p.id];
+          p.category = row?.category ?? null;
+          // Trust whichever source flags anonymity — defence in depth.
+          p.is_anonymous = !!(p.is_anonymous || row?.is_anonymous);
+          if (p.is_anonymous) p.user_id = null;
+        });
       }
       setPosts(list);
       if (list.length) {
-        const ids = Array.from(new Set(list.map(p => p.user_id)));
-        const { data: profs } = await supabase.rpc('get_public_profiles' as any, { _ids: ids });
-        const map: Record<string, AuthorInfo> = {};
-        ((profs as any[]) || []).forEach(p => { map[p.id] = p; });
-        setAuthors(map);
+        const ids = Array.from(new Set(list.map(p => p.user_id).filter((u): u is string => !!u)));
+        if (ids.length) {
+          const { data: profs } = await supabase.rpc('get_public_profiles' as any, { _ids: ids });
+          const map: Record<string, AuthorInfo> = {};
+          ((profs as any[]) || []).forEach(p => { map[p.id] = p; });
+          setAuthors(map);
+        }
       }
       setLoading(false);
     };
@@ -255,7 +265,8 @@ const DiscoverPage = () => {
           </div>
         ) : (() => {
           const renderCard = (p: TrendingPost, h: number) => {
-            const author = authors[p.user_id];
+            const author = p.user_id ? authors[p.user_id] : undefined;
+            const isAnon = !!p.is_anonymous;
             return (
               <button
                 key={p.id}
@@ -305,13 +316,17 @@ const DiscoverPage = () => {
                   )}
                   <div className="flex items-center justify-between gap-2">
                     <div className="flex items-center gap-1.5 min-w-0 flex-1">
-                      {author?.avatar_url ? (
+                      {isAnon ? (
+                        <PenguinAvatar size={20} />
+                      ) : author?.avatar_url ? (
                         <img src={author.avatar_url} className="w-5 h-5 rounded-full object-cover shrink-0 ring-1 ring-[#2a2a2a]" alt="" />
                       ) : (
                         <div className="w-5 h-5 rounded-full bg-gradient-to-br from-[#2a2a2a] to-[#ef4444] shrink-0" />
                       )}
                       <span className="truncate text-[12px] font-semibold text-[#cfcfcf]">
-                        {author?.username ? `@${author.username}` : author?.name || 'User'}
+                        {isAnon
+                          ? RIPPLER_NAME
+                          : author?.username ? `@${author.username}` : author?.name || 'User'}
                       </span>
                     </div>
                     <div className="flex items-center gap-2 shrink-0">
