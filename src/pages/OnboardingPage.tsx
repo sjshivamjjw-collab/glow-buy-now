@@ -337,9 +337,5 @@ const OnboardingPage = () => {
     </div>
   );
 };
-      </AnimatePresence>
-    </div>
-  );
-};
 
 export default OnboardingPage;
