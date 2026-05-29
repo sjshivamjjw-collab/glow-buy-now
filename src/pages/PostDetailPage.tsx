@@ -133,16 +133,21 @@ const PostDetailPage = () => {
   });
 
 
+  const [isOwn, setIsOwn] = useState(false);
+
   useEffect(() => {
     if (!id) return;
     const load = async () => {
       setLoading(true);
-      const [{ data: p }, { data: m }, { data: c }, likeRes, saveRes] = await Promise.all([
-        supabase.from('posts' as any).select('*').eq('id', id).maybeSingle(),
+      const [{ data: p }, { data: m }, { data: c }, likeRes, saveRes, ownRes] = await Promise.all([
+        // posts_public masks user_id on anonymous posts
+        supabase.from('posts_public' as any).select('*').eq('id', id).maybeSingle(),
         supabase.from('post_media' as any).select('*').eq('post_id', id).order('sort_order'),
         supabase.from('post_comments' as any).select('*').eq('post_id', id).order('created_at', { ascending: true }),
         userId ? supabase.from('post_likes' as any).select('post_id').eq('post_id', id).eq('user_id', userId).maybeSingle() : Promise.resolve({ data: null }),
         userId ? supabase.from('post_saves' as any).select('post_id').eq('post_id', id).eq('user_id', userId).maybeSingle() : Promise.resolve({ data: null }),
+        // Base-table read returns user_id only for owners/admins (RLS-enforced).
+        userId ? supabase.from('posts' as any).select('user_id').eq('id', id).eq('user_id', userId).maybeSingle() : Promise.resolve({ data: null }),
       ]);
       setPost(p as any);
       setMedia((m as any) || []);
@@ -150,8 +155,10 @@ const PostDetailPage = () => {
       setComments(commentList);
       setLiked(!!likeRes.data);
       setSaved(!!saveRes.data);
+      setIsOwn(!!ownRes.data);
       const ids = new Set<string>();
-      if (p) ids.add((p as any).user_id);
+      // Skip author lookup for anonymous posts — user_id is null in posts_public anyway.
+      if (p && (p as any).user_id && !(p as any).is_anonymous) ids.add((p as any).user_id);
       commentList.forEach((cc: CommentRow) => ids.add(cc.user_id));
       if (ids.size) {
         const { data: profs } = await supabase.rpc('get_public_profiles' as any, { _ids: Array.from(ids) });
