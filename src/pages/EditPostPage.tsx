@@ -313,7 +313,11 @@ const EditPostPage = () => {
 
         <div>
           <label className="block text-xs font-semibold text-[#6b6b6b] uppercase tracking-wide mb-1.5">Description</label>
+          <div className="mb-1.5">
+            <RichTextToolbar textareaRef={bodyTextareaRef} value={body} onChange={setBody} />
+          </div>
           <textarea
+            ref={bodyTextareaRef}
             value={body}
             onChange={e => setBody(e.target.value)}
             placeholder="Write something..."
