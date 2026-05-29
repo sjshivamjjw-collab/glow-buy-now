@@ -72,7 +72,7 @@ interface PendingMedia {
   kind: 'image' | 'video';
 }
 
-const SortableMediaTile = ({ m, onRemove }: { m: PendingMedia; onRemove: () => void }) => {
+const SortableMediaTile = ({ m, onRemove, onCrop }: { m: PendingMedia; onRemove: () => void; onCrop?: () => void }) => {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: m.id });
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -108,6 +108,16 @@ const SortableMediaTile = ({ m, onRemove }: { m: PendingMedia; onRemove: () => v
       ) : (
         <img src={m.previewUrl} alt="" className="w-full h-full object-cover pointer-events-none" />
       )}
+      {onCrop && m.kind === 'image' && (
+        <button
+          onPointerDown={e => e.stopPropagation()}
+          onClick={e => { e.stopPropagation(); onCrop(); }}
+          aria-label="Crop"
+          className="absolute top-1 left-1 w-6 h-6 rounded-full bg-black/60 text-white flex items-center justify-center"
+        >
+          <Crop className="w-3.5 h-3.5" />
+        </button>
+      )}
       <button
         onPointerDown={e => e.stopPropagation()}
         onClick={e => { e.stopPropagation(); onRemove(); }}
@@ -119,6 +129,7 @@ const SortableMediaTile = ({ m, onRemove }: { m: PendingMedia; onRemove: () => v
     </div>
   );
 };
+
 
 const DRAFT_KEY = 'createPostDraft:v1';
 
