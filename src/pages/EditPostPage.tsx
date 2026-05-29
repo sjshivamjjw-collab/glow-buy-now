@@ -38,6 +38,7 @@ const EditPostPage = () => {
 
   const [title, setTitle] = useState('');
   const [body, setBody] = useState('');
+  const bodyTextareaRef = useRef<HTMLTextAreaElement>(null);
   const [location, setLocation] = useState('');
   const [hashtags, setHashtags] = useState<string[]>([]);
   const [hashtagInput, setHashtagInput] = useState('');
