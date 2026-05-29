@@ -22,11 +22,14 @@ export default function RichTextEditor({
 }: Props) {
   const ref = useRef<HTMLDivElement>(null);
 
-  // Sync external value into the DOM only when it actually differs to avoid
-  // wiping the user's caret position on every keystroke.
+  // Sync external value into the DOM only when it actually differs AND the
+  // editor is not currently focused. Rewriting innerHTML while the user is
+  // typing collapses the selection to the start of the field, which on long
+  // content feels like the caret keeps jumping to the top or input gets lost.
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
+    if (document.activeElement === el) return; // don't clobber an active caret
     if (el.innerHTML !== (value || '')) {
       el.innerHTML = value || '';
     }
