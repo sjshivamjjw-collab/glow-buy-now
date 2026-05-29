@@ -61,7 +61,7 @@ async function getCroppedFile(file: File, area: Area, rotation: number): Promise
   out.width = Math.round(area.width);
   out.height = Math.round(area.height);
   const ctx = out.getContext('2d')!;
-  ctx.drawImage(out as any, 0, 0); // noop just to keep ctx hot in some envs
+  
   ctx.drawImage(
     off,
     Math.round(area.x),
