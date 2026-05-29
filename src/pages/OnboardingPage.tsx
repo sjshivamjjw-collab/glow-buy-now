@@ -7,9 +7,9 @@ import { User, ArrowRight, Check, Camera } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { INTEREST_OPTIONS } from '@/lib/interests';
 
-type Step = 'basics' | 'details' | 'interests';
+type Step = 'basics' | 'details';
 
-const STEPS: Step[] = ['basics', 'details', 'interests'];
+const STEPS: Step[] = ['basics', 'details'];
 
 const GENDER_OPTIONS = [
   { value: 'male', label: 'Male', emoji: '👨' },
