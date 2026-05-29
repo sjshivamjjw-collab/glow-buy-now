@@ -39,7 +39,7 @@ const EditPostPage = () => {
 
   const [title, setTitle] = useState('');
   const [body, setBody] = useState('');
-  const bodyTextareaRef = useRef<HTMLTextAreaElement>(null);
+  
   const [location, setLocation] = useState('');
   const [hashtags, setHashtags] = useState<string[]>([]);
   const [hashtagInput, setHashtagInput] = useState('');
@@ -58,7 +58,11 @@ const EditPostPage = () => {
       const p: any = data;
       if (p.user_id !== userId) { setNotAllowed(true); setLoading(false); return; }
       setTitle(p.title || '');
-      setBody(p.body || '');
+      {
+        const raw = p.body || '';
+        const isHtml = /<(strong|b|em|i|u|br|div|p|span)\b/i.test(raw);
+        setBody(isHtml ? raw : (raw ? markdownToHtml(raw) : ''));
+      }
       setLocation(p.location || '');
       setHashtags(p.hashtags || []);
 
@@ -132,7 +136,7 @@ const EditPostPage = () => {
   const handleSave = async () => {
     if (!id || !userId) return;
     if (!title.trim()) { toast({ title: 'Add a title', variant: 'destructive' }); return; }
-    if (!body.trim()) { toast({ title: 'Add a description', variant: 'destructive' }); return; }
+    if (isRichTextEmpty(body)) { toast({ title: 'Add a description', variant: 'destructive' }); return; }
     if (totalMedia === 0) { toast({ title: 'Add at least one photo or video', variant: 'destructive' }); return; }
     setSaving(true);
     try {
@@ -173,7 +177,7 @@ const EditPostPage = () => {
       // 4. Update post fields
       const { error } = await supabase.from('posts' as any).update({
         title: title.trim(),
-        body: body.trim(),
+        body: isRichTextEmpty(body) ? null : body,
         location: location.trim() || null,
         hashtags,
       }).eq('id', id);
