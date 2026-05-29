@@ -393,7 +393,7 @@ const CreatePostPage = () => {
       toast({ title: 'Add a title', description: 'Tell people what you are sharing', variant: 'destructive' });
       return;
     }
-    if (!body.trim()) {
+    if (isRichTextEmpty(body)) {
       toast({ title: 'Add a description', description: 'Tell people more about your post', variant: 'destructive' });
       return;
     }
@@ -413,7 +413,7 @@ const CreatePostPage = () => {
         review_subcategory: category === 'review' ? reviewSub : null,
         review_recommendation: category === 'review' ? recommendation : null,
         title: title.trim() || null,
-        body: body.trim() || null,
+        body: isRichTextEmpty(body) ? null : body,
         location: location.trim() || null,
         hashtags,
         music_url: musicUrl,
