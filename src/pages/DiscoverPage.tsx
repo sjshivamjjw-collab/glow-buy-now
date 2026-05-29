@@ -299,29 +299,32 @@ const DiscoverPage = () => {
                 {/* Footer */}
                 <div className="px-3 pt-3 pb-3">
                   {p.title && (
-                    <p className="font-[Outfit] font-semibold text-[#fafafa] text-[15px] leading-[1.3] line-clamp-3 mb-2.5">
+                    <p className="font-[Outfit] font-semibold text-[#fafafa] text-[15px] leading-[1.3] line-clamp-4 mb-2.5">
                       {p.title}
                     </p>
                   )}
-                  <div className="flex items-center gap-1.5 min-w-0 mb-2">
-                    {author?.avatar_url ? (
-                      <img src={author.avatar_url} className="w-5 h-5 rounded-full object-cover shrink-0 ring-1 ring-[#2a2a2a]" alt="" />
-                    ) : (
-                      <div className="w-5 h-5 rounded-full bg-gradient-to-br from-[#2a2a2a] to-[#ef4444] shrink-0" />
-                    )}
-                    <span className="truncate text-[12px] font-semibold text-[#cfcfcf]">
-                      {author?.username ? `@${author.username}` : author?.name || 'User'}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <span className="flex items-center gap-1 text-[12px] text-[#ef4444] font-semibold">
-                      <Heart className="w-3.5 h-3.5 fill-[#ef4444] text-[#ef4444]" />{formatCount(p.like_count)}
-                    </span>
-                    <span className="flex items-center gap-1 text-[12px] text-[#ef4444] font-semibold">
-                      <MessageCircle className="w-3.5 h-3.5" />{formatCount(p.comment_count)}
-                    </span>
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-1.5 min-w-0 flex-1">
+                      {author?.avatar_url ? (
+                        <img src={author.avatar_url} className="w-5 h-5 rounded-full object-cover shrink-0 ring-1 ring-[#2a2a2a]" alt="" />
+                      ) : (
+                        <div className="w-5 h-5 rounded-full bg-gradient-to-br from-[#2a2a2a] to-[#ef4444] shrink-0" />
+                      )}
+                      <span className="truncate text-[12px] font-semibold text-[#cfcfcf]">
+                        {author?.username ? `@${author.username}` : author?.name || 'User'}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <span className="flex items-center gap-0.5 text-[12px] text-[#ef4444] font-semibold">
+                        <Heart className="w-3.5 h-3.5 fill-[#ef4444] text-[#ef4444]" />{formatCount(p.like_count)}
+                      </span>
+                      <span className="flex items-center gap-0.5 text-[12px] text-[#ef4444] font-semibold">
+                        <MessageCircle className="w-3.5 h-3.5" />{formatCount(p.comment_count)}
+                      </span>
+                    </div>
                   </div>
                 </div>
+
 
               </button>
             );
