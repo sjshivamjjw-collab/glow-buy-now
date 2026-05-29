@@ -1118,6 +1118,40 @@ export type Database = {
         }[]
       }
       get_platform_admin_ids: { Args: never; Returns: string[] }
+      get_post_comments_public: {
+        Args: { _post_id: string }
+        Returns: {
+          body: string
+          created_at: string
+          id: string
+          is_anonymous: boolean
+          like_count: number
+          parent_id: string
+          post_id: string
+          user_id: string
+        }[]
+      }
+      get_post_public: {
+        Args: { _post_id: string }
+        Returns: {
+          body: string
+          category: string
+          comment_count: number
+          created_at: string
+          hashtags: string[]
+          id: string
+          is_anonymous: boolean
+          like_count: number
+          location: string
+          music_title: string
+          music_url: string
+          review_recommendation: string
+          review_subcategory: string
+          title: string
+          updated_at: string
+          user_id: string
+        }[]
+      }
       get_public_profiles: {
         Args: { _ids: string[] }
         Returns: {
