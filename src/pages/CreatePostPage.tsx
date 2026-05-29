@@ -28,7 +28,7 @@ import { CSS } from '@dnd-kit/utilities';
 const MAX_FILES = 10;
 const MAX_FILE_MB = 25;
 
-type CategoryKey = 'everyday_vibes' | 'showcase' | 'trip' | 'review' | 'real_talk' | 'hidden_gems';
+type CategoryKey = 'everyday_vibes' | 'trip' | 'review' | 'real_talk' | 'hidden_gems';
 type ReviewSubKey = 'restaurant' | 'hotel' | 'product' | 'media' | 'activity';
 type RecommendationKey = 'loved' | 'mixed' | 'not_for_me';
 
