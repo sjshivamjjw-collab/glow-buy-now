@@ -187,24 +187,38 @@ export const ImageCropperDialog = ({ file, open, onCancel, onApply, onSkip, titl
             />
           </div>
 
-          <div className="flex items-center justify-end gap-2 pt-1">
-            <button
-              type="button"
-              onClick={onCancel}
-              disabled={working}
-              className="px-4 py-2 rounded-xl bg-[#161616] border border-[#2a2a2a] text-white text-sm font-semibold flex items-center gap-1 disabled:opacity-50"
-            >
-              <X className="w-4 h-4" /> Cancel
-            </button>
-            <button
-              type="button"
-              onClick={handleApply}
-              disabled={working || !croppedArea}
-              className="px-4 py-2 rounded-xl bg-gradient-to-br from-[#ef4444] to-[#dc2626] text-white text-sm font-semibold flex items-center gap-1 disabled:opacity-50"
-            >
-              <Check className="w-4 h-4" /> {working ? 'Applying…' : 'Apply'}
-            </button>
+          <div className="flex items-center justify-between gap-2 pt-1">
+            {title ? <span className="text-[11px] text-[#a0a0a0] truncate">{title}</span> : <span />}
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={onCancel}
+                disabled={working}
+                className="px-3 py-2 rounded-xl bg-[#161616] border border-[#2a2a2a] text-white text-sm font-semibold flex items-center gap-1 disabled:opacity-50"
+              >
+                <X className="w-4 h-4" /> Cancel
+              </button>
+              {onSkip && (
+                <button
+                  type="button"
+                  onClick={onSkip}
+                  disabled={working}
+                  className="px-3 py-2 rounded-xl bg-[#161616] border border-[#2a2a2a] text-white text-sm font-semibold disabled:opacity-50"
+                >
+                  Skip crop
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={handleApply}
+                disabled={working || !croppedArea}
+                className="px-4 py-2 rounded-xl bg-gradient-to-br from-[#ef4444] to-[#dc2626] text-white text-sm font-semibold flex items-center gap-1 disabled:opacity-50"
+              >
+                <Check className="w-4 h-4" /> {working ? 'Applying…' : 'Apply'}
+              </button>
+            </div>
           </div>
+
         </div>
       </DialogContent>
     </Dialog>
