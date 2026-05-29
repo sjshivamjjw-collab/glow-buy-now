@@ -580,6 +580,30 @@ const CreatePostPage = () => {
         </div>
       )}
 
+      {/* Anonymous toggle — Work Diaries only */}
+      {category === 'hidden_gems' && (
+        <label className="mb-4 flex items-start gap-3 px-3 py-3 rounded-xl bg-[#0f3460]/5 border border-[#0f3460]/20 cursor-pointer select-none">
+          <input
+            type="checkbox"
+            checked={postAnonymously}
+            onChange={e => setPostAnonymously(e.target.checked)}
+            className="mt-0.5 w-4 h-4 accent-[#0f3460] shrink-0"
+          />
+          <span className="flex-1 min-w-0">
+            <span className="flex items-center gap-1.5 text-sm font-semibold text-[#0a0a0a]">
+              <img
+                src="https://cdn.jsdelivr.net/npm/openmoji@latest/color/svg/1F427.svg"
+                alt=""
+                className="w-4 h-4"
+              />
+              Post anonymously as Rippler
+            </span>
+            <span className="block text-[11px] text-[#6b6b6b] mt-0.5 leading-snug">
+              Your name and profile won't be shown on this post — not on Discover, not on your profile, not anywhere.
+            </span>
+          </span>
+        </label>
+      )}
 
       {/* Media grid */}
       <label className="text-xs font-semibold text-[#6b6b6b] mb-1 block">
