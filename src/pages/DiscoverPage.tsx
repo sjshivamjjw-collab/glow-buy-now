@@ -51,8 +51,8 @@ interface AuthorInfo {
 
 // Deterministic staggered heights for richer masonry feel when images
 // don't expose their natural ratio yet.
-const LEFT_HEIGHTS = [280, 300, 270, 290, 285, 295];
-const RIGHT_HEIGHTS = [230, 250, 220, 245, 235, 240];
+const LEFT_HEIGHTS = [240, 260, 230, 250, 245, 255];
+const RIGHT_HEIGHTS = [200, 220, 190, 215, 205, 210];
 
 const DiscoverPage = () => {
   const navigate = useNavigate();
