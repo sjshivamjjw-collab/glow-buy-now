@@ -57,7 +57,7 @@ const RIGHT_HEIGHTS = [200, 220, 190, 215, 205, 210];
 
 const DiscoverPage = () => {
   const navigate = useNavigate();
-  const { userName, userAvatar } = useAuth() as any;
+  const { userName, userAvatar, userId } = useAuth() as any;
   const firstName = (userName || '').trim().split(' ')[0] || 'there';
   const [posts, setPosts] = useState<TrendingPost[]>([]);
   const [authors, setAuthors] = useState<Record<string, AuthorInfo>>({});
@@ -66,7 +66,15 @@ const DiscoverPage = () => {
   const [activeChip, setActiveChip] = useState<string>('For you');
   const [categoryOpen, setCategoryOpen] = useState(false);
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
+  const [interests, setInterests] = useState<string[]>([]);
   const categoryRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!userId) { setInterests([]); return; }
+    supabase.from('profiles').select('interests' as any).eq('id', userId).maybeSingle().then(({ data }) => {
+      setInterests(((data as any)?.interests as string[] | null) || []);
+    });
+  }, [userId]);
 
   useEffect(() => {
     const onClick = (e: Event) => {
