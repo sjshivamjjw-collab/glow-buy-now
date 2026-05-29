@@ -5,9 +5,11 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import {
   ArrowLeft, ImagePlus, X, Loader2, MapPin, Hash, Music, Sparkles,
-  Palette, Star, MessageSquareQuote, Gem, ChevronRight,
+  Palette, Star, MessageSquareQuote, Gem, ChevronRight, Crop,
   UtensilsCrossed, BedDouble, Plane, ShoppingBag, BookOpen, Ticket,
 } from 'lucide-react';
+import { ImageCropperDialog } from '@/components/ImageCropperDialog';
+
 import { useMentionAutocomplete } from '@/hooks/useMentionAutocomplete';
 import { MentionSuggestions } from '@/components/MentionSuggestions';
 import { MusicPicker, type PickedTrack } from '@/components/MusicPicker';
