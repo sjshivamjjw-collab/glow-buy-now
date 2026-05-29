@@ -5,9 +5,11 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import {
   ArrowLeft, ImagePlus, X, Loader2, MapPin, Hash, Music, Sparkles,
-  Palette, Star, MessageSquareQuote, Gem, ChevronRight,
+  Palette, Star, MessageSquareQuote, Gem, ChevronRight, Crop,
   UtensilsCrossed, BedDouble, Plane, ShoppingBag, BookOpen, Ticket,
 } from 'lucide-react';
+import { ImageCropperDialog } from '@/components/ImageCropperDialog';
+
 import { useMentionAutocomplete } from '@/hooks/useMentionAutocomplete';
 import { MentionSuggestions } from '@/components/MentionSuggestions';
 import { MusicPicker, type PickedTrack } from '@/components/MusicPicker';
@@ -70,7 +72,7 @@ interface PendingMedia {
   kind: 'image' | 'video';
 }
 
-const SortableMediaTile = ({ m, onRemove }: { m: PendingMedia; onRemove: () => void }) => {
+const SortableMediaTile = ({ m, onRemove, onCrop }: { m: PendingMedia; onRemove: () => void; onCrop?: () => void }) => {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: m.id });
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -106,6 +108,16 @@ const SortableMediaTile = ({ m, onRemove }: { m: PendingMedia; onRemove: () => v
       ) : (
         <img src={m.previewUrl} alt="" className="w-full h-full object-cover pointer-events-none" />
       )}
+      {onCrop && m.kind === 'image' && (
+        <button
+          onPointerDown={e => e.stopPropagation()}
+          onClick={e => { e.stopPropagation(); onCrop(); }}
+          aria-label="Crop"
+          className="absolute top-1 left-1 w-6 h-6 rounded-full bg-black/60 text-white flex items-center justify-center"
+        >
+          <Crop className="w-3.5 h-3.5" />
+        </button>
+      )}
       <button
         onPointerDown={e => e.stopPropagation()}
         onClick={e => { e.stopPropagation(); onRemove(); }}
@@ -117,6 +129,7 @@ const SortableMediaTile = ({ m, onRemove }: { m: PendingMedia; onRemove: () => v
     </div>
   );
 };
+
 
 const DRAFT_KEY = 'createPostDraft:v1';
 
@@ -245,19 +258,69 @@ const CreatePostPage = () => {
   }, [location]);
 
 
+  // Image crop flow state
+  const [cropQueue, setCropQueue] = useState<File[]>([]);
+  const [editCropId, setEditCropId] = useState<string | null>(null);
+  const currentCropFile = editCropId
+    ? media.find(m => m.id === editCropId)?.file ?? null
+    : cropQueue[0] ?? null;
+  const cropperOpen = !!currentCropFile;
+
+  const addMediaFile = (file: File) => {
+    const kind: 'image' | 'video' = file.type.startsWith('video/') ? 'video' : 'image';
+    const entry: PendingMedia = {
+      id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+      file,
+      previewUrl: URL.createObjectURL(file),
+      kind,
+    };
+    setMedia(prev => [...prev, entry]);
+  };
+
   const handleFiles = (files: FileList | null) => {
     if (!files) return;
-    const next: PendingMedia[] = [];
-    Array.from(files).forEach(file => {
-      if (media.length + next.length >= MAX_FILES) return;
+    const arr = Array.from(files);
+    const remaining = MAX_FILES - media.length - cropQueue.length;
+    const accepted: File[] = [];
+    for (const file of arr) {
+      if (accepted.length >= remaining) break;
       if (file.size > MAX_FILE_MB * 1024 * 1024) {
         toast({ title: `${file.name} is too large`, description: `Max ${MAX_FILE_MB}MB per file`, variant: 'destructive' });
-        return;
+        continue;
       }
-      const kind: 'image' | 'video' = file.type.startsWith('video/') ? 'video' : 'image';
-      next.push({ id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`, file, previewUrl: URL.createObjectURL(file), kind });
-    });
-    setMedia(prev => [...prev, ...next]);
+      accepted.push(file);
+    }
+    const images = accepted.filter(f => !f.type.startsWith('video/'));
+    const videos = accepted.filter(f => f.type.startsWith('video/'));
+    videos.forEach(addMediaFile);
+    if (images.length) setCropQueue(prev => [...prev, ...images]);
+  };
+
+  const handleCropApply = (croppedFile: File) => {
+    if (editCropId) {
+      setMedia(prev => prev.map(m => {
+        if (m.id !== editCropId) return m;
+        URL.revokeObjectURL(m.previewUrl);
+        return { ...m, file: croppedFile, previewUrl: URL.createObjectURL(croppedFile) };
+      }));
+      setEditCropId(null);
+    } else {
+      addMediaFile(croppedFile);
+      setCropQueue(prev => prev.slice(1));
+    }
+  };
+
+  const handleCropSkip = () => {
+    if (editCropId) { setEditCropId(null); return; }
+    const [first, ...rest] = cropQueue;
+    if (first) addMediaFile(first);
+    setCropQueue(rest);
+  };
+
+  const handleCropCancel = () => {
+    if (editCropId) { setEditCropId(null); return; }
+    // Cancel discards the current pending image and advances the queue
+    setCropQueue(prev => prev.slice(1));
   };
 
   const removeMedia = (i: number) => {
@@ -268,6 +331,7 @@ const CreatePostPage = () => {
       return copy;
     });
   };
+
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
@@ -520,7 +584,7 @@ const CreatePostPage = () => {
         <SortableContext items={media.map(m => m.id)} strategy={rectSortingStrategy}>
           <div className="grid grid-cols-3 gap-2 mb-1">
             {media.map((m, i) => (
-              <SortableMediaTile key={m.id} m={m} onRemove={() => removeMedia(i)} />
+              <SortableMediaTile key={m.id} m={m} onRemove={() => removeMedia(i)} onCrop={() => setEditCropId(m.id)} />
             ))}
             {media.length < MAX_FILES && (
               <button
@@ -756,6 +820,16 @@ const CreatePostPage = () => {
       <div className="mb-6" />
 
       <MusicPicker open={musicPickerOpen} onClose={() => setMusicPickerOpen(false)} onPick={setMusic} />
+
+      <ImageCropperDialog
+        file={currentCropFile}
+        open={cropperOpen}
+        onApply={handleCropApply}
+        onCancel={handleCropCancel}
+        onSkip={editCropId ? undefined : handleCropSkip}
+        title={editCropId ? 'Recrop image' : (cropQueue.length > 1 ? `Crop image (${cropQueue.length} left)` : 'Crop image')}
+      />
+
 
       <button onClick={handleSubmit} disabled={submitting}
         className="w-full py-3.5 rounded-2xl bg-gradient-to-br from-[#ef4444] to-[#dc2626] text-white font-bold text-sm disabled:opacity-60 flex items-center justify-center gap-2 shadow-[0_8px_24px_-8px_rgba(239,68,68,0.5)]">
