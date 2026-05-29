@@ -612,7 +612,7 @@ const CreatePostPage = () => {
           showcase: 'You can include:\n\n🛠️ What are the items, products, or tools you used here?\n\n⏱️ How long did it take and cost breakdown?\n\n🔄 What would you do differently if you were to build it again?',
           review: 'You can include:\n\n✨ What did you try? Highlight the must-tries or absolute skips.\n\n🪑 How was the seating or service? (e.g., ideal for dates, laptop work, group hangs).\n\n💰 How was the overall experience and did it justify the price?',
           real_talk: 'You can include:\n\n🧠 What is the exact context and situation one faces?\n\n🪜 What are the key steps to take or avoid?',
-          hidden_gems: 'You can include:\n\n💎 What makes this feel special, underrated or genuinely useful?\n\n🔍 How did you discover it — and how can others find it too?\n\n✨ Any tips for someone planning to try or explore it?',
+          hidden_gems: "You can include:\n\n💼 What's the reality vs expectation of working here?\n\n🤔 What do you wish you knew before joining?\n\n🚀 Who would thrive or struggle here?",
           trip: 'You can include:\n\n🗺️ What surprised you most — and what felt overrated?\n\n🚕 Best ways to get around, and when\u2019s the best time to visit?\n\n💸 What was the detailed cost breakdown and tips to save money?',
         };
         const REVIEW_SUB_PLACEHOLDERS: Partial<Record<ReviewSubKey, string>> = {
