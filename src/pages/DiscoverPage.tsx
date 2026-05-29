@@ -84,11 +84,44 @@ const DiscoverPage = () => {
   }, []);
 
 
-  const NUDGE_PROMPTS: { category: string; label: string }[] = [
-    { category: 'trip', label: 'Best weekend getaway near you?' },
-    { category: 'review', label: 'A restaurant worth the hype?' },
-    { category: 'hidden_gems', label: 'Career advice you wish you knew?' },
+  const NUDGE_POOL: { category: string; questions: string[] }[] = [
+    { category: 'trip', questions: [
+      'Best weekend getaway nearby?',
+      'Most overrated destination?',
+      'Travel mistake you regret?',
+      'Places worth revisiting?',
+    ]},
+    { category: 'review', questions: [
+      'Hidden food gem nearby?',
+      'Expensive food spot you tried?',
+      'Cafe you keep returning to?',
+      'Best dessert spot?',
+      'Favorite street food place?',
+    ]},
+    { category: 'everyday_vibes', questions: [
+      'Beauty products that actually worked?',
+      'Biggest regret purchase?',
+      'Products you keep repurchasing?',
+      'Skincare routine that works?',
+    ]},
+    { category: 'hidden_gems', questions: [
+      'Biggest workplace lesson?',
+      'Best and worst part of your work?',
+      'Wish you knew this before joining work?',
+    ]},
   ];
+
+  const NUDGE_PROMPTS = useMemo(() => {
+    // Refresh every 6 hours; rotates together across all categories.
+    const windowIdx = Math.floor(Date.now() / (6 * 60 * 60 * 1000));
+    return NUDGE_POOL.map((pool, i) => {
+      const seed = (windowIdx * 9301 + i * 49297) % 233280;
+      const rand = seed / 233280;
+      const q = pool.questions[Math.floor(rand * pool.questions.length)];
+      return { category: pool.category, label: q };
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     if (!userId) { setInterests([]); return; }
