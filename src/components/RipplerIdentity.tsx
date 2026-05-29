@@ -6,21 +6,21 @@ const PENGUIN_SRC = 'https://cdn.jsdelivr.net/npm/openmoji@latest/color/svg/1F42
 export const RIPPLER_NAME = 'Rippler';
 
 export const PenguinAvatar = ({
-  size = 20,
+  size = 28,
   className = '',
 }: {
   size?: number;
   className?: string;
 }) => (
   <span
-    className={`inline-flex items-center justify-center rounded-full bg-[#0f3460]/20 ring-1 ring-[#2a2a2a] shrink-0 ${className}`}
+    className={`inline-flex items-center justify-center rounded-full bg-[#fef3c7] ring-1 ring-[#fcd34d] shrink-0 ${className}`}
     style={{ width: size, height: size }}
     aria-label="Rippler"
   >
     <img
       src={PENGUIN_SRC}
       alt=""
-      style={{ width: size * 0.8, height: size * 0.8 }}
+      style={{ width: size * 0.95, height: size * 0.95 }}
       className="object-contain"
     />
   </span>
