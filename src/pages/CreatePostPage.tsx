@@ -408,10 +408,8 @@ const CreatePostPage = () => {
 
   const handleSubmit = async () => {
     if (!userId || !category) return;
-    if (media.length === 0) {
-      toast({ title: 'Add media', description: 'Please add at least one photo or video', variant: 'destructive' });
-      return;
-    }
+    // Media is optional — when none is added, a text-only cover card is rendered in feeds.
+
     if (!title.trim()) {
       toast({ title: 'Add a title', description: 'Tell people what you are sharing', variant: 'destructive' });
       return;
@@ -615,7 +613,8 @@ const CreatePostPage = () => {
 
       {/* Media grid */}
       <label className="text-xs font-semibold text-[#6b6b6b] mb-1 block">
-        Media <span className="text-[#ef4444]">*</span>
+        Media <span className="font-normal text-[#9b9b9b]">· optional</span>
+
         {media.length > 1 && (
           <span className="ml-2 font-normal text-[#9b9b9b]">· drag to reorder</span>
         )}

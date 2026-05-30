@@ -6,9 +6,10 @@ import { useToast } from '@/hooks/use-toast';
 import { ArrowLeft, Loader2, UserPlus, UserCheck } from 'lucide-react';
 import { formatCount } from '@/lib/utils';
 import LazyVideoThumbnail from '@/components/LazyVideoThumbnail';
+import TextCoverCard from '@/components/TextCoverCard';
 
 interface Profile { id: string; name: string | null; username: string | null; avatar_url: string | null; }
-interface PostThumb { id: string; cover_url: string | null; cover_kind: string | null; like_count: number; is_anonymous?: boolean; }
+interface PostThumb { id: string; cover_url: string | null; cover_kind: string | null; like_count: number; is_anonymous?: boolean; title?: string | null; }
 
 const UserProfilePage = () => {
   const { userId: pageUserId } = useParams<{ userId: string }>();
@@ -32,7 +33,7 @@ const UserProfilePage = () => {
       setLoading(true);
       const [{ data: profs }, { data: posts }, { count: followerCount }, { count: followingCount }, { count: postCnt }, followRes] = await Promise.all([
         supabase.rpc('get_public_profiles' as any, { _ids: [pageUserId] }),
-        supabase.from('posts' as any).select('id, created_at').eq('user_id', pageUserId).eq('is_anonymous', false).order('created_at', { ascending: false }).limit(60),
+        supabase.from('posts' as any).select('id, title, created_at').eq('user_id', pageUserId).eq('is_anonymous', false).order('created_at', { ascending: false }).limit(60),
         supabase.from('user_follows' as any).select('*', { count: 'exact', head: true }).eq('following_id', pageUserId),
         supabase.from('user_follows' as any).select('*', { count: 'exact', head: true }).eq('follower_id', pageUserId),
         supabase.from('posts' as any).select('*', { count: 'exact', head: true }).eq('user_id', pageUserId).eq('is_anonymous', false),
@@ -40,6 +41,8 @@ const UserProfilePage = () => {
       ]);
       setProfile(((profs as any[]) || [])[0] || null);
       const postIds = ((posts as any[]) || []).map(p => p.id);
+      const titleMap: Record<string, string | null> = {};
+      ((posts as any[]) || []).forEach(p => { titleMap[p.id] = p.title ?? null; });
       if (postIds.length) {
         const { data: media } = await supabase.from('post_media' as any).select('post_id, url, kind, sort_order').in('post_id', postIds).order('sort_order');
         const coverMap: Record<string, { url: string; kind: string }> = {};
@@ -47,7 +50,7 @@ const UserProfilePage = () => {
         const { data: pdata } = await supabase.from('posts' as any).select('id, like_count').in('id', postIds);
         const likeMap: Record<string, number> = {};
         ((pdata as any[]) || []).forEach(p => { likeMap[p.id] = p.like_count; });
-        setPosts(postIds.map(id => ({ id, cover_url: coverMap[id]?.url || null, cover_kind: coverMap[id]?.kind || null, like_count: likeMap[id] || 0 })));
+        setPosts(postIds.map(id => ({ id, cover_url: coverMap[id]?.url || null, cover_kind: coverMap[id]?.kind || null, like_count: likeMap[id] || 0, title: titleMap[id] })));
       } else {
         setPosts([]);
       }
@@ -133,7 +136,7 @@ export const PostsGrid = ({ posts, onOpen }: { posts: PostThumb[]; onOpen: (id: 
               ? <LazyVideoThumbnail src={p.cover_url} className="w-full h-full" />
               : <img src={p.cover_url} alt="" className="w-full h-full object-cover" loading="lazy" decoding="async" />
           ) : (
-            <div className="w-full h-full bg-gradient-to-br from-primary/20 to-secondary" />
+            <TextCoverCard title={p.title} textClassName="text-[15px]" />
           )}
           {p.is_anonymous && (
             <span className="absolute top-1.5 left-1.5 inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-[#fef3c7] ring-1 ring-[#fcd34d] text-[10px] font-semibold text-[#1a1a1a]">

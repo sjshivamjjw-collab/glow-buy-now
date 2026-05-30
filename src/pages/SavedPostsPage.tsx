@@ -5,6 +5,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Bookmark, Loader2, Heart, MessageCircle, Play, Images } from 'lucide-react';
 import { formatCount } from '@/lib/utils';
 import LazyVideoThumbnail from '@/components/LazyVideoThumbnail';
+import TextCoverCard from '@/components/TextCoverCard';
 
 interface SavedPost {
   id: string;
@@ -115,11 +116,7 @@ const SavedPostsPage = () => {
                       <img src={p.cover_url} alt={p.title || ''} className="w-full h-full object-cover" loading="lazy" decoding="async" />
                     )
                   ) : (
-                    <div className="w-full h-full bg-gradient-to-br from-[#1a1a1a] via-[#2a2a2a]/60 to-[#ef4444]/40 flex items-center justify-center p-4">
-                      <span className="font-[Outfit] text-[#fafafa] text-sm font-semibold line-clamp-5 text-center">
-                        {p.title || p.body || 'Post'}
-                      </span>
-                    </div>
+                    <TextCoverCard title={p.title || p.body} />
                   )}
                   {p.media_count > 1 && (
                     <span className="absolute top-2 left-2 px-2 py-0.5 rounded-full bg-black/55 backdrop-blur-sm text-white text-[10px] font-bold flex items-center gap-1">
@@ -128,7 +125,7 @@ const SavedPostsPage = () => {
                   )}
                 </div>
                 <div className="px-3 pt-2 pb-2.5">
-                  {p.title && (
+                  {p.title && p.cover_url && (
                     <p className="font-[Outfit] font-semibold text-[#fafafa] text-sm leading-snug line-clamp-2 mb-1.5">
                       {p.title}
                     </p>
