@@ -252,7 +252,7 @@ const DiscoverPage = () => {
           <input
             value={query}
             onChange={e => setQuery(e.target.value)}
-            placeholder="Search reviews, places, ideas, recommendations..."
+            placeholder="Search places, reviews, workplace, ideas..."
             className="w-full pl-11 pr-4 py-3 rounded-full bg-[#1a1a1a]/80 border border-[#2a2a2a]/60 text-[#fafafa] placeholder:text-[#dc2626]/60 focus:outline-none focus:ring-2 focus:ring-[#ef4444]/40 text-sm font-medium"
           />
         </div>
