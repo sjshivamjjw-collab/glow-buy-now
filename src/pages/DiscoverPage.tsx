@@ -65,10 +65,7 @@ const DiscoverPage = () => {
   const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState('');
   const [activeChip, setActiveChip] = useState<string>('For you');
-  const [categoryOpen, setCategoryOpen] = useState(false);
-  const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [interests, setInterests] = useState<string[]>([]);
-  const categoryRef = useRef<HTMLDivElement>(null);
   const [collapsed, setCollapsed] = useState(false);
   const lastScrollY = useRef(0);
 
