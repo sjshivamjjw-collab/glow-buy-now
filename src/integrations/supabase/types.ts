@@ -623,6 +623,7 @@ export type Database = {
           hashtags: string[]
           id: string
           is_anonymous: boolean
+          is_hidden: boolean
           like_count: number
           location: string | null
           music_title: string | null
@@ -641,6 +642,7 @@ export type Database = {
           hashtags?: string[]
           id?: string
           is_anonymous?: boolean
+          is_hidden?: boolean
           like_count?: number
           location?: string | null
           music_title?: string | null
@@ -659,6 +661,7 @@ export type Database = {
           hashtags?: string[]
           id?: string
           is_anonymous?: boolean
+          is_hidden?: boolean
           like_count?: number
           location?: string | null
           music_title?: string | null
