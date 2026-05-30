@@ -155,7 +155,10 @@ const DiscoverPage = () => {
   }, []);
 
   const baseChips = useMemo(() => ['For you', 'Trending'], []);
-  const labelToKey = useMemo(() => Object.fromEntries(CATEGORY_FILTERS.map(c => [c.label, c.key])), []);
+  const activeKeywordKey = useMemo(
+    () => KEYWORD_FILTERS.find(k => k.label === activeChip)?.interestKey ?? null,
+    [activeChip]
+  );
 
   const fuse = useMemo(() => new Fuse(posts, {
     keys: [
@@ -173,8 +176,9 @@ const DiscoverPage = () => {
     let list = posts;
     if (activeChip === 'Trending') {
       list = [...list].sort((a, b) => (b.like_count + b.comment_count) - (a.like_count + a.comment_count));
-    } else if (activeChip === 'Category' && activeCategory) {
-      list = list.filter(p => p.category === activeCategory);
+    } else if (activeKeywordKey) {
+      // Filter by keyword matches across title/body/hashtags/location/category.
+      list = list.filter(p => scoreInterestMatch([activeKeywordKey], p) > 0);
     } else if (activeChip === 'For you' && interests.length > 0) {
       // Curate: score posts by interest-keyword matches in title/body/hashtags/location/category.
       list = [...list]
@@ -184,9 +188,9 @@ const DiscoverPage = () => {
     }
 
     // Temporary boost: prioritise Work Diaries (hidden_gems) posts to the top
-    // until 2026-06-01 23:59 IST. Skips when filtering by a specific category.
+    // until 2026-06-01 23:59 IST. Skip when a specific keyword filter is active.
     const BOOST_UNTIL = new Date('2026-06-01T18:29:59Z').getTime();
-    if (Date.now() < BOOST_UNTIL && !(activeChip === 'Category' && activeCategory)) {
+    if (Date.now() < BOOST_UNTIL && !activeKeywordKey) {
       const boosted = list.filter(p => p.category === 'hidden_gems');
       const rest = list.filter(p => p.category !== 'hidden_gems');
       list = [...boosted, ...rest];
@@ -207,7 +211,7 @@ const DiscoverPage = () => {
       minMatchCharLength: 2,
     });
     return scoped.search(q).map(r => r.item);
-  }, [posts, query, activeChip, activeCategory, fuse, interests]);
+  }, [posts, query, activeChip, activeKeywordKey, fuse, interests]);
 
 
   return (
