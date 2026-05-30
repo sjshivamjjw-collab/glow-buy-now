@@ -136,7 +136,7 @@ export const PostsGrid = ({ posts, onOpen }: { posts: PostThumb[]; onOpen: (id: 
               ? <LazyVideoThumbnail src={p.cover_url} className="w-full h-full" />
               : <img src={p.cover_url} alt="" className="w-full h-full object-cover" loading="lazy" decoding="async" />
           ) : (
-            <div className="w-full h-full bg-gradient-to-br from-primary/20 to-secondary" />
+            <TextCoverCard title={p.title} textClassName="text-[15px]" />
           )}
           {p.is_anonymous && (
             <span className="absolute top-1.5 left-1.5 inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-[#fef3c7] ring-1 ring-[#fcd34d] text-[10px] font-semibold text-[#1a1a1a]">
