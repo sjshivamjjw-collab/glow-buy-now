@@ -33,7 +33,7 @@ const UserProfilePage = () => {
       setLoading(true);
       const [{ data: profs }, { data: posts }, { count: followerCount }, { count: followingCount }, { count: postCnt }, followRes] = await Promise.all([
         supabase.rpc('get_public_profiles' as any, { _ids: [pageUserId] }),
-        supabase.from('posts' as any).select('id, created_at').eq('user_id', pageUserId).eq('is_anonymous', false).order('created_at', { ascending: false }).limit(60),
+        supabase.from('posts' as any).select('id, title, created_at').eq('user_id', pageUserId).eq('is_anonymous', false).order('created_at', { ascending: false }).limit(60),
         supabase.from('user_follows' as any).select('*', { count: 'exact', head: true }).eq('following_id', pageUserId),
         supabase.from('user_follows' as any).select('*', { count: 'exact', head: true }).eq('follower_id', pageUserId),
         supabase.from('posts' as any).select('*', { count: 'exact', head: true }).eq('user_id', pageUserId).eq('is_anonymous', false),
