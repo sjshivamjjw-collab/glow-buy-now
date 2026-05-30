@@ -86,6 +86,11 @@ const DiscoverPage = () => {
 
 
   const NUDGE_POOL: { category: string; questions: string[] }[] = [
+    { category: 'hidden_gems', questions: [
+      'Biggest workplace lesson?',
+      'Best and worst part of your work?',
+      'Wish you knew this before joining work?',
+    ]},
     { category: 'trip', questions: [
       'Best weekend getaway nearby?',
       'Most overrated destination?',
@@ -104,11 +109,6 @@ const DiscoverPage = () => {
       'Biggest regret purchase?',
       'Products you keep repurchasing?',
       'Skincare routine that works?',
-    ]},
-    { category: 'hidden_gems', questions: [
-      'Biggest workplace lesson?',
-      'Best and worst part of your work?',
-      'Wish you knew this before joining work?',
     ]},
   ];
 
