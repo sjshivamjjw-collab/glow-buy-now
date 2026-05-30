@@ -46,7 +46,7 @@ const AdminPanelPage = () => {
     const load = async () => {
       const [appsRes, profilesRes, streamsRes, sellersRes, postsRes] = await Promise.all([
         supabase.from('seller_applications').select('*').order('created_at', { ascending: false }),
-        supabase.from('profiles').select('id, name, phone, created_at'),
+        supabase.from('profiles').select('id, name, phone, created_at').order('created_at', { ascending: false }),
         supabase.from('livestreams').select('*').order('created_at', { ascending: false }),
         supabase.from('user_roles').select('user_id').eq('role', 'creator'),
         supabase.from('posts' as any).select('*, post_media(url, kind, sort_order)').order('created_at', { ascending: false }),
