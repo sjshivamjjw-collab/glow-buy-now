@@ -31,7 +31,7 @@ const ProfilePage = () => {
     const load = async () => {
       const [{ data: prof }, { data: rawPosts }, { count: fc }, { data: savesCount }] = await Promise.all([
         supabase.from('profiles').select('name, username, avatar_url').eq('id', userId).single(),
-        supabase.from('posts' as any).select('id, like_count, is_anonymous').eq('user_id', userId).order('created_at', { ascending: false }).limit(60),
+        supabase.from('posts' as any).select('id, title, like_count, is_anonymous').eq('user_id', userId).order('created_at', { ascending: false }).limit(60),
         supabase.from('user_follows' as any).select('*', { count: 'exact', head: true }).eq('following_id', userId),
         supabase.rpc('get_user_post_saves_count' as any, { _user_id: userId }),
       ]);
@@ -40,12 +40,13 @@ const ProfilePage = () => {
       const ids = rows.map(p => p.id);
       const likeMap: Record<string, number> = {};
       const anonMap: Record<string, boolean> = {};
-      rows.forEach(p => { likeMap[p.id] = p.like_count; anonMap[p.id] = !!p.is_anonymous; });
+      const titleMap: Record<string, string | null> = {};
+      rows.forEach(p => { likeMap[p.id] = p.like_count; anonMap[p.id] = !!p.is_anonymous; titleMap[p.id] = p.title ?? null; });
       if (ids.length) {
         const { data: media } = await supabase.from('post_media' as any).select('post_id, url, kind, sort_order').in('post_id', ids).order('sort_order');
         const coverMap: Record<string, { url: string; kind: string }> = {};
         ((media as any[]) || []).forEach(m => { if (!coverMap[m.post_id]) coverMap[m.post_id] = { url: m.url, kind: m.kind }; });
-        setPosts(ids.map(id => ({ id, cover_url: coverMap[id]?.url || null, cover_kind: coverMap[id]?.kind || null, like_count: likeMap[id] || 0, is_anonymous: anonMap[id] })));
+        setPosts(ids.map(id => ({ id, cover_url: coverMap[id]?.url || null, cover_kind: coverMap[id]?.kind || null, like_count: likeMap[id] || 0, is_anonymous: anonMap[id], title: titleMap[id] })));
       } else {
         setPosts([]);
       }
