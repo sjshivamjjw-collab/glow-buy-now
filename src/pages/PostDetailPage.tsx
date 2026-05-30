@@ -100,7 +100,7 @@ const PostMusicPlayer = ({ url, title }: { url: string; title: string | null }) 
 const PostDetailPage = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { userId } = useAuth();
+  const { userId, isAdmin } = useAuth();
   const { toast } = useToast();
 
   const [post, setPost] = useState<PostRow | null>(null);
