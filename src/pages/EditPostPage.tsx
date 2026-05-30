@@ -47,7 +47,7 @@ interface NewMedia {
 const EditPostPage = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { userId } = useAuth();
+  const { userId, isAdmin } = useAuth();
   const { toast } = useToast();
   const fileRef = useRef<HTMLInputElement>(null);
 
