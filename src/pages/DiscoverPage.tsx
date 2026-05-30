@@ -127,15 +127,8 @@ const DiscoverPage = () => {
     });
   }, [userId]);
 
-  useEffect(() => {
-    const onClick = (e: Event) => {
-      if (categoryRef.current && !categoryRef.current.contains(e.target as Node)) {
-        setCategoryOpen(false);
-      }
-    };
-    document.addEventListener('pointerdown', onClick);
-    return () => document.removeEventListener('pointerdown', onClick);
-  }, []);
+
+
 
 
   useEffect(() => {
