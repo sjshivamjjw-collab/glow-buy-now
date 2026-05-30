@@ -203,6 +203,10 @@ const EditPostPage = () => {
         body: isRichTextEmpty(body) ? null : body,
         location: location.trim() || null,
         hashtags,
+        ...(isAdmin ? {
+          category,
+          review_subcategory: category === 'review' ? reviewSub : null,
+        } : {}),
       }).eq('id', id);
       if (error) throw error;
 
