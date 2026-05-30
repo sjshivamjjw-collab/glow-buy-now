@@ -147,7 +147,7 @@ export const PostsGrid = ({ posts, onOpen, isOwner = false }: { posts: PostThumb
               {isOwner && (
                 <span className="absolute bottom-1.5 left-1.5 right-1.5 inline-flex items-center justify-center gap-1 px-1.5 py-0.5 rounded-full bg-black/65 backdrop-blur-sm text-[9px] font-semibold text-white">
                   <Eye className="w-2.5 h-2.5" />
-                  Only visible to you
+                  Only Visible on your profile to you
                 </span>
               )}
             </>
