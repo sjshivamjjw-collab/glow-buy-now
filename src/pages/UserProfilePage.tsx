@@ -6,9 +6,10 @@ import { useToast } from '@/hooks/use-toast';
 import { ArrowLeft, Loader2, UserPlus, UserCheck } from 'lucide-react';
 import { formatCount } from '@/lib/utils';
 import LazyVideoThumbnail from '@/components/LazyVideoThumbnail';
+import TextCoverCard from '@/components/TextCoverCard';
 
 interface Profile { id: string; name: string | null; username: string | null; avatar_url: string | null; }
-interface PostThumb { id: string; cover_url: string | null; cover_kind: string | null; like_count: number; is_anonymous?: boolean; }
+interface PostThumb { id: string; cover_url: string | null; cover_kind: string | null; like_count: number; is_anonymous?: boolean; title?: string | null; }
 
 const UserProfilePage = () => {
   const { userId: pageUserId } = useParams<{ userId: string }>();
