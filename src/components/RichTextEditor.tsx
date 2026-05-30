@@ -1,6 +1,11 @@
 import { useEffect, useRef } from 'react';
 import { Bold, Italic, Underline } from 'lucide-react';
 
+// Debounce parent onChange so typing doesn't re-render the (often large)
+// host page on every keystroke. The DOM updates immediately via the browser;
+// React state catches up shortly after.
+const ONCHANGE_DEBOUNCE_MS = 200;
+
 interface Props {
   value: string;            // HTML string
   onChange: (html: string) => void;
