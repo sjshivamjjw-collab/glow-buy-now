@@ -1,6 +1,11 @@
 import { useEffect, useRef } from 'react';
 import { Bold, Italic, Underline } from 'lucide-react';
 
+// Debounce parent onChange so typing doesn't re-render the (often large)
+// host page on every keystroke. The DOM updates immediately via the browser;
+// React state catches up shortly after.
+const ONCHANGE_DEBOUNCE_MS = 200;
+
 interface Props {
   value: string;            // HTML string
   onChange: (html: string) => void;
@@ -21,28 +26,57 @@ export default function RichTextEditor({
   value, onChange, placeholder, maxLength, rows = 5, className, onFocus,
 }: Props) {
   const ref = useRef<HTMLDivElement>(null);
+  const onChangeRef = useRef(onChange);
+  const debounceRef = useRef<number | null>(null);
+  const pendingHtmlRef = useRef<string | null>(null);
+
+  // Keep latest onChange without re-binding listeners.
+  useEffect(() => { onChangeRef.current = onChange; }, [onChange]);
+
+  // Flush any pending debounced update (e.g. on blur / unmount / format).
+  const flush = () => {
+    if (debounceRef.current != null) {
+      window.clearTimeout(debounceRef.current);
+      debounceRef.current = null;
+    }
+    if (pendingHtmlRef.current != null) {
+      const html = pendingHtmlRef.current;
+      pendingHtmlRef.current = null;
+      onChangeRef.current(html);
+    }
+  };
+
+  const scheduleChange = (html: string) => {
+    pendingHtmlRef.current = html;
+    if (debounceRef.current != null) window.clearTimeout(debounceRef.current);
+    debounceRef.current = window.setTimeout(() => {
+      debounceRef.current = null;
+      const next = pendingHtmlRef.current;
+      pendingHtmlRef.current = null;
+      if (next != null) onChangeRef.current(next);
+    }, ONCHANGE_DEBOUNCE_MS);
+  };
 
   // Sync external value into the DOM only when it actually differs AND the
-  // editor is not currently focused. Rewriting innerHTML while the user is
-  // typing collapses the selection to the start of the field, which on long
-  // content feels like the caret keeps jumping to the top or input gets lost.
+  // editor is not currently focused, AND there's no pending local edit.
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
-    if (document.activeElement === el) return; // don't clobber an active caret
+    if (document.activeElement === el) return;
+    if (pendingHtmlRef.current != null) return;
     if (el.innerHTML !== (value || '')) {
       el.innerHTML = value || '';
     }
   }, [value]);
 
+  useEffect(() => () => flush(), []);
+
   const exec = (cmd: 'bold' | 'italic' | 'underline') => {
     const el = ref.current;
     if (!el) return;
     el.focus();
-    // execCommand is deprecated but still the simplest cross-browser way to
-    // toggle inline formatting inside a contentEditable region on mobile.
     document.execCommand(cmd);
-    onChange(el.innerHTML);
+    scheduleChange(el.innerHTML);
   };
 
   const handleInput = () => {
@@ -52,7 +86,7 @@ export default function RichTextEditor({
       const text = (el.innerText || '').slice(0, maxLength);
       el.innerText = text;
     }
-    onChange(el.innerHTML);
+    scheduleChange(el.innerHTML);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -85,7 +119,7 @@ export default function RichTextEditor({
       } else {
         document.execCommand('insertHTML', false, '<br>• ');
       }
-      onChange(el.innerHTML);
+      scheduleChange(el.innerHTML);
     }
   };
 
@@ -130,6 +164,7 @@ export default function RichTextEditor({
           onPaste={handlePaste}
           onKeyDown={handleKeyDown}
           onFocus={onFocus}
+          onBlur={flush}
           className={`w-full px-4 py-3 rounded-xl bg-[#f5f5f5] border border-[#e5e5e5] text-[#0a0a0a] focus:outline-none focus:ring-2 focus:ring-[#ef4444]/40 text-[13px] whitespace-pre-wrap break-words [overflow-wrap:anywhere] ${className ?? ''}`}
           style={{ minHeight: `${rows * 1.5 + 1}rem` }}
         />
