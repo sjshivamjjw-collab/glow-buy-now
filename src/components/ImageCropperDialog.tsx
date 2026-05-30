@@ -102,8 +102,8 @@ export const ImageCropperDialog = ({ file, open, onCancel, onApply, onSkip, titl
 
   return (
     <Dialog open={open} onOpenChange={v => { if (!v) onCancel(); }}>
-      <DialogContent className="max-w-lg w-[95vw] p-0 gap-0 overflow-hidden bg-[#0a0a0a] border-[#2a2a2a] text-white">
-        <div className="relative w-full h-[70vh] bg-black touch-none">
+      <DialogContent className="max-w-lg w-[95vw] p-0 gap-0 overflow-hidden bg-[#0a0a0a] border-[#2a2a2a] text-white max-h-[90svh] h-[90svh] flex flex-col top-[5svh] translate-y-0 sm:top-[50%] sm:translate-y-[-50%] sm:h-auto sm:max-h-[90vh]">
+        <div className="relative w-full flex-1 min-h-0 bg-black touch-none">
           {src && (
             <Cropper
               image={src}
