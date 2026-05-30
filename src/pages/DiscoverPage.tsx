@@ -193,6 +193,16 @@ const DiscoverPage = () => {
         .sort((a, b) => b.s - a.s)
         .map(x => x.p);
     }
+
+    // Temporary boost: prioritise Work Diaries (hidden_gems) posts to the top
+    // until 2026-06-01 23:59 IST. Skips when filtering by a specific category.
+    const BOOST_UNTIL = new Date('2026-06-01T18:29:59Z').getTime();
+    if (Date.now() < BOOST_UNTIL && !(activeChip === 'Category' && activeCategory)) {
+      const boosted = list.filter(p => p.category === 'hidden_gems');
+      const rest = list.filter(p => p.category !== 'hidden_gems');
+      list = [...boosted, ...rest];
+    }
+
     const q = query.trim().replace(/^#/, '');
     if (!q) return list;
     // Fuzzy search across the (chip/category-prefiltered) list
