@@ -137,7 +137,7 @@ const EditPostPage = () => {
     if (!id || !userId) return;
     if (!title.trim()) { toast({ title: 'Add a title', variant: 'destructive' }); return; }
     if (isRichTextEmpty(body)) { toast({ title: 'Add a description', variant: 'destructive' }); return; }
-    if (totalMedia === 0) { toast({ title: 'Add at least one photo or video', variant: 'destructive' }); return; }
+    
     setSaving(true);
     try {
       // 1. Delete removed media rows + storage files
