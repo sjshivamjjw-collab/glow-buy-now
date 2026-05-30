@@ -668,20 +668,6 @@ const CreatePostPage = () => {
 
       {/* Body */}
       {(() => {
-        const BODY_PLACEHOLDERS: Partial<Record<CategoryKey, string>> = {
-          everyday_vibes: "You can include:\n\n📅 What's a day in your life looking like lately?\n\n🛠️ What are the items, products, or tools you used here?\n\n⏱️ How long did it take and what's the cost breakdown?",
-          
-          review: 'You can include:\n\n✨ What did you try? Highlight the must-tries or absolute skips.\n\n🪑 How was the seating or service? (e.g., ideal for dates, laptop work, group hangs).\n\n💰 How was the overall experience and did it justify the price?',
-          real_talk: 'You can include:\n\n🧠 What is the exact context and situation one faces?\n\n🪜 What are the key steps to take or avoid?',
-          hidden_gems: "You can include:\n\n💼 What's the reality vs expectation of working here?\n\n🤔 What do you wish you knew before joining?\n\n🚀 Who would thrive or struggle here?\n\n🌱 What have been your biggest learnings here?",
-          trip: 'You can include:\n\n🗺️ What surprised you most — and what felt overrated?\n\n🚕 Best ways to get around, and when\u2019s the best time to visit?\n\n💸 What was the detailed cost breakdown and tips to save money?',
-        };
-        const REVIEW_SUB_PLACEHOLDERS: Partial<Record<ReviewSubKey, string>> = {
-          hotel: 'You can include:\n\n🛏️ How were the comfort, cleanliness, views & amenities overall?\n\n✨ Any insider tips, upgrades or things people shouldn\u2019t miss?\n\n💭 What would you tell someone thinking of booking this?',
-          product: 'You can include:\n\n⏳ How long have you been using it — and how\u2019s it been?\n\n👍 What impressed you, and what fell short?\n\n💸 Was it worth the price?',
-          media: 'You can include:\n\n🏢 What\u2019s the culture, vibe or environment actually like?\n\n💡 What\u2019s something people should know before joining or visiting?\n\n👀 Who do you think this place is actually good — or not good — for?',
-          activity: 'You can include:\n\n🎶 What was the energy and vibe actually like in person?\n\n💸 Looking back, did it feel worth the time and money?',
-        };
         const subPh = category === 'review' && reviewSub ? REVIEW_SUB_PLACEHOLDERS[reviewSub] : undefined;
         const ph = subPh ?? BODY_PLACEHOLDERS[category!] ?? 'Tell people more...';
         const hasSuggestions = !!subPh || !!BODY_PLACEHOLDERS[category!];
