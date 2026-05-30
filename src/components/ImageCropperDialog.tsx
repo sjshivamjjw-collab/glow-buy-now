@@ -122,7 +122,7 @@ export const ImageCropperDialog = ({ file, open, onCancel, onApply, onSkip, titl
           )}
         </div>
 
-        <div className="p-3 bg-[#0a0a0a]">
+        <div className="p-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] bg-[#0a0a0a] shrink-0">
           <p className="text-center text-[11px] text-[#a0a0a0] mb-3">
             {title ?? 'Drag to reposition • Pinch or scroll to zoom'}
           </p>
