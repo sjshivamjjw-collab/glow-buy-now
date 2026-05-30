@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import {
   ArrowLeft, Users, Radio, Check, X, ChevronDown, ChevronUp,
   ExternalLink, AlertCircle, Search, Loader2, ShieldOff,
-  FileText, Trash2, Heart, MessageCircle,
+  FileText, Trash2, Heart, MessageCircle, EyeOff, Eye,
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -143,6 +143,17 @@ const AdminPanelPage = () => {
     toast({ title: 'Post deleted' });
   };
 
+  const handleToggleHidePost = async (postId: string, currentHidden: boolean) => {
+    const next = !currentHidden;
+    const { error } = await supabase.from('posts' as any).update({ is_hidden: next }).eq('id', postId);
+    if (error) {
+      toast({ title: 'Failed', description: error.message, variant: 'destructive' });
+      return;
+    }
+    setPosts(prev => prev.map(p => p.id === postId ? { ...p, is_hidden: next } : p));
+    toast({ title: next ? 'Post hidden from feed' : 'Post visible again' });
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-background max-w-lg mx-auto flex items-center justify-center">
@@ -219,6 +230,7 @@ const AdminPanelPage = () => {
                   <button onClick={() => navigate(`/p/${p.id}`)} className="flex-1 min-w-0 text-left">
                     <p className="font-semibold text-foreground text-sm truncate">
                       {p.title || p.body || 'Untitled post'}
+                      {p.is_hidden && <span className="ml-2 px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-yellow-500/10 text-yellow-600 border border-yellow-500/20 align-middle">HIDDEN</span>}
                     </p>
                     <p className="text-xs text-muted-foreground truncate">
                       {author?.name || author?.phone || 'Unknown user'} · {new Date(p.created_at).toLocaleDateString()}
@@ -228,16 +240,24 @@ const AdminPanelPage = () => {
                       <span className="flex items-center gap-1"><MessageCircle className="w-3 h-3" />{p.comment_count}</span>
                     </div>
                   </button>
-                  <button
-                    onClick={() => {
-                      if (confirm('Delete this post permanently?')) handleDeletePost(p.id);
-                    }}
-                    disabled={deletingPostId === p.id}
-                    className="shrink-0 flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-destructive/10 text-destructive border border-destructive/20 text-[11px] font-semibold disabled:opacity-50"
-                  >
-                    {deletingPostId === p.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <Trash2 className="w-3 h-3" />}
-                    Delete
-                  </button>
+                  <div className="shrink-0 flex flex-col gap-1.5">
+                    <button
+                      onClick={() => handleToggleHidePost(p.id, !!p.is_hidden)}
+                      className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-card border border-border text-foreground text-[11px] font-semibold"
+                    >
+                      {p.is_hidden ? <><Eye className="w-3 h-3" /> Unhide</> : <><EyeOff className="w-3 h-3" /> Hide</>}
+                    </button>
+                    <button
+                      onClick={() => {
+                        if (confirm('Delete this post permanently?')) handleDeletePost(p.id);
+                      }}
+                      disabled={deletingPostId === p.id}
+                      className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-destructive/10 text-destructive border border-destructive/20 text-[11px] font-semibold disabled:opacity-50"
+                    >
+                      {deletingPostId === p.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <Trash2 className="w-3 h-3" />}
+                      Delete
+                    </button>
+                  </div>
                 </div>
               );
             })}

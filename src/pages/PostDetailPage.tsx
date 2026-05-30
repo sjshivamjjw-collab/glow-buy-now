@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
-import { ArrowLeft, Heart, MessageCircle, MapPin, Loader2, Send, Trash2, ChevronLeft, ChevronRight, Bookmark, Share2, Reply, X, Music, Play, Pause, Pencil } from 'lucide-react';
+import { ArrowLeft, Heart, MessageCircle, MapPin, Loader2, Send, Trash2, ChevronLeft, ChevronRight, Bookmark, Share2, Reply, X, Music, Play, Pause, Pencil, EyeOff, Eye } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { useMentionAutocomplete } from '@/hooks/useMentionAutocomplete';
 import { MentionSuggestions } from '@/components/MentionSuggestions';
@@ -36,6 +36,7 @@ interface PostRow {
   music_url: string | null;
   music_title: string | null;
   is_anonymous?: boolean;
+  is_hidden?: boolean;
 }
 interface MediaRow { id: string; url: string; kind: 'image' | 'video'; sort_order: number; }
 interface CommentRow { id: string; user_id: string | null; body: string; created_at: string; parent_id: string | null; like_count: number; is_anonymous?: boolean; }
@@ -298,6 +299,15 @@ const PostDetailPage = () => {
     navigate('/');
   };
 
+  const handleToggleHide = async () => {
+    if (!post) return;
+    const next = !post.is_hidden;
+    const { error } = await supabase.from('posts' as any).update({ is_hidden: next }).eq('id', post.id);
+    if (error) { toast({ title: 'Failed', description: error.message, variant: 'destructive' }); return; }
+    setPost(p => p ? { ...p, is_hidden: next } : p);
+    toast({ title: next ? 'Post hidden' : 'Post unhidden' });
+  };
+
   if (loading) return <div className="min-h-screen flex items-center justify-center bg-[#0a0a0a]"><Loader2 className="w-6 h-6 animate-spin text-[#ef4444]" /></div>;
   if (!post) return <div className="min-h-screen flex items-center justify-center bg-[#0a0a0a] text-[#a0a0a0]">Post not found</div>;
 
@@ -330,6 +340,11 @@ const PostDetailPage = () => {
               <button onClick={() => navigate(`/p/${post.id}/edit`)} className="px-3 py-2 rounded-full bg-[#1a1a1a] border border-[#2a2a2a]/60 text-[#fafafa] text-xs font-semibold flex items-center gap-1" aria-label="Edit post">
                 <Pencil className="w-3.5 h-3.5" /> Edit
               </button>
+              {isAdmin && (
+                <button onClick={handleToggleHide} className="px-3 py-2 rounded-full bg-[#1a1a1a] border border-[#2a2a2a]/60 text-[#fafafa] text-xs font-semibold flex items-center gap-1" aria-label={post.is_hidden ? 'Unhide post' : 'Hide post'}>
+                  {post.is_hidden ? <><Eye className="w-3.5 h-3.5" /> Unhide</> : <><EyeOff className="w-3.5 h-3.5" /> Hide</>}
+                </button>
+              )}
               {isOwn && (
                 <button onClick={handleDeletePost} className="px-3 py-2 rounded-full bg-[#ef4444]/10 text-[#ef4444] border border-[#ef4444]/30 text-xs font-semibold flex items-center gap-1">
                   <Trash2 className="w-3.5 h-3.5" /> Delete
