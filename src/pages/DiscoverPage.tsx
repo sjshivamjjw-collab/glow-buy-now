@@ -36,11 +36,12 @@ const CATEGORY_META: Record<string, { label: string }> = {
   hidden_gems: { label: 'Work Diaries' },
 };
 
-const KEYWORD_FILTERS: { label: string; interestKey: string }[] = [
-  { label: 'Travel', interestKey: 'travel_trips' },
-  { label: 'Work Story', interestKey: 'work_career' },
-  { label: 'Food & Places', interestKey: 'food_places' },
-  { label: 'Beauty', interestKey: 'beauty_skincare' },
+const CATEGORY_FILTERS = [
+  { key: 'everyday_vibes', label: 'Daily Life' },
+  { key: 'trip', label: 'Travel Diaries' },
+  { key: 'review', label: 'Review' },
+  { key: 'real_talk', label: 'Advice and Tips' },
+  { key: 'hidden_gems', label: 'Work Diaries' },
 ];
 
 
@@ -65,7 +66,10 @@ const DiscoverPage = () => {
   const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState('');
   const [activeChip, setActiveChip] = useState<string>('For you');
+  const [categoryOpen, setCategoryOpen] = useState(false);
+  const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [interests, setInterests] = useState<string[]>([]);
+  const categoryRef = useRef<HTMLDivElement>(null);
   const [collapsed, setCollapsed] = useState(false);
   const lastScrollY = useRef(0);
 
@@ -127,8 +131,15 @@ const DiscoverPage = () => {
     });
   }, [userId]);
 
-
-
+  useEffect(() => {
+    const onClick = (e: Event) => {
+      if (categoryRef.current && !categoryRef.current.contains(e.target as Node)) {
+        setCategoryOpen(false);
+      }
+    };
+    document.addEventListener('pointerdown', onClick);
+    return () => document.removeEventListener('pointerdown', onClick);
+  }, []);
 
 
   useEffect(() => {
@@ -155,10 +166,7 @@ const DiscoverPage = () => {
   }, []);
 
   const baseChips = useMemo(() => ['For you', 'Trending'], []);
-  const activeKeywordKey = useMemo(
-    () => KEYWORD_FILTERS.find(k => k.label === activeChip)?.interestKey ?? null,
-    [activeChip]
-  );
+  const labelToKey = useMemo(() => Object.fromEntries(CATEGORY_FILTERS.map(c => [c.label, c.key])), []);
 
   const fuse = useMemo(() => new Fuse(posts, {
     keys: [
@@ -176,9 +184,8 @@ const DiscoverPage = () => {
     let list = posts;
     if (activeChip === 'Trending') {
       list = [...list].sort((a, b) => (b.like_count + b.comment_count) - (a.like_count + a.comment_count));
-    } else if (activeKeywordKey) {
-      // Filter by keyword matches across title/body/hashtags/location/category.
-      list = list.filter(p => scoreInterestMatch([activeKeywordKey], p) > 0);
+    } else if (activeChip === 'Category' && activeCategory) {
+      list = list.filter(p => p.category === activeCategory);
     } else if (activeChip === 'For you' && interests.length > 0) {
       // Curate: score posts by interest-keyword matches in title/body/hashtags/location/category.
       list = [...list]
@@ -188,9 +195,9 @@ const DiscoverPage = () => {
     }
 
     // Temporary boost: prioritise Work Diaries (hidden_gems) posts to the top
-    // until 2026-06-01 23:59 IST. Skip when a specific keyword filter is active.
+    // until 2026-06-01 23:59 IST. Skips when filtering by a specific category.
     const BOOST_UNTIL = new Date('2026-06-01T18:29:59Z').getTime();
-    if (Date.now() < BOOST_UNTIL && !activeKeywordKey) {
+    if (Date.now() < BOOST_UNTIL && !(activeChip === 'Category' && activeCategory)) {
       const boosted = list.filter(p => p.category === 'hidden_gems');
       const rest = list.filter(p => p.category !== 'hidden_gems');
       list = [...boosted, ...rest];
@@ -211,7 +218,7 @@ const DiscoverPage = () => {
       minMatchCharLength: 2,
     });
     return scoped.search(q).map(r => r.item);
-  }, [posts, query, activeChip, activeKeywordKey, fuse, interests]);
+  }, [posts, query, activeChip, activeCategory, fuse, interests]);
 
 
   return (
@@ -251,14 +258,14 @@ const DiscoverPage = () => {
         </div>
 
         {/* Filter tabs */}
-        <div className="flex gap-2 mt-3 items-center overflow-x-auto scrollbar-hide -mx-1 px-1">
+        <div className="flex gap-2 mt-3 items-center">
           {baseChips.map(chip => {
             const active = chip === activeChip;
             return (
               <button
                 key={chip}
-                onClick={() => setActiveChip(chip)}
-                className={`shrink-0 px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all ${
+                onClick={() => { setActiveChip(chip); setCategoryOpen(false); }}
+                className={`px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all ${
                   active
                     ? 'bg-[#fafafa] text-[#1a1a1a] shadow-sm'
                     : 'bg-[#1a1a1a]/70 text-[#a0a0a0] border border-[#2a2a2a]/60 hover:border-[#ef4444]'
@@ -271,24 +278,43 @@ const DiscoverPage = () => {
             );
           })}
 
-          {KEYWORD_FILTERS.map(k => {
-            const active = activeChip === k.label;
-            return (
-              <button
-                key={k.label}
-                onClick={() => setActiveChip(active ? 'For you' : k.label)}
-                className={`shrink-0 px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all whitespace-nowrap ${
-                  active
-                    ? 'bg-[#fafafa] text-[#1a1a1a] shadow-sm'
-                    : 'bg-[#1a1a1a]/70 text-[#a0a0a0] border border-[#2a2a2a]/60 hover:border-[#ef4444]'
-                }`}
-              >
-                {k.label}
-              </button>
-            );
-          })}
-        </div>
+          {/* Category dropdown tab */}
+          <div className="relative" ref={categoryRef}>
+            <button
+              onClick={() => { setActiveChip('Category'); setCategoryOpen(o => !o); }}
+              className={`flex items-center gap-1 px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all ${
+                activeChip === 'Category'
+                  ? 'bg-[#fafafa] text-[#1a1a1a] shadow-sm'
+                  : 'bg-[#1a1a1a]/70 text-[#a0a0a0] border border-[#2a2a2a]/60 hover:border-[#ef4444]'
+              }`}
+            >
+              {activeChip === 'Category' && activeCategory
+                ? CATEGORY_META[activeCategory]?.label || 'Category'
+                : 'Category'}
+              <ChevronDown className={`w-3 h-3 transition-transform ${categoryOpen ? 'rotate-180' : ''}`} />
+            </button>
 
+            {categoryOpen && (
+              <div className="absolute left-0 mt-2 w-44 rounded-xl bg-[#161616] border border-[#2a2a2a]/60 shadow-xl shadow-black/40 overflow-hidden z-30">
+                {CATEGORY_FILTERS.map(c => {
+                  const selected = activeCategory === c.key && activeChip === 'Category';
+                  return (
+                    <button
+                      key={c.key}
+                      onClick={() => { setActiveCategory(c.key); setActiveChip('Category'); setCategoryOpen(false); }}
+                      className={`w-full flex items-center justify-between px-3 py-2 text-xs font-semibold text-left transition-colors ${
+                        selected ? 'bg-[#ef4444]/15 text-[#ef4444]' : 'text-[#fafafa] hover:bg-[#1a1a1a]'
+                      }`}
+                    >
+                      {c.label}
+                      {selected && <Check className="w-3.5 h-3.5" />}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </div>
 
         {/* Curiosity nudge rows */}
         <div
