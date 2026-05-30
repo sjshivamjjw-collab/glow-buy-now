@@ -26,28 +26,57 @@ export default function RichTextEditor({
   value, onChange, placeholder, maxLength, rows = 5, className, onFocus,
 }: Props) {
   const ref = useRef<HTMLDivElement>(null);
+  const onChangeRef = useRef(onChange);
+  const debounceRef = useRef<number | null>(null);
+  const pendingHtmlRef = useRef<string | null>(null);
+
+  // Keep latest onChange without re-binding listeners.
+  useEffect(() => { onChangeRef.current = onChange; }, [onChange]);
+
+  // Flush any pending debounced update (e.g. on blur / unmount / format).
+  const flush = () => {
+    if (debounceRef.current != null) {
+      window.clearTimeout(debounceRef.current);
+      debounceRef.current = null;
+    }
+    if (pendingHtmlRef.current != null) {
+      const html = pendingHtmlRef.current;
+      pendingHtmlRef.current = null;
+      onChangeRef.current(html);
+    }
+  };
+
+  const scheduleChange = (html: string) => {
+    pendingHtmlRef.current = html;
+    if (debounceRef.current != null) window.clearTimeout(debounceRef.current);
+    debounceRef.current = window.setTimeout(() => {
+      debounceRef.current = null;
+      const next = pendingHtmlRef.current;
+      pendingHtmlRef.current = null;
+      if (next != null) onChangeRef.current(next);
+    }, ONCHANGE_DEBOUNCE_MS);
+  };
 
   // Sync external value into the DOM only when it actually differs AND the
-  // editor is not currently focused. Rewriting innerHTML while the user is
-  // typing collapses the selection to the start of the field, which on long
-  // content feels like the caret keeps jumping to the top or input gets lost.
+  // editor is not currently focused, AND there's no pending local edit.
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
-    if (document.activeElement === el) return; // don't clobber an active caret
+    if (document.activeElement === el) return;
+    if (pendingHtmlRef.current != null) return;
     if (el.innerHTML !== (value || '')) {
       el.innerHTML = value || '';
     }
   }, [value]);
 
+  useEffect(() => () => flush(), []);
+
   const exec = (cmd: 'bold' | 'italic' | 'underline') => {
     const el = ref.current;
     if (!el) return;
     el.focus();
-    // execCommand is deprecated but still the simplest cross-browser way to
-    // toggle inline formatting inside a contentEditable region on mobile.
     document.execCommand(cmd);
-    onChange(el.innerHTML);
+    scheduleChange(el.innerHTML);
   };
 
   const handleInput = () => {
