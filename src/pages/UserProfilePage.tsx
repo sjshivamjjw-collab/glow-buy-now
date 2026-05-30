@@ -125,7 +125,7 @@ const UserProfilePage = () => {
   );
 };
 
-export const PostsGrid = ({ posts, onOpen }: { posts: PostThumb[]; onOpen: (id: string) => void }) => {
+export const PostsGrid = ({ posts, onOpen, isOwner = false }: { posts: PostThumb[]; onOpen: (id: string) => void; isOwner?: boolean }) => {
   if (posts.length === 0) return <p className="text-center text-muted-foreground text-sm py-10">No posts yet.</p>;
   return (
     <div className="grid grid-cols-2 gap-2">
@@ -139,10 +139,18 @@ export const PostsGrid = ({ posts, onOpen }: { posts: PostThumb[]; onOpen: (id: 
             <TextCoverCard title={p.title} textClassName="text-[15px]" />
           )}
           {p.is_anonymous && (
-            <span className="absolute top-1.5 left-1.5 inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-[#fef3c7] ring-1 ring-[#fcd34d] text-[10px] font-semibold text-[#1a1a1a]">
-              <img src="https://cdn.jsdelivr.net/npm/openmoji@latest/color/svg/1F427.svg" alt="" className="w-3 h-3" />
-              Rippler
-            </span>
+            <>
+              <span className="absolute top-1.5 left-1.5 inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-[#fef3c7] ring-1 ring-[#fcd34d] text-[10px] font-semibold text-[#1a1a1a]">
+                <img src="https://cdn.jsdelivr.net/npm/openmoji@latest/color/svg/1F427.svg" alt="" className="w-3 h-3" />
+                Rippler
+              </span>
+              {isOwner && (
+                <span className="absolute bottom-1.5 left-1.5 right-1.5 inline-flex items-center justify-center gap-1 px-1.5 py-0.5 rounded-full bg-black/65 backdrop-blur-sm text-[9px] font-semibold text-white">
+                  <Eye className="w-2.5 h-2.5" />
+                  Only visible to you
+                </span>
+              )}
+            </>
           )}
         </button>
       ))}
