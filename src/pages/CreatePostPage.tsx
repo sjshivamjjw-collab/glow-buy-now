@@ -673,7 +673,7 @@ const CreatePostPage = () => {
         const hasSuggestions = !!subPh || !!BODY_PLACEHOLDERS[category!];
         return (
           <>
-            <label className="text-xs font-semibold text-[#6b6b6b] mb-1 block">Tell people more... <span className="text-[#ef4444]">*</span> <span className="text-[10px] font-normal">(the more descriptive and accurate, the better for the entire community)</span></label>
+            <label className="text-xs font-semibold text-[#6b6b6b] mb-1 block">Tell people more... <span className="text-[#ef4444]">*</span> <span className="text-[10px] font-normal">(Detailed posts with real experiences help others the most)</span></label>
             <div className="relative mb-4">
               <RichTextEditor
                 value={body}
