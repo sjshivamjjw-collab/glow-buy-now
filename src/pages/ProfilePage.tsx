@@ -258,7 +258,7 @@ const ProfilePage = () => {
 
       <h2 className="text-xs font-bold text-[#a0a0a0] uppercase tracking-wide mb-3">My posts</h2>
       <div className="mb-8">
-        <PostsGrid posts={posts} onOpen={id => navigate(`/p/${id}`)} />
+        <PostsGrid posts={posts} onOpen={id => navigate(`/p/${id}`)} isOwner />
       </div>
 
 
