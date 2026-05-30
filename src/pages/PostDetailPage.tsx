@@ -340,6 +340,11 @@ const PostDetailPage = () => {
               <button onClick={() => navigate(`/p/${post.id}/edit`)} className="px-3 py-2 rounded-full bg-[#1a1a1a] border border-[#2a2a2a]/60 text-[#fafafa] text-xs font-semibold flex items-center gap-1" aria-label="Edit post">
                 <Pencil className="w-3.5 h-3.5" /> Edit
               </button>
+              {isAdmin && (
+                <button onClick={handleToggleHide} className="px-3 py-2 rounded-full bg-[#1a1a1a] border border-[#2a2a2a]/60 text-[#fafafa] text-xs font-semibold flex items-center gap-1" aria-label={post.is_hidden ? 'Unhide post' : 'Hide post'}>
+                  {post.is_hidden ? <><Eye className="w-3.5 h-3.5" /> Unhide</> : <><EyeOff className="w-3.5 h-3.5" /> Hide</>}
+                </button>
+              )}
               {isOwn && (
                 <button onClick={handleDeletePost} className="px-3 py-2 rounded-full bg-[#ef4444]/10 text-[#ef4444] border border-[#ef4444]/30 text-xs font-semibold flex items-center gap-1">
                   <Trash2 className="w-3.5 h-3.5" /> Delete
