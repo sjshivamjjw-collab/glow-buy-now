@@ -36,6 +36,7 @@ interface PostRow {
   music_url: string | null;
   music_title: string | null;
   is_anonymous?: boolean;
+  is_hidden?: boolean;
 }
 interface MediaRow { id: string; url: string; kind: 'image' | 'video'; sort_order: number; }
 interface CommentRow { id: string; user_id: string | null; body: string; created_at: string; parent_id: string | null; like_count: number; is_anonymous?: boolean; }
