@@ -3,10 +3,28 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
-import { ArrowLeft, Loader2, MapPin, Hash, X, Check, ImagePlus } from 'lucide-react';
+import { ArrowLeft, Loader2, MapPin, Hash, X, Check, ImagePlus, Tag } from 'lucide-react';
 import { extractStoragePath } from '@/lib/storageUrls';
 import RichTextEditor from '@/components/RichTextEditor';
 import { markdownToHtml, isRichTextEmpty } from '@/lib/richText';
+
+type CategoryKey = 'everyday_vibes' | 'trip' | 'review' | 'real_talk' | 'hidden_gems';
+type ReviewSubKey = 'restaurant' | 'hotel' | 'product' | 'media' | 'activity';
+
+const CATEGORY_LABELS: Record<CategoryKey, string> = {
+  everyday_vibes: 'Daily Life',
+  trip: 'Travel Diaries',
+  hidden_gems: 'Work Diaries',
+  review: 'Review',
+  real_talk: 'Advice and Tips',
+};
+const REVIEW_SUB_LABELS: Record<ReviewSubKey, string> = {
+  restaurant: 'Restaurant / Bar / Food Joint',
+  hotel: 'Hotel / Stay / Hostel',
+  product: 'Product',
+  media: 'Places and Institutions',
+  activity: 'Activity / Experience / Event',
+};
 
 const TITLE_MAX = 90;
 const MAX_FILES = 10;
@@ -29,7 +47,7 @@ interface NewMedia {
 const EditPostPage = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { userId } = useAuth();
+  const { userId, isAdmin } = useAuth();
   const { toast } = useToast();
   const fileRef = useRef<HTMLInputElement>(null);
 
@@ -49,6 +67,9 @@ const EditPostPage = () => {
   const [removedPaths, setRemovedPaths] = useState<string[]>([]);
   const [newMedia, setNewMedia] = useState<NewMedia[]>([]);
 
+  const [category, setCategory] = useState<CategoryKey | null>(null);
+  const [reviewSub, setReviewSub] = useState<ReviewSubKey | null>(null);
+
   useEffect(() => {
     if (!id) return;
     const load = async () => {
@@ -56,7 +77,7 @@ const EditPostPage = () => {
       const { data } = await supabase.from('posts' as any).select('*').eq('id', id).maybeSingle();
       if (!data) { setLoading(false); setNotAllowed(true); return; }
       const p: any = data;
-      if (p.user_id !== userId) { setNotAllowed(true); setLoading(false); return; }
+      if (p.user_id !== userId && !isAdmin) { setNotAllowed(true); setLoading(false); return; }
       setTitle(p.title || '');
       {
         const raw = p.body || '';
@@ -65,6 +86,8 @@ const EditPostPage = () => {
       }
       setLocation(p.location || '');
       setHashtags(p.hashtags || []);
+      setCategory((p.category as CategoryKey) || null);
+      setReviewSub((p.review_subcategory as ReviewSubKey) || null);
 
       const { data: mediaRows } = await supabase
         .from('post_media' as any)
@@ -77,7 +100,7 @@ const EditPostPage = () => {
       setLoading(false);
     };
     load();
-  }, [id, userId]);
+  }, [id, userId, isAdmin]);
 
   const commitHashtag = () => {
     const raw = hashtagInput.trim().replace(/^#+/, '').toLowerCase();
@@ -180,6 +203,10 @@ const EditPostPage = () => {
         body: isRichTextEmpty(body) ? null : body,
         location: location.trim() || null,
         hashtags,
+        ...(isAdmin ? {
+          category,
+          review_subcategory: category === 'review' ? reviewSub : null,
+        } : {}),
       }).eq('id', id);
       if (error) throw error;
 
@@ -224,7 +251,41 @@ const EditPostPage = () => {
         </button>
       </div>
 
-      <p className="text-xs text-[#6b6b6b] mb-4">Category and music can't be edited. To change those, delete and repost.</p>
+      {isAdmin ? (
+        <p className="text-xs text-[#ef4444] mb-4 font-semibold">Admin mode — you can edit category, content, and media.</p>
+      ) : (
+        <p className="text-xs text-[#6b6b6b] mb-4">Category and music can't be edited. To change those, delete and repost.</p>
+      )}
+
+      {isAdmin && (
+        <div className="mb-4">
+          <label className="block text-xs font-semibold text-[#6b6b6b] uppercase tracking-wide mb-1.5">
+            <Tag className="w-3 h-3 inline mr-1" /> Category
+          </label>
+          <select
+            value={category ?? ''}
+            onChange={e => setCategory((e.target.value || null) as CategoryKey | null)}
+            className="w-full px-4 py-3 rounded-xl bg-[#f5f5f5] border border-[#e5e5e5] text-[#0a0a0a] focus:outline-none focus:ring-2 focus:ring-[#ef4444]/40 text-sm"
+          >
+            <option value="">— None —</option>
+            {Object.entries(CATEGORY_LABELS).map(([k, v]) => (
+              <option key={k} value={k}>{v}</option>
+            ))}
+          </select>
+          {category === 'review' && (
+            <select
+              value={reviewSub ?? ''}
+              onChange={e => setReviewSub((e.target.value || null) as ReviewSubKey | null)}
+              className="mt-2 w-full px-4 py-3 rounded-xl bg-[#f5f5f5] border border-[#e5e5e5] text-[#0a0a0a] focus:outline-none focus:ring-2 focus:ring-[#ef4444]/40 text-sm"
+            >
+              <option value="">— Pick a review type —</option>
+              {Object.entries(REVIEW_SUB_LABELS).map(([k, v]) => (
+                <option key={k} value={k}>{v}</option>
+              ))}
+            </select>
+          )}
+        </div>
+      )}
 
       <div className="space-y-4">
         {/* Media */}
