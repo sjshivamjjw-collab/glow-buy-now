@@ -164,6 +164,7 @@ export default function RichTextEditor({
           onPaste={handlePaste}
           onKeyDown={handleKeyDown}
           onFocus={onFocus}
+          onBlur={flush}
           className={`w-full px-4 py-3 rounded-xl bg-[#f5f5f5] border border-[#e5e5e5] text-[#0a0a0a] focus:outline-none focus:ring-2 focus:ring-[#ef4444]/40 text-[13px] whitespace-pre-wrap break-words [overflow-wrap:anywhere] ${className ?? ''}`}
           style={{ minHeight: `${rows * 1.5 + 1}rem` }}
         />
