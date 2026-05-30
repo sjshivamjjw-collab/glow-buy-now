@@ -8,7 +8,7 @@ import { Settings, LogOut, ChevronRight, Bell, HelpCircle, ShieldCheck, Check, X
 import { PostsGrid } from '@/pages/UserProfilePage';
 import { formatCount } from '@/lib/utils';
 
-interface PostThumb { id: string; cover_url: string | null; cover_kind: string | null; like_count: number; }
+interface PostThumb { id: string; cover_url: string | null; cover_kind: string | null; like_count: number; title?: string | null; is_anonymous?: boolean; }
 
 const ProfilePage = () => {
   const { userName, userAvatar, userId, isAdmin, phone, logout, updateProfile } = useAuth();
