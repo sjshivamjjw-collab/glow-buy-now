@@ -41,6 +41,8 @@ const UserProfilePage = () => {
       ]);
       setProfile(((profs as any[]) || [])[0] || null);
       const postIds = ((posts as any[]) || []).map(p => p.id);
+      const titleMap: Record<string, string | null> = {};
+      ((posts as any[]) || []).forEach(p => { titleMap[p.id] = p.title ?? null; });
       if (postIds.length) {
         const { data: media } = await supabase.from('post_media' as any).select('post_id, url, kind, sort_order').in('post_id', postIds).order('sort_order');
         const coverMap: Record<string, { url: string; kind: string }> = {};
@@ -48,7 +50,7 @@ const UserProfilePage = () => {
         const { data: pdata } = await supabase.from('posts' as any).select('id, like_count').in('id', postIds);
         const likeMap: Record<string, number> = {};
         ((pdata as any[]) || []).forEach(p => { likeMap[p.id] = p.like_count; });
-        setPosts(postIds.map(id => ({ id, cover_url: coverMap[id]?.url || null, cover_kind: coverMap[id]?.kind || null, like_count: likeMap[id] || 0 })));
+        setPosts(postIds.map(id => ({ id, cover_url: coverMap[id]?.url || null, cover_kind: coverMap[id]?.kind || null, like_count: likeMap[id] || 0, title: titleMap[id] })));
       } else {
         setPosts([]);
       }
