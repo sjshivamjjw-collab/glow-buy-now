@@ -86,7 +86,7 @@ export default function RichTextEditor({
       const text = (el.innerText || '').slice(0, maxLength);
       el.innerText = text;
     }
-    onChange(el.innerHTML);
+    scheduleChange(el.innerHTML);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
