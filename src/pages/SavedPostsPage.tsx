@@ -116,11 +116,7 @@ const SavedPostsPage = () => {
                       <img src={p.cover_url} alt={p.title || ''} className="w-full h-full object-cover" loading="lazy" decoding="async" />
                     )
                   ) : (
-                    <div className="w-full h-full bg-gradient-to-br from-[#1a1a1a] via-[#2a2a2a]/60 to-[#ef4444]/40 flex items-center justify-center p-4">
-                      <span className="font-[Outfit] text-[#fafafa] text-sm font-semibold line-clamp-5 text-center">
-                        {p.title || p.body || 'Post'}
-                      </span>
-                    </div>
+                    <TextCoverCard title={p.title || p.body} />
                   )}
                   {p.media_count > 1 && (
                     <span className="absolute top-2 left-2 px-2 py-0.5 rounded-full bg-black/55 backdrop-blur-sm text-white text-[10px] font-bold flex items-center gap-1">
