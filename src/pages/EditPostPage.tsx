@@ -67,6 +67,9 @@ const EditPostPage = () => {
   const [removedPaths, setRemovedPaths] = useState<string[]>([]);
   const [newMedia, setNewMedia] = useState<NewMedia[]>([]);
 
+  const [category, setCategory] = useState<CategoryKey | null>(null);
+  const [reviewSub, setReviewSub] = useState<ReviewSubKey | null>(null);
+
   useEffect(() => {
     if (!id) return;
     const load = async () => {
@@ -74,7 +77,7 @@ const EditPostPage = () => {
       const { data } = await supabase.from('posts' as any).select('*').eq('id', id).maybeSingle();
       if (!data) { setLoading(false); setNotAllowed(true); return; }
       const p: any = data;
-      if (p.user_id !== userId) { setNotAllowed(true); setLoading(false); return; }
+      if (p.user_id !== userId && !isAdmin) { setNotAllowed(true); setLoading(false); return; }
       setTitle(p.title || '');
       {
         const raw = p.body || '';
@@ -83,6 +86,8 @@ const EditPostPage = () => {
       }
       setLocation(p.location || '');
       setHashtags(p.hashtags || []);
+      setCategory((p.category as CategoryKey) || null);
+      setReviewSub((p.review_subcategory as ReviewSubKey) || null);
 
       const { data: mediaRows } = await supabase
         .from('post_media' as any)
@@ -95,7 +100,7 @@ const EditPostPage = () => {
       setLoading(false);
     };
     load();
-  }, [id, userId]);
+  }, [id, userId, isAdmin]);
 
   const commitHashtag = () => {
     const raw = hashtagInput.trim().replace(/^#+/, '').toLowerCase();
