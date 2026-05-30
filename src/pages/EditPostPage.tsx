@@ -3,10 +3,28 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
-import { ArrowLeft, Loader2, MapPin, Hash, X, Check, ImagePlus } from 'lucide-react';
+import { ArrowLeft, Loader2, MapPin, Hash, X, Check, ImagePlus, Tag } from 'lucide-react';
 import { extractStoragePath } from '@/lib/storageUrls';
 import RichTextEditor from '@/components/RichTextEditor';
 import { markdownToHtml, isRichTextEmpty } from '@/lib/richText';
+
+type CategoryKey = 'everyday_vibes' | 'trip' | 'review' | 'real_talk' | 'hidden_gems';
+type ReviewSubKey = 'restaurant' | 'hotel' | 'product' | 'media' | 'activity';
+
+const CATEGORY_LABELS: Record<CategoryKey, string> = {
+  everyday_vibes: 'Daily Life',
+  trip: 'Travel Diaries',
+  hidden_gems: 'Work Diaries',
+  review: 'Review',
+  real_talk: 'Advice and Tips',
+};
+const REVIEW_SUB_LABELS: Record<ReviewSubKey, string> = {
+  restaurant: 'Restaurant / Bar / Food Joint',
+  hotel: 'Hotel / Stay / Hostel',
+  product: 'Product',
+  media: 'Places and Institutions',
+  activity: 'Activity / Experience / Event',
+};
 
 const TITLE_MAX = 90;
 const MAX_FILES = 10;
