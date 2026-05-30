@@ -398,7 +398,7 @@ const DiscoverPage = () => {
 
                 {/* Footer */}
                 <div className="px-3 pt-3 pb-3">
-                  {p.title && (
+                  {p.title && p.cover_url && (
                     <p className="font-[Outfit] font-semibold text-[#fafafa] text-[15px] leading-[1.3] line-clamp-3 mb-2.5">
                       {p.title}
                     </p>
