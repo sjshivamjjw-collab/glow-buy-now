@@ -119,7 +119,7 @@ export default function RichTextEditor({
       } else {
         document.execCommand('insertHTML', false, '<br>• ');
       }
-      onChange(el.innerHTML);
+      scheduleChange(el.innerHTML);
     }
   };
 
