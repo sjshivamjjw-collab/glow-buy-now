@@ -7,6 +7,7 @@ import { Search, Sparkles, Heart, MessageCircle, Loader2, Play, Images, MapPin, 
 import { formatCount } from '@/lib/utils';
 import LazyVideoThumbnail from '@/components/LazyVideoThumbnail';
 import { PenguinAvatar, RIPPLER_NAME } from '@/components/RipplerIdentity';
+import TextCoverCard from '@/components/TextCoverCard';
 import { scoreInterestMatch } from '@/lib/interests';
 
 interface TrendingPost {
