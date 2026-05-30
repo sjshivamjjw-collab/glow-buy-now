@@ -36,12 +36,11 @@ const CATEGORY_META: Record<string, { label: string }> = {
   hidden_gems: { label: 'Work Diaries' },
 };
 
-const CATEGORY_FILTERS = [
-  { key: 'everyday_vibes', label: 'Daily Life' },
-  { key: 'trip', label: 'Travel Diaries' },
-  { key: 'review', label: 'Review' },
-  { key: 'real_talk', label: 'Advice and Tips' },
-  { key: 'hidden_gems', label: 'Work Diaries' },
+const KEYWORD_FILTERS: { label: string; interestKey: string }[] = [
+  { label: 'Travel', interestKey: 'travel_trips' },
+  { label: 'Work Story', interestKey: 'work_career' },
+  { label: 'Food & Places', interestKey: 'food_places' },
+  { label: 'Beauty', interestKey: 'beauty_skincare' },
 ];
 
 
