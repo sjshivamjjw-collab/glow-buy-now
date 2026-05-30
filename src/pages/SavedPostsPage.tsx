@@ -125,7 +125,7 @@ const SavedPostsPage = () => {
                   )}
                 </div>
                 <div className="px-3 pt-2 pb-2.5">
-                  {p.title && p.cover_url && (
+                  {p.title && p.media_count > 0 && (
                     <p className="font-[Outfit] font-semibold text-[#fafafa] text-sm leading-snug line-clamp-2 mb-1.5">
                       {p.title}
                     </p>
