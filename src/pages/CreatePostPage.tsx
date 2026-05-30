@@ -408,10 +408,8 @@ const CreatePostPage = () => {
 
   const handleSubmit = async () => {
     if (!userId || !category) return;
-    if (media.length === 0) {
-      toast({ title: 'Add media', description: 'Please add at least one photo or video', variant: 'destructive' });
-      return;
-    }
+    // Media is optional — when none is added, a text-only cover card is rendered in feeds.
+
     if (!title.trim()) {
       toast({ title: 'Add a title', description: 'Tell people what you are sharing', variant: 'destructive' });
       return;
