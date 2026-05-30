@@ -378,12 +378,9 @@ const DiscoverPage = () => {
                       <img src={p.cover_url} alt={p.title || ''} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" decoding="async" />
                     )
                   ) : (
-                    <div className="w-full h-full bg-gradient-to-br from-[#1a1a1a] via-[#2a2a2a]/60 to-[#ef4444]/40 flex items-center justify-center p-4">
-                      <span className="font-[Outfit] text-[#fafafa] text-sm font-semibold line-clamp-5 text-center">
-                        {p.title || p.body || 'Post'}
-                      </span>
-                    </div>
+                    <TextCoverCard title={p.title || p.body} />
                   )}
+
                   {p.category && CATEGORY_META[p.category] && (
                     <span className="absolute top-1.5 left-1.5 px-1.5 py-[2px] rounded-md bg-black/55 backdrop-blur-sm text-white/90 text-[9px] font-medium tracking-wide">
                       {CATEGORY_META[p.category].label}
