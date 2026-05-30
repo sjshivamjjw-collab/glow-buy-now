@@ -143,6 +143,17 @@ const AdminPanelPage = () => {
     toast({ title: 'Post deleted' });
   };
 
+  const handleToggleHidePost = async (postId: string, currentHidden: boolean) => {
+    const next = !currentHidden;
+    const { error } = await supabase.from('posts' as any).update({ is_hidden: next }).eq('id', postId);
+    if (error) {
+      toast({ title: 'Failed', description: error.message, variant: 'destructive' });
+      return;
+    }
+    setPosts(prev => prev.map(p => p.id === postId ? { ...p, is_hidden: next } : p));
+    toast({ title: next ? 'Post hidden from feed' : 'Post visible again' });
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-background max-w-lg mx-auto flex items-center justify-center">
