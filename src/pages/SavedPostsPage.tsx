@@ -5,6 +5,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Bookmark, Loader2, Heart, MessageCircle, Play, Images } from 'lucide-react';
 import { formatCount } from '@/lib/utils';
 import LazyVideoThumbnail from '@/components/LazyVideoThumbnail';
+import TextCoverCard from '@/components/TextCoverCard';
 
 interface SavedPost {
   id: string;
