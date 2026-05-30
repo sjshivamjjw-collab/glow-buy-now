@@ -230,6 +230,7 @@ const AdminPanelPage = () => {
                   <button onClick={() => navigate(`/p/${p.id}`)} className="flex-1 min-w-0 text-left">
                     <p className="font-semibold text-foreground text-sm truncate">
                       {p.title || p.body || 'Untitled post'}
+                      {p.is_hidden && <span className="ml-2 px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-yellow-500/10 text-yellow-600 border border-yellow-500/20 align-middle">HIDDEN</span>}
                     </p>
                     <p className="text-xs text-muted-foreground truncate">
                       {author?.name || author?.phone || 'Unknown user'} · {new Date(p.created_at).toLocaleDateString()}
@@ -239,16 +240,24 @@ const AdminPanelPage = () => {
                       <span className="flex items-center gap-1"><MessageCircle className="w-3 h-3" />{p.comment_count}</span>
                     </div>
                   </button>
-                  <button
-                    onClick={() => {
-                      if (confirm('Delete this post permanently?')) handleDeletePost(p.id);
-                    }}
-                    disabled={deletingPostId === p.id}
-                    className="shrink-0 flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-destructive/10 text-destructive border border-destructive/20 text-[11px] font-semibold disabled:opacity-50"
-                  >
-                    {deletingPostId === p.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <Trash2 className="w-3 h-3" />}
-                    Delete
-                  </button>
+                  <div className="shrink-0 flex flex-col gap-1.5">
+                    <button
+                      onClick={() => handleToggleHidePost(p.id, !!p.is_hidden)}
+                      className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-card border border-border text-foreground text-[11px] font-semibold"
+                    >
+                      {p.is_hidden ? <><Eye className="w-3 h-3" /> Unhide</> : <><EyeOff className="w-3 h-3" /> Hide</>}
+                    </button>
+                    <button
+                      onClick={() => {
+                        if (confirm('Delete this post permanently?')) handleDeletePost(p.id);
+                      }}
+                      disabled={deletingPostId === p.id}
+                      className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-destructive/10 text-destructive border border-destructive/20 text-[11px] font-semibold disabled:opacity-50"
+                    >
+                      {deletingPostId === p.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <Trash2 className="w-3 h-3" />}
+                      Delete
+                    </button>
+                  </div>
                 </div>
               );
             })}
