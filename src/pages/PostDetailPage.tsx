@@ -299,6 +299,15 @@ const PostDetailPage = () => {
     navigate('/');
   };
 
+  const handleToggleHide = async () => {
+    if (!post) return;
+    const next = !post.is_hidden;
+    const { error } = await supabase.from('posts' as any).update({ is_hidden: next }).eq('id', post.id);
+    if (error) { toast({ title: 'Failed', description: error.message, variant: 'destructive' }); return; }
+    setPost(p => p ? { ...p, is_hidden: next } : p);
+    toast({ title: next ? 'Post hidden' : 'Post unhidden' });
+  };
+
   if (loading) return <div className="min-h-screen flex items-center justify-center bg-[#0a0a0a]"><Loader2 className="w-6 h-6 animate-spin text-[#ef4444]" /></div>;
   if (!post) return <div className="min-h-screen flex items-center justify-center bg-[#0a0a0a] text-[#a0a0a0]">Post not found</div>;
 
