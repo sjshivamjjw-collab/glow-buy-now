@@ -251,7 +251,41 @@ const EditPostPage = () => {
         </button>
       </div>
 
-      <p className="text-xs text-[#6b6b6b] mb-4">Category and music can't be edited. To change those, delete and repost.</p>
+      {isAdmin ? (
+        <p className="text-xs text-[#ef4444] mb-4 font-semibold">Admin mode — you can edit category, content, and media.</p>
+      ) : (
+        <p className="text-xs text-[#6b6b6b] mb-4">Category and music can't be edited. To change those, delete and repost.</p>
+      )}
+
+      {isAdmin && (
+        <div className="mb-4">
+          <label className="block text-xs font-semibold text-[#6b6b6b] uppercase tracking-wide mb-1.5">
+            <Tag className="w-3 h-3 inline mr-1" /> Category
+          </label>
+          <select
+            value={category ?? ''}
+            onChange={e => setCategory((e.target.value || null) as CategoryKey | null)}
+            className="w-full px-4 py-3 rounded-xl bg-[#f5f5f5] border border-[#e5e5e5] text-[#0a0a0a] focus:outline-none focus:ring-2 focus:ring-[#ef4444]/40 text-sm"
+          >
+            <option value="">— None —</option>
+            {Object.entries(CATEGORY_LABELS).map(([k, v]) => (
+              <option key={k} value={k}>{v}</option>
+            ))}
+          </select>
+          {category === 'review' && (
+            <select
+              value={reviewSub ?? ''}
+              onChange={e => setReviewSub((e.target.value || null) as ReviewSubKey | null)}
+              className="mt-2 w-full px-4 py-3 rounded-xl bg-[#f5f5f5] border border-[#e5e5e5] text-[#0a0a0a] focus:outline-none focus:ring-2 focus:ring-[#ef4444]/40 text-sm"
+            >
+              <option value="">— Pick a review type —</option>
+              {Object.entries(REVIEW_SUB_LABELS).map(([k, v]) => (
+                <option key={k} value={k}>{v}</option>
+              ))}
+            </select>
+          )}
+        </div>
+      )}
 
       <div className="space-y-4">
         {/* Media */}
