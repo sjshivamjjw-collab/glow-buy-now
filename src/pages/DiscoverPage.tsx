@@ -96,10 +96,31 @@ const DiscoverPage = () => {
 
   // Restore scroll on mount when we hydrated from cache (e.g. back-nav from a post).
   useEffect(() => {
-    if (cached && cached.scrollY > 0) {
-      // Wait one frame so the grid is in the DOM before scrolling.
-      requestAnimationFrame(() => window.scrollTo(0, cached.scrollY));
-    }
+    const targetY = cached?.scrollY ?? 0;
+    if (targetY <= 0) return;
+    // Disable browser's own scroll restoration so it doesn't fight ours.
+    const prev = window.history.scrollRestoration;
+    try { window.history.scrollRestoration = 'manual'; } catch {}
+
+    let cancelled = false;
+    const started = performance.now();
+    // Retry for up to ~1.2s: the masonry grows as images decode, so the
+    // document may not be tall enough to reach targetY on the first frame.
+    const tick = () => {
+      if (cancelled) return;
+      const maxY = document.documentElement.scrollHeight - window.innerHeight;
+      const y = Math.min(targetY, Math.max(0, maxY));
+      window.scrollTo(0, y);
+      if (Math.abs(window.scrollY - targetY) > 4 && performance.now() - started < 1200) {
+        requestAnimationFrame(tick);
+      }
+    };
+    requestAnimationFrame(tick);
+
+    return () => {
+      cancelled = true;
+      try { window.history.scrollRestoration = prev; } catch {}
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
