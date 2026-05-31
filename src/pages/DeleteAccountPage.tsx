@@ -56,8 +56,8 @@ const DeleteAccountPage = () => (
     <h2>What gets deleted</h2>
     <ul>
       <li>Your profile: name, username, avatar, date of birth, gender, city, bio.</li>
-      <li>Your content: posts, photos, videos, captions, comments, likes, saves, follows, livestream recordings.</li>
-      <li>Your chat messages in communities and livestreams.</li>
+      <li>Your content: posts, photos, videos, captions, comments, likes, saves, and follows.</li>
+      <li>Your chat messages in communities.</li>
       <li>Your account credentials and the link between your phone number and the Ripple account.</li>
       <li>Your push notification tokens and personalisation data.</li>
     </ul>

@@ -33,7 +33,7 @@ interface AuthContextType extends AuthState {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const STORAGE_KEY = 'livecart_auth';
+const STORAGE_KEY = 'ripple_auth';
 const DEMO_PHONES = new Set([
   '+918921046170',
   '+918921046171',
@@ -75,9 +75,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const isAdmin = roles.includes('admin');
       const isCreator = roles.includes('creator') || isAdmin;
       const isDemoPhone = DEMO_PHONES.has(normalizedPhone);
-      let primaryRole: UserRole = 'shopper';
+      let primaryRole: UserRole = 'creator';
       if (isAdmin) primaryRole = 'admin';
-      else if (isCreator) primaryRole = 'creator';
       const userMeta: any = session.user.user_metadata || {};
       const oauthName = userMeta.full_name || userMeta.name || null;
       const oauthAvatar = userMeta.avatar_url || userMeta.picture || null;
@@ -134,9 +133,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const isAdmin = roles.includes('admin');
     const isCreator = roles.includes('creator') || isAdmin;
 
-    let primaryRole: UserRole = 'shopper';
+    let primaryRole: UserRole = 'creator';
     if (isAdmin) primaryRole = 'admin';
-    else if (isCreator) primaryRole = 'creator';
 
     const isDemoPhone = DEMO_PHONES.has(normalizedPhone);
 
@@ -211,9 +209,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         const roles = (data || []).map(r => r.role as string);
         const isAdmin = roles.includes('admin');
         const isCreator = roles.includes('creator') || isAdmin;
-        let primaryRole: UserRole = prev.role || 'shopper';
+        let primaryRole: UserRole = prev.role || 'creator';
         if (isAdmin) primaryRole = 'admin';
-        else if (isCreator && primaryRole === 'shopper') primaryRole = 'creator';
+        else if (isCreator) primaryRole = 'creator';
         setState(p => {
           const updated = { ...p, isCreator, isAdmin, role: primaryRole };
           localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
