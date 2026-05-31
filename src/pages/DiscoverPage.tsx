@@ -254,6 +254,14 @@ const DiscoverPage = () => {
       });
       list = [...woven, ...remainingWork];
     }
+
+    // Pin a specific featured post to the very top of the feed.
+    const PINNED_POST_ID = 'b981870f-a407-4770-b267-3c361ee14777';
+    const pinnedIdx = list.findIndex(p => p.id === PINNED_POST_ID);
+    if (pinnedIdx > 0) {
+      const [pinned] = list.splice(pinnedIdx, 1);
+      list = [pinned, ...list];
+    }
     return list;
   }, [posts, activeChip, activeCategory, interests]);
 
