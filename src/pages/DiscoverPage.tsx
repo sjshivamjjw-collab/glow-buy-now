@@ -1,14 +1,14 @@
 import { useEffect, useState, useMemo, useRef } from 'react';
-import Fuse from 'fuse.js';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { Search, Sparkles, Heart, MessageCircle, Loader2, Play, Images, MapPin, TrendingUp, ChevronDown, Check } from 'lucide-react';
+import { Search, Sparkles, Heart, MessageCircle, Loader2, Play, Images, MapPin, TrendingUp, ChevronDown, Check, Hash, User as UserIcon } from 'lucide-react';
 import { formatCount } from '@/lib/utils';
 import LazyVideoThumbnail from '@/components/LazyVideoThumbnail';
 import { PenguinAvatar, RIPPLER_NAME } from '@/components/RipplerIdentity';
 import TextCoverCard from '@/components/TextCoverCard';
 import { scoreInterestMatch } from '@/lib/interests';
+
 
 interface TrendingPost {
   id: string;
