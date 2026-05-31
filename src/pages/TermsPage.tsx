@@ -40,8 +40,7 @@ const TermsPage = () => (
     <h2>4. Content Moderation & Reporting</h2>
     <p>
       Ripple has <strong>zero tolerance</strong> for objectionable content
-      and abusive users. Every post, comment, livestream, and profile in the
-      app includes:
+      and abusive users. Every post, comment, and profile in the app includes:
     </p>
     <ul>
       <li>A <strong>Report</strong> action to flag content that violates these Terms.</li>
@@ -54,16 +53,7 @@ const TermsPage = () => (
       proactively. Decisions are at our discretion and are final.
     </p>
 
-    <h2>5. Livestream Conduct</h2>
-    <p>
-      Live broadcasts and live chat must be respectful and lawful. Broadcasters
-      are responsible for everything that appears on their stream, including
-      guests and chat. We reserve the right to end any live broadcast, mute
-      participants, remove recordings, or suspend accounts that violate
-      these standards.
-    </p>
-
-    <h2>6. Intellectual Property & Copyright</h2>
+    <h2>5. Intellectual Property & Copyright</h2>
     <p>
       The Ripple name, logo, and platform are owned by us. Content uploaded by
       users remains theirs, subject to the licence in Section 2. If you
@@ -73,7 +63,7 @@ const TermsPage = () => (
       We act on valid notices within 36 hours, in line with India's IT Rules.
     </p>
 
-    <h2>7. Disclaimers & Liability</h2>
+    <h2>6. Disclaimers & Liability</h2>
     <p>
       The Service is provided "as is" without warranties of any kind. Ripple
       is a platform for user-generated content; we do not endorse user posts,
@@ -82,7 +72,7 @@ const TermsPage = () => (
       from your use of the Service or from content posted by other users.
     </p>
 
-    <h2>8. Termination</h2>
+    <h2>7. Termination</h2>
     <p>
       We may suspend or terminate your account at any time for breach of
       these Terms or applicable law, without prior notice. You may delete
@@ -90,14 +80,14 @@ const TermsPage = () => (
       or via <a href="/delete-account">myripple.co.in/delete-account</a>.
     </p>
 
-    <h2>9. Governing Law & Jurisdiction</h2>
+    <h2>8. Governing Law & Jurisdiction</h2>
     <p>
       These Terms are governed by the laws of India. Any disputes are
       subject to the exclusive jurisdiction of the courts at Mumbai,
       Maharashtra.
     </p>
 
-    <h2>10. Contact & Grievances</h2>
+    <h2>9. Contact & Grievances</h2>
     <p>
       For questions about these Terms, see our <a href="/contact">Contact Us</a> page.
       For formal grievances under India's IT Rules, 2021, please see the

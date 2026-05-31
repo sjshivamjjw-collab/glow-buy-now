@@ -12,10 +12,10 @@ const PrivacyPage = () => (
     <h2>1. Information We Collect</h2>
     <ul>
       <li><strong>Account information:</strong> mobile number (for OTP login), name, username, profile photo (avatar), and optional details you choose to add — date of birth, gender, and city.</li>
-      <li><strong>Content you create:</strong> posts, photos, videos, captions, comments, likes, follows, saves, livestream broadcasts, and chat messages in communities or livestreams.</li>
+      <li><strong>Content you create:</strong> posts, photos, videos, captions, comments, likes, follows, saves, and chat messages in communities.</li>
       <li><strong>Interaction & app activity:</strong> what you view, search, tap, save, share, and how you interact with creators and communities. Used to personalise your feed.</li>
       <li><strong>Device & technical data:</strong> device model, OS version, app version, language, IP address, and basic diagnostic/log data needed to operate and secure the Service.</li>
-      <li><strong>Permissions-based data (only when you grant the permission):</strong> camera and microphone (to record posts and go live), photos/media library (to upload posts and avatars), and push notification tokens (to deliver alerts).</li>
+      <li><strong>Permissions-based data (only when you grant the permission):</strong> camera and microphone (to record video posts), photos/media library (to upload posts and avatars), and push notification tokens (to deliver alerts).</li>
     </ul>
     <p>
       We do <strong>not</strong> collect precise location, contacts, SMS, call logs,
@@ -29,16 +29,16 @@ const PrivacyPage = () => (
       <li><strong>Personalisation:</strong> rank your feed and surface creators, communities, and topics based on the interests you choose and the content you engage with.</li>
       <li><strong>Safety & security:</strong> detect spam, abuse, fraud, and policy violations; enforce our Terms; respond to legal requests.</li>
       <li><strong>Service improvement:</strong> understand which features work, fix bugs, improve performance.</li>
-      <li><strong>Communications:</strong> send transactional notifications (logins, replies, livestream alerts) and important service announcements.</li>
+      <li><strong>Communications:</strong> send transactional notifications (logins, replies, follows) and important service announcements.</li>
     </ul>
 
     <h2>3. Device Permissions</h2>
     <p>The Ripple app requests these device permissions. Each is optional and only used for the stated purpose:</p>
     <ul>
-      <li><strong>Camera</strong> — to record photo/video posts and to broadcast livestreams.</li>
-      <li><strong>Microphone</strong> — to capture audio for video posts and livestreams.</li>
+      <li><strong>Camera</strong> — to record photo and video posts.</li>
+      <li><strong>Microphone</strong> — to capture audio for video posts.</li>
       <li><strong>Photos / Media library</strong> — to let you pick existing photos and videos to upload as posts or as your profile picture.</li>
-      <li><strong>Notifications</strong> — to alert you about new followers, replies, likes, and livestreams you may be interested in.</li>
+      <li><strong>Notifications</strong> — to alert you about new followers, replies, and likes.</li>
       <li><strong>Internet</strong> — required for the app to function.</li>
     </ul>
     <p>You can revoke any of these permissions at any time from your device's Settings app. Some features will stop working when a required permission is off.</p>
@@ -52,7 +52,6 @@ const PrivacyPage = () => (
     </p>
     <ul>
       <li><strong>Twilio</strong> — to send one-time passwords (OTP) to your mobile number for login.</li>
-      <li><strong>100ms</strong> — to power live video broadcasts (audio, video, and live chat during streams).</li>
       <li><strong>Cloud infrastructure providers</strong> — to host our database, files, and backend functions. Your data is stored on managed infrastructure with encryption in transit.</li>
     </ul>
     <p>
