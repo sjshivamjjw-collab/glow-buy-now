@@ -130,9 +130,15 @@ const SettingsPage = () => {
         <div className="fixed inset-0 bg-foreground/60 z-50 flex items-end sm:items-center justify-center p-4" onClick={() => setConfirmDelete(false)}>
           <div className="bg-card rounded-3xl p-6 w-full max-w-sm" onClick={e => e.stopPropagation()}>
             <h3 className="text-foreground font-bold text-lg mb-2">Delete account data?</h3>
-            <p className="text-muted-foreground text-sm mb-5">
+            <p className="text-muted-foreground text-sm mb-2">
               This clears your name, username and avatar, then signs you out. For full account removal, contact support.
             </p>
+            <button
+              onClick={() => { setConfirmDelete(false); navigate('/delete-account'); }}
+              className="text-xs text-primary underline mb-5"
+            >
+              Learn more about account deletion
+            </button>
             <div className="flex gap-3">
               <button onClick={() => setConfirmDelete(false)} className="flex-1 py-3 rounded-xl bg-secondary text-foreground font-semibold">Cancel</button>
               <button onClick={handleDeleteAccount} disabled={deleting} className="flex-1 py-3 rounded-xl bg-live text-live-foreground font-semibold disabled:opacity-50">
