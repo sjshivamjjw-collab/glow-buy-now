@@ -275,6 +275,19 @@ const ProfilePage = () => {
           Sign Out
         </button>
       </div>
+
+      <ImageCropperDialog
+        file={pendingAvatarFile}
+        open={!!pendingAvatarFile}
+        aspect={1}
+        cropShape="round"
+        title="Drag to reposition • Pinch or scroll to zoom"
+        onCancel={() => setPendingAvatarFile(null)}
+        onApply={async (cropped) => {
+          setPendingAvatarFile(null);
+          await uploadAvatarFile(cropped);
+        }}
+      />
     </div>
   );
 };
