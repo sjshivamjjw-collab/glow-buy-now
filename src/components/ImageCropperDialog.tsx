@@ -10,6 +10,8 @@ interface Props {
   onApply: (croppedFile: File) => void;
   onSkip?: () => void;
   title?: string;
+  aspect?: number;
+  cropShape?: 'rect' | 'round';
 }
 
 // Instagram feed standard: 4:5 portrait (1080 x 1350).
@@ -59,7 +61,7 @@ async function getCroppedFile(file: File, area: Area): Promise<File> {
   return new File([blob], `${baseName}-cropped.jpg`, { type: 'image/jpeg' });
 }
 
-export const ImageCropperDialog = ({ file, open, onCancel, onApply, onSkip, title }: Props) => {
+export const ImageCropperDialog = ({ file, open, onCancel, onApply, onSkip, title, aspect, cropShape = 'rect' }: Props) => {
   const [src, setSrc] = useState<string | null>(null);
   const [crop, setCrop] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
@@ -111,12 +113,13 @@ export const ImageCropperDialog = ({ file, open, onCancel, onApply, onSkip, titl
               zoom={zoom}
               minZoom={1}
               maxZoom={4}
-              aspect={INSTAGRAM_ASPECT}
+              aspect={aspect ?? INSTAGRAM_ASPECT}
+              cropShape={cropShape}
               onCropChange={setCrop}
               onZoomChange={setZoom}
               onCropComplete={onCropComplete}
               objectFit="contain"
-              showGrid={true}
+              showGrid={cropShape !== 'round'}
               zoomWithScroll={true}
             />
           )}

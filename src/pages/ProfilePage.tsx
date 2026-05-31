@@ -7,6 +7,7 @@ import { Settings, LogOut, ChevronRight, Bell, HelpCircle, ShieldCheck, Check, X
 
 import { PostsGrid } from '@/pages/UserProfilePage';
 import { formatCount } from '@/lib/utils';
+import { ImageCropperDialog } from '@/components/ImageCropperDialog';
 
 interface PostThumb { id: string; cover_url: string | null; cover_kind: string | null; like_count: number; title?: string | null; is_anonymous?: boolean; }
 
@@ -24,6 +25,7 @@ const ProfilePage = () => {
   const [posts, setPosts] = useState<PostThumb[]>([]);
   const [followers, setFollowers] = useState(0);
   const [saves, setSaves] = useState(0);
+  const [pendingAvatarFile, setPendingAvatarFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -80,7 +82,7 @@ const ProfilePage = () => {
     }
   };
 
-  const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     e.target.value = '';
     if (!file || !userId) return;
@@ -88,6 +90,11 @@ const ProfilePage = () => {
       toast({ title: 'Image too large', description: 'Please select an image under 5MB', variant: 'destructive' });
       return;
     }
+    setPendingAvatarFile(file);
+  };
+
+  const uploadAvatarFile = async (file: File) => {
+    if (!userId) return;
     setUploadingAvatar(true);
     try {
       const ext = file.name.split('.').pop() || 'jpg';
@@ -268,6 +275,19 @@ const ProfilePage = () => {
           Sign Out
         </button>
       </div>
+
+      <ImageCropperDialog
+        file={pendingAvatarFile}
+        open={!!pendingAvatarFile}
+        aspect={1}
+        cropShape="round"
+        title="Drag to reposition • Pinch or scroll to zoom"
+        onCancel={() => setPendingAvatarFile(null)}
+        onApply={async (cropped) => {
+          setPendingAvatarFile(null);
+          await uploadAvatarFile(cropped);
+        }}
+      />
     </div>
   );
 };
