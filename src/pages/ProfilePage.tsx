@@ -7,6 +7,7 @@ import { Settings, LogOut, ChevronRight, Bell, HelpCircle, ShieldCheck, Check, X
 
 import { PostsGrid } from '@/pages/UserProfilePage';
 import { formatCount } from '@/lib/utils';
+import { ImageCropperDialog } from '@/components/ImageCropperDialog';
 
 interface PostThumb { id: string; cover_url: string | null; cover_kind: string | null; like_count: number; title?: string | null; is_anonymous?: boolean; }
 
