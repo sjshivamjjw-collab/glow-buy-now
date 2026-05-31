@@ -383,22 +383,127 @@ const DiscoverPage = () => {
       </div>
 
       <div className="px-3 pt-4">
+        {isSearching && (
+          <div className="mb-3 space-y-3">
+            {/* Loading bar */}
+            {searching && (
+              <div className="flex items-center gap-2 text-[11px] text-[#a0a0a0]">
+                <Loader2 className="w-3.5 h-3.5 animate-spin text-[#dc2626]" /> Searching…
+              </div>
+            )}
+
+            {/* Active location filter */}
+            {locationFilter && (
+              <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-[#1a1a1a] border border-[#ef4444]/30">
+                <MapPin className="w-3.5 h-3.5 text-[#ef4444]" />
+                <span className="text-xs text-[#fafafa] flex-1 truncate">In <strong>{locationFilter}</strong></span>
+                <button onClick={() => setLocationFilter(null)} className="text-[10px] text-[#ef4444] font-semibold">Clear</button>
+              </div>
+            )}
+
+            {/* People */}
+            {searchPeople.length > 0 && (
+              <section>
+                <h3 className="text-[10px] font-bold uppercase tracking-[0.1em] text-[#dc2626] mb-1.5 px-1">People</h3>
+                <div className="rounded-2xl bg-[#161616] border border-[#2a2a2a]/50 overflow-hidden">
+                  {searchPeople.map(p => (
+                    <button
+                      key={p.id}
+                      onClick={() => navigate(`/u/${p.id}`)}
+                      className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-[#1a1a1a] border-b border-[#2a2a2a]/40 last:border-b-0 text-left"
+                    >
+                      {p.avatar_url ? (
+                        <img src={p.avatar_url} alt="" className="w-9 h-9 rounded-full object-cover ring-1 ring-[#2a2a2a]" />
+                      ) : (
+                        <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#2a2a2a] to-[#ef4444] flex items-center justify-center">
+                          <UserIcon className="w-4 h-4 text-white" />
+                        </div>
+                      )}
+                      <div className="min-w-0 flex-1">
+                        <div className="text-[13px] font-semibold text-[#fafafa] truncate">{p.name || p.username || 'User'}</div>
+                        {p.username && <div className="text-[11px] text-[#a0a0a0] truncate">@{p.username}</div>}
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {/* Hashtags */}
+            {searchTags.length > 0 && (
+              <section>
+                <h3 className="text-[10px] font-bold uppercase tracking-[0.1em] text-[#dc2626] mb-1.5 px-1">Hashtags</h3>
+                <div className="flex flex-wrap gap-1.5">
+                  {searchTags.map(t => (
+                    <button
+                      key={t.tag}
+                      onClick={() => setQuery(`#${t.tag}`)}
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#161616] border border-[#2a2a2a]/60 hover:border-[#ef4444] text-[12px] text-[#fafafa] font-semibold"
+                    >
+                      <Hash className="w-3 h-3 text-[#ef4444]" />
+                      {t.tag}
+                      <span className="text-[10px] text-[#a0a0a0] font-medium">{formatCount(Number(t.post_count))}</span>
+                    </button>
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {/* Locations */}
+            {searchLocs.length > 0 && (
+              <section>
+                <h3 className="text-[10px] font-bold uppercase tracking-[0.1em] text-[#dc2626] mb-1.5 px-1">Locations</h3>
+                <div className="flex flex-wrap gap-1.5">
+                  {searchLocs.map(l => (
+                    <button
+                      key={l.location}
+                      onClick={() => setLocationFilter(l.location)}
+                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-[12px] font-semibold ${
+                        locationFilter === l.location
+                          ? 'bg-[#ef4444]/15 border-[#ef4444] text-[#fafafa]'
+                          : 'bg-[#161616] border-[#2a2a2a]/60 hover:border-[#ef4444] text-[#fafafa]'
+                      }`}
+                    >
+                      <MapPin className="w-3 h-3 text-[#ef4444]" />
+                      <span className="truncate max-w-[140px]">{l.location}</span>
+                      <span className="text-[10px] text-[#a0a0a0] font-medium">{formatCount(Number(l.post_count))}</span>
+                    </button>
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {(searchPeople.length > 0 || searchTags.length > 0 || searchLocs.length > 0) && displayedPosts.length > 0 && (
+              <h3 className="text-[10px] font-bold uppercase tracking-[0.1em] text-[#dc2626] mt-1 px-1">Posts</h3>
+            )}
+          </div>
+        )}
+
         {loading ? (
           <div className="flex items-center justify-center py-24">
             <Loader2 className="w-6 h-6 animate-spin text-[#dc2626]" />
           </div>
-        ) : filtered.length === 0 ? (
-          <div className="text-center py-20 px-6">
-            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#1a1a1a] to-[#ef4444]/40 flex items-center justify-center mx-auto mb-4">
-              <Sparkles className="w-7 h-7 text-[#dc2626]" />
+        ) : displayedPosts.length === 0 ? (
+          isSearching ? (
+            (searching || searchPeople.length > 0 || searchTags.length > 0 || searchLocs.length > 0) ? null : (
+              <div className="text-center py-16 px-6">
+                <p className="font-[Outfit] text-[#fafafa] font-bold text-base mb-1">No results for "{debouncedQuery}"</p>
+                <p className="text-[#a0a0a0] text-xs">Try a different word, hashtag, or place.</p>
+              </div>
+            )
+          ) : (
+            <div className="text-center py-20 px-6">
+              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#1a1a1a] to-[#ef4444]/40 flex items-center justify-center mx-auto mb-4">
+                <Sparkles className="w-7 h-7 text-[#dc2626]" />
+              </div>
+              <p className="font-[Outfit] text-[#fafafa] font-bold text-lg mb-1">Nothing here yet</p>
+              <p className="text-[#a0a0a0] text-sm mb-5">Be the first to share something beautiful.</p>
+              <button onClick={() => navigate('/post/new')}
+                className="px-5 py-2.5 rounded-full bg-gradient-to-br from-[#ef4444] to-[#dc2626] text-white text-sm font-semibold shadow-md shadow-[#dc2626]/30">
+                Create a post
+              </button>
             </div>
-            <p className="font-[Outfit] text-[#fafafa] font-bold text-lg mb-1">Nothing here yet</p>
-            <p className="text-[#a0a0a0] text-sm mb-5">Be the first to share something beautiful.</p>
-            <button onClick={() => navigate('/post/new')}
-              className="px-5 py-2.5 rounded-full bg-gradient-to-br from-[#ef4444] to-[#dc2626] text-white text-sm font-semibold shadow-md shadow-[#dc2626]/30">
-              Create a post
-            </button>
-          </div>
+          )
         ) : (() => {
           const renderCard = (p: TrendingPost, h: number) => {
             const author = p.user_id ? authors[p.user_id] : undefined;
@@ -408,92 +513,7 @@ const DiscoverPage = () => {
                 key={p.id}
                 onClick={() => navigate(`/p/${p.id}`)}
                 className="group mb-1.5 w-full text-left rounded-3xl overflow-hidden bg-[#161616] border border-[#2a2a2a]/50 hover:border-[#ef4444] hover:shadow-lg hover:shadow-[#dc2626]/10 transition-all duration-300"
-              >
-                {/* Media */}
-                <div className="relative w-full bg-[#1a1a1a] overflow-hidden" style={{ height: `${h}px` }}>
-                  {p.cover_url ? (
-                    p.cover_kind === 'video' ? (
-                      <>
-                        <LazyVideoThumbnail src={p.cover_url} className="w-full h-full group-hover:scale-105 transition-transform duration-500" />
-                        <span className="absolute top-2 right-2 w-8 h-8 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center">
-                          <Play className="w-3.5 h-3.5 text-white fill-white" />
-                        </span>
-                      </>
-                    ) : (
-                      <img src={p.cover_url} alt={p.title || ''} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" decoding="async" />
-                    )
-                  ) : (
-                    <TextCoverCard title={p.title || p.body} />
-                  )}
 
-                  {p.category && CATEGORY_META[p.category] && (
-                    <span className="absolute top-1.5 left-1.5 px-1.5 py-[2px] rounded-md bg-black/55 backdrop-blur-sm text-white/90 text-[9px] font-medium tracking-wide">
-                      {CATEGORY_META[p.category].label}
-                    </span>
-                  )}
-                  {p.media_count > 1 && (
-                    <span className="absolute bottom-2 right-2 px-2 py-0.5 rounded-full bg-black/55 backdrop-blur-sm text-white text-[10px] font-bold flex items-center gap-1">
-                      <Images className="w-3 h-3" /> {p.media_count}
-                    </span>
-                  )}
-
-
-                </div>
-
-                {/* Footer */}
-                <div className="px-3 pt-3 pb-3">
-                  {p.title && p.media_count > 0 && (
-                    <p className="font-[Outfit] font-semibold text-[#fafafa] text-[15px] leading-[1.3] line-clamp-3 mb-2.5">
-                      {p.title}
-                    </p>
-                  )}
-                  <div className="flex items-center justify-between gap-2">
-                    <div className="flex items-center gap-1.5 min-w-0 flex-1">
-                      {isAnon ? (
-                        <PenguinAvatar size={22} />
-                      ) : author?.avatar_url ? (
-                        <img src={author.avatar_url} className="w-5 h-5 rounded-full object-cover shrink-0 ring-1 ring-[#2a2a2a]" alt="" />
-                      ) : (
-                        <div className="w-5 h-5 rounded-full bg-gradient-to-br from-[#2a2a2a] to-[#ef4444] shrink-0" />
-                      )}
-                      <span className="truncate text-[12px] font-semibold text-[#cfcfcf]">
-                        {isAnon ? (
-                          <>
-                            {RIPPLER_NAME}
-                            <span className="ml-1 text-[10px] font-medium text-[#a0a0a0]">(anonymous)</span>
-                          </>
-                        ) : (
-                          author?.username ? `@${author.username}` : author?.name || 'User'
-                        )}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-2 shrink-0">
-                      <span className="flex items-center gap-0.5 text-[12px] text-[#ef4444] font-semibold">
-                        <Heart className="w-3.5 h-3.5 fill-[#ef4444] text-[#ef4444]" />{formatCount(p.like_count)}
-                      </span>
-                      <span className="flex items-center gap-0.5 text-[12px] text-[#ef4444] font-semibold">
-                        <MessageCircle className="w-3.5 h-3.5" />{formatCount(p.comment_count)}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-
-              </button>
-            );
-          };
-
-          const leftItems = filtered.filter((_, i) => i % 2 === 0);
-          const rightItems = filtered.filter((_, i) => i % 2 === 1);
-
-          return (
-            <div className="grid grid-cols-2 gap-1.5">
-              <div>{leftItems.map((p, i) => renderCard(p, LEFT_HEIGHTS[i % LEFT_HEIGHTS.length]))}</div>
-              <div>{rightItems.map((p, i) => renderCard(p, RIGHT_HEIGHTS[i % RIGHT_HEIGHTS.length]))}</div>
-            </div>
-          );
-        })()}
-      </div>
     </div>
   );
 };
