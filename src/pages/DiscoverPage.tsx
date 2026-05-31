@@ -168,17 +168,59 @@ const DiscoverPage = () => {
   const baseChips = useMemo(() => ['For you', 'Trending'], []);
   const labelToKey = useMemo(() => Object.fromEntries(CATEGORY_FILTERS.map(c => [c.label, c.key])), []);
 
-  const fuse = useMemo(() => new Fuse(posts, {
-    keys: [
-      { name: 'title', weight: 0.4 },
-      { name: 'hashtags', weight: 0.25 },
-      { name: 'location', weight: 0.2 },
-      { name: 'body', weight: 0.15 },
-    ],
-    threshold: 0.4,
-    ignoreLocation: true,
-    minMatchCharLength: 2,
-  }), [posts]);
+  // ===== Server-side search =====
+  const [debouncedQuery, setDebouncedQuery] = useState('');
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedQuery(query.trim()), 220);
+    return () => clearTimeout(t);
+  }, [query]);
+
+  const [searching, setSearching] = useState(false);
+  const [searchPosts, setSearchPosts] = useState<TrendingPost[]>([]);
+  const [searchPeople, setSearchPeople] = useState<AuthorInfo[]>([]);
+  const [searchTags, setSearchTags] = useState<{ tag: string; post_count: number }[]>([]);
+  const [searchLocs, setSearchLocs] = useState<{ location: string; post_count: number }[]>([]);
+  const [locationFilter, setLocationFilter] = useState<string | null>(null);
+
+  const isSearching = debouncedQuery.length >= 2;
+
+  useEffect(() => {
+    if (!isSearching) {
+      setSearchPosts([]); setSearchPeople([]); setSearchTags([]); setSearchLocs([]);
+      return;
+    }
+    let cancelled = false;
+    setSearching(true);
+    const q = debouncedQuery.replace(/^#/, '');
+    (async () => {
+      const [postsRes, peopleRes, tagsRes, locsRes] = await Promise.all([
+        supabase.rpc('search_posts' as any, { _q: q, _limit: 40, _offset: 0 }),
+        supabase.rpc('search_people' as any, { _q: q, _limit: 10 }),
+        supabase.rpc('search_hashtags' as any, { _q: q, _limit: 8 }),
+        supabase.rpc('search_locations' as any, { _q: q, _limit: 8 }),
+      ]);
+      if (cancelled) return;
+      const postList = (postsRes.data as TrendingPost[] | null) ?? [];
+      postList.forEach(p => { if (p.is_anonymous) p.user_id = null; });
+      setSearchPosts(postList);
+      setSearchPeople((peopleRes.data as AuthorInfo[] | null) ?? []);
+      setSearchTags((tagsRes.data as any[] | null) ?? []);
+      setSearchLocs((locsRes.data as any[] | null) ?? []);
+      // Fetch authors for post results
+      const ids = Array.from(new Set(postList.map(p => p.user_id).filter((u): u is string => !!u)));
+      if (ids.length) {
+        const { data: profs } = await supabase.rpc('get_public_profiles' as any, { _ids: ids });
+        if (cancelled) return;
+        setAuthors(prev => {
+          const next = { ...prev };
+          ((profs as any[]) || []).forEach(p => { next[p.id] = p; });
+          return next;
+        });
+      }
+      setSearching(false);
+    })();
+    return () => { cancelled = true; };
+  }, [isSearching, debouncedQuery]);
 
   const filtered = useMemo(() => {
     let list = posts;
@@ -187,38 +229,30 @@ const DiscoverPage = () => {
     } else if (activeChip === 'Category' && activeCategory) {
       list = list.filter(p => p.category === activeCategory);
     } else if (activeChip === 'For you' && interests.length > 0) {
-      // Curate: score posts by interest-keyword matches in title/body/hashtags/location/category.
       list = [...list]
         .map(p => ({ p, s: scoreInterestMatch(interests, p) }))
         .sort((a, b) => b.s - a.s)
         .map(x => x.p);
     }
 
-    // Temporary boost: prioritise Work Diaries (hidden_gems) posts to the top
-    // until 2026-06-01 23:59 IST. Skips when filtering by a specific category.
     const BOOST_UNTIL = new Date('2026-06-01T18:29:59Z').getTime();
     if (Date.now() < BOOST_UNTIL && !(activeChip === 'Category' && activeCategory)) {
       const boosted = list.filter(p => p.category === 'hidden_gems');
       const rest = list.filter(p => p.category !== 'hidden_gems');
       list = [...boosted, ...rest];
     }
+    return list;
+  }, [posts, activeChip, activeCategory, interests]);
 
-    const q = query.trim().replace(/^#/, '');
-    if (!q) return list;
-    // Fuzzy search across the (chip/category-prefiltered) list
-    const scoped = list === posts ? fuse : new Fuse(list, {
-      keys: [
-        { name: 'title', weight: 0.4 },
-        { name: 'hashtags', weight: 0.25 },
-        { name: 'location', weight: 0.2 },
-        { name: 'body', weight: 0.15 },
-      ],
-      threshold: 0.4,
-      ignoreLocation: true,
-      minMatchCharLength: 2,
-    });
-    return scoped.search(q).map(r => r.item);
-  }, [posts, query, activeChip, activeCategory, fuse, interests]);
+  const displayedPosts = useMemo(() => {
+    if (!isSearching) return filtered;
+    if (locationFilter) {
+      return searchPosts.filter(p => (p.location || '').toLowerCase() === locationFilter.toLowerCase());
+    }
+    return searchPosts;
+  }, [isSearching, filtered, searchPosts, locationFilter]);
+
+
 
 
   return (
