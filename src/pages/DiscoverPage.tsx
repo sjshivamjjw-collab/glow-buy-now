@@ -8,6 +8,12 @@ import LazyVideoThumbnail from '@/components/LazyVideoThumbnail';
 import { PenguinAvatar, RIPPLER_NAME } from '@/components/RipplerIdentity';
 import TextCoverCard from '@/components/TextCoverCard';
 import { scoreInterestMatch } from '@/lib/interests';
+import {
+  getTrendingCache,
+  setTrendingCache,
+  isTrendingStale,
+  setTrendingScrollY,
+} from '@/lib/feedCache';
 
 
 interface TrendingPost {
