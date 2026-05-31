@@ -3,14 +3,14 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Radio, ArrowRight, Phone, Smartphone, ShoppingBag, Store } from 'lucide-react';
+import { ArrowRight, Phone, Smartphone } from 'lucide-react';
 import { lovable } from '@/integrations/lovable';
 import rippleLogo from '@/assets/ripple-logo.png';
 import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp';
 import { useToast } from '@/hooks/use-toast';
 
 
-type Step = 'welcome' | 'phone' | 'otp' | 'role';
+type Step = 'welcome' | 'phone' | 'otp';
 
 const AuthPage = () => {
   const [step, setStep] = useState<Step>('welcome');
@@ -18,7 +18,7 @@ const AuthPage = () => {
   const [otp, setOtp] = useState('');
   const [verifying, setVerifying] = useState(false);
   const [sending, setSending] = useState(false);
-  const [verifyData, setVerifyData] = useState<any>(null);
+  
   const { login } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -69,20 +69,8 @@ const AuthPage = () => {
         });
       }
 
-      // Check if user has seller role and needs role selection
-      const hasSeller = roles?.includes('seller');
-      const isAdmin = roles?.includes('admin');
-
-      if (isAdmin) {
-        login(user_id, phone, roles, profile);
-        navigate('/');
-      } else if (hasSeller) {
-        setVerifyData({ user_id, roles, profile });
-        setStep('role');
-      } else {
-        login(user_id, phone, roles || ['shopper'], profile);
-        navigate('/');
-      }
+      login(user_id, phone, roles || ['creator'], profile);
+      navigate('/');
     } catch (err: any) {
       console.error('Verify OTP error:', err);
       toast({
@@ -95,12 +83,6 @@ const AuthPage = () => {
     }
   };
 
-  const handleRoleSelect = (role: 'shopper' | 'seller') => {
-    if (verifyData) {
-      login(verifyData.user_id, phone, verifyData.roles, verifyData.profile);
-    }
-    navigate('/');
-  };
 
   return (
     <div className="min-h-screen bg-background flex flex-col max-w-lg mx-auto">
