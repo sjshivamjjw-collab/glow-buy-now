@@ -8,6 +8,12 @@ import LazyVideoThumbnail from '@/components/LazyVideoThumbnail';
 import { PenguinAvatar, RIPPLER_NAME } from '@/components/RipplerIdentity';
 import TextCoverCard from '@/components/TextCoverCard';
 import { scoreInterestMatch } from '@/lib/interests';
+import {
+  getTrendingCache,
+  setTrendingCache,
+  isTrendingStale,
+  setTrendingScrollY,
+} from '@/lib/feedCache';
 
 
 interface TrendingPost {
@@ -61,9 +67,11 @@ const DiscoverPage = () => {
   const navigate = useNavigate();
   const { userName, userAvatar, userId } = useAuth() as any;
   const firstName = (userName || '').trim().split(' ')[0] || 'there';
-  const [posts, setPosts] = useState<TrendingPost[]>([]);
-  const [authors, setAuthors] = useState<Record<string, AuthorInfo>>({});
-  const [loading, setLoading] = useState(true);
+  // Hydrate from in-memory cache so navigating back from a post is instant.
+  const cached = getTrendingCache();
+  const [posts, setPosts] = useState<TrendingPost[]>(cached?.posts ?? []);
+  const [authors, setAuthors] = useState<Record<string, AuthorInfo>>(cached?.authors ?? {});
+  const [loading, setLoading] = useState(!cached);
   const [query, setQuery] = useState('');
   const [activeChip, setActiveChip] = useState<string>('For you');
   const [categoryOpen, setCategoryOpen] = useState(false);
@@ -79,9 +87,20 @@ const DiscoverPage = () => {
       // Only show nudge when truly at top; otherwise keep it collapsed.
       setCollapsed(y > 20);
       lastScrollY.current = y;
+      // Persist scroll position so re-entering the feed restores it.
+      setTrendingScrollY(y);
     };
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+
+  // Restore scroll on mount when we hydrated from cache (e.g. back-nav from a post).
+  useEffect(() => {
+    if (cached && cached.scrollY > 0) {
+      // Wait one frame so the grid is in the DOM before scrolling.
+      requestAnimationFrame(() => window.scrollTo(0, cached.scrollY));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
 
@@ -143,26 +162,40 @@ const DiscoverPage = () => {
 
 
   useEffect(() => {
+    // If we hydrated from a fresh cache, skip the network round-trip entirely.
+    if (cached && !isTrendingStale()) return;
+
+    let cancelled = false;
     const load = async () => {
-      const { data } = await supabase.rpc('get_trending_posts' as any, { _limit: 30, _offset: 0 });
+      const { data, error } = await supabase.rpc('get_trending_posts' as any, { _limit: 30, _offset: 0 });
+      if (cancelled) return;
+      if (error || !data) {
+        // Don't blow away cached posts on a transient error.
+        if (!cached) setLoading(false);
+        return;
+      }
       const list = (data as TrendingPost[] | null) ?? [];
       list.forEach(p => {
         // Trust the safe feed RPC to mask anonymous authors; enforce it defensively in UI too.
         if (p.is_anonymous) p.user_id = null;
       });
       setPosts(list);
+      let authorMap: Record<string, AuthorInfo> = {};
       if (list.length) {
         const ids = Array.from(new Set(list.map(p => p.user_id).filter((u): u is string => !!u)));
         if (ids.length) {
           const { data: profs } = await supabase.rpc('get_public_profiles' as any, { _ids: ids });
-          const map: Record<string, AuthorInfo> = {};
-          ((profs as any[]) || []).forEach(p => { map[p.id] = p; });
-          setAuthors(map);
+          if (cancelled) return;
+          ((profs as any[]) || []).forEach(p => { authorMap[p.id] = p; });
+          setAuthors(authorMap);
         }
       }
+      setTrendingCache(list, authorMap);
       setLoading(false);
     };
     load();
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const baseChips = useMemo(() => ['For you', 'Trending'], []);

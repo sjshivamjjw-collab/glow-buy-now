@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
+import { invalidatePostDetail, invalidateTrending } from '@/lib/feedCache';
 import { ArrowLeft, Loader2, MapPin, Hash, X, Check, ImagePlus, Tag } from 'lucide-react';
 import { extractStoragePath } from '@/lib/storageUrls';
 import RichTextEditor from '@/components/RichTextEditor';
@@ -211,6 +212,8 @@ const EditPostPage = () => {
       if (error) throw error;
 
       toast({ title: 'Post updated' });
+      if (id) { invalidatePostDetail(id); }
+      invalidateTrending();
       navigate(`/p/${id}`);
     } catch (e: any) {
       console.error(e);

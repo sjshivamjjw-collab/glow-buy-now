@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
+import { invalidateTrending } from '@/lib/feedCache';
 import {
   ArrowLeft, ImagePlus, X, Loader2, MapPin, Hash, Music, Sparkles,
   Palette, Star, MessageSquareQuote, Gem, ChevronRight, Crop,
@@ -473,6 +474,7 @@ const CreatePostPage = () => {
 
       clearDraft();
       toast({ title: 'Posted!' });
+      invalidateTrending();
       navigate(`/p/${postId}`);
     } catch (e: any) {
       console.error(e);
