@@ -630,6 +630,7 @@ export type Database = {
           music_url: string | null
           review_recommendation: string | null
           review_subcategory: string | null
+          search_tsv: unknown
           title: string | null
           updated_at: string
           user_id: string
@@ -649,6 +650,7 @@ export type Database = {
           music_url?: string | null
           review_recommendation?: string | null
           review_subcategory?: string | null
+          search_tsv?: unknown
           title?: string | null
           updated_at?: string
           user_id: string
@@ -668,6 +670,7 @@ export type Database = {
           music_url?: string | null
           review_recommendation?: string | null
           review_subcategory?: string | null
+          search_tsv?: unknown
           title?: string | null
           updated_at?: string
           user_id?: string
@@ -1221,6 +1224,50 @@ export type Database = {
         }
         Returns: boolean
       }
+      search_hashtags: {
+        Args: { _limit?: number; _q: string }
+        Returns: {
+          post_count: number
+          tag: string
+        }[]
+      }
+      search_locations: {
+        Args: { _limit?: number; _q: string }
+        Returns: {
+          location: string
+          post_count: number
+        }[]
+      }
+      search_people: {
+        Args: { _limit?: number; _q: string }
+        Returns: {
+          avatar_url: string
+          id: string
+          name: string
+          score: number
+          username: string
+        }[]
+      }
+      search_posts: {
+        Args: { _limit?: number; _offset?: number; _q: string }
+        Returns: {
+          body: string
+          category: string
+          comment_count: number
+          cover_kind: string
+          cover_url: string
+          created_at: string
+          hashtags: string[]
+          id: string
+          is_anonymous: boolean
+          like_count: number
+          location: string
+          media_count: number
+          rank: number
+          title: string
+          user_id: string
+        }[]
+      }
       search_profiles_for_mention: {
         Args: { _q: string }
         Returns: {
@@ -1230,6 +1277,8 @@ export type Database = {
           username: string
         }[]
       }
+      show_limit: { Args: never; Returns: number }
+      show_trgm: { Args: { "": string }; Returns: string[] }
     }
     Enums: {
       app_role: "admin" | "creator" | "shopper"
