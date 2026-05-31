@@ -26,7 +26,7 @@ const TermsPage = () => (
     </ul>
 
     <h2>3. Prohibited Content & Conduct (Zero Tolerance)</h2>
-    <p>You may not post, share, livestream, or promote:</p>
+    <p>You may not post, share, or promote:</p>
     <ul>
       <li>Child sexual abuse material (CSAM) or any content that sexualises minors — this results in immediate, permanent removal and reporting to authorities.</li>
       <li>Non-consensual intimate imagery, sexual content, or nudity.</li>

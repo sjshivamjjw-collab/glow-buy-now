@@ -48,14 +48,13 @@ const ContactPage = () => (
 
     <h2>Response Time</h2>
     <p>
-      We respond to most queries within <strong>1 business day</strong>. Order
-      and refund issues are prioritised.
+      We respond to most queries within <strong>1 business day</strong>.
     </p>
 
     <h2>Business Information</h2>
     <p>
-      Ripple — a live commerce platform connecting Indian sellers with
-      shoppers across India.
+      Ripple — a social app for sharing the little moments of everyday life,
+      built in India.
     </p>
   </LegalPageLayout>
 );

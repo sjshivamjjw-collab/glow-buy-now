@@ -195,7 +195,7 @@ const OnboardingPage = () => {
                 <label className="text-sm font-medium text-foreground mb-1.5 block">Username</label>
                 <input
                   type="text"
-                  placeholder="e.g. cool_shopper"
+                  placeholder="e.g. your_username"
                   value={username}
                   onChange={e => {
                     const v = e.target.value.replace(/[^a-zA-Z0-9_]/g, '').slice(0, 20);

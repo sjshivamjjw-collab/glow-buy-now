@@ -13,7 +13,8 @@ Keep this in lockstep with `src/pages/PrivacyPage.tsx` — Google rejects apps w
 | App category | Social |
 | Target age group | **18+** (Not Designed for Families) |
 | Contains ads | **No** |
-| In-app purchases | No (initial release) |
+| In-app purchases | **No** |
+| Financial features | **No** |
 | Government app | No |
 | News app | No |
 | COVID-19 contact tracing | No |
@@ -38,13 +39,13 @@ For every row: **Collected = Yes**, **Shared with third parties = No** (processo
 
 ### Photos and videos
 | Photos | Yes | Optional | App functionality (posts, avatar) |
-| Videos | Yes | Optional | App functionality (posts, livestreams) |
+| Videos | Yes | Optional | App functionality (video posts) |
 
 ### Messages
-| In-app messages (community chat, live chat) | Yes | Optional | App functionality |
+| In-app messages (community chat) | Yes | Optional | App functionality |
 
 ### Audio
-| Voice / sound recordings | Yes | Optional | App functionality (video posts, livestreams) |
+| Voice / sound recordings | Yes | Optional | App functionality (video posts) |
 
 ### App activity
 | App interactions | Yes | Required | Analytics, Personalisation |
@@ -66,7 +67,7 @@ For every row: **Collected = Yes**, **Shared with third parties = No** (processo
 - Web browsing history
 - Files & docs outside the photo library
 - Calendar
-- Race & ethnicity, religious beliefs, sexual orientation, political views (any "sensitive info")
+- Race & ethnicity, religious beliefs, sexual orientation, political views
 
 ---
 
@@ -74,17 +75,15 @@ For every row: **Collected = Yes**, **Shared with third parties = No** (processo
 
 | Permission | Used for | User-visible rationale string |
 |---|---|---|
-| `INTERNET` | Core networking | (auto-granted, no rationale needed) |
-| `CAMERA` | Record posts and go live | "Ripple uses your camera to record posts and go live." |
-| `RECORD_AUDIO` | Capture audio for video posts and livestreams | "Ripple uses your microphone for live broadcasts and video posts." |
+| `INTERNET` | Core networking | (auto-granted) |
+| `CAMERA` | Record photo and video posts | "Ripple uses your camera to record posts." |
+| `RECORD_AUDIO` | Capture audio for video posts | "Ripple uses your microphone to record audio for video posts." |
 | `READ_MEDIA_IMAGES` (Android 13+) | Pick existing photos to upload | "Ripple needs access to your photos to upload posts and profile pictures." |
 | `READ_MEDIA_VIDEO` (Android 13+) | Pick existing videos to upload | "Ripple needs access to your videos to upload posts." |
 | `READ_EXTERNAL_STORAGE` (Android 12 and below, `maxSdkVersion=32`) | Pick existing photos/videos | Same as above |
-| `POST_NOTIFICATIONS` (Android 13+) | Push notifications for replies, follows, livestreams | "Ripple sends you notifications about replies, follows, and livestreams you may like." |
-| `WAKE_LOCK` | Keep livestream alive while broadcasting | (no rationale needed) |
-| `FOREGROUND_SERVICE` + `FOREGROUND_SERVICE_MEDIA_PROJECTION` | Livestream foreground service | (Play asks for "Foreground services" declaration → choose **Media playback / broadcasting**) |
+| `POST_NOTIFICATIONS` (Android 13+) | Push notifications for replies, follows, likes | "Ripple sends you notifications about replies, follows, and likes." |
 
-We do **not** request: `ACCESS_FINE_LOCATION`, `ACCESS_COARSE_LOCATION`, `READ_CONTACTS`, `READ_SMS`, `READ_CALL_LOG`, `BLUETOOTH_*`, `MANAGE_EXTERNAL_STORAGE`, `QUERY_ALL_PACKAGES`, `SYSTEM_ALERT_WINDOW`. If you ever add any of these, Play will require a sensitive-permission declaration and may demand a video walkthrough.
+We do **not** request: `ACCESS_FINE_LOCATION`, `ACCESS_COARSE_LOCATION`, `READ_CONTACTS`, `READ_SMS`, `READ_CALL_LOG`, `BLUETOOTH_*`, `MANAGE_EXTERNAL_STORAGE`, `QUERY_ALL_PACKAGES`, `SYSTEM_ALERT_WINDOW`, `FOREGROUND_SERVICE*`, `WAKE_LOCK`.
 
 ---
 
@@ -106,12 +105,12 @@ Answer the IARC questionnaire as follows. Resulting rating: **Mature 17+**.
 | **User-generated content** | **Yes** |
 | **User-to-user interaction** (chat, follow) | **Yes** |
 | **Shares user location** | No |
-| **Shares personal info** | No (we don't share between users by default) |
-| **Unrestricted internet access** | No (we sandbox in-app browsing) |
+| **Shares personal info** | No |
+| **Unrestricted internet access** | No |
 | Digital purchases | No |
 
 ### Required UGC controls (already implemented — verify before submission)
-- [ ] Report button on every post, comment, profile, and livestream
+- [ ] Report button on every post, comment and profile
 - [ ] Block button on every profile
 - [ ] Account deletion in-app and at `/delete-account`
 - [ ] Moderation contact published in Privacy Policy (Grievance Officer block)
@@ -124,14 +123,13 @@ Answer the IARC questionnaire as follows. Resulting rating: **Mature 17+**.
 - **Target age range:** 18 and older
 - **Appeals to children:** No
 - **Ads shown to children:** N/A
-- **Store listing certification:** Confirm the app does not unintentionally appeal to children (no cartoon characters, no kids-themed imagery in store assets).
 
 ---
 
 ## Things to double-check the day of submission
 
-1. Privacy Policy URL `https://myripple.co.in/privacy` loads in an incognito browser.
-2. Account Deletion URL `https://myripple.co.in/delete-account` loads in an incognito browser.
+1. Privacy Policy URL `https://myripple.co.in/privacy` loads in incognito.
+2. Account Deletion URL `https://myripple.co.in/delete-account` loads in incognito.
 3. Permission rationale strings in `AndroidManifest.xml` / `strings.xml` match the table above word-for-word.
 4. Every "Yes" in the Data Safety form is mentioned in the Privacy Policy under the same name.
-5. No analytics / advertising SDK is bundled in the release build (`apk-analyzer dex packages` to confirm).
+5. No analytics / advertising SDK is bundled in the release build.

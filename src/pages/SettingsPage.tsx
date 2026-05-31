@@ -81,7 +81,7 @@ const SettingsPage = () => {
           </div>
           <div className="px-5 py-4">
             <p className="text-xs text-muted-foreground">Role</p>
-            <p className="text-sm font-semibold text-foreground capitalize">{role === 'shopper' ? 'Member' : role}</p>
+            <p className="text-sm font-semibold text-foreground capitalize">{role || 'Member'}</p>
           </div>
         </div>
       </div>
@@ -93,7 +93,7 @@ const SettingsPage = () => {
             <Bell className="w-5 h-5 text-muted-foreground" />
             <div className="flex-1 min-w-0">
               <p className="font-semibold text-sm text-foreground">Push notifications</p>
-              <p className="text-xs text-muted-foreground mt-0.5">Order updates, livestreams, follows</p>
+              <p className="text-xs text-muted-foreground mt-0.5">Replies, follows, and likes</p>
             </div>
             <button
               onClick={() => togglePush(!pushEnabled)}

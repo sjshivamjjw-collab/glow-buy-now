@@ -3,14 +3,14 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Radio, ArrowRight, Phone, Smartphone, ShoppingBag, Store } from 'lucide-react';
+import { ArrowRight, Phone, Smartphone } from 'lucide-react';
 import { lovable } from '@/integrations/lovable';
 import rippleLogo from '@/assets/ripple-logo.png';
 import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp';
 import { useToast } from '@/hooks/use-toast';
 
 
-type Step = 'welcome' | 'phone' | 'otp' | 'role';
+type Step = 'welcome' | 'phone' | 'otp';
 
 const AuthPage = () => {
   const [step, setStep] = useState<Step>('welcome');
@@ -18,7 +18,7 @@ const AuthPage = () => {
   const [otp, setOtp] = useState('');
   const [verifying, setVerifying] = useState(false);
   const [sending, setSending] = useState(false);
-  const [verifyData, setVerifyData] = useState<any>(null);
+  
   const { login } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -69,20 +69,8 @@ const AuthPage = () => {
         });
       }
 
-      // Check if user has seller role and needs role selection
-      const hasSeller = roles?.includes('seller');
-      const isAdmin = roles?.includes('admin');
-
-      if (isAdmin) {
-        login(user_id, phone, roles, profile);
-        navigate('/');
-      } else if (hasSeller) {
-        setVerifyData({ user_id, roles, profile });
-        setStep('role');
-      } else {
-        login(user_id, phone, roles || ['shopper'], profile);
-        navigate('/');
-      }
+      login(user_id, phone, roles || ['creator'], profile);
+      navigate('/');
     } catch (err: any) {
       console.error('Verify OTP error:', err);
       toast({
@@ -95,12 +83,6 @@ const AuthPage = () => {
     }
   };
 
-  const handleRoleSelect = (role: 'shopper' | 'seller') => {
-    if (verifyData) {
-      login(verifyData.user_id, phone, verifyData.roles, verifyData.profile);
-    }
-    navigate('/');
-  };
 
   return (
     <div className="min-h-screen bg-background flex flex-col max-w-lg mx-auto">
@@ -281,55 +263,6 @@ const AuthPage = () => {
                 className="w-full py-4 rounded-2xl bg-primary text-primary-foreground font-bold text-lg active:scale-[0.98] transition-transform disabled:opacity-50 disabled:active:scale-100"
               >
                 {verifying ? 'Verifying…' : 'Verify'}
-              </button>
-            </div>
-          </motion.div>
-        )}
-
-        {step === 'role' && (
-          <motion.div
-            key="role"
-            initial={{ opacity: 0, x: 50 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -50 }}
-            className="flex-1 flex flex-col px-6 pt-16"
-          >
-            <h2 className="text-3xl font-extrabold text-foreground mb-2">
-              Welcome! 🎉
-            </h2>
-            <p className="text-muted-foreground mb-8">
-              How would you like to use Ripple?
-            </p>
-
-            <div className="space-y-4 flex-1">
-              <button
-                onClick={() => handleRoleSelect('shopper')}
-                className="w-full p-5 rounded-2xl bg-card border-2 border-border hover:border-primary transition-colors text-left active:scale-[0.98]"
-              >
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
-                    <ShoppingBag className="w-6 h-6 text-primary" />
-                  </div>
-                  <div>
-                    <h3 className="text-foreground font-bold text-lg">Shop & Watch</h3>
-                    <p className="text-muted-foreground text-sm">Browse livestreams and buy products</p>
-                  </div>
-                </div>
-              </button>
-
-              <button
-                onClick={() => handleRoleSelect('seller')}
-                className="w-full p-5 rounded-2xl bg-card border-2 border-border hover:border-primary transition-colors text-left active:scale-[0.98]"
-              >
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-xl bg-accent/10 flex items-center justify-center">
-                    <Store className="w-6 h-6 text-accent" />
-                  </div>
-                  <div>
-                    <h3 className="text-foreground font-bold text-lg">Sell & Stream</h3>
-                    <p className="text-muted-foreground text-sm">Manage your store and go live</p>
-                  </div>
-                </div>
               </button>
             </div>
           </motion.div>
