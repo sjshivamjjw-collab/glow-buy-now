@@ -10,6 +10,13 @@ import { MentionSuggestions } from '@/components/MentionSuggestions';
 import { getCommentPrompt } from '@/lib/commentPrompts';
 import { renderRichText } from '@/lib/richText';
 import { PenguinAvatar, RIPPLER_NAME } from '@/components/RipplerIdentity';
+import {
+  getPostDetailCache,
+  setPostDetailCache,
+  isPostDetailStale,
+  invalidatePostDetail,
+  invalidateTrending,
+} from '@/lib/feedCache';
 
 
 const CATEGORY_META: Record<string, { label: string }> = {
