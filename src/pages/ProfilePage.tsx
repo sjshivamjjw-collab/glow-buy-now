@@ -8,6 +8,7 @@ import { Settings, LogOut, ChevronRight, Bell, HelpCircle, ShieldCheck, Check, X
 import { PostsGrid } from '@/pages/UserProfilePage';
 import { formatCount } from '@/lib/utils';
 import { ImageCropperDialog } from '@/components/ImageCropperDialog';
+import Footer from '@/components/Footer';
 
 interface PostThumb { id: string; cover_url: string | null; cover_kind: string | null; like_count: number; title?: string | null; is_anonymous?: boolean; }
 
@@ -275,6 +276,8 @@ const ProfilePage = () => {
           Sign Out
         </button>
       </div>
+
+      <Footer />
 
       <ImageCropperDialog
         file={pendingAvatarFile}
