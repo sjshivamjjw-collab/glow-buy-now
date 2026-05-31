@@ -82,7 +82,7 @@ const ProfilePage = () => {
     }
   };
 
-  const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     e.target.value = '';
     if (!file || !userId) return;
@@ -90,6 +90,11 @@ const ProfilePage = () => {
       toast({ title: 'Image too large', description: 'Please select an image under 5MB', variant: 'destructive' });
       return;
     }
+    setPendingAvatarFile(file);
+  };
+
+  const uploadAvatarFile = async (file: File) => {
+    if (!userId) return;
     setUploadingAvatar(true);
     try {
       const ext = file.name.split('.').pop() || 'jpg';
