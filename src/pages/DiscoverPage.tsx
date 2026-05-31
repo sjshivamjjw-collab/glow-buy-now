@@ -162,26 +162,40 @@ const DiscoverPage = () => {
 
 
   useEffect(() => {
+    // If we hydrated from a fresh cache, skip the network round-trip entirely.
+    if (cached && !isTrendingStale()) return;
+
+    let cancelled = false;
     const load = async () => {
-      const { data } = await supabase.rpc('get_trending_posts' as any, { _limit: 30, _offset: 0 });
+      const { data, error } = await supabase.rpc('get_trending_posts' as any, { _limit: 30, _offset: 0 });
+      if (cancelled) return;
+      if (error || !data) {
+        // Don't blow away cached posts on a transient error.
+        if (!cached) setLoading(false);
+        return;
+      }
       const list = (data as TrendingPost[] | null) ?? [];
       list.forEach(p => {
         // Trust the safe feed RPC to mask anonymous authors; enforce it defensively in UI too.
         if (p.is_anonymous) p.user_id = null;
       });
       setPosts(list);
+      let authorMap: Record<string, AuthorInfo> = {};
       if (list.length) {
         const ids = Array.from(new Set(list.map(p => p.user_id).filter((u): u is string => !!u)));
         if (ids.length) {
           const { data: profs } = await supabase.rpc('get_public_profiles' as any, { _ids: ids });
-          const map: Record<string, AuthorInfo> = {};
-          ((profs as any[]) || []).forEach(p => { map[p.id] = p; });
-          setAuthors(map);
+          if (cancelled) return;
+          ((profs as any[]) || []).forEach(p => { authorMap[p.id] = p; });
+          setAuthors(authorMap);
         }
       }
+      setTrendingCache(list, authorMap);
       setLoading(false);
     };
     load();
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const baseChips = useMemo(() => ['For you', 'Trending'], []);
