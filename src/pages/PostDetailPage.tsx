@@ -166,7 +166,7 @@ const PostDetailPage = () => {
         supabase.from('post_media' as any).select('*').eq('post_id', id).order('sort_order'),
       ]);
       const p = ((postRes.data as any[]) || [])[0] || null;
-      return { p: p as PostRow | null, m: (mediaRes.data as MediaRow[]) || [] };
+      return { p: p as PostRow | null, m: ((mediaRes.data as unknown) as MediaRow[]) || [] };
     };
 
     (async () => {
