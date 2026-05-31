@@ -10,6 +10,8 @@ interface Props {
   onApply: (croppedFile: File) => void;
   onSkip?: () => void;
   title?: string;
+  aspect?: number;
+  cropShape?: 'rect' | 'round';
 }
 
 // Instagram feed standard: 4:5 portrait (1080 x 1350).
