@@ -474,6 +474,7 @@ const CreatePostPage = () => {
 
       clearDraft();
       toast({ title: 'Posted!' });
+      invalidateTrending();
       navigate(`/p/${postId}`);
     } catch (e: any) {
       console.error(e);
