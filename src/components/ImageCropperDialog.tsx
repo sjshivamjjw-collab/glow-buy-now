@@ -113,12 +113,13 @@ export const ImageCropperDialog = ({ file, open, onCancel, onApply, onSkip, titl
               zoom={zoom}
               minZoom={1}
               maxZoom={4}
-              aspect={INSTAGRAM_ASPECT}
+              aspect={aspect ?? INSTAGRAM_ASPECT}
+              cropShape={cropShape}
               onCropChange={setCrop}
               onZoomChange={setZoom}
               onCropComplete={onCropComplete}
               objectFit="contain"
-              showGrid={true}
+              showGrid={cropShape !== 'round'}
               zoomWithScroll={true}
             />
           )}
