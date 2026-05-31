@@ -67,9 +67,11 @@ const DiscoverPage = () => {
   const navigate = useNavigate();
   const { userName, userAvatar, userId } = useAuth() as any;
   const firstName = (userName || '').trim().split(' ')[0] || 'there';
-  const [posts, setPosts] = useState<TrendingPost[]>([]);
-  const [authors, setAuthors] = useState<Record<string, AuthorInfo>>({});
-  const [loading, setLoading] = useState(true);
+  // Hydrate from in-memory cache so navigating back from a post is instant.
+  const cached = getTrendingCache();
+  const [posts, setPosts] = useState<TrendingPost[]>(cached?.posts ?? []);
+  const [authors, setAuthors] = useState<Record<string, AuthorInfo>>(cached?.authors ?? {});
+  const [loading, setLoading] = useState(!cached);
   const [query, setQuery] = useState('');
   const [activeChip, setActiveChip] = useState<string>('For you');
   const [categoryOpen, setCategoryOpen] = useState(false);
