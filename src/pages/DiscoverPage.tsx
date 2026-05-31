@@ -513,9 +513,87 @@ const DiscoverPage = () => {
                 key={p.id}
                 onClick={() => navigate(`/p/${p.id}`)}
                 className="group mb-1.5 w-full text-left rounded-3xl overflow-hidden bg-[#161616] border border-[#2a2a2a]/50 hover:border-[#ef4444] hover:shadow-lg hover:shadow-[#dc2626]/10 transition-all duration-300"
+              >
+                <div className="relative w-full bg-[#1a1a1a] overflow-hidden" style={{ height: `${h}px` }}>
+                  {p.cover_url ? (
+                    p.cover_kind === 'video' ? (
+                      <>
+                        <LazyVideoThumbnail src={p.cover_url} className="w-full h-full group-hover:scale-105 transition-transform duration-500" />
+                        <span className="absolute top-2 right-2 w-8 h-8 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center">
+                          <Play className="w-3.5 h-3.5 text-white fill-white" />
+                        </span>
+                      </>
+                    ) : (
+                      <img src={p.cover_url} alt={p.title || ''} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" decoding="async" />
+                    )
+                  ) : (
+                    <TextCoverCard title={p.title || p.body} />
+                  )}
+                  {p.category && CATEGORY_META[p.category] && (
+                    <span className="absolute top-1.5 left-1.5 px-1.5 py-[2px] rounded-md bg-black/55 backdrop-blur-sm text-white/90 text-[9px] font-medium tracking-wide">
+                      {CATEGORY_META[p.category].label}
+                    </span>
+                  )}
+                  {p.media_count > 1 && (
+                    <span className="absolute bottom-2 right-2 px-2 py-0.5 rounded-full bg-black/55 backdrop-blur-sm text-white text-[10px] font-bold flex items-center gap-1">
+                      <Images className="w-3 h-3" /> {p.media_count}
+                    </span>
+                  )}
+                </div>
+                <div className="px-3 pt-3 pb-3">
+                  {p.title && p.media_count > 0 && (
+                    <p className="font-[Outfit] font-semibold text-[#fafafa] text-[15px] leading-[1.3] line-clamp-3 mb-2.5">
+                      {p.title}
+                    </p>
+                  )}
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-1.5 min-w-0 flex-1">
+                      {isAnon ? (
+                        <PenguinAvatar size={22} />
+                      ) : author?.avatar_url ? (
+                        <img src={author.avatar_url} className="w-5 h-5 rounded-full object-cover shrink-0 ring-1 ring-[#2a2a2a]" alt="" />
+                      ) : (
+                        <div className="w-5 h-5 rounded-full bg-gradient-to-br from-[#2a2a2a] to-[#ef4444] shrink-0" />
+                      )}
+                      <span className="truncate text-[12px] font-semibold text-[#cfcfcf]">
+                        {isAnon ? (
+                          <>
+                            {RIPPLER_NAME}
+                            <span className="ml-1 text-[10px] font-medium text-[#a0a0a0]">(anonymous)</span>
+                          </>
+                        ) : (
+                          author?.username ? `@${author.username}` : author?.name || 'User'
+                        )}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <span className="flex items-center gap-0.5 text-[12px] text-[#ef4444] font-semibold">
+                        <Heart className="w-3.5 h-3.5 fill-[#ef4444] text-[#ef4444]" />{formatCount(p.like_count)}
+                      </span>
+                      <span className="flex items-center gap-0.5 text-[12px] text-[#ef4444] font-semibold">
+                        <MessageCircle className="w-3.5 h-3.5" />{formatCount(p.comment_count)}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </button>
+            );
+          };
 
+          const leftItems = displayedPosts.filter((_, i) => i % 2 === 0);
+          const rightItems = displayedPosts.filter((_, i) => i % 2 === 1);
+
+          return (
+            <div className="grid grid-cols-2 gap-1.5">
+              <div>{leftItems.map((p, i) => renderCard(p, LEFT_HEIGHTS[i % LEFT_HEIGHTS.length]))}</div>
+              <div>{rightItems.map((p, i) => renderCard(p, RIGHT_HEIGHTS[i % RIGHT_HEIGHTS.length]))}</div>
+            </div>
+          );
+        })()}
+      </div>
     </div>
   );
 };
 
 export default DiscoverPage;
+
