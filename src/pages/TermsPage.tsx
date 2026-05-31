@@ -63,7 +63,7 @@ const TermsPage = () => (
       We act on valid notices within 36 hours, in line with India's IT Rules.
     </p>
 
-    <h2>7. Disclaimers & Liability</h2>
+    <h2>6. Disclaimers & Liability</h2>
     <p>
       The Service is provided "as is" without warranties of any kind. Ripple
       is a platform for user-generated content; we do not endorse user posts,
@@ -72,7 +72,7 @@ const TermsPage = () => (
       from your use of the Service or from content posted by other users.
     </p>
 
-    <h2>8. Termination</h2>
+    <h2>7. Termination</h2>
     <p>
       We may suspend or terminate your account at any time for breach of
       these Terms or applicable law, without prior notice. You may delete
@@ -80,14 +80,14 @@ const TermsPage = () => (
       or via <a href="/delete-account">myripple.co.in/delete-account</a>.
     </p>
 
-    <h2>9. Governing Law & Jurisdiction</h2>
+    <h2>8. Governing Law & Jurisdiction</h2>
     <p>
       These Terms are governed by the laws of India. Any disputes are
       subject to the exclusive jurisdiction of the courts at Mumbai,
       Maharashtra.
     </p>
 
-    <h2>10. Contact & Grievances</h2>
+    <h2>9. Contact & Grievances</h2>
     <p>
       For questions about these Terms, see our <a href="/contact">Contact Us</a> page.
       For formal grievances under India's IT Rules, 2021, please see the
