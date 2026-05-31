@@ -389,8 +389,20 @@ const PostDetailPage = () => {
     toast({ title: next ? 'Post hidden' : 'Post unhidden' });
   };
 
-  if (loading) return <div className="min-h-screen flex items-center justify-center bg-[#0a0a0a]"><Loader2 className="w-6 h-6 animate-spin text-[#ef4444]" /></div>;
-  if (!post) return <div className="min-h-screen flex items-center justify-center bg-[#0a0a0a] text-[#a0a0a0]">Post not found</div>;
+  if (loading && !post) return <div className="min-h-screen flex items-center justify-center bg-[#0a0a0a]"><Loader2 className="w-6 h-6 animate-spin text-[#ef4444]" /></div>;
+  if (!post) {
+    if (notFound) {
+      return (
+        <div className="min-h-screen flex flex-col items-center justify-center bg-[#0a0a0a] text-[#a0a0a0] gap-4 px-6 text-center">
+          <p>This post is no longer available.</p>
+          <button onClick={() => navigate('/')} className="px-4 py-2 rounded-full bg-[#ef4444]/10 border border-[#ef4444]/30 text-[#ef4444] text-sm font-semibold">
+            Back to feed
+          </button>
+        </div>
+      );
+    }
+    return <div className="min-h-screen flex items-center justify-center bg-[#0a0a0a]"><Loader2 className="w-6 h-6 animate-spin text-[#ef4444]" /></div>;
+  }
 
   const isAnon = !!post.is_anonymous;
   const author = !isAnon && post.user_id ? authors[post.user_id] : undefined;
