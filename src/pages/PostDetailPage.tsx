@@ -375,6 +375,8 @@ const PostDetailPage = () => {
   const handleDeletePost = async () => {
     if (!post || !confirm('Delete this post?')) return;
     await supabase.from('posts' as any).delete().eq('id', post.id);
+    invalidatePostDetail(post.id);
+    invalidateTrending();
     navigate('/');
   };
 
