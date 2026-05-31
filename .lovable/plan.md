@@ -1,57 +1,44 @@
-# Make post creation typing feel native
+# Fix Discover search
 
-## Goal
-Typing in the title and body should feel as smooth as WhatsApp — zero perceptible lag, even on long posts or mid-range Android.
+Today the Discover search only filters the 30 trending posts already loaded — so older posts, usernames, hashtags, and locations don't get found. Let's make it search the full database and return grouped results.
 
-## Why it still feels slow
-Even after the 200ms debounce, every burst of typing still:
-1. Updates `body` state on the page → re-renders the entire CreatePostPage tree (media grid + DnD context, music card, location effect deps, draft autosave with `JSON.stringify` of the whole draft).
-2. The contentEditable's `onInput` reads `el.innerText` on every keystroke (forces layout, scales with body length).
-3. The title `<input>` calls `setTitle` on every keystroke → same full-page re-render.
+## What the new search will do
 
-The browser itself handles keystrokes instantly inside the field — all the lag comes from React work happening alongside it.
+When the search box has text, replace the masonry grid with a grouped results view:
 
-## Approach
-Isolate the editor and title from the rest of the page so typing causes **zero React work in the parent**. State only syncs on blur, on pause (1s), or on submit.
+1. **Posts** — full-text match across title, body, hashtags, location across ALL non-hidden posts (not just the 30 loaded). Ranked by relevance, then likes+comments, then recency.
+2. **People** — match profiles by `name` or `username`. Tap a row → opens that user's profile.
+3. **Hashtags** — distinct hashtags matching the query, with post counts. Tap → fills search with `#tag` to show posts with that tag.
+4. **Locations** — distinct locations matching the query, with post counts. Tap → filters posts to that location.
 
-### 1. RichTextEditor → fully uncontrolled
-- Remove the value→DOM sync effect (already mostly bypassed). Editor owns its DOM content after mount.
-- Expose an imperative `ref` with `getHTML()` / `setHTML()` / `focus()`.
-- Stop calling `onChange` on every keystroke. Instead:
-  - Call `onChange` on **blur** only (for autosave + validation).
-  - Optionally a single `onPauseChange` after 1s of idle (for draft persistence while user keeps the field focused for a long time).
-- Drop the per-keystroke `el.innerText` length check; only enforce `maxLength` on blur/paste (it's currently unused anyway — no maxLength is passed).
-- Wrap in `React.memo` with empty prop comparator so parent re-renders never touch it.
+When the search box is empty, behaviour is unchanged (chips / masonry feed).
 
-### 2. Title input → uncontrolled subcomponent
-- Extract `<TitleField />` that owns its own state via `defaultValue` + ref.
-- Parent reads the value on submit via ref, and on blur for draft autosave.
-- Character counter lives inside `TitleField` so it updates locally without bubbling.
+## How it'll work (technical)
 
-### 3. Draft autosave → ref-driven, not state-driven
-- Parent keeps `bodyRef` / `titleRef` instead of state.
-- Single `setInterval` (every 2s) or a `'visibilitychange'` + `beforeunload` + blur-driven save reads from refs and writes to localStorage. No render needed.
-- Remove `body` and `title` from any other `useEffect` deps.
+**New SQL (one migration):**
+- `search_posts(_q text, _limit int, _offset int)` — security definer, returns same shape as `get_trending_posts` plus a `rank` column. Uses Postgres full-text search:
+  - Add a generated `tsvector` column `search_tsv` on `posts` (title || body || hashtags || location) with a GIN index.
+  - Query: `WHERE is_hidden=false AND search_tsv @@ websearch_to_tsquery('simple', _q)` ordered by `ts_rank` + engagement.
+  - Falls back to `ILIKE` on title/location for very short queries (<2 chars handled client-side by not calling).
+- `search_people(_q text, _limit int)` — returns `id, name, username, avatar_url` from `profiles` where `username ILIKE _q%` OR `name ILIKE %_q%`. Security definer, exposes only public fields (same as `get_public_profiles`).
+- `search_hashtags(_q text, _limit int)` — unnests `posts.hashtags`, groups, filters `ILIKE`, returns `tag, post_count`.
+- `search_locations(_q text, _limit int)` — `SELECT location, count(*) FROM posts WHERE location ILIKE %_q% GROUP BY location`.
+- All four granted to `authenticated`.
 
-### 4. Memoize the heavy siblings
-- `React.memo` on `SortableMediaTile` (already mostly fine, but make sure callbacks are stable via `useCallback`).
-- Move the `BODY_PLACEHOLDERS` lookup out of the IIFE into a `useMemo` keyed on `category, reviewSub`.
+**Frontend (`src/pages/DiscoverPage.tsx`):**
+- Debounce the query (250ms) and only fire when length ≥ 2.
+- Add a `useQuery`-style effect that runs the 4 RPCs in parallel and stores results.
+- New rendering branch: when `query.trim().length >= 2`, render grouped sections (People → Hashtags → Locations → Posts) instead of the masonry. Each section shows up to N rows with a "Show more" affordance.
+- Tap behaviours:
+  - People row → `navigate('/u/' + username)` (or whatever the existing user profile route is — will confirm in code).
+  - Hashtag row → sets query to `#tag`, scrolls to Posts section.
+  - Location row → sets a `locationFilter` state, shows results filtered by location.
+- Remove the now-unused client-side Fuse search (keep Fuse only as a fallback if RPC fails, or drop entirely).
+- Loading state: small spinner inside the results area; show "No results for …" empty state.
 
-### 5. Hydration
-- On mount, push the persisted draft HTML into the editor once via the imperative ref, then never touch it again.
+**Ranking:** relevance (`ts_rank`) first, then `like_count + comment_count`, then `created_at DESC`. No separate UI toggle.
 
-## What stays the same
-- All existing features: bold/italic/underline toolbar, bullet auto-continue on Enter, plain-text paste, placeholder overlay, draft restore banner, "Discard" button, submit validation (`isRichTextEmpty`).
-- Visual layout, styles, copy — no UI changes.
-- Other rich-text consumers (if any) keep working through a compatibility shim: if no ref is passed, the editor falls back to its current controlled behaviour.
-
-## Risk
-- The placeholder overlay currently keys off `value` being empty. With uncontrolled editor, we'll track empty-state with an internal `useState` flipped in `handleInput` (cheap — only flips twice per session).
-- Draft restore on the same page after Discard needs the imperative `setHTML('')` call — handled in `discardDraft`.
-
-## Files touched
-- `src/components/RichTextEditor.tsx` — refactor to uncontrolled + memo + forwardRef.
-- `src/pages/CreatePostPage.tsx` — extract `TitleField`, switch body to ref, move autosave to interval/blur, useMemo placeholders.
-
-## Expected result
-Typing produces no React renders in the parent. Only renders happen on blur, submit, category change, media add, and music pick — same as WhatsApp where the input is isolated from the chat list.
+## Out of scope
+- No typeahead suggestions dropdown — results render inline as the user types (debounced).
+- No search history / recent searches.
+- No analytics / search logging.
