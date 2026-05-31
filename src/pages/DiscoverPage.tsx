@@ -87,9 +87,20 @@ const DiscoverPage = () => {
       // Only show nudge when truly at top; otherwise keep it collapsed.
       setCollapsed(y > 20);
       lastScrollY.current = y;
+      // Persist scroll position so re-entering the feed restores it.
+      setTrendingScrollY(y);
     };
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+
+  // Restore scroll on mount when we hydrated from cache (e.g. back-nav from a post).
+  useEffect(() => {
+    if (cached && cached.scrollY > 0) {
+      // Wait one frame so the grid is in the DOM before scrolling.
+      requestAnimationFrame(() => window.scrollTo(0, cached.scrollY));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
 
