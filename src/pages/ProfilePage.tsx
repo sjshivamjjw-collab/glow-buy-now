@@ -25,6 +25,7 @@ const ProfilePage = () => {
   const [posts, setPosts] = useState<PostThumb[]>([]);
   const [followers, setFollowers] = useState(0);
   const [saves, setSaves] = useState(0);
+  const [pendingAvatarFile, setPendingAvatarFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
