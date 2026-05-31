@@ -212,6 +212,8 @@ const EditPostPage = () => {
       if (error) throw error;
 
       toast({ title: 'Post updated' });
+      if (id) { invalidatePostDetail(id); }
+      invalidateTrending();
       navigate(`/p/${id}`);
     } catch (e: any) {
       console.error(e);
