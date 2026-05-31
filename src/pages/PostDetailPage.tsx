@@ -111,12 +111,17 @@ const PostDetailPage = () => {
   const { userId, isAdmin } = useAuth();
   const { toast } = useToast();
 
-  const [post, setPost] = useState<PostRow | null>(null);
-  const [media, setMedia] = useState<MediaRow[]>([]);
+  // Hydrate from cache for instant render when re-opening a post.
+  const initialCache = id ? getPostDetailCache(id) : undefined;
+  const [post, setPost] = useState<PostRow | null>((initialCache?.post as PostRow) || null);
+  const [media, setMedia] = useState<MediaRow[]>((initialCache?.media as MediaRow[]) || []);
   const [comments, setComments] = useState<CommentRow[]>([]);
-  const [authors, setAuthors] = useState<Record<string, AuthorInfo>>({});
+  const [authors, setAuthors] = useState<Record<string, AuthorInfo>>(
+    initialCache?.author ? { [initialCache.author.id]: initialCache.author } : {}
+  );
   const [liked, setLiked] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!initialCache);
+  const [notFound, setNotFound] = useState(false);
   const [posting, setPosting] = useState(false);
   const [draft, setDraft] = useState('');
   const [mediaIdx, setMediaIdx] = useState(0);
@@ -146,50 +151,117 @@ const PostDetailPage = () => {
 
   const [isOwn, setIsOwn] = useState(false);
 
+  // Fetch the post itself (with one retry on empty/error) — this drives the main render.
   useEffect(() => {
     if (!id) return;
-    const load = async () => {
-      setLoading(true);
-      const [{ data: postRows }, { data: m }, { data: commentRows }, likeRes, saveRes, ownRes] = await Promise.all([
-        // Security-definer RPC returns the post with anonymous owner masked for all signed-in readers.
+    let cancelled = false;
+    const haveCache = !!getPostDetailCache(id);
+    // Only show the full-page spinner if we have nothing to render yet.
+    if (!haveCache) setLoading(true);
+    setNotFound(false);
+
+    const fetchPostAndMedia = async (): Promise<{ p: PostRow | null; m: MediaRow[] }> => {
+      const [postRes, mediaRes] = await Promise.all([
         supabase.rpc('get_post_public' as any, { _post_id: id }),
         supabase.from('post_media' as any).select('*').eq('post_id', id).order('sort_order'),
-        // Security-definer RPC returns comments with anonymous commenter IDs masked.
+      ]);
+      const p = ((postRes.data as any[]) || [])[0] || null;
+      return { p: p as PostRow | null, m: (mediaRes.data as MediaRow[]) || [] };
+    };
+
+    (async () => {
+      let result = await fetchPostAndMedia();
+      // Retry once on empty/error — transient network blips are the #1 cause of "Post not found".
+      if (!result.p && !cancelled) {
+        await new Promise(r => setTimeout(r, 400));
+        if (cancelled) return;
+        result = await fetchPostAndMedia();
+      }
+      if (cancelled) return;
+
+      if (!result.p) {
+        // Genuinely missing — drop any stale cache and show empty state.
+        invalidatePostDetail(id);
+        setPost(null);
+        setMedia([]);
+        setLoading(false);
+        setNotFound(true);
+        return;
+      }
+
+      setPost(result.p);
+      setMedia(result.m);
+      setLoading(false);
+
+      // Resolve post author for cache, then write cache.
+      let authorInfo: AuthorInfo | undefined;
+      if (result.p.user_id && !result.p.is_anonymous) {
+        const cachedAuthor = authors[result.p.user_id];
+        if (cachedAuthor) {
+          authorInfo = cachedAuthor;
+        } else {
+          const { data: profs } = await supabase.rpc('get_public_profiles' as any, { _ids: [result.p.user_id] });
+          if (cancelled) return;
+          const a = ((profs as any[]) || [])[0];
+          if (a) {
+            authorInfo = a;
+            setAuthors(prev => ({ ...prev, [a.id]: a }));
+          }
+        }
+      }
+      setPostDetailCache(id, {
+        post: result.p as any,
+        media: result.m as any,
+        author: authorInfo as any,
+      });
+    })();
+
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id]);
+
+  // Load comments + per-user like/save/own state in the background — does NOT block the main render.
+  useEffect(() => {
+    if (!id) return;
+    let cancelled = false;
+    (async () => {
+      const [commentRes, likeRes, saveRes, ownRes] = await Promise.all([
         supabase.rpc('get_post_comments_public' as any, { _post_id: id }),
         userId ? supabase.from('post_likes' as any).select('post_id').eq('post_id', id).eq('user_id', userId).maybeSingle() : Promise.resolve({ data: null }),
         userId ? supabase.from('post_saves' as any).select('post_id').eq('post_id', id).eq('user_id', userId).maybeSingle() : Promise.resolve({ data: null }),
         userId ? supabase.from('posts' as any).select('user_id').eq('id', id).eq('user_id', userId).maybeSingle() : Promise.resolve({ data: null }),
       ]);
-      const p = ((postRows as any[]) || [])[0] || null;
-      setPost(p as any);
-      setMedia((m as any) || []);
-      const commentList = (commentRows as any) || [];
+      if (cancelled) return;
+      const commentList = (commentRes.data as CommentRow[]) || [];
       setComments(commentList);
-      setLiked(!!likeRes.data);
-      setSaved(!!saveRes.data);
-      setIsOwn(!!ownRes.data);
-      const ids = new Set<string>();
-      if (p && (p as any).user_id && !(p as any).is_anonymous) ids.add((p as any).user_id);
-      commentList.forEach((cc: CommentRow) => { if (cc.user_id) ids.add(cc.user_id); });
-      if (ids.size) {
-        const { data: profs } = await supabase.rpc('get_public_profiles' as any, { _ids: Array.from(ids) });
+      setLiked(!!(likeRes as any).data);
+      setSaved(!!(saveRes as any).data);
+      setIsOwn(!!(ownRes as any).data);
+
+      const commentAuthorIds = Array.from(
+        new Set(commentList.map(c => c.user_id).filter((u): u is string => !!u))
+      ).filter(uid => !authors[uid]);
+      if (commentAuthorIds.length) {
+        const { data: profs } = await supabase.rpc('get_public_profiles' as any, { _ids: commentAuthorIds });
+        if (cancelled) return;
         const map: Record<string, AuthorInfo> = {};
         ((profs as any[]) || []).forEach(pp => { map[pp.id] = pp; });
-        setAuthors(map);
+        setAuthors(prev => ({ ...prev, ...map }));
       }
+
       if (userId && commentList.length) {
-        const ids = commentList.map((cc: CommentRow) => cc.id);
+        const cids = commentList.map(c => c.id);
         const [{ data: cl }, { data: own }] = await Promise.all([
-          supabase.from('post_comment_likes' as any).select('comment_id').eq('user_id', userId).in('comment_id', ids),
-          // Owner can read own anonymous-comment rows via base-table RLS — used only to know which comments are "mine".
+          supabase.from('post_comment_likes' as any).select('comment_id').eq('user_id', userId).in('comment_id', cids),
           supabase.from('post_comments' as any).select('id').eq('post_id', id).eq('user_id', userId),
         ]);
+        if (cancelled) return;
         setLikedComments(new Set(((cl as any[]) || []).map(r => r.comment_id)));
         setOwnComments(new Set(((own as any[]) || []).map(r => r.id)));
       }
-      setLoading(false);
-    };
-    load();
+    })();
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id, userId]);
 
   useEffect(() => {
