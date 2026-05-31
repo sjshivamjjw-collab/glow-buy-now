@@ -13,7 +13,6 @@ import { PenguinAvatar, RIPPLER_NAME } from '@/components/RipplerIdentity';
 import {
   getPostDetailCache,
   setPostDetailCache,
-  isPostDetailStale,
   invalidatePostDetail,
   invalidateTrending,
 } from '@/lib/feedCache';
