@@ -114,6 +114,7 @@ const SettingsPage = () => {
         <div className="rounded-2xl bg-card border border-border overflow-hidden">
           <Row icon={Shield} label="Privacy Policy" onClick={() => navigate('/privacy')} />
           <div className="border-t border-border"><Row icon={FileText} label="Terms of Service" onClick={() => navigate('/terms')} /></div>
+          <div className="border-t border-border"><Row icon={Trash2} label="Delete account info" sub="How to permanently delete your account" onClick={() => navigate('/delete-account')} /></div>
         </div>
       </div>
 
