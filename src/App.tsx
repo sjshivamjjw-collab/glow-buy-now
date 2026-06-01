@@ -96,6 +96,7 @@ const AppRoutes = () => {
                   <Route path="/saved" element={<SavedPostsPage />} />
                   <Route path="/profile" element={<ProfilePage />} />
                   <Route path="/settings" element={<SettingsPage />} />
+                  <Route path="/settings/blocked" element={<BlockedAccountsPage />} />
                   <Route path="/admin" element={isAdmin ? <AdminPanelPage /> : <Navigate to="/" replace />} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
