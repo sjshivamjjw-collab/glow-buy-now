@@ -152,6 +152,8 @@ const PostDetailPage = () => {
 
 
   const [isOwn, setIsOwn] = useState(false);
+  const [reportOpen, setReportOpen] = useState(false);
+  const { blocked, refresh: refreshBlocks } = useBlockedUsers();
 
   // Fetch the post itself (with one retry on empty/error) — this drives the main render.
   useEffect(() => {
