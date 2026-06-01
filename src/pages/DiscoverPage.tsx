@@ -260,10 +260,21 @@ const DiscoverPage = () => {
     }
   };
 
-  // Infinite scroll sentinel.
+  // Infinite scroll sentinel — observer is attached when the sentinel mounts (only when not searching).
   useEffect(() => {
-    if (isSearchingMode()) return; // defined below; safe because IIFE not used. Replaced below.
-  }, []);
+    const el = sentinelRef.current;
+    if (!el) return;
+    const io = new IntersectionObserver((entries) => {
+      if (entries.some(e => e.isIntersecting)) {
+        loadMore();
+      }
+    }, { rootMargin: '600px 0px' });
+    io.observe(el);
+    return () => io.disconnect();
+    // Re-attach when hasMore flips or sentinel re-mounts (search toggle).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hasMore, loading]);
+
 
 
   const baseChips = useMemo(() => ['For you', 'Trending'], []);
