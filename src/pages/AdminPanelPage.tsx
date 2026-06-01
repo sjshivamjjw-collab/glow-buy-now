@@ -24,7 +24,7 @@ const AdminPanelPage = () => {
   useEffect(() => {
     const load = async () => {
       const [profilesRes, postsRes] = await Promise.all([
-        supabase.from('profiles').select('id, name, phone, created_at').order('created_at', { ascending: false }),
+        supabase.from('profiles').select('id, name, phone, email, avatar_url, created_at').order('created_at', { ascending: false }),
         supabase.from('posts' as any).select('*, post_media(url, kind, sort_order)').order('created_at', { ascending: false }),
       ]);
 
