@@ -723,10 +723,29 @@ const DiscoverPage = () => {
             </div>
           );
         })()}
+
+        {/* Infinite scroll footer — only for the trending feed, not search results. */}
+        {!loading && !isSearching && displayedPosts.length > 0 && (
+          <div className="mt-4">
+            {hasMore ? (
+              <>
+                <div ref={sentinelRef} className="h-1 w-full" aria-hidden />
+                {loadingMore && (
+                  <div className="flex items-center justify-center py-6">
+                    <Loader2 className="w-5 h-5 animate-spin text-[#dc2626]" />
+                  </div>
+                )}
+              </>
+            ) : (
+              <p className="text-center text-[#a0a0a0] text-xs py-6">You're all caught up ✨</p>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
 };
+
 
 export default DiscoverPage;
 
