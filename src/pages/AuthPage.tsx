@@ -128,10 +128,10 @@ const AuthPage = () => {
             <div className="px-6 pb-12 space-y-3">
               <button
                 onClick={() => setStep('phone')}
-                className="w-full py-4 rounded-2xl bg-primary text-primary-foreground font-bold text-lg flex items-center justify-center gap-2 active:scale-[0.98] transition-transform"
+                className="w-full py-4 rounded-2xl bg-primary text-primary-foreground font-semibold text-lg flex items-center justify-center gap-3 active:scale-[0.98] transition-transform"
               >
+                <Phone className="w-5 h-5" />
                 Continue with phone
-                <ArrowRight className="w-5 h-5" />
               </button>
               <button
                 onClick={async () => {
