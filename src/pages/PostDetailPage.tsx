@@ -224,6 +224,15 @@ const PostDetailPage = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
+  // Redirect away if the post's author is blocked by (or has blocked) the viewer.
+  useEffect(() => {
+    if (post?.user_id && blocked.has(post.user_id)) {
+      toast({ title: 'Post unavailable' });
+      navigate(-1);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [post?.user_id, blocked]);
+
   // Load comments + per-user like/save/own state in the background — does NOT block the main render.
   useEffect(() => {
     if (!id) return;
