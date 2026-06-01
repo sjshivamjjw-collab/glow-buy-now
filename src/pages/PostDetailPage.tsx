@@ -431,11 +431,10 @@ const PostDetailPage = () => {
             onClick={async () => {
               const url = `${window.location.origin}/p/${post.id}`;
               const title = post.title?.trim() || 'Check out this post on Ripple';
-              // Share only the title + link so the recipient sees a clean link
-              // preview (with thumbnail from OG tags) rather than the full post body.
-              const shareData: ShareData = { title, text: title, url };
+              // Share ONLY the URL (no text) so messaging apps render their own
+              // link preview from OG tags instead of pasting the post body.
               try {
-                if (navigator.share) await navigator.share(shareData);
+                if (navigator.share) await navigator.share({ title, url });
                 else { await navigator.clipboard.writeText(url); toast({ title: 'Link copied' }); }
               } catch {}
             }}
