@@ -15,6 +15,12 @@ if (isNative()) {
       const { SplashScreen } = await import("@capacitor/splash-screen");
       await SplashScreen.hide({ fadeOutDuration: 250 });
     } catch {}
+    // Tell Capgo the new OTA bundle booted successfully — otherwise
+    // the native shell rolls back to the previous bundle after ~10s.
+    try {
+      const { CapacitorUpdater } = await import("@capgo/capacitor-updater");
+      await CapacitorUpdater.notifyAppReady();
+    } catch {}
   })();
 }
 

@@ -44,6 +44,15 @@ const config: CapacitorConfig = {
     Keyboard: {
       resize: 'native',
     },
+    // Capgo Live Updates — ships new JS/CSS bundles to installed apps
+    // without requiring an App Store / Play Store resubmission.
+    // See docs/APP_STORE_SUBMISSION.md → "Shipping updates after launch".
+    CapacitorUpdater: {
+      autoUpdate: true,
+      directUpdate: true,
+      resetWhenUpdate: true,
+      channel: 'production',
+    },
   },
 };
 

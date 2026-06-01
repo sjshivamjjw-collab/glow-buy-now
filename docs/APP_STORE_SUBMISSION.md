@@ -216,3 +216,50 @@ Review typically takes **24–48 hours**. First submissions sometimes get an ext
 - App goes live worldwide (or chosen markets) within ~2 hours
 
 For subsequent updates: bump `Version` and `Build` in Xcode, archive, upload, submit. Most updates ship in <24h.
+
+---
+
+## 9. Shipping updates after launch (Capgo Live Updates / OTA)
+
+Ripple ships with **Capgo Live Updates** (`@capgo/capacitor-updater`) wired in. After the first store-approved build, most changes you make in Lovable ship to installed apps automatically — **no store resubmission, no review wait, no user "Update" tap**.
+
+### How it works
+
+1. Make changes in Lovable as normal.
+2. On your machine: `git pull && npm install && npm run build`
+3. Push the new bundle to Capgo: `npx @capgo/cli@latest bundle upload --channel production`
+4. Within minutes, every installed app downloads the bundle in the background and applies it on the next cold start.
+5. If the new bundle crashes on boot, the native shell automatically **rolls back** to the previous working bundle (we call `CapacitorUpdater.notifyAppReady()` in `src/main.tsx` to confirm a successful boot).
+
+### One-time Capgo setup
+
+```bash
+# Sign up at https://capgo.app, then:
+npx @capgo/cli@latest login            # paste the API key from capgo.app
+npx @capgo/cli@latest app add          # registers in.myripple.app
+npx @capgo/cli@latest bundle upload --channel production   # first bundle
+```
+
+The free tier covers small apps; paid tiers kick in at higher MAU. Channels (`production`, `staging`) let you test bundles on your own device before promoting.
+
+### What CAN ship OTA (no store update)
+
+- Any React page, component, hook, copy, style change
+- New routes, new screens, refactored logic
+- New Supabase queries, edge function calls, AI prompt changes
+- Most bug fixes
+
+### What STILL requires a store resubmission
+
+- App icon, splash screen, app name, bundle ID
+- Adding or upgrading a Capacitor plugin (camera, push, geolocation, etc.)
+- New iOS/Android permission strings (`Info.plist`, `AndroidManifest.xml`)
+- Capacitor core / native dependency upgrades
+- App Store metadata, screenshots, age rating, privacy disclosures
+
+Rule of thumb: if `package.json` only changes JS/React dependencies → OTA. If it changes a `@capacitor/*` plugin or a native permission → rebuild & resubmit.
+
+### Apple / Google compliance
+
+Both stores explicitly allow updating the JS/HTML/CSS bundle of a hybrid app at runtime (Apple guideline 3.3.2, Google Play developer policy on dynamic code). Capgo is the same technical model as Ionic Appflow Live Updates and is widely used in production apps.
+
