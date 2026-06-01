@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Bell, Lock, FileText, Shield, LogOut, ChevronRight, Trash2 } from 'lucide-react';
+import { ArrowLeft, Bell, Lock, FileText, Shield, LogOut, ChevronRight, Trash2, Ban } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
