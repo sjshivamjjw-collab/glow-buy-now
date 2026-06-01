@@ -69,6 +69,7 @@ const PAGE_SIZE = 30;
 const DiscoverPage = () => {
   const navigate = useNavigate();
   const { userName, userAvatar, userId } = useAuth() as any;
+  const { blocked } = useBlockedUsers();
   const firstName = (userName || '').trim().split(' ')[0] || 'there';
   // Hydrate from in-memory cache so navigating back from a post is instant.
   const cached = getTrendingCache();
