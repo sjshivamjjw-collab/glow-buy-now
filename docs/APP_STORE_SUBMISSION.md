@@ -74,6 +74,37 @@ Open `ios/App/App/Info.plist` and add the following **usage description strings*
 
 ---
 
+## 2a. Privacy Manifest (PrivacyInfo.xcprivacy) — REQUIRED
+
+Apple rejects every new submission since **May 1, 2024** that doesn't include a `PrivacyInfo.xcprivacy` file. We ship a ready-to-use template in this repo.
+
+After `npx cap add ios` (one-time):
+
+```bash
+cp ios-privacy/PrivacyInfo.xcprivacy ios/App/App/PrivacyInfo.xcprivacy
+npx cap open ios
+```
+
+In Xcode:
+
+1. Expand **App → App** in the left sidebar.
+2. Drag `PrivacyInfo.xcprivacy` from Finder into the **App** group (next to `Info.plist`).
+3. In the dialog: ✅ *Copy items if needed*, ✅ Add to target **App** → Finish.
+4. Click the file → confirm **Target Membership: App** is ticked in the right panel.
+
+The template declares:
+- `NSPrivacyTracking = false` (we don't track across other apps)
+- Data collected — mirrors the Nutrition Label in section 4 (phone, name, photos/videos, audio, user content, user ID, product interaction)
+- Required-reason APIs used by Capacitor + WKWebView: `FileTimestamp` (C617.1), `UserDefaults` (CA92.1), `SystemBootTime` (35F9.1), `DiskSpace` (E174.1)
+
+**When to update it:** any new Capacitor plugin (push, geolocation, etc.), any analytics/ads SDK, or any new data category. Edit `ios-privacy/PrivacyInfo.xcprivacy` first, re-run the `cp` command, then rebuild.
+
+See `ios-privacy/README.md` for full details.
+
+---
+
+
+
 ## 3. Production build (every release)
 
 ```bash
