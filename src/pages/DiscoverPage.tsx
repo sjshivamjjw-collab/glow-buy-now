@@ -63,6 +63,8 @@ interface AuthorInfo {
 const LEFT_HEIGHTS = [240, 260, 230, 250, 245, 255];
 const RIGHT_HEIGHTS = [200, 220, 190, 215, 205, 210];
 
+const PAGE_SIZE = 30;
+
 const DiscoverPage = () => {
   const navigate = useNavigate();
   const { userName, userAvatar, userId } = useAuth() as any;
@@ -72,6 +74,10 @@ const DiscoverPage = () => {
   const [posts, setPosts] = useState<TrendingPost[]>(cached?.posts ?? []);
   const [authors, setAuthors] = useState<Record<string, AuthorInfo>>(cached?.authors ?? {});
   const [loading, setLoading] = useState(!cached);
+  const [hasMore, setHasMore] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const loadingMoreRef = useRef(false);
+  const sentinelRef = useRef<HTMLDivElement>(null);
   const [query, setQuery] = useState('');
   const [activeChip, setActiveChip] = useState<string>('For you');
   const [categoryOpen, setCategoryOpen] = useState(false);
@@ -80,6 +86,7 @@ const DiscoverPage = () => {
   const categoryRef = useRef<HTMLDivElement>(null);
   const [collapsed, setCollapsed] = useState(false);
   const lastScrollY = useRef(0);
+
 
   useEffect(() => {
     const onScroll = () => {
