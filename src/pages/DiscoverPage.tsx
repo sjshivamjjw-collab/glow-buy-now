@@ -717,13 +717,29 @@ const DiscoverPage = () => {
             );
           };
 
-          const leftItems = displayedPosts.filter((_, i) => i % 2 === 0);
-          const rightItems = displayedPosts.filter((_, i) => i % 2 === 1);
+          // Balance the two columns by tracking running heights so trailing
+          // items don't all pile up on one side when the feed length is odd
+          // or when card heights are uneven.
+          const leftItems: { post: TrendingPost; h: number }[] = [];
+          const rightItems: { post: TrendingPost; h: number }[] = [];
+          let leftH = 0;
+          let rightH = 0;
+          displayedPosts.forEach((p) => {
+            if (leftH <= rightH) {
+              const h = LEFT_HEIGHTS[leftItems.length % LEFT_HEIGHTS.length];
+              leftItems.push({ post: p, h });
+              leftH += h + 120; // ~card chrome (title + meta + gap)
+            } else {
+              const h = RIGHT_HEIGHTS[rightItems.length % RIGHT_HEIGHTS.length];
+              rightItems.push({ post: p, h });
+              rightH += h + 120;
+            }
+          });
 
           return (
-            <div className="grid grid-cols-2 gap-1.5">
-              <div>{leftItems.map((p, i) => renderCard(p, LEFT_HEIGHTS[i % LEFT_HEIGHTS.length]))}</div>
-              <div>{rightItems.map((p, i) => renderCard(p, RIGHT_HEIGHTS[i % RIGHT_HEIGHTS.length]))}</div>
+            <div className="grid grid-cols-2 gap-1.5 items-start">
+              <div>{leftItems.map(({ post, h }) => renderCard(post, h))}</div>
+              <div>{rightItems.map(({ post, h }) => renderCard(post, h))}</div>
             </div>
           );
         })()}
