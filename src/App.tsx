@@ -25,6 +25,7 @@ const PrivacyPage = lazy(() => import("@/pages/PrivacyPage"));
 const ContactPage = lazy(() => import("@/pages/ContactPage"));
 const AboutPage = lazy(() => import("@/pages/AboutPage"));
 const DeleteAccountPage = lazy(() => import("@/pages/DeleteAccountPage"));
+const SupportPage = lazy(() => import("@/pages/SupportPage"));
 const NotFound = lazy(() => import("@/pages/NotFound"));
 
 const queryClient = new QueryClient();
@@ -42,6 +43,7 @@ const publicLegalRoutes = (
     <Route path="/contact" element={<ContactPage />} />
     <Route path="/about" element={<AboutPage />} />
     <Route path="/delete-account" element={<DeleteAccountPage />} />
+    <Route path="/support" element={<SupportPage />} />
   </>
 );
 

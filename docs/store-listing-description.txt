@@ -1,0 +1,76 @@
+================================================================
+RIPPLE — STORE LISTING COPY
+================================================================
+Paste the LONG DESCRIPTION below into:
+  • Apple App Store Connect → App Information → Description
+  • Google Play Console     → Main store listing → Full description
+
+Paste the SHORT DESCRIPTION below into:
+  • Google Play Console     → Main store listing → Short description (80 char limit)
+
+Keep in sync with src/pages/AboutPage.tsx and the homepage copy.
+================================================================
+
+
+--- LONG DESCRIPTION (≤ 4000 characters) ---
+
+Ripple is where everyday moments become stories worth sharing.
+
+A social app built in India for people who care about real recommendations from real people. Travel diaries, food finds, lifestyle picks, honest reviews and the little moments from your day that you actually want to remember — Ripple is the home for all of it.
+
+WHAT YOU CAN DO ON RIPPLE
+
+• Share photos, videos and short text posts in seconds
+• Follow creators whose taste you trust
+• Like, comment, save and share posts you love
+• Join communities built around your interests — food, travel, books, fitness, art, and more
+• Chat with members inside community rooms, RSVP to events, and download resources
+• Get notified when someone replies, follows you, or mentions you
+• Discover new creators and trending posts in a clean, distraction-free feed
+
+WHY PEOPLE LOVE RIPPLE
+
+No ads. No algorithmic noise. No influencer fakery.
+
+Just real moments from real Ripplers — a small, growing community of people who want a better corner of the internet. We don't sell your data, we don't run ads, and we don't manipulate your feed to keep you doom-scrolling.
+
+BUILT FOR TRUST AND SAFETY
+
+We take community safety seriously:
+• Report any post, comment or profile with one tap
+• Block users you don't want to interact with — they can never see or contact you again
+• Delete your account anytime from inside the app — all your data is permanently removed
+• Phone-based OTP login — no passwords to remember or leak
+• All data encrypted in transit, full Privacy Policy at myripple.co.in/privacy
+
+COMMUNITIES MADE SIMPLE
+
+Creators can build their own communities with free or paid membership tiers. Members get access to private chat channels, exclusive events, and curated resources — all inside the app, with no extra logins or paywalls.
+
+A SMALL TEAM IN INDIA
+
+Ripple is built by a small team in Mumbai who genuinely care about the people who use it. We read every support email and respond within one business day.
+
+Download Ripple and start sharing the little moments that make your day.
+
+Need help? Visit myripple.co.in/support
+
+
+--- SHORT DESCRIPTION (Play Store, ≤ 80 characters) ---
+
+Share everyday moments, follow real creators, join communities you love.
+
+
+--- PROMOTIONAL TEXT (App Store, ≤ 170 characters) ---
+
+Discover honest recommendations, travel diaries, food finds and little moments from real people in India. Join communities and follow creators you actually trust.
+
+
+--- KEYWORDS (App Store, ≤ 100 characters, comma-separated, no spaces) ---
+
+recommendations,reviews,travel,food,lifestyle,creator,community,india,social,diary
+
+
+================================================================
+END
+================================================================
