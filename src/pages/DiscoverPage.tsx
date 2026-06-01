@@ -63,6 +63,8 @@ interface AuthorInfo {
 const LEFT_HEIGHTS = [240, 260, 230, 250, 245, 255];
 const RIGHT_HEIGHTS = [200, 220, 190, 215, 205, 210];
 
+const PAGE_SIZE = 30;
+
 const DiscoverPage = () => {
   const navigate = useNavigate();
   const { userName, userAvatar, userId } = useAuth() as any;
@@ -72,6 +74,10 @@ const DiscoverPage = () => {
   const [posts, setPosts] = useState<TrendingPost[]>(cached?.posts ?? []);
   const [authors, setAuthors] = useState<Record<string, AuthorInfo>>(cached?.authors ?? {});
   const [loading, setLoading] = useState(!cached);
+  const [hasMore, setHasMore] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const loadingMoreRef = useRef(false);
+  const sentinelRef = useRef<HTMLDivElement>(null);
   const [query, setQuery] = useState('');
   const [activeChip, setActiveChip] = useState<string>('For you');
   const [categoryOpen, setCategoryOpen] = useState(false);
@@ -80,6 +86,7 @@ const DiscoverPage = () => {
   const categoryRef = useRef<HTMLDivElement>(null);
   const [collapsed, setCollapsed] = useState(false);
   const lastScrollY = useRef(0);
+
 
   useEffect(() => {
     const onScroll = () => {
@@ -182,42 +189,93 @@ const DiscoverPage = () => {
   }, []);
 
 
+  // Refs we read inside loadMore without re-creating the function.
+  const postsRef = useRef<TrendingPost[]>(posts);
+  const authorsRef = useRef<Record<string, AuthorInfo>>(authors);
+  useEffect(() => { postsRef.current = posts; }, [posts]);
+  useEffect(() => { authorsRef.current = authors; }, [authors]);
+
+  const fetchPage = async (offset: number): Promise<{ list: TrendingPost[]; authorMap: Record<string, AuthorInfo> } | null> => {
+    const { data, error } = await supabase.rpc('get_trending_posts' as any, { _limit: PAGE_SIZE, _offset: offset });
+    if (error || !data) return null;
+    const list = ((data as TrendingPost[] | null) ?? []).map(p => {
+      if (p.is_anonymous) p.user_id = null;
+      return p;
+    });
+    let authorMap: Record<string, AuthorInfo> = {};
+    if (list.length) {
+      const ids = Array.from(new Set(list.map(p => p.user_id).filter((u): u is string => !!u)));
+      if (ids.length) {
+        const { data: profs } = await supabase.rpc('get_public_profiles' as any, { _ids: ids });
+        ((profs as any[]) || []).forEach(p => { authorMap[p.id] = p; });
+      }
+    }
+    return { list, authorMap };
+  };
+
   useEffect(() => {
     // If we hydrated from a fresh cache, skip the network round-trip entirely.
-    if (cached && !isTrendingStale()) return;
+    if (cached && !isTrendingStale()) {
+      // We don't know hasMore for cached data; assume more exists so scroll can keep loading.
+      setHasMore(true);
+      return;
+    }
 
     let cancelled = false;
-    const load = async () => {
-      const { data, error } = await supabase.rpc('get_trending_posts' as any, { _limit: 30, _offset: 0 });
+    (async () => {
+      const res = await fetchPage(0);
       if (cancelled) return;
-      if (error || !data) {
-        // Don't blow away cached posts on a transient error.
+      if (!res) {
         if (!cached) setLoading(false);
         return;
       }
-      const list = (data as TrendingPost[] | null) ?? [];
-      list.forEach(p => {
-        // Trust the safe feed RPC to mask anonymous authors; enforce it defensively in UI too.
-        if (p.is_anonymous) p.user_id = null;
-      });
-      setPosts(list);
-      let authorMap: Record<string, AuthorInfo> = {};
-      if (list.length) {
-        const ids = Array.from(new Set(list.map(p => p.user_id).filter((u): u is string => !!u)));
-        if (ids.length) {
-          const { data: profs } = await supabase.rpc('get_public_profiles' as any, { _ids: ids });
-          if (cancelled) return;
-          ((profs as any[]) || []).forEach(p => { authorMap[p.id] = p; });
-          setAuthors(authorMap);
-        }
-      }
-      setTrendingCache(list, authorMap);
+      setPosts(res.list);
+      setAuthors(res.authorMap);
+      setTrendingCache(res.list, res.authorMap);
+      setHasMore(res.list.length === PAGE_SIZE);
       setLoading(false);
-    };
-    load();
+    })();
     return () => { cancelled = true; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  const loadMore = async () => {
+    if (loadingMoreRef.current || !hasMore) return;
+    loadingMoreRef.current = true;
+    setLoadingMore(true);
+    try {
+      const res = await fetchPage(postsRef.current.length);
+      if (!res) return;
+      const existingIds = new Set(postsRef.current.map(p => p.id));
+      const fresh = res.list.filter(p => !existingIds.has(p.id));
+      const nextPosts = [...postsRef.current, ...fresh];
+      const nextAuthors = { ...authorsRef.current, ...res.authorMap };
+      setPosts(nextPosts);
+      setAuthors(nextAuthors);
+      setTrendingCache(nextPosts, nextAuthors);
+      if (res.list.length < PAGE_SIZE) setHasMore(false);
+    } finally {
+      loadingMoreRef.current = false;
+      setLoadingMore(false);
+    }
+  };
+
+  // Infinite scroll sentinel — observer is attached when the sentinel mounts (only when not searching).
+  useEffect(() => {
+    const el = sentinelRef.current;
+    if (!el) return;
+    const io = new IntersectionObserver((entries) => {
+      if (entries.some(e => e.isIntersecting)) {
+        loadMore();
+      }
+    }, { rootMargin: '600px 0px' });
+    io.observe(el);
+    return () => io.disconnect();
+    // Re-attach when hasMore flips or sentinel re-mounts (search toggle).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hasMore, loading]);
+
+
 
   const baseChips = useMemo(() => ['For you', 'Trending'], []);
   const labelToKey = useMemo(() => Object.fromEntries(CATEGORY_FILTERS.map(c => [c.label, c.key])), []);
@@ -665,10 +723,29 @@ const DiscoverPage = () => {
             </div>
           );
         })()}
+
+        {/* Infinite scroll footer — only for the trending feed, not search results. */}
+        {!loading && !isSearching && displayedPosts.length > 0 && (
+          <div className="mt-4">
+            {hasMore ? (
+              <>
+                <div ref={sentinelRef} className="h-1 w-full" aria-hidden />
+                {loadingMore && (
+                  <div className="flex items-center justify-center py-6">
+                    <Loader2 className="w-5 h-5 animate-spin text-[#dc2626]" />
+                  </div>
+                )}
+              </>
+            ) : (
+              <p className="text-center text-[#a0a0a0] text-xs py-6">You're all caught up ✨</p>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
 };
+
 
 export default DiscoverPage;
 
