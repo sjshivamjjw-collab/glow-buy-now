@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Bell, Lock, FileText, Shield, LogOut, ChevronRight, Trash2 } from 'lucide-react';
+import { ArrowLeft, Bell, Lock, FileText, Shield, LogOut, ChevronRight, Trash2, Ban } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
@@ -115,6 +115,13 @@ const SettingsPage = () => {
           <Row icon={Shield} label="Privacy Policy" onClick={() => navigate('/privacy')} />
           <div className="border-t border-border"><Row icon={FileText} label="Terms of Service" onClick={() => navigate('/terms')} /></div>
           <div className="border-t border-border"><Row icon={Trash2} label="Delete account info" sub="How to permanently delete your account" onClick={() => navigate('/delete-account')} /></div>
+        </div>
+      </div>
+
+      <div className="px-4 mb-4">
+        <p className="text-xs font-bold text-muted-foreground uppercase tracking-wide px-1 mb-2">Safety</p>
+        <div className="rounded-2xl bg-card border border-border overflow-hidden">
+          <Row icon={Ban} label="Blocked accounts" sub="Manage who you've blocked" onClick={() => navigate('/settings/blocked')} />
         </div>
       </div>
 

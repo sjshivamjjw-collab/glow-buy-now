@@ -3,7 +3,10 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
-import { ArrowLeft, Heart, MessageCircle, MapPin, Loader2, Send, Trash2, ChevronLeft, ChevronRight, Bookmark, Share2, Reply, X, Music, Play, Pause, Pencil, EyeOff, Eye } from 'lucide-react';
+import { ArrowLeft, Heart, MessageCircle, MapPin, Loader2, Send, Trash2, ChevronLeft, ChevronRight, Bookmark, Share2, Reply, X, Music, Play, Pause, Pencil, EyeOff, Eye, MoreHorizontal, Flag, Ban } from 'lucide-react';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { ReportPostDialog } from '@/components/ReportPostDialog';
+import { useBlockedUsers } from '@/hooks/useBlockedUsers';
 import { formatDistanceToNow } from 'date-fns';
 import { useMentionAutocomplete } from '@/hooks/useMentionAutocomplete';
 import { MentionSuggestions } from '@/components/MentionSuggestions';
@@ -149,6 +152,8 @@ const PostDetailPage = () => {
 
 
   const [isOwn, setIsOwn] = useState(false);
+  const [reportOpen, setReportOpen] = useState(false);
+  const { blocked, refresh: refreshBlocks } = useBlockedUsers();
 
   // Fetch the post itself (with one retry on empty/error) — this drives the main render.
   useEffect(() => {
@@ -218,6 +223,15 @@ const PostDetailPage = () => {
     return () => { cancelled = true; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
+
+  // Redirect away if the post's author is blocked by (or has blocked) the viewer.
+  useEffect(() => {
+    if (post?.user_id && blocked.has(post.user_id)) {
+      toast({ title: 'Post unavailable' });
+      navigate(-1);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [post?.user_id, blocked]);
 
   // Load comments + per-user like/save/own state in the background — does NOT block the main render.
   useEffect(() => {
@@ -444,8 +458,41 @@ const PostDetailPage = () => {
               )}
             </>
           )}
+          {!isOwn && userId && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button className="w-10 h-10 rounded-full bg-[#1a1a1a] border border-[#2a2a2a]/60 flex items-center justify-center active:scale-95 transition-transform" aria-label="More options">
+                  <MoreHorizontal className="w-5 h-5 text-[#fafafa]" />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-52">
+                <DropdownMenuItem onClick={() => setReportOpen(true)} className="cursor-pointer">
+                  <Flag className="w-4 h-4 mr-2" /> Report post
+                </DropdownMenuItem>
+                {post.user_id && !post.is_anonymous && (
+                  <DropdownMenuItem
+                    onClick={async () => {
+                      if (!window.confirm('Block this user? You will no longer see their posts or comments.')) return;
+                      const { error } = await supabase.from('user_blocks' as any).insert({ blocker_id: userId, blocked_id: post.user_id });
+                      if (error && !/duplicate/i.test(error.message)) {
+                        toast({ title: 'Could not block', description: error.message, variant: 'destructive' });
+                        return;
+                      }
+                      toast({ title: 'User blocked' });
+                      await refreshBlocks();
+                      navigate(-1);
+                    }}
+                    className="cursor-pointer text-destructive focus:text-destructive"
+                  >
+                    <Ban className="w-4 h-4 mr-2" /> Block user
+                  </DropdownMenuItem>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
         </div>
       </div>
+      <ReportPostDialog open={reportOpen} onOpenChange={setReportOpen} postId={post.id} />
 
       {/* Author header */}
       {isAnon ? (
@@ -569,8 +616,8 @@ const PostDetailPage = () => {
           <p className="text-sm text-[#a0a0a0] text-center py-6">Be the first to add thoughts</p>
         ) : (
           <ul className="space-y-1">
-            {comments.filter(c => !c.parent_id).map(top => {
-              const thread = [top, ...comments.filter(r => r.parent_id === top.id)];
+            {comments.filter(c => !c.parent_id && !(c.user_id && blocked.has(c.user_id))).map(top => {
+              const thread = [top, ...comments.filter(r => r.parent_id === top.id && !(r.user_id && blocked.has(r.user_id)))];
               return thread.map((c, idx) => {
                 const cAnon = !!c.is_anonymous;
                 const a = !cAnon && c.user_id ? authors[c.user_id] : undefined;

@@ -14,6 +14,7 @@ import {
   isTrendingStale,
   setTrendingScrollY,
 } from '@/lib/feedCache';
+import { useBlockedUsers } from '@/hooks/useBlockedUsers';
 
 
 interface TrendingPost {
@@ -68,6 +69,7 @@ const PAGE_SIZE = 30;
 const DiscoverPage = () => {
   const navigate = useNavigate();
   const { userName, userAvatar, userId } = useAuth() as any;
+  const { blocked } = useBlockedUsers();
   const firstName = (userName || '').trim().split(' ')[0] || 'there';
   // Hydrate from in-memory cache so navigating back from a post is instant.
   const cached = getTrendingCache();
@@ -378,12 +380,14 @@ const DiscoverPage = () => {
   }, [posts, activeChip, activeCategory, interests]);
 
   const displayedPosts = useMemo(() => {
-    if (!isSearching) return filtered;
-    if (locationFilter) {
-      return searchPosts.filter(p => (p.location || '').toLowerCase() === locationFilter.toLowerCase());
-    }
-    return searchPosts;
-  }, [isSearching, filtered, searchPosts, locationFilter]);
+    const base = !isSearching
+      ? filtered
+      : (locationFilter
+        ? searchPosts.filter(p => (p.location || '').toLowerCase() === locationFilter.toLowerCase())
+        : searchPosts);
+    if (blocked.size === 0) return base;
+    return base.filter(p => !p.user_id || !blocked.has(p.user_id));
+  }, [isSearching, filtered, searchPosts, locationFilter, blocked]);
 
 
 
