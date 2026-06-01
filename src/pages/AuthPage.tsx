@@ -206,7 +206,22 @@ const AuthPage = () => {
                 {sending ? 'Sending…' : 'Send OTP'}
               </button>
               <p className="text-xs text-muted-foreground text-center mt-4">
-                By continuing, you agree to our Terms of Service and Privacy Policy
+                By continuing, you agree to our{' '}
+                <button
+                  type="button"
+                  onClick={() => navigate('/terms')}
+                  className="text-primary underline underline-offset-2 font-medium"
+                >
+                  Terms of Service
+                </button>{' '}
+                and{' '}
+                <button
+                  type="button"
+                  onClick={() => navigate('/privacy')}
+                  className="text-primary underline underline-offset-2 font-medium"
+                >
+                  Privacy Policy
+                </button>
               </p>
             </div>
           </motion.div>
