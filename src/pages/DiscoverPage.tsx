@@ -380,12 +380,14 @@ const DiscoverPage = () => {
   }, [posts, activeChip, activeCategory, interests]);
 
   const displayedPosts = useMemo(() => {
-    if (!isSearching) return filtered;
-    if (locationFilter) {
-      return searchPosts.filter(p => (p.location || '').toLowerCase() === locationFilter.toLowerCase());
-    }
-    return searchPosts;
-  }, [isSearching, filtered, searchPosts, locationFilter]);
+    const base = !isSearching
+      ? filtered
+      : (locationFilter
+        ? searchPosts.filter(p => (p.location || '').toLowerCase() === locationFilter.toLowerCase())
+        : searchPosts);
+    if (blocked.size === 0) return base;
+    return base.filter(p => !p.user_id || !blocked.has(p.user_id));
+  }, [isSearching, filtered, searchPosts, locationFilter, blocked]);
 
 
 
