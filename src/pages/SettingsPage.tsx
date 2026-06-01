@@ -119,6 +119,13 @@ const SettingsPage = () => {
       </div>
 
       <div className="px-4 mb-4">
+        <p className="text-xs font-bold text-muted-foreground uppercase tracking-wide px-1 mb-2">Safety</p>
+        <div className="rounded-2xl bg-card border border-border overflow-hidden">
+          <Row icon={Ban} label="Blocked accounts" sub="Manage who you've blocked" onClick={() => navigate('/settings/blocked')} />
+        </div>
+      </div>
+
+      <div className="px-4 mb-4">
         <p className="text-xs font-bold text-muted-foreground uppercase tracking-wide px-1 mb-2">Account actions</p>
         <div className="rounded-2xl bg-card border border-border overflow-hidden">
           <Row icon={Lock} label="Clear cached preferences" sub="Resets local app settings on this device" onClick={handleClearLocal} />
