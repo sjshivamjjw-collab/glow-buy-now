@@ -3,10 +3,12 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
-import { ArrowLeft, Loader2, UserPlus, UserCheck, Eye } from 'lucide-react';
+import { ArrowLeft, Loader2, UserPlus, UserCheck, Eye, MoreHorizontal, Flag, Ban, ShieldOff } from 'lucide-react';
 import { formatCount } from '@/lib/utils';
 import LazyVideoThumbnail from '@/components/LazyVideoThumbnail';
 import TextCoverCard from '@/components/TextCoverCard';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { useBlockedUsers } from '@/hooks/useBlockedUsers';
 
 interface Profile { id: string; name: string | null; username: string | null; avatar_url: string | null; }
 interface PostThumb { id: string; cover_url: string | null; cover_kind: string | null; like_count: number; is_anonymous?: boolean; title?: string | null; }
