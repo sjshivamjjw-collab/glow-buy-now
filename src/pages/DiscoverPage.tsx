@@ -14,6 +14,7 @@ import {
   isTrendingStale,
   setTrendingScrollY,
 } from '@/lib/feedCache';
+import { useBlockedUsers } from '@/hooks/useBlockedUsers';
 
 
 interface TrendingPost {
