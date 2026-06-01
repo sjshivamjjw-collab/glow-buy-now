@@ -85,13 +85,59 @@ const UserProfilePage = () => {
 
   const name = profile.name || profile.username || 'User';
 
+  return <UserProfileBody profile={profile} posts={posts} postCount={postCount} followers={followers} following={following} isFollowing={isFollowing} busy={busy} handleFollow={handleFollow} setFollowers={setFollowers} setIsFollowing={setIsFollowing} navigate={navigate} pageUserId={pageUserId!} />;
+};
+
+const UserProfileBody = ({ profile, posts, postCount, followers, following, isFollowing, busy, handleFollow, navigate, pageUserId }: any) => {
+  const { userId: meId } = useAuth();
+  const { toast } = useToast();
+  const { blocked, refresh: refreshBlocks } = useBlockedUsers();
+  const name = profile.name || profile.username || 'User';
+  const isBlocked = blocked.has(pageUserId);
+
+  const handleBlock = async () => {
+    if (!meId) { navigate('/auth'); return; }
+    if (!window.confirm('Block this user? You will no longer see their posts or comments.')) return;
+    const { error } = await supabase.from('user_blocks' as any).insert({ blocker_id: meId, blocked_id: pageUserId });
+    if (error && !/duplicate/i.test(error.message)) { toast({ title: 'Could not block', description: error.message, variant: 'destructive' }); return; }
+    toast({ title: 'User blocked' });
+    await refreshBlocks();
+  };
+
+  const handleUnblock = async () => {
+    if (!meId) return;
+    await supabase.from('user_blocks' as any).delete().eq('blocker_id', meId).eq('blocked_id', pageUserId);
+    toast({ title: 'User unblocked' });
+    await refreshBlocks();
+  };
+
   return (
     <div className="min-h-screen bg-background max-w-lg mx-auto px-4 pt-4 pb-24">
       <div className="flex items-center gap-3 mb-6">
         <button onClick={() => navigate(-1)} className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center">
           <ArrowLeft className="w-5 h-5 text-foreground" />
         </button>
-        <h1 className="text-xl font-bold text-foreground truncate">{name}</h1>
+        <h1 className="text-xl font-bold text-foreground truncate flex-1">{name}</h1>
+        {meId && (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center" aria-label="More">
+                <MoreHorizontal className="w-5 h-5 text-foreground" />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-52">
+              {isBlocked ? (
+                <DropdownMenuItem onClick={handleUnblock} className="cursor-pointer">
+                  <ShieldOff className="w-4 h-4 mr-2" /> Unblock user
+                </DropdownMenuItem>
+              ) : (
+                <DropdownMenuItem onClick={handleBlock} className="cursor-pointer text-destructive focus:text-destructive">
+                  <Ban className="w-4 h-4 mr-2" /> Block user
+                </DropdownMenuItem>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )}
       </div>
 
       <div className="flex items-center gap-5 mb-5">
@@ -112,17 +158,28 @@ const UserProfilePage = () => {
         {profile.username && profile.name && <p className="text-muted-foreground text-sm">@{profile.username}</p>}
       </div>
 
-      <button
-        onClick={handleFollow}
-        disabled={busy}
-        className={`w-full py-2.5 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 mb-6 disabled:opacity-50 ${
-          isFollowing ? 'bg-secondary text-foreground' : 'bg-primary text-primary-foreground'
-        }`}
-      >
-        {isFollowing ? <><UserCheck className="w-4 h-4" /> Following</> : <><UserPlus className="w-4 h-4" /> Follow</>}
-      </button>
+      {isBlocked ? (
+        <div className="text-center py-10 px-4">
+          <Ban className="w-10 h-10 mx-auto text-muted-foreground mb-3" />
+          <p className="text-foreground font-semibold mb-1">You blocked this user</p>
+          <p className="text-sm text-muted-foreground mb-5">Their posts and comments are hidden from you.</p>
+          <button onClick={handleUnblock} className="px-5 py-2 rounded-xl bg-secondary text-foreground font-semibold text-sm">Unblock</button>
+        </div>
+      ) : (
+        <>
+          <button
+            onClick={handleFollow}
+            disabled={busy}
+            className={`w-full py-2.5 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 mb-6 disabled:opacity-50 ${
+              isFollowing ? 'bg-secondary text-foreground' : 'bg-primary text-primary-foreground'
+            }`}
+          >
+            {isFollowing ? <><UserCheck className="w-4 h-4" /> Following</> : <><UserPlus className="w-4 h-4" /> Follow</>}
+          </button>
 
-      <PostsGrid posts={posts} onOpen={id => navigate(`/p/${id}`)} />
+          <PostsGrid posts={posts} onOpen={(id: string) => navigate(`/p/${id}`)} />
+        </>
+      )}
     </div>
   );
 };
