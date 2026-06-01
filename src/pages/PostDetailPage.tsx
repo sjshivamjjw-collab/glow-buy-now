@@ -12,6 +12,7 @@ import { useMentionAutocomplete } from '@/hooks/useMentionAutocomplete';
 import { MentionSuggestions } from '@/components/MentionSuggestions';
 import { getCommentPrompt } from '@/lib/commentPrompts';
 import { renderRichText } from '@/lib/richText';
+import { sharePostLink } from '@/lib/share';
 import { PenguinAvatar, RIPPLER_NAME } from '@/components/RipplerIdentity';
 import {
   getPostDetailCache,
@@ -429,13 +430,9 @@ const PostDetailPage = () => {
         <div className="flex items-center gap-2">
           <button
             onClick={async () => {
-              const url = `${window.location.origin}/p/${post.id}`;
-              const title = post.title?.trim() || 'Check out this post on Ripple';
-              // Share ONLY the URL (no text) so messaging apps render their own
-              // link preview from OG tags instead of pasting the post body.
               try {
-                if (navigator.share) await navigator.share({ title, url });
-                else { await navigator.clipboard.writeText(url); toast({ title: 'Link copied' }); }
+                const result = await sharePostLink({ postId: post.id, title: post.title });
+                if (result === 'copied') toast({ title: 'Link copied' });
               } catch {}
             }}
             className="w-10 h-10 rounded-full bg-[#1a1a1a] border border-[#2a2a2a]/60 flex items-center justify-center active:scale-95 transition-transform"
