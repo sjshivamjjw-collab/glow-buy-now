@@ -22,6 +22,8 @@ const Footer = ({ standalone = false }: FooterProps) => {
         <Sep />
         <Link to="/contact" className={linkCls}>Contact</Link>
         <Sep />
+        <Link to="/support" className={linkCls}>Support</Link>
+        <Sep />
         <Link to="/about" className={linkCls}>About</Link>
       </div>
       <p className="text-[10px] text-muted-foreground text-center mt-1">
