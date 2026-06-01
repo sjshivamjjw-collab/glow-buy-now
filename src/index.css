@@ -88,8 +88,12 @@
   * {
     @apply border-border;
   }
+  html, body {
+    background-color: #0a0a0a;
+    overscroll-behavior-y: none;
+  }
   body {
-    @apply bg-background text-foreground font-sans antialiased;
+    @apply text-foreground font-sans antialiased;
     font-family: 'Plus Jakarta Sans', sans-serif;
   }
 }
