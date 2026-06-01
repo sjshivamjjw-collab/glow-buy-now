@@ -189,42 +189,82 @@ const DiscoverPage = () => {
   }, []);
 
 
+  // Refs we read inside loadMore without re-creating the function.
+  const postsRef = useRef<TrendingPost[]>(posts);
+  const authorsRef = useRef<Record<string, AuthorInfo>>(authors);
+  useEffect(() => { postsRef.current = posts; }, [posts]);
+  useEffect(() => { authorsRef.current = authors; }, [authors]);
+
+  const fetchPage = async (offset: number): Promise<{ list: TrendingPost[]; authorMap: Record<string, AuthorInfo> } | null> => {
+    const { data, error } = await supabase.rpc('get_trending_posts' as any, { _limit: PAGE_SIZE, _offset: offset });
+    if (error || !data) return null;
+    const list = ((data as TrendingPost[] | null) ?? []).map(p => {
+      if (p.is_anonymous) p.user_id = null;
+      return p;
+    });
+    let authorMap: Record<string, AuthorInfo> = {};
+    if (list.length) {
+      const ids = Array.from(new Set(list.map(p => p.user_id).filter((u): u is string => !!u)));
+      if (ids.length) {
+        const { data: profs } = await supabase.rpc('get_public_profiles' as any, { _ids: ids });
+        ((profs as any[]) || []).forEach(p => { authorMap[p.id] = p; });
+      }
+    }
+    return { list, authorMap };
+  };
+
   useEffect(() => {
     // If we hydrated from a fresh cache, skip the network round-trip entirely.
-    if (cached && !isTrendingStale()) return;
+    if (cached && !isTrendingStale()) {
+      // We don't know hasMore for cached data; assume more exists so scroll can keep loading.
+      setHasMore(true);
+      return;
+    }
 
     let cancelled = false;
-    const load = async () => {
-      const { data, error } = await supabase.rpc('get_trending_posts' as any, { _limit: 30, _offset: 0 });
+    (async () => {
+      const res = await fetchPage(0);
       if (cancelled) return;
-      if (error || !data) {
-        // Don't blow away cached posts on a transient error.
+      if (!res) {
         if (!cached) setLoading(false);
         return;
       }
-      const list = (data as TrendingPost[] | null) ?? [];
-      list.forEach(p => {
-        // Trust the safe feed RPC to mask anonymous authors; enforce it defensively in UI too.
-        if (p.is_anonymous) p.user_id = null;
-      });
-      setPosts(list);
-      let authorMap: Record<string, AuthorInfo> = {};
-      if (list.length) {
-        const ids = Array.from(new Set(list.map(p => p.user_id).filter((u): u is string => !!u)));
-        if (ids.length) {
-          const { data: profs } = await supabase.rpc('get_public_profiles' as any, { _ids: ids });
-          if (cancelled) return;
-          ((profs as any[]) || []).forEach(p => { authorMap[p.id] = p; });
-          setAuthors(authorMap);
-        }
-      }
-      setTrendingCache(list, authorMap);
+      setPosts(res.list);
+      setAuthors(res.authorMap);
+      setTrendingCache(res.list, res.authorMap);
+      setHasMore(res.list.length === PAGE_SIZE);
       setLoading(false);
-    };
-    load();
+    })();
     return () => { cancelled = true; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  const loadMore = async () => {
+    if (loadingMoreRef.current || !hasMore) return;
+    loadingMoreRef.current = true;
+    setLoadingMore(true);
+    try {
+      const res = await fetchPage(postsRef.current.length);
+      if (!res) return;
+      const existingIds = new Set(postsRef.current.map(p => p.id));
+      const fresh = res.list.filter(p => !existingIds.has(p.id));
+      const nextPosts = [...postsRef.current, ...fresh];
+      const nextAuthors = { ...authorsRef.current, ...res.authorMap };
+      setPosts(nextPosts);
+      setAuthors(nextAuthors);
+      setTrendingCache(nextPosts, nextAuthors);
+      if (res.list.length < PAGE_SIZE) setHasMore(false);
+    } finally {
+      loadingMoreRef.current = false;
+      setLoadingMore(false);
+    }
+  };
+
+  // Infinite scroll sentinel.
+  useEffect(() => {
+    if (isSearchingMode()) return; // defined below; safe because IIFE not used. Replaced below.
+  }, []);
+
 
   const baseChips = useMemo(() => ['For you', 'Trending'], []);
   const labelToKey = useMemo(() => Object.fromEntries(CATEGORY_FILTERS.map(c => [c.label, c.key])), []);
