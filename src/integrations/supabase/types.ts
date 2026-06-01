@@ -247,6 +247,39 @@ export type Database = {
           },
         ]
       }
+      post_reports: {
+        Row: {
+          created_at: string
+          details: string | null
+          id: string
+          post_id: string
+          reason: string
+          reporter_id: string
+          resolved_at: string | null
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          details?: string | null
+          id?: string
+          post_id: string
+          reason: string
+          reporter_id: string
+          resolved_at?: string | null
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          details?: string | null
+          id?: string
+          post_id?: string
+          reason?: string
+          reporter_id?: string
+          resolved_at?: string | null
+          status?: string
+        }
+        Relationships: []
+      }
       post_saves: {
         Row: {
           created_at: string
@@ -373,6 +406,24 @@ export type Database = {
           onboarding_completed?: boolean
           phone?: string | null
           username?: string | null
+        }
+        Relationships: []
+      }
+      user_blocks: {
+        Row: {
+          blocked_id: string
+          blocker_id: string
+          created_at: string
+        }
+        Insert: {
+          blocked_id: string
+          blocker_id: string
+          created_at?: string
+        }
+        Update: {
+          blocked_id?: string
+          blocker_id?: string
+          created_at?: string
         }
         Relationships: []
       }
@@ -536,6 +587,7 @@ export type Database = {
     }
     Functions: {
       extract_mention_usernames: { Args: { _text: string }; Returns: string[] }
+      get_blocked_user_ids: { Args: { _viewer: string }; Returns: string[] }
       get_chat_author_names: {
         Args: { _user_ids: string[] }
         Returns: {
