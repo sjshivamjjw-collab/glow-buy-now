@@ -19,6 +19,7 @@ const NotificationsPage = lazy(() => import("@/pages/NotificationsPage"));
 const SavedPostsPage = lazy(() => import("@/pages/SavedPostsPage"));
 const AdminPanelPage = lazy(() => import("@/pages/AdminPanelPage"));
 const SettingsPage = lazy(() => import("@/pages/SettingsPage"));
+const BlockedAccountsPage = lazy(() => import("@/pages/BlockedAccountsPage"));
 const TermsPage = lazy(() => import("@/pages/TermsPage"));
 const PrivacyPage = lazy(() => import("@/pages/PrivacyPage"));
 const ContactPage = lazy(() => import("@/pages/ContactPage"));
