@@ -430,7 +430,10 @@ const PostDetailPage = () => {
           <button
             onClick={async () => {
               const url = `${window.location.origin}/p/${post.id}`;
-              const shareData = { title: post.title || 'Check out this post', text: (post.body || '').replace(/<[^>]+>/g, ''), url };
+              const title = post.title?.trim() || 'Check out this post on Ripple';
+              // Share only the title + link so the recipient sees a clean link
+              // preview (with thumbnail from OG tags) rather than the full post body.
+              const shareData: ShareData = { title, text: title, url };
               try {
                 if (navigator.share) await navigator.share(shareData);
                 else { await navigator.clipboard.writeText(url); toast({ title: 'Link copied' }); }
