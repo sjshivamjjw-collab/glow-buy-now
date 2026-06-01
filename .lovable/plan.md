@@ -1,33 +1,40 @@
-## Goal
-Remove the hard cap of 30 posts on the Discover feed so users can browse the entire trending feed.
+# Add Sign in with Apple
 
-## Current behavior
-`src/pages/DiscoverPage.tsx` (line 191) calls `get_trending_posts` with `_limit: 30, _offset: 0` once on mount, and never fetches more. The masonry grid renders whatever comes back, capped at 30.
+Apple Guideline 4.8 requires Sign in with Apple whenever a third-party social login (Google) is offered. We'll add it next to the existing Google button using Lovable Cloud's managed Apple OAuth — no Apple Developer key/JWT setup needed on your side for the managed flow.
 
-## Approach: infinite scroll (paged loads of 30)
-Loading thousands of posts at once would hurt performance (images, masonry layout, memory). Instead, page through the RPC using its existing `_offset` parameter and append as the user scrolls.
+## What changes
 
-### Changes in `src/pages/DiscoverPage.tsx`
-1. Replace the single `posts` state with a paged state: `posts`, `page` (or `offset`), `hasMore`, `loadingMore`.
-2. Initial load: fetch page 0 (limit 30, offset 0) — same as today.
-3. Add `loadMore()` that fetches the next 30 with `_offset: posts.length`. If fewer than 30 rows come back, set `hasMore = false`. Dedupe by `id` to be safe.
-4. Author hydration: run the same `profiles` lookup for newly fetched `user_id`s and merge into the `authors` map (use existing `updateTrendingAuthors`).
-5. Trigger `loadMore` via an `IntersectionObserver` on a sentinel `<div ref={sentinelRef} />` placed after the masonry grid. Guard against concurrent calls with a `loadingMore` ref.
-6. Render a small "Loading more…" spinner when `loadingMore`, and an "You're all caught up" line when `!hasMore`.
+### 1. Enable Apple provider in Lovable Cloud
+Run `configure_social_auth` with `providers: ["google", "apple"]`. This:
+- Turns on managed Apple OAuth in the backend
+- Ensures `src/integrations/lovable/index.ts` (already present) keeps working for both providers
+- No new secrets, no Apple Developer credentials required — Lovable's managed credentials are used
 
-### Feed cache (`src/lib/feedCache.ts`)
-- The cache already stores the full `posts` array; just keep using `setTrendingCache` after each successful page append so back-navigation from a post restores everything the user has scrolled through (and scroll restoration keeps working).
-- No schema change needed.
+### 2. Add "Continue with Apple" button on `src/pages/AuthPage.tsx`
+- Placed directly below "Continue with Google" in the welcome step
+- Same visual treatment (card background, border, equal prominence) so it satisfies Apple's "equal prominence" requirement
+- Black background with white Apple logo + "Continue with Apple" label (Apple's HIG style), using semantic tokens
+- Wired to:
+  ```ts
+  await lovable.auth.signInWithOAuth('apple', { redirect_uri: window.location.origin })
+  ```
+- Same error/redirect handling as the Google button (toast on error, navigate('/') on success)
 
-### Search results
-Search uses a separate RPC with `_limit: 40` and is unrelated; leave it untouched.
+### 3. AuthContext — no change needed
+`bootstrapFromSession` already reads `user_metadata.full_name / name / email / avatar_url / picture` from any OAuth session, so Apple sign-ins will populate the profile the same way Google does. The `handle_new_user` trigger already handles OAuth metadata.
 
-## Out of scope
-- No DB / RPC changes — `get_trending_posts` already accepts `_limit` / `_offset`.
-- No changes to PostDetailPage, CreatePostPage, or any other surface.
-- No visual redesign of the feed.
+### 4. Docs update
+Add a short note to `docs/APP_STORE_SUBMISSION.md` confirming Sign in with Apple is wired (helps you tick the Guideline 4.8 checkbox during review).
 
-## Verification
-- Open Discover, scroll past the first 30 cards, confirm more load automatically.
-- Open a post, hit back — feed restores with all loaded pages and prior scroll position (existing behavior preserved).
-- Scroll to the very end — sentinel stops firing, "all caught up" shows, no infinite refetch loop.
+## What you should know
+
+- **Privacy Policy**: Apple users can choose "Hide My Email" — they'll sign in with a relay address like `xxx@privaterelay.appleid.com`. Our privacy page already says we collect email; no copy change needed, but worth knowing.
+- **App Store privacy nutrition label**: When you fill it out in App Store Connect, add "Apple ID" alongside Google as a sign-in identifier.
+- **iOS native build**: The web OAuth flow works inside the Capacitor webview, so no native Apple SDK integration is required for v1. If you later want the native iOS sheet (smoother UX), we can add `@capacitor-community/apple-sign-in` — not needed to pass review.
+
+## Order of operations
+1. Call `configure_social_auth` to enable Apple
+2. Edit `AuthPage.tsx` to add the button
+3. Append a one-paragraph note to `docs/APP_STORE_SUBMISSION.md`
+
+Ready to switch to build mode and implement?
