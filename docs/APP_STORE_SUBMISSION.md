@@ -149,9 +149,9 @@ Go to https://appstoreconnect.apple.com → **My Apps → +**
 - **App Name (30):** `Ripple`
 - **Subtitle (30):** `Everyday things worth sharing`
 - **Promotional Text (170):** `Discover honest recommendations, travel diaries, food finds and little moments from real people. Join live drops and follow creators you trust.`
-- **Description:** see `docs/store-listing-description.txt` (write a 3–4 paragraph version of the homepage copy)
-- **Keywords (100, comma-separated, no spaces):** `recommendations,reviews,travel,food,lifestyle,creator,community,livestream,india,social`
-- **Support URL:** `https://myripple.co.in/contact`
+- **Description:** see `docs/store-listing-description.txt` (paste the LONG DESCRIPTION block verbatim)
+- **Keywords:** see `docs/store-listing-description.txt` (KEYWORDS block)
+- **Support URL:** `https://myripple.co.in/support`
 - **Marketing URL:** `https://myripple.co.in`
 - **Privacy Policy URL:** `https://myripple.co.in/privacy`
 - **Copyright:** `2026 Ripple`
