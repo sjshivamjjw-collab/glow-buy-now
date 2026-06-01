@@ -616,8 +616,8 @@ const PostDetailPage = () => {
           <p className="text-sm text-[#a0a0a0] text-center py-6">Be the first to add thoughts</p>
         ) : (
           <ul className="space-y-1">
-            {comments.filter(c => !c.parent_id).map(top => {
-              const thread = [top, ...comments.filter(r => r.parent_id === top.id)];
+            {comments.filter(c => !c.parent_id && !(c.user_id && blocked.has(c.user_id))).map(top => {
+              const thread = [top, ...comments.filter(r => r.parent_id === top.id && !(r.user_id && blocked.has(r.user_id)))];
               return thread.map((c, idx) => {
                 const cAnon = !!c.is_anonymous;
                 const a = !cAnon && c.user_id ? authors[c.user_id] : undefined;
