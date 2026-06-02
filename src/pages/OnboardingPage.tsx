@@ -115,6 +115,7 @@ const OnboardingPage = () => {
         .eq('id', userId);
 
       if (error) throw error;
+      updateProfile({ name, ...(avatarUrl ? { avatar_url: avatarUrl } : {}) });
       completeOnboarding();
       toast({ title: 'Welcome to Ripple! 🎉' });
       navigate('/', { replace: true });
