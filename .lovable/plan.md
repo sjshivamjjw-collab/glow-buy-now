@@ -1,53 +1,45 @@
-## Add store listing description + Support page
+# Final store-submission prep — 4 tasks
 
-### 1. New file: `docs/store-listing-description.txt`
+Knock out the remaining items so the repo is fully ready for both Apple App Store and Google Play submission.
 
-Plain-text long-form description for both Apple App Store (4000 char limit) and Google Play (4000 char limit). Single file, used in both consoles.
+## 1. App icon + splash source assets
 
-Structure (~1500 chars, well under both limits):
+- Generate a **1024×1024 opaque PNG** for `resources/icon.png` — Ripple wordmark/ripple-drop mark in brand red `#dc0000` on a clean white background, no transparency, no rounded corners (iOS masks it). Premium quality (legible mark).
+- Generate a **2732×2732 splash** at `resources/splash.png` — centered Ripple mark on solid `#ffffff` background to match brand (overriding the old `#0a0a0a` example in `resources/README.md`).
+- Update `resources/README.md` to reflect the white background (`--iconBackgroundColor '#ffffff' --splashBackgroundColor '#ffffff'`) so `capacitor-assets generate` uses Ripple branding.
 
-- **Opening line** (hook): "Ripple is where everyday moments become stories worth sharing."
-- **Paragraph 1** — What Ripple is: a social app for honest recommendations, travel diaries, food finds, lifestyle posts from real people in India.
-- **Paragraph 2** — Core features: post photos/videos/text, follow creators, like + comment + save, communities with chat/events/resources, tier-based access, notifications.
-- **Paragraph 3** — Why people love it: no ads, no algorithmic noise, no influencer fakery — just real moments from real Ripplers.
-- **Paragraph 4** — Trust & safety: report any post/profile, block users, in-app account deletion, phone-based secure login.
-- **Closing CTA**: "Download Ripple and start sharing your moments today."
+## 2. Android submission runbook
 
-Plus a section at bottom marked `--- SHORT DESCRIPTION (Play Store, 80 chars) ---` with: `Share everyday moments, follow real creators, join communities you love.`
+Create `docs/PLAY_STORE_SUBMISSION.md` — parallel to the iOS runbook — covering:
 
-### 2. New page: `/support`
+- Prereqs: Google Play Console account ($25 one-time), Android Studio, JDK 17.
+- First-time setup: `npx cap add android`, `npx capacitor-assets generate --android`, `npx cap sync android`, `npx cap open android`.
+- `AndroidManifest.xml` permissions block (matches the cheat-sheet in `docs/PLAY_STORE_DATA_SAFETY.md`): `INTERNET`, `CAMERA`, `RECORD_AUDIO`, `READ_MEDIA_IMAGES`, `READ_MEDIA_VIDEO`, `READ_EXTERNAL_STORAGE` (maxSdkVersion=32), `POST_NOTIFICATIONS`.
+- `build.gradle` config: `applicationId "in.myripple.app"`, `minSdkVersion 23`, `targetSdkVersion 34`, `versionCode 1`, `versionName "1.0.0"`.
+- Keystore generation (`keytool -genkey ...`) + where to store `.jks` (NOT in repo) + `key.properties` setup.
+- Build signed AAB: Android Studio → Build → Generate Signed Bundle → AAB → release.
+- Play Console: create app, internal testing track first, upload AAB, fill Data Safety form (point to `PLAY_STORE_DATA_SAFETY.md`), Content rating IARC, Target audience 18+, Store listing copy (point to `docs/store-listing-description.txt`), screenshots (phone 1080×1920 min 2, 7" tablet optional).
+- Submit for review (1–7 days typical for first release).
+- OTA via Capgo — same as iOS, single bundle covers both platforms.
 
-Add `src/pages/SupportPage.tsx` — public route (same pattern as `/contact`, `/about`).
+## 3. Onboarding/feed content sanity check
 
-Content (uses existing `LegalPageLayout`):
+- Read `src/pages/OnboardingPage.tsx`, `src/pages/Index.tsx`, and any feed-seed/empty-state code to confirm a brand-new account does not see placeholder/lorem text or empty broken states.
+- If the empty feed shows a blank screen, add a friendly empty state ("Follow some creators to fill your feed" + CTA to `/discover`). Apple 4.3/2.1 rejections often cite "no content on first launch".
+- No DB changes — purely a frontend empty-state polish if needed.
 
-- **Hero copy**: "Need help with Ripple? We're here."
-- **Quick links** (cards, same visual style as ContactPage cards): jump to FAQ, Email us, Report abuse, Delete account.
-- **FAQ accordion** (using existing shadcn `Accordion`):
-  - How do I sign up? — phone + OTP, no password needed.
-  - I'm not getting my OTP. — check signal, wait 60s, contact support.
-  - How do I post? — tap the + button in the bottom nav.
-  - How do I report a post or user? — three-dot menu on any post or profile.
-  - How do I block someone? — profile → three-dot menu → Block.
-  - How do I delete my account? — Settings → Delete account, or go to `/delete-account`. All data is wiped permanently.
-  - How do communities work? — join free or paid tiers for access to chat, events, resources.
-  - Is my data safe? — yes, RLS + encrypted in transit, see Privacy Policy.
-- **Contact card**: email `shivam@ripple-shop.com`, response within 1 business day, Mon–Sat 10:00–19:00 IST.
-- **Response-time SLA**: "We respond to all support requests within 1 business day. Reports of abuse, illegal content, or safety issues are actioned within 24 hours."
-- **Moderation contact (UGC compliance)**: same email serves as Grievance Officer contact, matching what's already in Privacy Policy.
+## 4. Reviewer test account in submission docs
 
-### 3. Wire it up
+Append a **"App Review Information"** section to `docs/APP_STORE_SUBMISSION.md` and the new `docs/PLAY_STORE_SUBMISSION.md` with:
 
-- `src/App.tsx` → lazy import `SupportPage`, add `<Route path="/support" element={<SupportPage />} />` inside `publicLegalRoutes` so it works for logged-out + logged-in users.
-- `src/components/Footer.tsx` → add `Support` link between `Contact` and `About`.
+- Demo phone: `+91 9999966666` (already in `DEV_PHONES` allowlist in `supabase/functions/send-otp/index.ts`)
+- OTP: `123456` (fixed for DEV_PHONES)
+- Contact email: pulled from existing contact page
+- Note for reviewer: "This bypasses SMS so no real device or SIM is required. The account is pre-seeded with sample posts."
+- Mirror the same block under Play Console → App content → App access (login required).
 
-### 4. Update docs
+## Technical notes
 
-- `docs/APP_STORE_SUBMISSION.md`: change **Support URL** from `https://myripple.co.in/contact` → `https://myripple.co.in/support`. Update the section that currently says "see `docs/store-listing-description.txt`" to confirm the file now exists.
-- `docs/PLAY_STORE_DATA_SAFETY.md`: no changes needed (it doesn't reference a support URL).
-
-### What this does NOT change
-
-- No backend, no DB, no auth.
-- No changes to existing pages (Contact, Privacy, Terms stay as-is).
-- No new dependencies — Accordion + Footer + LegalPageLayout already exist.
+- All file edits are docs/assets only except possibly an empty-state component in task 3.
+- No DB migrations, no edge function changes, no new dependencies.
+- After task 1, the user still needs to run `npx capacitor-assets generate` on their Mac — we can't run it from Lovable since the `ios/` and `android/` folders are created locally.
