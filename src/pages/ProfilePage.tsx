@@ -275,13 +275,6 @@ const ProfilePage = () => {
           <LogOut className="w-3.5 h-3.5" />
           Sign Out
         </button>
-        <button
-          onClick={() => navigate('/delete-account')}
-          className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-transparent border border-[#ef4444]/40 text-[#ef4444] text-xs font-semibold hover:bg-[#ef4444]/10 transition-colors"
-        >
-          <Trash2 className="w-3.5 h-3.5" />
-          Delete Account
-        </button>
       </div>
 
       <Footer />
