@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Bell, Lock, FileText, Shield, LogOut, ChevronRight, Trash2, Ban } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
+
 
 const NOTIF_KEY_PREFIX = 'lc:notif-pref:';
 
@@ -13,8 +13,6 @@ const SettingsPage = () => {
   const { toast } = useToast();
 
   const [pushEnabled, setPushEnabled] = useState(true);
-  const [deleting, setDeleting] = useState(false);
-  const [confirmDelete, setConfirmDelete] = useState(false);
 
   useEffect(() => {
     if (!userId) return;
@@ -33,22 +31,6 @@ const SettingsPage = () => {
       .filter(k => k.startsWith('lc:'))
       .forEach(k => localStorage.removeItem(k));
     toast({ title: 'Cached preferences cleared' });
-  };
-
-  const handleDeleteAccount = async () => {
-    if (!userId) return;
-    setDeleting(true);
-    const { error } = await supabase.from('profiles').update({
-      name: null, username: null, avatar_url: null, date_of_birth: null, gender: null,
-    }).eq('id', userId);
-    setDeleting(false);
-    setConfirmDelete(false);
-    if (error) {
-      toast({ title: 'Could not process request', description: 'Please contact support.', variant: 'destructive' });
-      return;
-    }
-    toast({ title: 'Account data cleared', description: 'You will be signed out now.' });
-    setTimeout(() => { logout(); navigate('/auth'); }, 800);
   };
 
   const Row = ({ icon: Icon, label, sub, onClick, danger }: any) => (
@@ -130,32 +112,9 @@ const SettingsPage = () => {
         <div className="rounded-2xl bg-card border border-border overflow-hidden">
           <Row icon={Lock} label="Clear cached preferences" sub="Resets local app settings on this device" onClick={handleClearLocal} />
           <div className="border-t border-border"><Row icon={LogOut} label="Sign out" onClick={() => { logout(); navigate('/auth'); }} /></div>
-          <div className="border-t border-border"><Row icon={Trash2} label="Delete my account data" danger onClick={() => setConfirmDelete(true)} /></div>
+          <div className="border-t border-border"><Row icon={Trash2} label="Delete Account" sub="Permanently delete your account and data" danger onClick={() => navigate('/delete-account')} /></div>
         </div>
       </div>
-
-      {confirmDelete && (
-        <div className="fixed inset-0 bg-foreground/60 z-50 flex items-end sm:items-center justify-center p-4" onClick={() => setConfirmDelete(false)}>
-          <div className="bg-card rounded-3xl p-6 w-full max-w-sm" onClick={e => e.stopPropagation()}>
-            <h3 className="text-foreground font-bold text-lg mb-2">Delete account data?</h3>
-            <p className="text-muted-foreground text-sm mb-2">
-              This clears your name, username and avatar, then signs you out. For full account removal, contact support.
-            </p>
-            <button
-              onClick={() => { setConfirmDelete(false); navigate('/delete-account'); }}
-              className="text-xs text-primary underline mb-5"
-            >
-              Learn more about account deletion
-            </button>
-            <div className="flex gap-3">
-              <button onClick={() => setConfirmDelete(false)} className="flex-1 py-3 rounded-xl bg-secondary text-foreground font-semibold">Cancel</button>
-              <button onClick={handleDeleteAccount} disabled={deleting} className="flex-1 py-3 rounded-xl bg-live text-live-foreground font-semibold disabled:opacity-50">
-                {deleting ? 'Working…' : 'Delete'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

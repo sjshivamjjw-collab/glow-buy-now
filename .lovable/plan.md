@@ -1,30 +1,43 @@
-Two small deliverables so you can finish the Play Console listing without an Android emulator.
+## Problem
 
-## 1. Feature graphic — `resources/play-feature-graphic.png` (1024×500)
+Account deletion is currently buried — users must go Profile → Settings → scroll to "Account actions" → "Delete my account data". The `/delete-account` page (which Settings' confirm dialog links to) only *explains* the process; there's no actionable button on it, so users have to come back to Settings to actually delete.
 
-Required by Play Console (banner that appears at the top of your store listing). Generate via `imagegen` with Ripple brand: solid white background, large red ripple/water-drop mark on the left, "Ripple" wordmark in red `#dc0000` with the tagline "Everyday things worth sharing" beneath it on the right. Clean, mobile-app-store aesthetic — same visual language as the icon and splash so the listing feels coherent.
+Both Play Store and Apple require account deletion to be **easy to find and easy to perform from inside the app**.
 
-After generation, view the PNG once to confirm no text clipping, correct dimensions, no AI artifacts in the wordmark. Re-roll if anything is off.
+## Fix (2 small changes, frontend only)
 
-## 2. Screenshot capture guide — `docs/PLAY_STORE_SCREENSHOTS.md`
+### 1. Surface "Delete Account" on the Profile page itself
 
-Short markdown runbook covering the no-emulator path:
+Add a red destructive menu row directly on `ProfilePage.tsx`, in the existing menu list (currently: Notifications / Help & Support / Settings). New row:
 
-- **Tool:** Chrome DevTools device mode (built in, free) at viewport **390×844** (Pixel 7 size, accepted by Play Store: must be 16:9 or 9:16, 320–3840 px on the longest side).
-- **What to capture (6 screenshots, matches what App Store asks for):**
-  1. Home / Discover feed with real posts visible
-  2. A creator's profile page
-  3. A community room (Chat tab with messages)
-  4. Post detail with comments visible
-  5. Create post screen
-  6. Onboarding "Welcome to Ripple" screen
-- **How:** open `https://myripple.co.in` in Chrome → DevTools → Toggle Device Toolbar (Cmd/Ctrl+Shift+M) → set 390×844 → log in with demo phone `+91 9999966666` / OTP `123456` → navigate to each screen → DevTools 3-dot menu → "Capture screenshot" (NOT full-size — Play Store wants viewport size only).
-- **Naming:** save as `01-feed.png`, `02-profile.png`, etc. into `play-store-assets/screenshots/` locally on your machine (not the repo — these are upload-only assets).
-- **Upload order:** in Play Console → Main store listing → Phone screenshots → drag in numerical order. First screenshot is the one shown in search results, so make it the most visually appealing.
-- **Optional polish:** mention `mockuphone.com` or `screenshots.pro` for free device-frame mockups if they want screenshots that look like they're inside a phone — not required by Play Store but improves listing CTR.
+- Icon: `Trash2` (red)
+- Label: "Delete Account" (red text)
+- Tapping → navigates to `/delete-account`
+
+Placed below "Settings" with a visual divider so it's clearly separated from normal nav.
+
+### 2. Make `/delete-account` actually delete
+
+Move the delete logic (currently inside `SettingsPage.handleDeleteAccount`) to `DeleteAccountPage.tsx` as an in-page button at the bottom:
+
+- Big red "Permanently delete my account" button
+- Tapping opens the same confirmation modal pattern used in Settings
+- On confirm → calls the same Supabase update that wipes profile fields (name, username, avatar_url, date_of_birth, gender) → signs out → redirects to `/auth`
+- Shows toast on success/error
+
+Keep the existing explainer copy on the page (what gets deleted, what's retained, timeline, email fallback).
+
+### 3. Remove the duplicate in Settings (optional but cleaner)
+
+The "Delete my account data" row in `SettingsPage` "Account actions" becomes redundant once Profile has a direct link. Replace it with a single row "Delete Account" that just navigates to `/delete-account` (consistent with Profile). This avoids two slightly different delete flows.
 
 ## What changes
-- New file: `resources/play-feature-graphic.png`
-- New file: `docs/PLAY_STORE_SCREENSHOTS.md`
+- `src/pages/ProfilePage.tsx` — add Delete Account menu row
+- `src/pages/DeleteAccountPage.tsx` — add actionable delete button + confirm modal + delete logic
+- `src/pages/SettingsPage.tsx` — simplify the existing delete row to just navigate to `/delete-account` (remove the duplicate confirm modal + handler)
 
-No code, no DB, no dependencies. Pure store-asset prep.
+## Out of scope (call out)
+
+The current delete behavior is a **soft delete** — it nulls profile fields (name, username, avatar, DOB, gender) and signs the user out. It does NOT delete the user's posts, comments, follows, communities, or the `auth.users` row itself. The `/delete-account` page explains that full removal happens within 30 days via email request.
+
+For Play Store/Apple, this two-tier model (instant soft-delete + 30-day full deletion via support) is acceptable as long as it's disclosed (it is — on the `/delete-account` page). If you want a true one-tap hard delete (edge function with service role that wipes the auth user + all related rows), that's a bigger change — happy to plan it separately. Recommend shipping the visibility fix first since that's what blocks store compliance.
