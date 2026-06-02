@@ -13,7 +13,7 @@ End-to-end guide to ship Ripple to the Apple App Store as an **Individual** deve
 **Bundle ID (permanent):** `in.myripple.app`
 **App Name:** Ripple
 **Primary category:** Social Networking · Secondary: Lifestyle
-**Age rating:** 17+ (user-generated content + live video)
+**Age rating:** 17+ (user-generated content)
 
 ---
 
@@ -54,10 +54,10 @@ Open `ios/App/App/Info.plist` and add the following **usage description strings*
 
 ```xml
 <key>NSCameraUsageDescription</key>
-<string>Ripple uses your camera to record posts and go live.</string>
+<string>Ripple uses your camera to record photos and videos for your posts.</string>
 
 <key>NSMicrophoneUsageDescription</key>
-<string>Ripple uses your microphone for live broadcasts and video posts.</string>
+<string>Ripple uses your microphone to record audio in your video posts.</string>
 
 <key>NSPhotoLibraryUsageDescription</key>
 <string>Ripple needs access to your photos to upload posts and profile pictures.</string>
@@ -148,7 +148,7 @@ Go to https://appstoreconnect.apple.com → **My Apps → +**
 
 - **App Name (30):** `Ripple`
 - **Subtitle (30):** `Everyday things worth sharing`
-- **Promotional Text (170):** `Discover honest recommendations, travel diaries, food finds and little moments from real people. Join live drops and follow creators you trust.`
+- **Promotional Text (170):** `Discover honest recommendations, travel diaries, food finds and little moments from real people in India. Join communities and follow creators you actually trust.`
 - **Description:** see `docs/store-listing-description.txt` (paste the LONG DESCRIPTION block verbatim)
 - **Keywords:** see `docs/store-listing-description.txt` (KEYWORDS block)
 - **Support URL:** `https://myripple.co.in/support`
@@ -201,9 +201,9 @@ Take on the iPhone 15 Pro Max simulator (**6.7"** = `1290 × 2796 px`). 3–10 s
 
 1. Home feed with a great post visible
 2. A creator's profile
-3. A live broadcast in progress
-4. A community room with chat
-5. Post detail with comments
+3. A community room with chat
+4. Post detail with comments
+5. Discover page
 6. Onboarding "Welcome to Ripple" screen
 
 Capture from Xcode: **Simulator → File → Save Screen** (`Cmd+S`).
@@ -229,7 +229,6 @@ You can skip the iPad and other sizes — Apple uses the 6.7" set as the default
 
 - **Sign in with Apple**: NOT required for us — Apple only mandates it if you offer third-party social logins (Google/Facebook). We use phone OTP, so we're exempt. **If we add Google login later, Sign in with Apple becomes mandatory and we must ship it in the same release.**
 - **UGC moderation (Guideline 1.2)**: Apple requires (a) a way to report objectionable content, (b) a way to block users, (c) acted-upon reports within 24h, (d) publish moderation contact. Verify the report/block UI exists on PostDetailPage and UserProfilePage before submission.
-- **Livestream broadcasting**: Apple requires the broadcaster to have a clear "End stream" control and viewers to have report/block on streams.
 
 ---
 

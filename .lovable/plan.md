@@ -1,119 +1,57 @@
+# Strip livestream + paid-membership wording from store docs
 
-# Ripple → Play Store: The One Clean Plan
+Two doc files contain stale wording from when Ripple had livestreaming + commerce. Apple/Google reviewers read these — if they see features that don't exist, the app gets rejected. Fix both, no app-code changes needed.
 
-You already have: ✅ Node, ✅ Git, ✅ Android Studio, ✅ GitHub connected, ✅ Play Console paid (verifying).
+## File 1 — `docs/store-listing-description.txt`
 
-Below is the **only** sequence you need. Do steps in order. Don't skip. Each step has ONE goal.
+This is the actual copy that goes into App Store Connect + Play Console. One edit:
 
----
+- **Line 48**, in the COMMUNITIES MADE SIMPLE block:
+  - Before: *"Creators can build their own communities with free or paid membership tiers. Members get access to private chat channels, exclusive events, and curated resources — all inside the app, with no extra logins or paywalls."*
+  - After: *"Creators can build their own communities with multiple membership tiers. Members get access to private chat channels, exclusive events, and curated resources — all inside the app, with no extra logins."*
 
-## STEP 1 — Get the code on your PC (5 min)
+(Drops "free or paid" and "no paywalls" — both implied a purchase flow that doesn't exist.)
 
-Open **PowerShell** (Start menu → type "PowerShell" → Enter), then run, one line at a time:
+No livestream wording exists in this file — it's already clean.
 
-```
-cd $HOME\Documents
-git clone https://github.com/sjshivamjjw-collab/glow-buy-now.git
-cd glow-buy-now
-npm install
-```
+## File 2 — `docs/APP_STORE_SUBMISSION.md`
 
-✅ Done when: `npm install` finishes without red errors.
+Five surgical edits to remove livestream references. Capgo Live **Updates** mentions stay (different thing — OTA updates, not live video).
 
----
+1. **Line 16** — Age rating note
+   - Before: `**Age rating:** 17+ (user-generated content + live video)`
+   - After: `**Age rating:** 17+ (user-generated content)`
 
-## STEP 2 — Build the web app + add Android (5 min)
+2. **Line 57** — Camera Info.plist string
+   - Before: `<string>Ripple uses your camera to record posts and go live.</string>`
+   - After: `<string>Ripple uses your camera to record photos and videos for your posts.</string>`
 
-In the same PowerShell window (still inside `glow-buy-now`):
+3. **Line 60** — Microphone Info.plist string
+   - Before: `<string>Ripple uses your microphone for live broadcasts and video posts.</string>`
+   - After: `<string>Ripple uses your microphone to record audio in your video posts.</string>`
 
-```
-npm run build
-npx cap add android
-npx cap sync android
-```
+4. **Line 151** — Promotional Text
+   - Before: `Discover honest recommendations, travel diaries, food finds and little moments from real people. Join live drops and follow creators you trust.`
+   - After: Replace with the wording already in `docs/store-listing-description.txt`: *"Discover honest recommendations, travel diaries, food finds and little moments from real people in India. Join communities and follow creators you actually trust."*
 
-✅ Done when: you see a new `android` folder appear inside `glow-buy-now`.
+5. **Line 204** — Screenshot list item #3
+   - Before: `3. A live broadcast in progress`
+   - After: `3. A community room with chat` (and renumber the rest — drop the duplicate so we still have 6 items by adding `6. Onboarding "Welcome to Ripple" screen`, which is already there)
 
----
+6. **Line 232** — "Apple gotchas" bullet
+   - Delete the entire `**Livestream broadcasting**: ...` bullet point.
 
-## STEP 3 — Create your signing key (5 min) ⚠️ CRITICAL
+## What I will NOT touch
 
-This file is what proves YOU own the app. **If you lose it, you can never update Ripple again.**
+- `capacitor.config.ts` — clean already, no livestream plugins.
+- `ios-privacy/PrivacyInfo.xcprivacy` — no livestream-specific declarations to remove.
+- Any React/app source — no UI references livestreaming or paid tiers in a way that would mislead a reviewer.
+- Capgo "Live Updates" references in section 9 of the runbook — that's the OTA update system, not livestream.
 
-```
-mkdir $HOME\keys
-keytool -genkey -v -keystore $HOME\keys\ripple-release.jks -keyalg RSA -keysize 2048 -validity 10000 -alias ripple
-```
+## Verification after edits
 
-It will ask questions. Answer:
-- **Keystore password** → make one up, write it down NOW in a safe place
-- **Re-enter password** → same one
-- **First and last name** → `Shivam Jhunjhunwala`
-- All other fields → just press Enter
-- **Country code** → `IN`
-- **Is this correct?** → type `yes`
-- **Key password** → just press Enter (uses same password)
-
-✅ Done when: file exists at `C:\Users\<your-name>\keys\ripple-release.jks`.
-
-**BACKUP NOW:** copy that `.jks` file + the password to Google Drive AND a USB stick. Do not skip.
+Run `grep -in "live\|broadcast\|stream\|paid" docs/store-listing-description.txt docs/APP_STORE_SUBMISSION.md` and confirm only "Capgo Live Updates" / "live worldwide" / "ships JS bundles" type matches remain — no feature claims for livestreaming or paid memberships.
 
 ---
 
-## STEP 4 — Tell Android about your key (5 min)
-
-Open **Notepad**, paste this (replace `<YOUR-WINDOWS-USERNAME>` and `YOUR_PASSWORD`):
-
-```
-storeFile=C:\\Users\\<YOUR-WINDOWS-USERNAME>\\keys\\ripple-release.jks
-storePassword=YOUR_PASSWORD
-keyAlias=ripple
-keyPassword=YOUR_PASSWORD
-```
-
-Save as: `key.properties` inside the `glow-buy-now\android\` folder.
-(In Notepad's Save dialog: File type → "All Files", filename → `key.properties`.)
-
-Then I will give you the exact 15 lines to paste into `android\app\build.gradle` — **just tell me when you've reached this point** and I'll walk you through that file edit live (it's the only fiddly part).
-
----
-
-## STEP 5 — Build the .aab file in Android Studio (15 min)
-
-Back in PowerShell:
-
-```
-npx cap open android
-```
-
-Android Studio opens. Wait for "Gradle sync" at the bottom to finish (5–10 min first time, lots of progress bars — normal).
-
-Then in Android Studio's top menu:
-1. **Build → Generate Signed App Bundle / APK**
-2. Choose **Android App Bundle** → Next
-3. Keystore fields auto-fill → Next
-4. Pick **release** → Finish
-5. Wait 2 min → popup says "locate" → click it
-6. Your file: `android\app\release\app-release.aab` ← **this is what you upload to Google**
-
----
-
-## STEP 6 — Upload to Play Console (30 min)
-
-Once Google verifies your account (email arrives 24–48h after paying):
-
-1. Go to https://play.google.com/console → **Create app** → name it `Ripple`
-2. Left sidebar → **Testing → Internal testing → Create new release**
-3. Drag in your `app-release.aab` → release name `1.0.0` → notes: `Initial release.`
-4. Add yourself as a tester → install on your phone via the opt-in link → confirm it works
-5. Then: **Production → Create new release** → upload same `.aab` → fill the store listing forms
-
-The store listing forms (screenshots, descriptions, data safety) — I'll walk you through those one by one when you get there. All the answers are pre-written in `docs/PLAY_STORE_SUBMISSION.md` and `docs/PLAY_STORE_DATA_SAFETY.md` in your repo.
-
----
-
-## What to do right now
-
-👉 **Start with STEP 1.** Run those 4 lines. Tell me when `npm install` finishes (or paste any red error you see), and we move to Step 2.
-
-Don't try to do all 6 steps at once. One at a time. I'm here for each.
+Approve and I'll apply all 7 edits in one pass, then we're cleared to start Step 0 on the Mac.
