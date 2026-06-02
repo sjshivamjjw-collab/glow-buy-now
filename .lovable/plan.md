@@ -1,45 +1,30 @@
-# Final store-submission prep — 4 tasks
+Two small deliverables so you can finish the Play Console listing without an Android emulator.
 
-Knock out the remaining items so the repo is fully ready for both Apple App Store and Google Play submission.
+## 1. Feature graphic — `resources/play-feature-graphic.png` (1024×500)
 
-## 1. App icon + splash source assets
+Required by Play Console (banner that appears at the top of your store listing). Generate via `imagegen` with Ripple brand: solid white background, large red ripple/water-drop mark on the left, "Ripple" wordmark in red `#dc0000` with the tagline "Everyday things worth sharing" beneath it on the right. Clean, mobile-app-store aesthetic — same visual language as the icon and splash so the listing feels coherent.
 
-- Generate a **1024×1024 opaque PNG** for `resources/icon.png` — Ripple wordmark/ripple-drop mark in brand red `#dc0000` on a clean white background, no transparency, no rounded corners (iOS masks it). Premium quality (legible mark).
-- Generate a **2732×2732 splash** at `resources/splash.png` — centered Ripple mark on solid `#ffffff` background to match brand (overriding the old `#0a0a0a` example in `resources/README.md`).
-- Update `resources/README.md` to reflect the white background (`--iconBackgroundColor '#ffffff' --splashBackgroundColor '#ffffff'`) so `capacitor-assets generate` uses Ripple branding.
+After generation, view the PNG once to confirm no text clipping, correct dimensions, no AI artifacts in the wordmark. Re-roll if anything is off.
 
-## 2. Android submission runbook
+## 2. Screenshot capture guide — `docs/PLAY_STORE_SCREENSHOTS.md`
 
-Create `docs/PLAY_STORE_SUBMISSION.md` — parallel to the iOS runbook — covering:
+Short markdown runbook covering the no-emulator path:
 
-- Prereqs: Google Play Console account ($25 one-time), Android Studio, JDK 17.
-- First-time setup: `npx cap add android`, `npx capacitor-assets generate --android`, `npx cap sync android`, `npx cap open android`.
-- `AndroidManifest.xml` permissions block (matches the cheat-sheet in `docs/PLAY_STORE_DATA_SAFETY.md`): `INTERNET`, `CAMERA`, `RECORD_AUDIO`, `READ_MEDIA_IMAGES`, `READ_MEDIA_VIDEO`, `READ_EXTERNAL_STORAGE` (maxSdkVersion=32), `POST_NOTIFICATIONS`.
-- `build.gradle` config: `applicationId "in.myripple.app"`, `minSdkVersion 23`, `targetSdkVersion 34`, `versionCode 1`, `versionName "1.0.0"`.
-- Keystore generation (`keytool -genkey ...`) + where to store `.jks` (NOT in repo) + `key.properties` setup.
-- Build signed AAB: Android Studio → Build → Generate Signed Bundle → AAB → release.
-- Play Console: create app, internal testing track first, upload AAB, fill Data Safety form (point to `PLAY_STORE_DATA_SAFETY.md`), Content rating IARC, Target audience 18+, Store listing copy (point to `docs/store-listing-description.txt`), screenshots (phone 1080×1920 min 2, 7" tablet optional).
-- Submit for review (1–7 days typical for first release).
-- OTA via Capgo — same as iOS, single bundle covers both platforms.
+- **Tool:** Chrome DevTools device mode (built in, free) at viewport **390×844** (Pixel 7 size, accepted by Play Store: must be 16:9 or 9:16, 320–3840 px on the longest side).
+- **What to capture (6 screenshots, matches what App Store asks for):**
+  1. Home / Discover feed with real posts visible
+  2. A creator's profile page
+  3. A community room (Chat tab with messages)
+  4. Post detail with comments visible
+  5. Create post screen
+  6. Onboarding "Welcome to Ripple" screen
+- **How:** open `https://myripple.co.in` in Chrome → DevTools → Toggle Device Toolbar (Cmd/Ctrl+Shift+M) → set 390×844 → log in with demo phone `+91 9999966666` / OTP `123456` → navigate to each screen → DevTools 3-dot menu → "Capture screenshot" (NOT full-size — Play Store wants viewport size only).
+- **Naming:** save as `01-feed.png`, `02-profile.png`, etc. into `play-store-assets/screenshots/` locally on your machine (not the repo — these are upload-only assets).
+- **Upload order:** in Play Console → Main store listing → Phone screenshots → drag in numerical order. First screenshot is the one shown in search results, so make it the most visually appealing.
+- **Optional polish:** mention `mockuphone.com` or `screenshots.pro` for free device-frame mockups if they want screenshots that look like they're inside a phone — not required by Play Store but improves listing CTR.
 
-## 3. Onboarding/feed content sanity check
+## What changes
+- New file: `resources/play-feature-graphic.png`
+- New file: `docs/PLAY_STORE_SCREENSHOTS.md`
 
-- Read `src/pages/OnboardingPage.tsx`, `src/pages/Index.tsx`, and any feed-seed/empty-state code to confirm a brand-new account does not see placeholder/lorem text or empty broken states.
-- If the empty feed shows a blank screen, add a friendly empty state ("Follow some creators to fill your feed" + CTA to `/discover`). Apple 4.3/2.1 rejections often cite "no content on first launch".
-- No DB changes — purely a frontend empty-state polish if needed.
-
-## 4. Reviewer test account in submission docs
-
-Append a **"App Review Information"** section to `docs/APP_STORE_SUBMISSION.md` and the new `docs/PLAY_STORE_SUBMISSION.md` with:
-
-- Demo phone: `+91 9999966666` (already in `DEV_PHONES` allowlist in `supabase/functions/send-otp/index.ts`)
-- OTP: `123456` (fixed for DEV_PHONES)
-- Contact email: pulled from existing contact page
-- Note for reviewer: "This bypasses SMS so no real device or SIM is required. The account is pre-seeded with sample posts."
-- Mirror the same block under Play Console → App content → App access (login required).
-
-## Technical notes
-
-- All file edits are docs/assets only except possibly an empty-state component in task 3.
-- No DB migrations, no edge function changes, no new dependencies.
-- After task 1, the user still needs to run `npx capacitor-assets generate` on their Mac — we can't run it from Lovable since the `ios/` and `android/` folders are created locally.
+No code, no DB, no dependencies. Pure store-asset prep.
