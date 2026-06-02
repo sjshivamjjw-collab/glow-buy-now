@@ -13,8 +13,6 @@ const SettingsPage = () => {
   const { toast } = useToast();
 
   const [pushEnabled, setPushEnabled] = useState(true);
-  const [deleting, setDeleting] = useState(false);
-  const [confirmDelete, setConfirmDelete] = useState(false);
 
   useEffect(() => {
     if (!userId) return;
@@ -33,22 +31,6 @@ const SettingsPage = () => {
       .filter(k => k.startsWith('lc:'))
       .forEach(k => localStorage.removeItem(k));
     toast({ title: 'Cached preferences cleared' });
-  };
-
-  const handleDeleteAccount = async () => {
-    if (!userId) return;
-    setDeleting(true);
-    const { error } = await supabase.from('profiles').update({
-      name: null, username: null, avatar_url: null, date_of_birth: null, gender: null,
-    }).eq('id', userId);
-    setDeleting(false);
-    setConfirmDelete(false);
-    if (error) {
-      toast({ title: 'Could not process request', description: 'Please contact support.', variant: 'destructive' });
-      return;
-    }
-    toast({ title: 'Account data cleared', description: 'You will be signed out now.' });
-    setTimeout(() => { logout(); navigate('/auth'); }, 800);
   };
 
   const Row = ({ icon: Icon, label, sub, onClick, danger }: any) => (
