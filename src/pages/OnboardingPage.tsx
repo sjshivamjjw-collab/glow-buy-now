@@ -32,7 +32,7 @@ const OnboardingPage = () => {
   const [saving, setSaving] = useState(false);
   const [usernameError, setUsernameError] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const { userId, completeOnboarding } = useAuth();
+  const { userId, completeOnboarding, updateProfile } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -115,6 +115,7 @@ const OnboardingPage = () => {
         .eq('id', userId);
 
       if (error) throw error;
+      updateProfile({ name, ...(avatarUrl ? { avatar_url: avatarUrl } : {}) });
       completeOnboarding();
       toast({ title: 'Welcome to Ripple! 🎉' });
       navigate('/', { replace: true });
