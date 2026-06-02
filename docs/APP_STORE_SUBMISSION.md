@@ -237,7 +237,28 @@ You can skip the iPad and other sizes — Apple uses the 6.7" set as the default
 
 App Store Connect → your app → **iOS App 1.0** → fill **"What's New"** → click **Add for Review** → **Submit**.
 
+### App Review Information (reviewer test account)
+
+Paste this into the **App Review Information** section of App Store Connect (required when sign-in is gated):
+
+```
+Sign-in method: Phone OTP
+Demo phone number: +91 9999966666
+OTP (one-time code): 123456
+
+Notes for reviewer:
+- The demo phone bypasses SMS so no real device or SIM is required.
+- After entering the phone, tap "Continue", then enter 123456 on the OTP screen.
+- The account is pre-seeded so the feed shows real content immediately.
+- Google sign-in and Apple sign-in are also available on the auth screen.
+
+Contact email: shivam@ripple-shop.com
+Contact phone:  +91 9619846170
+```
+
 Review typically takes **24–48 hours**. First submissions sometimes get an extra question or rejection on UGC moderation — respond in the Resolution Center within 7 days.
+
+
 
 ---
 
