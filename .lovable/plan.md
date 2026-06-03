@@ -1,67 +1,84 @@
-# Ship Ripple to Google Play Store
+# Ripple → Play Store (Personal account: 12/20 testers + 14 days path)
 
-You're logged into Play Console with a Personal developer account — great. Here's the end-to-end path. The full technical runbook lives in `docs/PLAY_STORE_SUBMISSION.md`; this plan is the condensed checklist with what you do vs what I do.
+You already have the `.aab` and `.jks`. The 14-day closed testing requirement is now the gating item — let's structure everything around starting that clock as fast as possible.
 
-## Phase 1 — Click "Create app" in Play Console (you, 2 min)
+## Google's exact requirement (Personal accounts only)
 
-Fill the form with:
-- **App name:** Ripple
-- **Default language:** English (India) – en-IN
-- **App or game:** App
-- **Free or paid:** Free
-- Tick both declaration boxes (Play Policies + US export laws)
-- Click **Create app**
+- Run a **Closed Testing** track with **at least 12 opted-in testers** (Google's UI shows 12; some regions/recent updates say 20 — aim for **20 to be safe**)
+- Testers must remain opted in for **14 consecutive days**
+- After 14 days, an **"Apply for production access"** button appears under Publishing overview → submit it
+- Google reviews production access request (1–3 days), then you can push to Production
 
-## Phase 2 — Build the signed Android App Bundle (you, on your Mac, ~20 min)
+So: **Today → start Closed Testing. Day 14 → apply for production. Day ~16 → live.**
 
-This must be done locally — Play needs a signed `.aab` file. Steps you'll run (full details in `docs/PLAY_STORE_SUBMISSION.md` §1–§5):
+## Phase A — Today: get Closed Testing live (1–2 hours)
 
-1. `git pull && npm install && npm run build`
-2. `npx cap add android` (first time only — creates `/android` folder)
-3. Generate signing keystore with `keytool` (one-time; back up the `.jks` file forever — losing it means you can never update the app)
-4. Wire `key.properties` into `android/app/build.gradle`
-5. Verify `AndroidManifest.xml` permissions match the runbook (no extras → fewer Play declarations)
-6. `npm run build && npx cap sync android && npx cap open android`
-7. Android Studio → **Build → Generate Signed Bundle / APK** → outputs `app-release.aab`
+### Step 1 — Create the app in Play Console (5 min)
+Click **Create app** on the screen you're on. Fill:
+- Name: Ripple
+- Language: English (India)
+- App, Free, tick both declarations
 
-I can't run any of this for you — needs your Mac, Android Studio, and your private keystore.
-
-## Phase 3 — Fill out the Play Console listing (you, ~45 min)
-
-Left sidebar "Set up your app" checklist. Copy/paste from existing repo docs:
-
+### Step 2 — Fill the "Set up your app" checklist (45 min)
+All answers are in our repo:
 | Section | Source |
 |---|---|
-| App access (reviewer creds) | `docs/PLAY_STORE_SUBMISSION.md` §9 — phone `+91 9999966666`, OTP `123456` |
+| App access (reviewer creds) | `docs/PLAY_STORE_SUBMISSION.md` §9 |
 | Ads | No |
-| Content rating | Run IARC questionnaire with answers in `docs/PLAY_STORE_DATA_SAFETY.md` → Mature 17+ |
-| Target audience | 18+ only |
-| Data safety | Exact answers in `docs/PLAY_STORE_DATA_SAFETY.md` |
+| Content rating | `docs/PLAY_STORE_DATA_SAFETY.md` → Mature 17+ |
+| Target audience | 18+ |
+| Data safety | `docs/PLAY_STORE_DATA_SAFETY.md` |
+| Government app / News / COVID | No / No / No |
 | Store listing copy | `docs/store-listing-description.txt` |
 | Category | Social |
-| Privacy Policy URL | `https://myripple.co.in/privacy` |
 
-## Phase 4 — Assets I can generate for you (me, when you ask)
+### Step 3 — Create the Closed Testing track (15 min)
+Play Console → **Testing → Closed testing → Create track** ("Alpha" is fine as the name).
+- Upload your `.aab`
+- **Testers tab → Create email list** → paste 12–20 tester emails (their Google account emails — same one they use on their phone)
+- **Feedback URL or email:** `shivam@ripple-shop.com`
+- Click **Review release → Start rollout to Closed testing**
 
-- **Feature graphic** (1024×500 PNG with Ripple wordmark) — required
-- **Android phone screenshots** (1080×1920) — I can convert the iPhone screenshots you already shared, same way I did for iPad
-- **Short description** (80 chars) — already written in the runbook
+### Step 4 — Send testers the opt-in link
+After the release rolls out (~30 min), the Testers tab shows a **"Copy link"** button. Send that link + this message to every tester:
+> *Tap the link on the same phone where you'll test, sign in with the Gmail you gave Shivam, tap "Become a tester", then install Ripple from the Play Store link that appears. Keep it installed for 14 days — open it at least once.*
 
-Just say "generate the Play assets" after Phase 2 and I'll prep them.
+## Phase B — Where to find 12–20 testers (today/tomorrow)
 
-## Phase 5 — Upload + submit (you, 15 min)
+Easiest sources, in order:
+1. **Family + close friends** (5–8 people)
+2. **WhatsApp groups** you're in — post: "Need 12 friends to help me ship Ripple on Play Store. Just install + keep for 14 days. No usage required."
+3. **Reddit r/AlphaandBetausers, r/TestMyApp** — post asking for testers (works, but you'll need to reciprocate)
+4. **Telegram groups**: "Google Play Closed Testing" has 5000+ members swapping installs
+5. **Fiverr** — ₹500–1000 buys you 15 testers in 24h ("google play closed testing 14 days")
 
-1. Production track → Create new release → upload `app-release.aab`
-2. Fill "What's new in this release"
-3. **Recommended:** First push to **Internal testing** track, install on your phone via the test link, confirm OTP login works
-4. Promote to Production → **Send for review**
+Recommend mixing sources so it doesn't look like a single coordinated pool to Google.
 
-First Play review: **1–7 days** (usually 2–3). Subsequent updates ship in <24h.
+## Phase C — Assets I generate for you (parallel to Phase A)
 
-## What you need to confirm before we proceed
+If you confirm, I'll prep these now so you can upload during Step 2:
+1. **Feature graphic** (1024×500 PNG, required)
+2. **Android phone screenshots** (1080×1920, from your existing iPhone shots — minimum 2, recommend 4–8)
 
-1. **Do you have a Mac with Android Studio installed?** (Required for Phase 2. If not, you'll need to install it from https://developer.android.com/studio — ~8 GB download.)
-2. **Do you want me to generate the Play Store assets** (feature graphic + Android screenshots from your existing iPhone shots) now, in parallel with you doing Phase 1?
-3. **Internal testing first, or straight to Production?** Recommend internal testing — catches install/signing bugs before review.
+## Phase D — Day 1 through Day 14 (passive)
 
-Once you answer those, I'll either generate assets immediately or wait for your Phase 2 build to complete.
+- Daily check: Play Console → Testing → Closed testing → **Testers** shows count of "Active testers". Needs to stay ≥12 for 14 consecutive days.
+- If someone uninstalls, count drops → clock can reset. Over-recruit (aim for 20).
+- Nudge testers on day 7 with a "still installed? thanks 🙏" message.
+
+## Phase E — Day 14: apply for production (5 min)
+
+Play Console → **Publishing overview** → **Apply for production access** button appears.
+- Form asks: testing summary, what you changed based on tester feedback, target launch date
+- Google replies in 1–3 days
+- On approval: create a Production release with the same AAB → Send for review → live in 1–7 days (usually <24h for first prod after closed testing passed)
+
+## What I need from you now
+
+Three quick answers and I'll start on assets immediately:
+
+1. **Generate Android screenshots from the 4 iPhone shots you sent earlier?** (yes / I'll send new ones)
+2. **Generate the 1024×500 feature graphic?** (yes / I have one)
+3. **How many testers can you realistically gather from family/friends/WhatsApp?** (helps me decide if you also need to write a Reddit/Telegram recruitment blurb)
+
+Once you answer, I'll generate the assets in this same turn and you can start Phase A today.
