@@ -138,11 +138,13 @@ Go to https://appstoreconnect.apple.com → **My Apps → +**
 | Field | Value |
 |---|---|
 | Platform | iOS |
-| Name | Ripple |
+| Name | Ripple - What's it really like? |
 | Primary Language | English (India) |
 | Bundle ID | in.myripple.app |
 | SKU | ripple-ios-001 |
 | User Access | Full Access |
+
+> The on-device home-screen label stays **"Ripple"** (from `CFBundleDisplayName` in Info.plist). The longer name above is only the App Store listing name, which must be globally unique.
 
 ### Listing copy (paste these)
 
