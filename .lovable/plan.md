@@ -1,85 +1,67 @@
-# Pre-Upload Fixes in Xcode
+# Ship Ripple to Google Play Store
 
-We'll do this in 3 steps in Xcode. Cancel the current Validate dialog if it's still open. After these are done, we re-Archive and then Validate + Upload.
+You're logged into Play Console with a Personal developer account — great. Here's the end-to-end path. The full technical runbook lives in `docs/PLAY_STORE_SUBMISSION.md`; this plan is the condensed checklist with what you do vs what I do.
 
----
+## Phase 1 — Click "Create app" in Play Console (you, 2 min)
 
-## Step 1 — Add PrivacyInfo.xcprivacy file
+Fill the form with:
+- **App name:** Ripple
+- **Default language:** English (India) – en-IN
+- **App or game:** App
+- **Free or paid:** Free
+- Tick both declaration boxes (Play Policies + US export laws)
+- Click **Create app**
 
-This declares to Apple what data we collect. Required since May 2024 — auto-reject without it.
+## Phase 2 — Build the signed Android App Bundle (you, on your Mac, ~20 min)
 
-The file already exists in your repo at `ios-privacy/PrivacyInfo.xcprivacy`. We just need to copy it into the Xcode project.
+This must be done locally — Play needs a signed `.aab` file. Steps you'll run (full details in `docs/PLAY_STORE_SUBMISSION.md` §1–§5):
 
-**On your Mac (Terminal):**
-```bash
-cp ios-privacy/PrivacyInfo.xcprivacy ios/App/App/PrivacyInfo.xcprivacy
-```
+1. `git pull && npm install && npm run build`
+2. `npx cap add android` (first time only — creates `/android` folder)
+3. Generate signing keystore with `keytool` (one-time; back up the `.jks` file forever — losing it means you can never update the app)
+4. Wire `key.properties` into `android/app/build.gradle`
+5. Verify `AndroidManifest.xml` permissions match the runbook (no extras → fewer Play declarations)
+6. `npm run build && npx cap sync android && npx cap open android`
+7. Android Studio → **Build → Generate Signed Bundle / APK** → outputs `app-release.aab`
 
-**In Xcode:**
-1. Left sidebar → expand **App → App** (the inner folder, where `Info.plist` lives)
-2. Open Finder → navigate to `ios/App/App/` → find `PrivacyInfo.xcprivacy`
-3. Drag it from Finder into the **App** group in Xcode's left sidebar (drop it right next to `Info.plist`)
-4. In the dialog that appears:
-   - ✅ Copy items if needed
-   - ✅ Add to targets: **App**
-   - Click **Finish**
-5. Click the file in the sidebar → in the right panel, confirm **Target Membership: App** is ticked
+I can't run any of this for you — needs your Mac, Android Studio, and your private keystore.
 
----
+## Phase 3 — Fill out the Play Console listing (you, ~45 min)
 
-## Step 2 — Add Info.plist usage description strings
+Left sidebar "Set up your app" checklist. Copy/paste from existing repo docs:
 
-Without these, the app will **crash** when users tap camera/mic/photo upload, and Apple will reject.
+| Section | Source |
+|---|---|
+| App access (reviewer creds) | `docs/PLAY_STORE_SUBMISSION.md` §9 — phone `+91 9999966666`, OTP `123456` |
+| Ads | No |
+| Content rating | Run IARC questionnaire with answers in `docs/PLAY_STORE_DATA_SAFETY.md` → Mature 17+ |
+| Target audience | 18+ only |
+| Data safety | Exact answers in `docs/PLAY_STORE_DATA_SAFETY.md` |
+| Store listing copy | `docs/store-listing-description.txt` |
+| Category | Social |
+| Privacy Policy URL | `https://myripple.co.in/privacy` |
 
-**In Xcode:**
-1. Left sidebar → **App → App → Info.plist** → click it
-2. The main panel shows a list of keys. Right-click any row → **Add Row**
-3. Add each of these 6 entries (key on the left, type, value on the right):
+## Phase 4 — Assets I can generate for you (me, when you ask)
 
-| Key | Type | Value |
-|---|---|---|
-| `NSCameraUsageDescription` | String | `Ripple uses your camera to record photos and videos for your posts.` |
-| `NSMicrophoneUsageDescription` | String | `Ripple uses your microphone to record audio in your video posts.` |
-| `NSPhotoLibraryUsageDescription` | String | `Ripple needs access to your photos to upload posts and profile pictures.` |
-| `NSPhotoLibraryAddUsageDescription` | String | `Ripple saves photos and videos you download to your library.` |
-| `NSUserTrackingUsageDescription` | String | `Used only to keep you signed in and personalise your feed. We do not track you across other apps.` |
-| `ITSAppUsesNonExemptEncryption` | Boolean | `NO` |
+- **Feature graphic** (1024×500 PNG with Ripple wordmark) — required
+- **Android phone screenshots** (1080×1920) — I can convert the iPhone screenshots you already shared, same way I did for iPad
+- **Short description** (80 chars) — already written in the runbook
 
-Tip: When you start typing the key name, Xcode autocompletes to a friendly label like "Privacy - Camera Usage Description" — that's the same thing, accept it.
+Just say "generate the Play assets" after Phase 2 and I'll prep them.
 
-The last one (`ITSAppUsesNonExemptEncryption = NO`) tells Apple we don't use custom crypto, which skips an export compliance question on every upload.
+## Phase 5 — Upload + submit (you, 15 min)
 
-Save with **Cmd+S**.
+1. Production track → Create new release → upload `app-release.aab`
+2. Fill "What's new in this release"
+3. **Recommended:** First push to **Internal testing** track, install on your phone via the test link, confirm OTP login works
+4. Promote to Production → **Send for review**
 
----
+First Play review: **1–7 days** (usually 2–3). Subsequent updates ship in <24h.
 
-## Step 3 — Re-Archive
+## What you need to confirm before we proceed
 
-The previous archive doesn't include these new files, so we rebuild.
+1. **Do you have a Mac with Android Studio installed?** (Required for Phase 2. If not, you'll need to install it from https://developer.android.com/studio — ~8 GB download.)
+2. **Do you want me to generate the Play Store assets** (feature graphic + Android screenshots from your existing iPhone shots) now, in parallel with you doing Phase 1?
+3. **Internal testing first, or straight to Production?** Recommend internal testing — catches install/signing bugs before review.
 
-1. Menu: **Product → Clean Build Folder** (Shift+Cmd+K)
-2. Top device selector still shows **Any iOS Device (arm64)** ✅
-3. Menu: **Product → Archive** (3–5 min)
-4. Organizer opens with the new archive
-5. Click **Validate App** → walk through wizard → expect "Validation Successful"
-6. Click **Distribute App → App Store Connect → Upload**
-
----
-
-## What happens after upload (just so you know)
-
-- Apple processes the build for 15–60 min → email confirms it's ready
-- You go to **App Store Connect** (the website, appstoreconnect.apple.com) and create the listing:
-  - **Category**: Social Networking (primary) + Lifestyle (secondary) — this is where you set it, NOT in Xcode
-  - **Age rating**: 17+ (because user-generated content)
-  - **Screenshots**: 3–10 from iPhone 6.7" simulator
-  - **Description / keywords**: already written in `docs/store-listing-description.txt`
-  - **Demo reviewer login**: phone `+91 9999966666`, OTP `123456`
-  - **Privacy Nutrition Label**: matches the PrivacyInfo file we just installed
-- Then **Submit for Review** → 24–48 hr typical wait
-
-Full submission runbook is in `docs/APP_STORE_SUBMISSION.md` if you want to read ahead.
-
----
-
-Approve this plan and we'll do Step 1 together. Tell me when you've run the `cp` command on your Mac.
+Once you answer those, I'll either generate assets immediately or wait for your Phase 2 build to complete.
