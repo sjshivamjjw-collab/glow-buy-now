@@ -8,6 +8,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import LazyVideoThumbnail from '@/components/LazyVideoThumbnail';
+import { optimizedImageUrl } from '@/lib/storageUrls';
 
 const AdminPanelPage = () => {
   const navigate = useNavigate();
@@ -117,7 +118,7 @@ const AdminPanelPage = () => {
                       cover.kind === 'video' ? (
                         <LazyVideoThumbnail src={cover.url} className="w-14 h-14 rounded-xl overflow-hidden bg-black" />
                       ) : (
-                        <img src={cover.url} alt="" className="w-14 h-14 rounded-xl object-cover" loading="lazy" decoding="async" />
+                        <img src={optimizedImageUrl(cover.url, { width: 160, quality: 70, resize: 'cover' })!} alt="" className="w-14 h-14 rounded-xl object-cover" loading="lazy" decoding="async" />
                       )
                     ) : (
                       <div className="w-14 h-14 rounded-xl bg-secondary flex items-center justify-center">

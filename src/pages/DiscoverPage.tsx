@@ -15,6 +15,7 @@ import {
   setTrendingScrollY,
 } from '@/lib/feedCache';
 import { useBlockedUsers } from '@/hooks/useBlockedUsers';
+import { optimizedImageUrl } from '@/lib/storageUrls';
 
 
 interface TrendingPost {
@@ -661,7 +662,7 @@ const DiscoverPage = () => {
                         </span>
                       </>
                     ) : (
-                      <img src={p.cover_url} alt={p.title || ''} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" decoding="async" />
+                      <img src={optimizedImageUrl(p.cover_url, { width: 600, quality: 70, resize: 'cover' })!} alt={p.title || ''} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" decoding="async" />
                     )
                   ) : (
                     <TextCoverCard title={p.title || p.body} />
