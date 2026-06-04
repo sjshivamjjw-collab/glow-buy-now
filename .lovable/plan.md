@@ -1,20 +1,73 @@
-# Fixing the tester feedback
+# Rebuilding the AAB with the Ripple icon + perf fixes
 
-You raised three things. #1 (smooth download) is great — no action needed. The other two are real and both fixable.
+You'll do this on your **Mac** in your local copy of the project. Total time: ~20 minutes (most of it is Gradle building in the background). You'll end up uploading a new `.aab` to the **same closed test track** — the 14-day clock keeps running, no reset.
 
 ---
 
-## Issue 2 — App icon shows generic Android robot instead of Ripple
+## Step 0 — One-time check before you start
 
-### What's happening
+Make sure these are installed on your Mac:
+- Android Studio (any recent version, comes with the SDK)
+- Java 17 (`java -version` should show 17)
+- Node + npm (`node -v` — anything 18+)
 
-The Ripple icon you see on the Play Store listing page comes from the **store listing** (the 512×512 you uploaded in Play Console). The icon on the **installed app** comes from inside the APK/AAB itself — specifically from `android/app/src/main/res/mipmap-*` folders.
+You should already have all three from your first build. If `java -version` shows something other than 17, set:
+```bash
+export JAVA_HOME=$(/usr/libexec/java_home -v 17)
+```
 
-Right now your project has the **source** icon at `resources/icon.png`, but the **generated** native icon folders (`android/app/src/main/res/mipmap-*`) were never produced — so the AAB you uploaded shipped with Capacitor's default placeholder (the generic Android blue icon).
+---
 
-### Fix (you run this locally once, then upload a new AAB)
+## Step 1 — Pull the latest code from Lovable
 
-On your Mac, in the exported project:
+In your terminal, in the project folder on your Mac:
+
+```bash
+git pull
+npm install
+```
+
+This pulls down the perf fixes (image resizing, signed-URL cache, video preload changes) and the icon-generation script changes I shipped today.
+
+---
+
+## Step 2 — Bump the version code
+
+**This is the step everyone forgets and Play Console rejects you for.** Every upload needs a unique `versionCode`.
+
+Open `android/app/build.gradle` in any text editor. Find these two lines (around line 10):
+
+```gradle
+versionCode 1
+versionName "1.0"
+```
+
+Change to:
+
+```gradle
+versionCode 2
+versionName "1.0.1"
+```
+
+(`versionCode` MUST go up by at least 1. `versionName` is the human-readable string testers see — bumping it to 1.0.1 is conventional for a bug-fix release.)
+
+Save the file.
+
+---
+
+## Step 3 — Build the web bundle
+
+```bash
+npm run build
+```
+
+This produces a fresh `dist/` folder with all the perf fixes baked in.
+
+---
+
+## Step 4 — Regenerate the Ripple icon + splash
+
+This is the actual fix for the generic blue icon:
 
 ```bash
 npm i -D @capacitor/assets
@@ -23,58 +76,95 @@ npx capacitor-assets generate --android \
   --splashBackgroundColor '#ffffff'
 ```
 
-This regenerates every `mipmap-mdpi` … `mipmap-xxxhdpi` folder + the adaptive icon XML from `resources/icon.png`. Then:
+You should see output like:
+```
+✔ Generating Android Icons
+✔ Generating Android Splashes
+```
+
+This writes files into `android/app/src/main/res/mipmap-*` and `drawable-*` folders. **Verify** with:
+
+```bash
+ls android/app/src/main/res/mipmap-xxxhdpi/
+```
+
+You should see `ic_launcher.png`, `ic_launcher_foreground.png`, `ic_launcher_round.png`. If those exist, the icon is fixed.
+
+---
+
+## Step 5 — Sync the web bundle into the Android project
+
+```bash
+npx cap sync android
+```
+
+This copies `dist/` into `android/app/src/main/assets/public/` so the native app ships with the latest JS/CSS.
+
+---
+
+## Step 6 — Build the release AAB
 
 ```bash
 cd android
 ./gradlew bundleRelease
 ```
 
-Upload the new `.aab` as a new release in your closed test track. Existing testers will get the update automatically and the proper Ripple icon will appear.
+First build can take 5–10 minutes. Subsequent builds are faster. The output you want is at:
 
-### Bonus — also fix the splash
+```
+android/app/build/outputs/bundle/release/app-release.aab
+```
 
-While you're at it, the same command will regenerate the splash from `resources/splash.png` so the launch screen also looks branded.
-
----
-
-## Issue 3 — App is slow (feed, images, tab switches)
-
-This is the more impactful one. Based on the code, there are **four likely culprits**, in order of impact:
-
-### A. Every image fetches a fresh signed URL on mount (biggest hit)
-
-`SignedImage` / `SignedLink` / `LazyVideoThumbnail` call `getSignedUrl()` on every mount. That's an HTTP round-trip to Supabase **per image, every time the component renders** — even if you scroll away and back, or open a post and return. On a feed with 10 posts × multiple images, that's 20–40 sequential network calls before anything paints.
-
-**Fix:** add an in-memory signed-URL cache keyed by `bucket+path`, with TTL = 50 minutes (signed URLs last 60 min). One call per image per hour instead of per mount.
-
-### B. No image resizing — full-resolution photos served to thumbnails
-
-Post covers and grid thumbnails currently load the full uploaded image (could be 3–5 MB phone photos). On 4G this kills perceived speed.
-
-**Fix:** use Supabase's built-in image transformation by passing `transform: { width, quality }` to `createSignedUrl`. Serve ~600px wide @ 75 quality for feed thumbnails, full-res only on the detail page.
-
-### C. Feed re-fetches on every navigation back
-
-`feedCache.ts` exists and is good, but worth verifying the trending page actually uses it on remount (not just on first mount). If it's re-querying Supabase + re-signing every image every time the user comes back from a post, that explains the "tab switching is slow" feeling.
-
-### D. Videos preload metadata in the feed
-
-`LazyVideoThumbnail` uses `preload="metadata"` — on a feed with several videos this is several MB of range requests just to get poster frames. Switch to `preload="none"` and rely on the `poster` prop (which we'd populate from a generated thumbnail) or show a static placeholder until tapped.
-
-### What I'd ship in one pass
-
-1. Signed-URL memory cache (TTL 50 min) — wraps `getSignedUrl`
-2. Image transform params in `getSignedUrl` — new optional `{ width, quality }` arg; SignedImage and feed thumbnails pass `width: 600, quality: 75`
-3. Video thumbs: `preload="none"` + lazy
-4. Verify feed cache is hit on back-navigation from post detail
-
-Expected result: first paint of the feed in <1s on 4G after first load, subsequent navigations near-instant.
+If Gradle fails with a signing error, it means your keystore isn't configured for release builds. You'd have set this up the first time — if you've lost the config, reply and I'll walk you through it separately.
 
 ---
 
-## What I need from you before I build
+## Step 7 — Upload to Play Console
 
-1. **Icon fix** — do you want me to (a) just confirm the steps above and let you run them locally, or (b) also document this in `docs/PLAY_STORE_SUBMISSION.md` so you don't forget for future builds? *(I can't run `capacitor-assets` from here — Lovable doesn't have access to your `android/` folder, that's generated only on your Mac.)*
+1. Go to **Play Console → Ripple → Testing → Closed testing → [your track name] → Manage track**
+2. Click **Create new release**
+3. Under **App bundles**, click **Upload** and select your `app-release.aab` from step 6
+4. **Release name** auto-fills as `2 (1.0.1)` — leave it
+5. **Release notes** — paste something like:
 
-2. **Performance fix** — green-light me to ship all four changes (A–D) in one go? They're all backend-safe (no schema changes, no breaking behavior — just caching + smaller images).
+```
+<en-US>
+- New Ripple app icon
+- Faster feed loading on slower networks
+- Smaller image downloads
+- Bug fixes
+</en-US>
+```
+
+6. Click **Next** → **Save** → **Review release** → **Start rollout to Closed testing**
+7. Confirm.
+
+That's it. No re-review needed for closed test updates — it goes live to your testers within a few minutes to a couple of hours.
+
+---
+
+## Step 8 — Tell your testers
+
+WhatsApp message you can paste:
+
+> Hey! New update of Ripple just dropped — please open Play Store, find Ripple, and tap Update (or wait for auto-update overnight). You should now see the proper Ripple icon on your home screen and the app will feel noticeably faster. Keep using it normally, thanks for testing! 🙌
+
+---
+
+## What this does NOT affect
+
+- ✅ Your 14-day clock keeps running — does not reset
+- ✅ Your existing 12 testers stay opted in
+- ✅ Your store listing, screenshots, content rating — all unchanged
+- ✅ Production access application — still on track for whenever the 14 days complete
+
+---
+
+## When to come back to me
+
+- ❌ Gradle fails on step 6 with a **signing/keystore error** → reply with the full error
+- ❌ Play Console rejects upload with **"version code already used"** → you forgot step 2, just bump versionCode again
+- ❌ Testers report the icon is **still generic** after updating → reply and we'll dig in (rare — usually a launcher cache issue, solved by uninstall + reinstall)
+- ✅ Everything worked → reply "done" and I'll send the day-7 + day-14 reminder messages
+
+Ready when you are.
