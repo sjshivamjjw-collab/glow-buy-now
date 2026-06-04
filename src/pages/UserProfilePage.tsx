@@ -6,6 +6,7 @@ import { useToast } from '@/hooks/use-toast';
 import { ArrowLeft, Loader2, UserPlus, UserCheck, Eye, MoreHorizontal, Flag, Ban, ShieldOff } from 'lucide-react';
 import { formatCount } from '@/lib/utils';
 import LazyVideoThumbnail from '@/components/LazyVideoThumbnail';
+import { optimizedImageUrl } from '@/lib/storageUrls';
 import TextCoverCard from '@/components/TextCoverCard';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useBlockedUsers } from '@/hooks/useBlockedUsers';
@@ -193,7 +194,7 @@ export const PostsGrid = ({ posts, onOpen, isOwner = false }: { posts: PostThumb
           {p.cover_url ? (
             p.cover_kind === 'video'
               ? <LazyVideoThumbnail src={p.cover_url} className="w-full h-full" />
-              : <img src={p.cover_url} alt="" className="w-full h-full object-cover" loading="lazy" decoding="async" />
+              : <img src={optimizedImageUrl(p.cover_url, { width: 500, quality: 70, resize: 'cover' })!} alt="" className="w-full h-full object-cover" loading="lazy" decoding="async" />
           ) : (
             <TextCoverCard title={p.title} textClassName="text-[15px]" />
           )}

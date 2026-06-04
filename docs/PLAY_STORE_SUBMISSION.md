@@ -293,3 +293,28 @@ Mirror the same block in App Store Connect → **App Information → App Review 
 
 - Play rollout is staged automatically (20% → 100% over a few days). Bump it to 100% from the Production track once you've watched crash-free rate for a day.
 - For subsequent updates: bump `versionCode` and `versionName`, build signed AAB, upload to Production, fill "What's new", submit. Most updates ship in <24h.
+
+---
+
+## Troubleshooting: installed app shows the generic Android icon
+
+If testers report a blue/generic Android icon after installing (even though
+the Play Store listing shows Ripple), the AAB was built **before** the
+icon resources were generated under `android/app/src/main/res/mipmap-*`.
+
+Fix on your Mac in the exported project:
+
+```bash
+git pull
+npm install
+npm run build
+npm i -D @capacitor/assets
+npx capacitor-assets generate --android \
+  --iconBackgroundColor '#ffffff' \
+  --splashBackgroundColor '#ffffff'
+npx cap sync android
+cd android && ./gradlew bundleRelease
+```
+
+Upload the resulting `.aab` as a **new release** on the same closed-test
+track. Existing testers will auto-update and see the proper Ripple icon.

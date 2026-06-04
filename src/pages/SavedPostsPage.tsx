@@ -5,6 +5,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Bookmark, Loader2, Heart, MessageCircle, Play, Images } from 'lucide-react';
 import { formatCount } from '@/lib/utils';
 import LazyVideoThumbnail from '@/components/LazyVideoThumbnail';
+import { optimizedImageUrl } from '@/lib/storageUrls';
 import TextCoverCard from '@/components/TextCoverCard';
 
 interface SavedPost {
@@ -113,7 +114,7 @@ const SavedPostsPage = () => {
                         </span>
                       </>
                     ) : (
-                      <img src={p.cover_url} alt={p.title || ''} className="w-full h-full object-cover" loading="lazy" decoding="async" />
+                      <img src={optimizedImageUrl(p.cover_url, { width: 600, quality: 70, resize: 'cover' })!} alt={p.title || ''} className="w-full h-full object-cover" loading="lazy" decoding="async" />
                     )
                   ) : (
                     <TextCoverCard title={p.title || p.body} />
