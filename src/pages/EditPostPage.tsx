@@ -8,6 +8,7 @@ import { ArrowLeft, Loader2, MapPin, Hash, X, Check, ImagePlus, Tag } from 'luci
 import { extractStoragePath } from '@/lib/storageUrls';
 import RichTextEditor from '@/components/RichTextEditor';
 import { markdownToHtml, isRichTextEmpty } from '@/lib/richText';
+import { ImageCropperDialog } from '@/components/ImageCropperDialog';
 
 type CategoryKey = 'everyday_vibes' | 'trip' | 'review' | 'real_talk' | 'hidden_gems';
 type ReviewSubKey = 'restaurant' | 'hotel' | 'product' | 'media' | 'activity';
