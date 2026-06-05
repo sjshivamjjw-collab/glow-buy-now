@@ -296,6 +296,7 @@ const CreatePostPage = () => {
   const [cropQueue, setCropQueue] = useState<File[]>([]);
   const [editCropId, setEditCropId] = useState<string | null>(null);
   const [coverFile, setCoverFile] = useState<File | null>(null);
+  const [coverMediaId, setCoverMediaId] = useState<string | null>(null);
   const currentCropFile = editCropId
     ? media.find(m => m.id === editCropId)?.file ?? null
     : cropQueue[0] ?? null;
@@ -310,6 +311,7 @@ const CreatePostPage = () => {
       kind,
     };
     setMedia(prev => [...prev, entry]);
+    return entry.id;
   };
 
   const handleFiles = (files: FileList | null) => {
@@ -345,12 +347,14 @@ const CreatePostPage = () => {
   const handleCropApply = (croppedFile: File) => {
     if (editCropId) {
       setCoverFile(croppedFile);
+      setCoverMediaId(editCropId);
       setEditCropId(null);
     } else {
       const originalCover = cropQueue[0];
       if (originalCover) {
+        const id = addMediaFile(originalCover);
         setCoverFile(croppedFile);
-        addMediaFile(originalCover);
+        setCoverMediaId(id);
       } else {
         addMediaFile(croppedFile);
       }
@@ -374,8 +378,13 @@ const CreatePostPage = () => {
   const removeMedia = (i: number) => {
     setMedia(prev => {
       const copy = [...prev];
+      const removedId = copy[i]?.id;
       URL.revokeObjectURL(copy[i].previewUrl);
       copy.splice(i, 1);
+      if (removedId && removedId === coverMediaId) {
+        setCoverFile(null);
+        setCoverMediaId(null);
+      }
       return copy;
     });
   };
