@@ -461,7 +461,8 @@ const EditPostPage = () => {
           </div>
         </div>
       </div>
-      </div>
+
+
 
       <ImageCropperDialog
         file={currentCropFile}
