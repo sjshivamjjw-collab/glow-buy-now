@@ -587,6 +587,10 @@ export type Database = {
     }
     Functions: {
       extract_mention_usernames: { Args: { _text: string }; Returns: string[] }
+      generate_username_from_email: {
+        Args: { _email: string }
+        Returns: string
+      }
       get_blocked_user_ids: { Args: { _viewer: string }; Returns: string[] }
       get_chat_author_names: {
         Args: { _user_ids: string[] }
