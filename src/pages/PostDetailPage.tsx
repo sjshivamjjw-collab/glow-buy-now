@@ -547,7 +547,7 @@ const PostDetailPage = () => {
             />
           ) : (
             <img
-              src={optimizedImageUrl(currentMedia.url, { width: 1080, quality: 75 }) || currentMedia.url}
+              src={optimizedImageUrl(currentMedia.url, { width: 1080, quality: 75, resize: 'contain' }) || currentMedia.url}
               alt=""
               className="w-full h-full object-contain cursor-pointer"
               loading="eager"
@@ -559,7 +559,7 @@ const PostDetailPage = () => {
           {media.map((m, i) => {
             if (m.kind !== 'image' || i === mediaIdx) return null;
             if (Math.abs(i - mediaIdx) > 2) return null;
-            const url = optimizedImageUrl(m.url, { width: 1080, quality: 75 }) || m.url;
+            const url = optimizedImageUrl(m.url, { width: 1080, quality: 75, resize: 'contain' }) || m.url;
             return <link key={m.id} rel="preload" as="image" href={url} />;
           })}
           {post.category && CATEGORY_META[post.category] && (
