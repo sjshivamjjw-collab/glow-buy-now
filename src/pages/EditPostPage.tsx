@@ -461,6 +461,16 @@ const EditPostPage = () => {
           </div>
         </div>
       </div>
+      </div>
+
+      <ImageCropperDialog
+        file={currentCropFile}
+        open={!!currentCropFile}
+        aspect={4 / 5}
+        title="Crop your cover photo (shown on Discover)"
+        onCancel={handleCropCancel}
+        onApply={handleCropApply}
+      />
     </div>
   );
 };
