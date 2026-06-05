@@ -376,17 +376,17 @@ const CreatePostPage = () => {
   };
 
   const removeMedia = (i: number) => {
+    const removedId = media[i]?.id;
     setMedia(prev => {
       const copy = [...prev];
-      const removedId = copy[i]?.id;
       URL.revokeObjectURL(copy[i].previewUrl);
       copy.splice(i, 1);
-      if (removedId && removedId === coverMediaId) {
-        setCoverFile(null);
-        setCoverMediaId(null);
-      }
       return copy;
     });
+    if (removedId && removedId === coverMediaId) {
+      setCoverFile(null);
+      setCoverMediaId(null);
+    }
   };
 
 
