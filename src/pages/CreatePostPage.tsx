@@ -117,7 +117,7 @@ const SortableMediaTile = ({ m, onRemove, onCrop }: { m: PendingMedia; onRemove:
         <>
           <video
             src={m.previewUrl}
-            className="w-full h-full object-cover pointer-events-none"
+            className="w-full h-full object-contain pointer-events-none"
             muted
             playsInline
             controls
@@ -131,7 +131,7 @@ const SortableMediaTile = ({ m, onRemove, onCrop }: { m: PendingMedia; onRemove:
           </div>
         </>
       ) : (
-        <img src={m.previewUrl} alt="" className="w-full h-full object-cover pointer-events-none" />
+        <img src={m.previewUrl} alt="" className="w-full h-full object-contain pointer-events-none" />
       )}
       {onCrop && m.kind === 'image' && (
         <button
