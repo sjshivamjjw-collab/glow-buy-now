@@ -534,7 +534,7 @@ const PostDetailPage = () => {
 
       {/* Media carousel */}
       {currentMedia && (
-        <div className="relative mx-3 w-[calc(100%-1.5rem)] bg-[#161616] border border-[#2a2a2a]/50 aspect-[4/5] max-h-[60vh] rounded-3xl overflow-hidden">
+        <div className="relative mx-auto w-[calc(100%-1.5rem)] max-w-[calc(60svh*4/5)] bg-[#161616] border border-[#2a2a2a]/50 aspect-[4/5] rounded-3xl overflow-hidden">
           {currentMedia.kind === 'video' ? (
             <video
               ref={videoRef}
