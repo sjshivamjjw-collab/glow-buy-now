@@ -55,12 +55,30 @@ function renderMarkdown(text: string): React.ReactNode {
 /** Render either HTML (new) or markdown (legacy) safely. */
 export function renderRichText(text: string | null | undefined): React.ReactNode {
   if (!text) return null;
-  // Heuristic: if it contains any of our allowed tags, treat as HTML.
-  if (/<(strong|b|em|i|u|br|div|p|span)\b/i.test(text)) {
-    const safe = sanitizeRichHtml(text);
-    return <span dangerouslySetInnerHTML={{ __html: safe }} />;
+  // Unescape entity-encoded HTML (some legacy rows were saved as &lt;div&gt;).
+  let value = text;
+  if (/&lt;(strong|b|em|i|u|br|div|p|span)\b/i.test(value)) {
+    value = value
+      .replace(/&lt;/g, '<')
+      .replace(/&gt;/g, '>')
+      .replace(/&amp;/g, '&');
   }
-  return renderMarkdown(text);
+  // Heuristic: if it contains any of our allowed tags, treat as HTML.
+  if (/<(strong|b|em|i|u|br|div|p|span)\b/i.test(value)) {
+    const safe = sanitizeRichHtml(value);
+    // Render in a block-level container — divs/p inside a <span> are invalid
+    // and some WebViews (notably iOS) break out of the span and corrupt the
+    // surrounding tree, which is why raw "<div>" can show up as literal text.
+    // The [&_div] selectors guarantee blank "<div><br></div>" lines still
+    // take vertical space so paragraph spacing is preserved.
+    return (
+      <div
+        className="contents [&_div]:block [&_div:empty]:min-h-[1em] [&_p]:mb-2"
+        dangerouslySetInnerHTML={{ __html: safe }}
+      />
+    );
+  }
+  return renderMarkdown(value);
 }
 
 /** Convert a legacy markdown body to our HTML subset (used when loading
