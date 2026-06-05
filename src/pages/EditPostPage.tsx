@@ -125,15 +125,19 @@ const EditPostPage = () => {
 
   const [cropQueue, setCropQueue] = useState<File[]>([]);
   const currentCropFile = cropQueue[0] ?? null;
+  const [coverFile, setCoverFile] = useState<File | null>(null);
+  const [coverTempId, setCoverTempId] = useState<string | null>(null);
 
   const addNewMediaFile = (file: File) => {
     const kind: 'image' | 'video' = file.type.startsWith('video/') ? 'video' : 'image';
-    setNewMedia(prev => [...prev, {
+    const entry: NewMedia = {
       tempId: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
       file,
       previewUrl: URL.createObjectURL(file),
       kind,
-    }]);
+    };
+    setNewMedia(prev => [...prev, entry]);
+    return entry.tempId;
   };
 
   const handleFiles = (files: FileList | null) => {
@@ -164,7 +168,14 @@ const EditPostPage = () => {
   };
 
   const handleCropApply = (croppedFile: File) => {
-    addNewMediaFile(croppedFile);
+    const originalCover = cropQueue[0];
+    if (originalCover) {
+      const tempId = addNewMediaFile(originalCover);
+      setCoverFile(croppedFile);
+      setCoverTempId(tempId);
+    } else {
+      addNewMediaFile(croppedFile);
+    }
     setCropQueue(prev => prev.slice(1));
   };
 
@@ -183,6 +194,10 @@ const EditPostPage = () => {
     setNewMedia(prev => {
       const target = prev.find(x => x.tempId === tempId);
       if (target) URL.revokeObjectURL(target.previewUrl);
+      if (tempId === coverTempId) {
+        setCoverFile(null);
+        setCoverTempId(null);
+      }
       return prev.filter(x => x.tempId !== tempId);
     });
   };
