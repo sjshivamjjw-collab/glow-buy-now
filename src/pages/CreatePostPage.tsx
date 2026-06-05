@@ -327,7 +327,18 @@ const CreatePostPage = () => {
     const images = accepted.filter(f => !f.type.startsWith('video/'));
     const videos = accepted.filter(f => f.type.startsWith('video/'));
     videos.forEach(addMediaFile);
-    if (images.length) setCropQueue(prev => [...prev, ...images]);
+    // Only the cover image (first slot) is cropped to 4:5 for the Discover grid.
+    // Additional images keep their original aspect ratio.
+    const needsCover = media.length === 0 && cropQueue.length === 0;
+    if (images.length) {
+      if (needsCover) {
+        const [cover, ...rest] = images;
+        setCropQueue(prev => [...prev, cover]);
+        rest.forEach(addMediaFile);
+      } else {
+        images.forEach(addMediaFile);
+      }
+    }
   };
 
   const handleCropApply = (croppedFile: File) => {
@@ -643,7 +654,7 @@ const CreatePostPage = () => {
         <SortableContext items={media.map(m => m.id)} strategy={rectSortingStrategy}>
           <div className="grid grid-cols-3 gap-2 mb-1">
             {media.map((m, i) => (
-              <SortableMediaTile key={m.id} m={m} onRemove={() => removeMedia(i)} onCrop={() => setEditCropId(m.id)} />
+              <SortableMediaTile key={m.id} m={m} onRemove={() => removeMedia(i)} onCrop={i === 0 ? () => setEditCropId(m.id) : undefined} />
             ))}
             {media.length < MAX_FILES && (
               <button
