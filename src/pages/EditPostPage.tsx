@@ -218,6 +218,21 @@ const EditPostPage = () => {
         await supabase.storage.from('post-media').remove(removedPaths);
       }
 
+      // Dedicated Discover cover: upload the user's selected portrait crop
+      // separately so the original post media remains unchanged in the post.
+      let coverUpdate: Record<string, string> | null = null;
+      if (coverFile) {
+        const coverPath = `${userId}/${id}/cover-${Date.now()}.jpg`;
+        const { error: coverUpErr } = await supabase.storage.from('post-media').upload(coverPath, coverFile, {
+          contentType: coverFile.type || 'image/jpeg', upsert: false,
+        });
+        if (coverUpErr) throw coverUpErr;
+        coverUpdate = {
+          cover_url: supabase.storage.from('post-media').getPublicUrl(coverPath).data.publicUrl,
+          cover_kind: 'image',
+        };
+      }
+
       // 2. Reorder remaining existing media
       for (let i = 0; i < existing.length; i++) {
         const m = existing[i];
@@ -249,6 +264,7 @@ const EditPostPage = () => {
         body: isRichTextEmpty(body) ? null : body,
         location: location.trim() || null,
         hashtags,
+        ...(coverUpdate || {}),
         ...(isAdmin ? {
           category,
           review_subcategory: category === 'review' ? reviewSub : null,
