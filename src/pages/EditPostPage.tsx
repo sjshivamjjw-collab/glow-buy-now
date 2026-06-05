@@ -123,24 +123,53 @@ const EditPostPage = () => {
 
   const totalMedia = existing.length + newMedia.length;
 
+  const [cropQueue, setCropQueue] = useState<File[]>([]);
+  const currentCropFile = cropQueue[0] ?? null;
+
+  const addNewMediaFile = (file: File) => {
+    const kind: 'image' | 'video' = file.type.startsWith('video/') ? 'video' : 'image';
+    setNewMedia(prev => [...prev, {
+      tempId: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+      file,
+      previewUrl: URL.createObjectURL(file),
+      kind,
+    }]);
+  };
+
   const handleFiles = (files: FileList | null) => {
     if (!files) return;
-    const next: NewMedia[] = [];
+    const accepted: File[] = [];
     Array.from(files).forEach(file => {
-      if (totalMedia + next.length >= MAX_FILES) return;
+      if (totalMedia + accepted.length >= MAX_FILES) return;
       if (file.size > MAX_FILE_MB * 1024 * 1024) {
         toast({ title: `${file.name} is too large`, description: `Max ${MAX_FILE_MB}MB per file`, variant: 'destructive' });
         return;
       }
-      const kind: 'image' | 'video' = file.type.startsWith('video/') ? 'video' : 'image';
-      next.push({
-        tempId: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-        file,
-        previewUrl: URL.createObjectURL(file),
-        kind,
-      });
+      accepted.push(file);
     });
-    setNewMedia(prev => [...prev, ...next]);
+    const videos = accepted.filter(f => f.type.startsWith('video/'));
+    const images = accepted.filter(f => !f.type.startsWith('video/'));
+    videos.forEach(addNewMediaFile);
+    // Only crop the cover (first image overall) to 4:5 for the Discover grid.
+    const needsCover = existing.length === 0 && newMedia.length === 0 && cropQueue.length === 0;
+    if (images.length) {
+      if (needsCover) {
+        const [cover, ...rest] = images;
+        setCropQueue(prev => [...prev, cover]);
+        rest.forEach(addNewMediaFile);
+      } else {
+        images.forEach(addNewMediaFile);
+      }
+    }
+  };
+
+  const handleCropApply = (croppedFile: File) => {
+    addNewMediaFile(croppedFile);
+    setCropQueue(prev => prev.slice(1));
+  };
+
+  const handleCropCancel = () => {
+    setCropQueue(prev => prev.slice(1));
   };
 
   const removeExisting = (m: ExistingMedia) => {
