@@ -295,6 +295,7 @@ const CreatePostPage = () => {
   // Image crop flow state
   const [cropQueue, setCropQueue] = useState<File[]>([]);
   const [editCropId, setEditCropId] = useState<string | null>(null);
+  const [coverFile, setCoverFile] = useState<File | null>(null);
   const currentCropFile = editCropId
     ? media.find(m => m.id === editCropId)?.file ?? null
     : cropQueue[0] ?? null;
@@ -343,14 +344,16 @@ const CreatePostPage = () => {
 
   const handleCropApply = (croppedFile: File) => {
     if (editCropId) {
-      setMedia(prev => prev.map(m => {
-        if (m.id !== editCropId) return m;
-        URL.revokeObjectURL(m.previewUrl);
-        return { ...m, file: croppedFile, previewUrl: URL.createObjectURL(croppedFile) };
-      }));
+      setCoverFile(croppedFile);
       setEditCropId(null);
     } else {
-      addMediaFile(croppedFile);
+      const originalCover = cropQueue[0];
+      if (originalCover) {
+        setCoverFile(croppedFile);
+        addMediaFile(originalCover);
+      } else {
+        addMediaFile(croppedFile);
+      }
       setCropQueue(prev => prev.slice(1));
     }
   };
