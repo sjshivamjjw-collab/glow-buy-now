@@ -534,12 +534,12 @@ const PostDetailPage = () => {
 
       {/* Media carousel */}
       {currentMedia && (
-        <div className="relative mx-auto w-fit max-w-[calc(100%-1.5rem)] bg-[#161616] border border-[#2a2a2a]/50 rounded-3xl overflow-hidden flex items-center justify-center">
+        <div className="relative mx-3 w-[calc(100%-1.5rem)] bg-[#161616] border border-[#2a2a2a]/50 aspect-[4/5] max-h-[60vh] rounded-3xl overflow-hidden">
           {currentMedia.kind === 'video' ? (
             <video
               ref={videoRef}
               src={currentMedia.url}
-              className="max-w-full max-h-[70svh] w-auto h-auto block"
+              className="w-full h-full object-contain"
               controls
               playsInline
               muted
@@ -549,7 +549,7 @@ const PostDetailPage = () => {
             <img
               src={optimizedImageUrl(currentMedia.url, { width: 1080, quality: 75 }) || currentMedia.url}
               alt=""
-              className="max-w-full max-h-[70svh] w-auto h-auto block cursor-pointer"
+              className="w-full h-full object-contain cursor-pointer"
               loading="eager"
               decoding="async"
               onClick={() => window.dispatchEvent(new Event('post-music-stop'))}
