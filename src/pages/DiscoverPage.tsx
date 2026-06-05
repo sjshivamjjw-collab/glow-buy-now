@@ -652,7 +652,7 @@ const DiscoverPage = () => {
                 onClick={() => navigate(`/p/${p.id}`)}
                 className="group mb-1.5 w-full text-left rounded-3xl overflow-hidden bg-[#161616] border border-[#2a2a2a]/50 hover:border-[#ef4444] hover:shadow-lg hover:shadow-[#dc2626]/10 transition-all duration-300"
               >
-                <div className="relative w-full bg-[#1a1a1a] overflow-hidden" style={{ height: `${h}px` }}>
+                <div className={`relative w-full bg-[#1a1a1a] overflow-hidden ${p.cover_url ? 'aspect-[4/5]' : ''}`} style={p.cover_url ? undefined : { height: `${h}px` }}>
                   {p.cover_url ? (
                     p.cover_kind === 'video' ? (
                       <>
