@@ -483,6 +483,17 @@ const CreatePostPage = () => {
       const postId = (post as any).id as string;
       createdPostId = postId;
 
+      if (coverFile) {
+        const coverPath = `${userId}/${postId}/cover-${Date.now()}.jpg`;
+        await uploadWithRetry(coverPath, coverFile);
+        const coverUrl = supabase.storage.from('post-media').getPublicUrl(coverPath).data.publicUrl;
+        const { error: coverErr } = await supabase
+          .from('posts' as any)
+          .update({ cover_url: coverUrl, cover_kind: 'image' })
+          .eq('id', postId);
+        if (coverErr) throw coverErr;
+      }
+
       for (let i = 0; i < media.length; i++) {
         const m = media[i];
         const ext = m.file.name.split('.').pop() || (m.kind === 'video' ? 'mp4' : 'jpg');
