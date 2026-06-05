@@ -303,6 +303,8 @@ export type Database = {
           body: string | null
           category: string | null
           comment_count: number
+          cover_kind: string | null
+          cover_url: string | null
           created_at: string
           hashtags: string[]
           id: string
@@ -323,6 +325,8 @@ export type Database = {
           body?: string | null
           category?: string | null
           comment_count?: number
+          cover_kind?: string | null
+          cover_url?: string | null
           created_at?: string
           hashtags?: string[]
           id?: string
@@ -343,6 +347,8 @@ export type Database = {
           body?: string | null
           category?: string | null
           comment_count?: number
+          cover_kind?: string | null
+          cover_url?: string | null
           created_at?: string
           hashtags?: string[]
           id?: string
