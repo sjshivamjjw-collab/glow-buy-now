@@ -117,7 +117,7 @@ const SortableMediaTile = ({ m, onRemove, onCrop }: { m: PendingMedia; onRemove:
         <>
           <video
             src={m.previewUrl}
-            className="w-full h-full object-cover pointer-events-none"
+            className="w-full h-full object-contain pointer-events-none"
             muted
             playsInline
             controls
@@ -131,7 +131,7 @@ const SortableMediaTile = ({ m, onRemove, onCrop }: { m: PendingMedia; onRemove:
           </div>
         </>
       ) : (
-        <img src={m.previewUrl} alt="" className="w-full h-full object-cover pointer-events-none" />
+        <img src={m.previewUrl} alt="" className="w-full h-full object-contain pointer-events-none" />
       )}
       {onCrop && m.kind === 'image' && (
         <button
@@ -295,6 +295,8 @@ const CreatePostPage = () => {
   // Image crop flow state
   const [cropQueue, setCropQueue] = useState<File[]>([]);
   const [editCropId, setEditCropId] = useState<string | null>(null);
+  const [coverFile, setCoverFile] = useState<File | null>(null);
+  const [coverMediaId, setCoverMediaId] = useState<string | null>(null);
   const currentCropFile = editCropId
     ? media.find(m => m.id === editCropId)?.file ?? null
     : cropQueue[0] ?? null;
@@ -309,6 +311,7 @@ const CreatePostPage = () => {
       kind,
     };
     setMedia(prev => [...prev, entry]);
+    return entry.id;
   };
 
   const handleFiles = (files: FileList | null) => {
@@ -343,14 +346,18 @@ const CreatePostPage = () => {
 
   const handleCropApply = (croppedFile: File) => {
     if (editCropId) {
-      setMedia(prev => prev.map(m => {
-        if (m.id !== editCropId) return m;
-        URL.revokeObjectURL(m.previewUrl);
-        return { ...m, file: croppedFile, previewUrl: URL.createObjectURL(croppedFile) };
-      }));
+      setCoverFile(croppedFile);
+      setCoverMediaId(editCropId);
       setEditCropId(null);
     } else {
-      addMediaFile(croppedFile);
+      const originalCover = cropQueue[0];
+      if (originalCover) {
+        const id = addMediaFile(originalCover);
+        setCoverFile(croppedFile);
+        setCoverMediaId(id);
+      } else {
+        addMediaFile(croppedFile);
+      }
       setCropQueue(prev => prev.slice(1));
     }
   };
@@ -369,12 +376,17 @@ const CreatePostPage = () => {
   };
 
   const removeMedia = (i: number) => {
+    const removedId = media[i]?.id;
     setMedia(prev => {
       const copy = [...prev];
       URL.revokeObjectURL(copy[i].previewUrl);
       copy.splice(i, 1);
       return copy;
     });
+    if (removedId && removedId === coverMediaId) {
+      setCoverFile(null);
+      setCoverMediaId(null);
+    }
   };
 
 
@@ -470,6 +482,17 @@ const CreatePostPage = () => {
       if (postErr || !post) throw postErr || new Error('Failed to create post');
       const postId = (post as any).id as string;
       createdPostId = postId;
+
+      if (coverFile) {
+        const coverPath = `${userId}/${postId}/cover-${Date.now()}.jpg`;
+        await uploadWithRetry(coverPath, coverFile);
+        const coverUrl = supabase.storage.from('post-media').getPublicUrl(coverPath).data.publicUrl;
+        const { error: coverErr } = await supabase
+          .from('posts' as any)
+          .update({ cover_url: coverUrl, cover_kind: 'image' })
+          .eq('id', postId);
+        if (coverErr) throw coverErr;
+      }
 
       for (let i = 0; i < media.length; i++) {
         const m = media[i];

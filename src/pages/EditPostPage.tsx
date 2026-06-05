@@ -125,15 +125,19 @@ const EditPostPage = () => {
 
   const [cropQueue, setCropQueue] = useState<File[]>([]);
   const currentCropFile = cropQueue[0] ?? null;
+  const [coverFile, setCoverFile] = useState<File | null>(null);
+  const [coverTempId, setCoverTempId] = useState<string | null>(null);
 
   const addNewMediaFile = (file: File) => {
     const kind: 'image' | 'video' = file.type.startsWith('video/') ? 'video' : 'image';
-    setNewMedia(prev => [...prev, {
+    const entry: NewMedia = {
       tempId: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
       file,
       previewUrl: URL.createObjectURL(file),
       kind,
-    }]);
+    };
+    setNewMedia(prev => [...prev, entry]);
+    return entry.tempId;
   };
 
   const handleFiles = (files: FileList | null) => {
@@ -164,7 +168,14 @@ const EditPostPage = () => {
   };
 
   const handleCropApply = (croppedFile: File) => {
-    addNewMediaFile(croppedFile);
+    const originalCover = cropQueue[0];
+    if (originalCover) {
+      const tempId = addNewMediaFile(originalCover);
+      setCoverFile(croppedFile);
+      setCoverTempId(tempId);
+    } else {
+      addNewMediaFile(croppedFile);
+    }
     setCropQueue(prev => prev.slice(1));
   };
 
@@ -183,6 +194,10 @@ const EditPostPage = () => {
     setNewMedia(prev => {
       const target = prev.find(x => x.tempId === tempId);
       if (target) URL.revokeObjectURL(target.previewUrl);
+      if (tempId === coverTempId) {
+        setCoverFile(null);
+        setCoverTempId(null);
+      }
       return prev.filter(x => x.tempId !== tempId);
     });
   };
@@ -201,6 +216,21 @@ const EditPostPage = () => {
       }
       if (removedPaths.length) {
         await supabase.storage.from('post-media').remove(removedPaths);
+      }
+
+      // Dedicated Discover cover: upload the user's selected portrait crop
+      // separately so the original post media remains unchanged in the post.
+      let coverUpdate: Record<string, string> | null = null;
+      if (coverFile) {
+        const coverPath = `${userId}/${id}/cover-${Date.now()}.jpg`;
+        const { error: coverUpErr } = await supabase.storage.from('post-media').upload(coverPath, coverFile, {
+          contentType: coverFile.type || 'image/jpeg', upsert: false,
+        });
+        if (coverUpErr) throw coverUpErr;
+        coverUpdate = {
+          cover_url: supabase.storage.from('post-media').getPublicUrl(coverPath).data.publicUrl,
+          cover_kind: 'image',
+        };
       }
 
       // 2. Reorder remaining existing media
@@ -234,6 +264,7 @@ const EditPostPage = () => {
         body: isRichTextEmpty(body) ? null : body,
         location: location.trim() || null,
         hashtags,
+        ...(coverUpdate || {}),
         ...(isAdmin ? {
           category,
           review_subcategory: category === 'review' ? reviewSub : null,
@@ -332,7 +363,7 @@ const EditPostPage = () => {
                 {m.kind === 'video' ? (
                   <video
                     src={m.url}
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-contain"
                     muted
                     playsInline
                     controls
@@ -341,7 +372,7 @@ const EditPostPage = () => {
                     webkit-playsinline="true"
                   />
                 ) : (
-                  <img src={m.url} alt="" className="w-full h-full object-cover" />
+                  <img src={m.url} alt="" className="w-full h-full object-contain" />
                 )}
                 <button
                   onClick={() => removeExisting(m)}
@@ -357,7 +388,7 @@ const EditPostPage = () => {
                 {m.kind === 'video' ? (
                   <video
                     src={m.previewUrl}
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-contain"
                     muted
                     playsInline
                     controls
@@ -366,7 +397,7 @@ const EditPostPage = () => {
                     webkit-playsinline="true"
                   />
                 ) : (
-                  <img src={m.previewUrl} alt="" className="w-full h-full object-cover" />
+                  <img src={m.previewUrl} alt="" className="w-full h-full object-contain" />
                 )}
                 <span className="absolute bottom-1 left-1 px-1.5 py-0.5 rounded bg-[#ef4444] text-white text-[10px] font-semibold">New</span>
                 <button
