@@ -20,6 +20,7 @@ import {
   invalidatePostDetail,
   invalidateTrending,
 } from '@/lib/feedCache';
+import { optimizedImageUrl } from '@/lib/storageUrls';
 
 
 const CATEGORY_META: Record<string, { label: string }> = {
