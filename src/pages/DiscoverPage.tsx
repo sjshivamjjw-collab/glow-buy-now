@@ -643,7 +643,7 @@ const DiscoverPage = () => {
             </div>
           )
         ) : (() => {
-          const renderCard = (p: TrendingPost, h: number) => {
+          const renderCard = (p: TrendingPost) => {
             const author = p.user_id ? authors[p.user_id] : undefined;
             const isAnon = !!p.is_anonymous;
             return (
@@ -652,7 +652,7 @@ const DiscoverPage = () => {
                 onClick={() => navigate(`/p/${p.id}`)}
                 className="group mb-1.5 w-full text-left rounded-3xl overflow-hidden bg-[#161616] border border-[#2a2a2a]/50 hover:border-[#ef4444] hover:shadow-lg hover:shadow-[#dc2626]/10 transition-all duration-300"
               >
-                <div className="relative w-full bg-[#1a1a1a] overflow-hidden" style={{ height: `${h}px` }}>
+                <div className="relative w-full bg-[#1a1a1a] overflow-hidden aspect-[4/5]">
                   {p.cover_url ? (
                     p.cover_kind === 'video' ? (
                       <>
@@ -718,31 +718,20 @@ const DiscoverPage = () => {
             );
           };
 
-          // Balance the two columns by tracking running heights so trailing
-          // items don't all pile up on one side when the feed length is odd
-          // or when card heights are uneven.
-          const leftItems: { post: TrendingPost; h: number }[] = [];
-          const rightItems: { post: TrendingPost; h: number }[] = [];
-          let leftH = 0;
-          let rightH = 0;
-          displayedPosts.forEach((p) => {
-            if (leftH <= rightH) {
-              const h = LEFT_HEIGHTS[leftItems.length % LEFT_HEIGHTS.length];
-              leftItems.push({ post: p, h });
-              leftH += h + 120; // ~card chrome (title + meta + gap)
-            } else {
-              const h = RIGHT_HEIGHTS[rightItems.length % RIGHT_HEIGHTS.length];
-              rightItems.push({ post: p, h });
-              rightH += h + 120;
-            }
+          // Alternate posts between two columns so heights stay balanced.
+          const leftItems: TrendingPost[] = [];
+          const rightItems: TrendingPost[] = [];
+          displayedPosts.forEach((p, i) => {
+            (i % 2 === 0 ? leftItems : rightItems).push(p);
           });
 
           return (
             <div className="grid grid-cols-2 gap-1.5 items-start">
-              <div>{leftItems.map(({ post, h }) => renderCard(post, h))}</div>
-              <div>{rightItems.map(({ post, h }) => renderCard(post, h))}</div>
+              <div>{leftItems.map(renderCard)}</div>
+              <div>{rightItems.map(renderCard)}</div>
             </div>
           );
+
         })()}
 
         {/* Infinite scroll footer — only for the trending feed, not search results. */}
