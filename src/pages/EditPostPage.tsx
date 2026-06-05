@@ -363,7 +363,7 @@ const EditPostPage = () => {
                 {m.kind === 'video' ? (
                   <video
                     src={m.url}
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-contain"
                     muted
                     playsInline
                     controls
@@ -372,7 +372,7 @@ const EditPostPage = () => {
                     webkit-playsinline="true"
                   />
                 ) : (
-                  <img src={m.url} alt="" className="w-full h-full object-cover" />
+                  <img src={m.url} alt="" className="w-full h-full object-contain" />
                 )}
                 <button
                   onClick={() => removeExisting(m)}
@@ -388,7 +388,7 @@ const EditPostPage = () => {
                 {m.kind === 'video' ? (
                   <video
                     src={m.previewUrl}
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-contain"
                     muted
                     playsInline
                     controls
@@ -397,7 +397,7 @@ const EditPostPage = () => {
                     webkit-playsinline="true"
                   />
                 ) : (
-                  <img src={m.previewUrl} alt="" className="w-full h-full object-cover" />
+                  <img src={m.previewUrl} alt="" className="w-full h-full object-contain" />
                 )}
                 <span className="absolute bottom-1 left-1 px-1.5 py-0.5 rounded bg-[#ef4444] text-white text-[10px] font-semibold">New</span>
                 <button
