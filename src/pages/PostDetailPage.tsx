@@ -546,8 +546,22 @@ const PostDetailPage = () => {
               preload="metadata"
             />
           ) : (
-            <img src={currentMedia.url} alt="" className="w-full h-full object-contain cursor-pointer" loading="eager" decoding="async" onClick={() => window.dispatchEvent(new Event('post-music-stop'))} />
+            <img
+              src={optimizedImageUrl(currentMedia.url, { width: 1080, quality: 75 }) || currentMedia.url}
+              alt=""
+              className="w-full h-full object-contain cursor-pointer"
+              loading="eager"
+              decoding="async"
+              onClick={() => window.dispatchEvent(new Event('post-music-stop'))}
+            />
           )}
+          {/* Preload neighbor images so swiping feels instant */}
+          {media.map((m, i) => {
+            if (m.kind !== 'image' || i === mediaIdx) return null;
+            if (Math.abs(i - mediaIdx) > 2) return null;
+            const url = optimizedImageUrl(m.url, { width: 1080, quality: 75 }) || m.url;
+            return <link key={m.id} rel="preload" as="image" href={url} />;
+          })}
           {post.category && CATEGORY_META[post.category] && (
             <span className="absolute top-2 left-2 z-10 px-2 py-0.5 rounded-md bg-black/55 backdrop-blur-sm text-white/90 text-[10px] font-medium tracking-wide">
               {CATEGORY_META[post.category].label}
