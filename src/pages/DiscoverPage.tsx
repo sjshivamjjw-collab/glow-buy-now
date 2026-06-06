@@ -459,7 +459,7 @@ const DiscoverPage = () => {
           <div className="relative" ref={categoryRef}>
             <button
               onClick={() => { setActiveChip('Category'); setCategoryOpen(o => !o); }}
-              className={`flex items-center gap-1 px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all ${
+              className={`flex items-center gap-1 px-3.5 py-1 rounded-full text-xs font-semibold transition-all ${
                 activeChip === 'Category'
                   ? 'bg-[#fafafa] text-[#1a1a1a] shadow-sm'
                   : 'bg-[#1a1a1a]/70 text-[#a0a0a0] border border-[#2a2a2a]/60 hover:border-[#ef4444]'
