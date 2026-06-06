@@ -14,7 +14,8 @@ import { ImageCropperDialog } from '@/components/ImageCropperDialog';
 import { useMentionAutocomplete } from '@/hooks/useMentionAutocomplete';
 import { MentionSuggestions } from '@/components/MentionSuggestions';
 import { MusicPicker, type PickedTrack } from '@/components/MusicPicker';
-import RichTextEditor from '@/components/RichTextEditor';
+import RichTextEditor, { type RichTextEditorHandle } from '@/components/RichTextEditor';
+import TravelStructureHelper, { buildPillSnippet } from '@/components/TravelStructureHelper';
 import { markdownToHtml, isRichTextEmpty } from '@/lib/richText';
 import {
   DndContext, closestCenter, KeyboardSensor, PointerSensor, TouchSensor,
