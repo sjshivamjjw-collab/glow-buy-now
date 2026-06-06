@@ -711,8 +711,18 @@ const CreatePostPage = () => {
         return (
           <>
             <label className="text-xs font-semibold text-[#6b6b6b] mb-1 block">Tell people more... <span className="text-[#ef4444]">*</span> <span className="text-[11px] font-normal">(Detailed posts with real experiences help others the most)</span></label>
+            {category === 'trip' && (
+              <TravelStructureHelper
+                bodyIsEmpty={isRichTextEmpty(body)}
+                onInsert={(pill) => {
+                  const snippet = buildPillSnippet(pill, isRichTextEmpty(body));
+                  bodyEditorRef.current?.insertHtml(snippet);
+                }}
+              />
+            )}
             <div className="relative mb-4">
               <RichTextEditor
+                ref={bodyEditorRef}
                 value={body}
                 onChange={setBody}
                 placeholder={ph}
