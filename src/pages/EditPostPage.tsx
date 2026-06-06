@@ -445,15 +445,19 @@ const EditPostPage = () => {
         </div>
 
         <div>
-          <label className="block text-xs font-semibold text-[#6b6b6b] uppercase tracking-wide mb-1.5">Description</label>
-          {category === 'trip' && (
+          {category === 'trip' ? (
             <TravelStructureHelper
               bodyIsEmpty={isRichTextEmpty(body)}
               onInsert={(pill) => {
                 const snippet = buildPillSnippet(pill, isRichTextEmpty(body));
                 bodyEditorRef.current?.insertHtml(snippet);
               }}
+              labelSlot={
+                <label className="block text-xs font-semibold text-[#6b6b6b] uppercase tracking-wide">Description</label>
+              }
             />
+          ) : (
+            <label className="block text-xs font-semibold text-[#6b6b6b] uppercase tracking-wide mb-1.5">Description</label>
           )}
           <RichTextEditor
             ref={bodyEditorRef}
