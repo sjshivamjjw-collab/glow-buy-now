@@ -712,9 +712,6 @@ const DiscoverPage = () => {
                       <span className="flex items-center gap-0.5 text-[12px] text-[#ef4444] font-semibold">
                         <Heart className="w-3.5 h-3.5 fill-[#ef4444] text-[#ef4444]" />{formatCount(p.like_count)}
                       </span>
-                      <span className="flex items-center gap-0.5 text-[12px] text-[#ef4444] font-semibold">
-                        <MessageCircle className="w-3.5 h-3.5" />{formatCount(p.comment_count)}
-                      </span>
                     </div>
                   </div>
                 </div>
