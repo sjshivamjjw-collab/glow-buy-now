@@ -446,7 +446,17 @@ const EditPostPage = () => {
 
         <div>
           <label className="block text-xs font-semibold text-[#6b6b6b] uppercase tracking-wide mb-1.5">Description</label>
+          {category === 'trip' && (
+            <TravelStructureHelper
+              bodyIsEmpty={isRichTextEmpty(body)}
+              onInsert={(pill) => {
+                const snippet = buildPillSnippet(pill, isRichTextEmpty(body));
+                bodyEditorRef.current?.insertHtml(snippet);
+              }}
+            />
+          )}
           <RichTextEditor
+            ref={bodyEditorRef}
             value={body}
             onChange={setBody}
             placeholder="Write something..."
@@ -454,6 +464,7 @@ const EditPostPage = () => {
             
           />
         </div>
+
 
 
         <div>
