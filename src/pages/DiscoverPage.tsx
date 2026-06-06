@@ -684,7 +684,7 @@ const DiscoverPage = () => {
                 </div>
                 <div className="px-3 pt-3 pb-3">
                   {p.title && p.media_count > 0 && (
-                    <p className="font-[Outfit] font-semibold text-[#fafafa] text-[15px] leading-[1.3] line-clamp-3 mb-2.5">
+                    <p className="font-[Outfit] font-medium text-[#fafafa] text-[13px] leading-[1.3] line-clamp-3 mb-2.5">
                       {p.title}
                     </p>
                   )}
