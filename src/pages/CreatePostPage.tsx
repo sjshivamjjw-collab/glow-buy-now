@@ -718,6 +718,7 @@ const CreatePostPage = () => {
                   const snippet = buildPillSnippet(pill, isRichTextEmpty(body));
                   bodyEditorRef.current?.insertHtml(snippet);
                 }}
+                onRemove={(pill) => bodyEditorRef.current?.removeByPill(pill.key)}
                 labelSlot={
                   <label className="text-xs font-semibold text-[#6b6b6b] block">Tell people more... <span className="text-[#ef4444]">*</span></label>
                 }
