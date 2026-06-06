@@ -186,6 +186,8 @@ const RichTextEditor = forwardRef<RichTextEditorHandle, Props>(function RichText
       pendingHtmlRef.current = null;
     },
   }), []);
+
+  const plain = (value || '').replace(/<[^>]+>/g, '').trim();
   const isEmpty = plain.length === 0;
 
   return (
