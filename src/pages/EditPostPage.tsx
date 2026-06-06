@@ -6,7 +6,8 @@ import { useToast } from '@/hooks/use-toast';
 import { invalidatePostDetail, invalidateTrending } from '@/lib/feedCache';
 import { ArrowLeft, Loader2, MapPin, Hash, X, Check, ImagePlus, Tag } from 'lucide-react';
 import { extractStoragePath } from '@/lib/storageUrls';
-import RichTextEditor from '@/components/RichTextEditor';
+import RichTextEditor, { type RichTextEditorHandle } from '@/components/RichTextEditor';
+import TravelStructureHelper, { buildPillSnippet } from '@/components/TravelStructureHelper';
 import { markdownToHtml, isRichTextEmpty } from '@/lib/richText';
 import { ImageCropperDialog } from '@/components/ImageCropperDialog';
 
