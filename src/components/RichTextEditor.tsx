@@ -20,6 +20,8 @@ export interface RichTextEditorHandle {
   /** Insert raw HTML at the current caret position. Falls back to appending
    *  at the end if the editor is not focused. Flushes through onChange. */
   insertHtml: (html: string) => void;
+  /** Remove a previously-inserted block tagged with data-pill="<key>". */
+  removeByPill: (pillKey: string) => void;
   focus: () => void;
 }
 
@@ -162,6 +164,23 @@ const RichTextEditor = forwardRef<RichTextEditorHandle, Props>(function RichText
       }
       // Push the new HTML through the normal change pipeline (and flush so
       // the parent receives it immediately — important for draft auto-save).
+      pendingHtmlRef.current = el.innerHTML;
+      onChangeRef.current(el.innerHTML);
+      pendingHtmlRef.current = null;
+    },
+    removeByPill: (pillKey: string) => {
+      const el = elRef.current;
+      if (!el) return;
+      flush();
+      const node = el.querySelector(`[data-pill="${CSS.escape(pillKey)}"]`);
+      if (!node) return;
+      // Drop a trailing <br> immediately after the block so we don't leave
+      // an extra blank line behind.
+      const next = node.nextSibling;
+      if (next && next.nodeType === 1 && (next as Element).tagName === 'BR') {
+        next.parentNode?.removeChild(next);
+      }
+      node.parentNode?.removeChild(node);
       pendingHtmlRef.current = el.innerHTML;
       onChangeRef.current(el.innerHTML);
       pendingHtmlRef.current = null;

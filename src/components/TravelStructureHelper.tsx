@@ -22,17 +22,16 @@ export const TRAVEL_STRUCTURE_PILLS: TravelStructurePill[] = [
 ];
 
 /** Build the HTML snippet inserted into the rich-text editor for a given pill.
- *  Matches the editor's <br>-separated newline model and its bullet glyph. */
+ *  Wrapped in a <div data-pill="<key>"> so it can be removed later by key. */
 export function buildPillSnippet(pill: TravelStructurePill, bodyIsEmpty: boolean): string {
-  const lead = bodyIsEmpty ? '' : '<br><br>';
-  // Heading line, then two empty bullets, then a trailing line so the caret
-  // ends on an empty bullet ready for typing.
-  return `${lead}<strong>${pill.emoji} ${pill.heading}</strong><br>• <br>• `;
+  const lead = bodyIsEmpty ? '' : '<br>';
+  return `${lead}<div data-pill="${pill.key}"><strong>${pill.emoji} ${pill.heading}</strong><br>• <br>• </div>`;
 }
 
 interface Props {
   bodyIsEmpty: boolean;
   onInsert: (pill: TravelStructurePill) => void;
+  onRemove: (pill: TravelStructurePill) => void;
   /** Optional node rendered on the same row as the trigger (e.g. the field label). */
   labelSlot?: React.ReactNode;
 }
@@ -40,15 +39,23 @@ interface Props {
 /**
  * Optional, collapsible helper shown above the body editor for Travel
  * Diaries posts. Pills inject a short section template into the editor
- * at the caret. Selection is purely visual — re-tapping a used pill is
- * a no-op so we never double-inject.
+ * at the caret. Tapping an active pill removes the inserted block; tapping
+ * again re-inserts a fresh template.
  */
-export default function TravelStructureHelper({ bodyIsEmpty, onInsert, labelSlot }: Props) {
+export default function TravelStructureHelper({ bodyIsEmpty, onInsert, onRemove, labelSlot }: Props) {
   const [open, setOpen] = useState(false);
   const [used, setUsed] = useState<Set<string>>(new Set());
 
   const handlePillClick = (pill: TravelStructurePill) => {
-    if (used.has(pill.key)) return; // never re-inject
+    if (used.has(pill.key)) {
+      onRemove(pill);
+      setUsed(prev => {
+        const next = new Set(prev);
+        next.delete(pill.key);
+        return next;
+      });
+      return;
+    }
     onInsert(pill);
     setUsed(prev => {
       const next = new Set(prev);
