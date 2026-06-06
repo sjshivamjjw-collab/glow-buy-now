@@ -419,7 +419,7 @@ const DiscoverPage = () => {
       </div>
 
       {/* Header — sticky search + filters */}
-      <div className="sticky top-0 z-20 backdrop-blur-xl bg-[#0a0a0a]/70 border-b border-[#2a2a2a]/40 px-4 pt-3 pb-3">
+      <div className="sticky top-0 z-20 backdrop-blur-xl bg-[#0a0a0a]/70 border-b border-[#2a2a2a]/40 px-4 pt-2 pb-2">
 
 
 
@@ -429,19 +429,20 @@ const DiscoverPage = () => {
             value={query}
             onChange={e => setQuery(e.target.value)}
             placeholder="Search places, reviews, workplace, ideas..."
-            className="w-full pl-11 pr-4 py-2 rounded-full bg-[#1a1a1a]/80 border border-[#2a2a2a]/60 text-[#fafafa] placeholder:text-[#dc2626]/60 focus:outline-none focus:ring-2 focus:ring-[#ef4444]/40 text-sm font-medium"
+            className="w-full pl-11 pr-4 py-1.5 rounded-full bg-[#1a1a1a]/80 border border-[#2a2a2a]/60 text-[#fafafa] placeholder:text-[#dc2626]/60 focus:outline-none focus:ring-2 focus:ring-[#ef4444]/40 text-sm font-medium"
           />
         </div>
 
         {/* Filter tabs */}
-        <div className="flex gap-2 mt-3 items-center">
+        <div className="flex gap-2 mt-2 items-center">
           {baseChips.map(chip => {
             const active = chip === activeChip;
             return (
               <button
                 key={chip}
                 onClick={() => { setActiveChip(chip); setCategoryOpen(false); }}
-                className={`px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all ${
+                className={`px-3.5 py-1 rounded-full text-xs font-semibold transition-all ${
+
                   active
                     ? 'bg-[#fafafa] text-[#1a1a1a] shadow-sm'
                     : 'bg-[#1a1a1a]/70 text-[#a0a0a0] border border-[#2a2a2a]/60 hover:border-[#ef4444]'
