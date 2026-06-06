@@ -71,7 +71,7 @@ export default function TravelStructureHelper({ bodyIsEmpty, onInsert, labelSlot
   return (
     <div className="mb-2">
       {labelSlot ? (
-        <div className="flex items-center justify-between gap-2 mb-1 flex-wrap">
+        <div className="flex items-center gap-2 mb-1 flex-wrap">
           {labelSlot}
           {trigger}
         </div>
