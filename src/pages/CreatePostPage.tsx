@@ -14,7 +14,8 @@ import { ImageCropperDialog } from '@/components/ImageCropperDialog';
 import { useMentionAutocomplete } from '@/hooks/useMentionAutocomplete';
 import { MentionSuggestions } from '@/components/MentionSuggestions';
 import { MusicPicker, type PickedTrack } from '@/components/MusicPicker';
-import RichTextEditor from '@/components/RichTextEditor';
+import RichTextEditor, { type RichTextEditorHandle } from '@/components/RichTextEditor';
+import TravelStructureHelper, { buildPillSnippet } from '@/components/TravelStructureHelper';
 import { markdownToHtml, isRichTextEmpty } from '@/lib/richText';
 import {
   DndContext, closestCenter, KeyboardSensor, PointerSensor, TouchSensor,
@@ -175,6 +176,7 @@ const CreatePostPage = () => {
   const { userId } = useAuth();
   const { toast } = useToast();
   const fileRef = useRef<HTMLInputElement>(null);
+  const bodyEditorRef = useRef<RichTextEditorHandle>(null);
 
   // Hydrate once from localStorage so users return to exactly where they left off.
   const initial = (() => {
@@ -710,8 +712,18 @@ const CreatePostPage = () => {
         return (
           <>
             <label className="text-xs font-semibold text-[#6b6b6b] mb-1 block">Tell people more... <span className="text-[#ef4444]">*</span> <span className="text-[11px] font-normal">(Detailed posts with real experiences help others the most)</span></label>
+            {category === 'trip' && (
+              <TravelStructureHelper
+                bodyIsEmpty={isRichTextEmpty(body)}
+                onInsert={(pill) => {
+                  const snippet = buildPillSnippet(pill, isRichTextEmpty(body));
+                  bodyEditorRef.current?.insertHtml(snippet);
+                }}
+              />
+            )}
             <div className="relative mb-4">
               <RichTextEditor
+                ref={bodyEditorRef}
                 value={body}
                 onChange={setBody}
                 placeholder={ph}

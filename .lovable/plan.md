@@ -1,197 +1,82 @@
-# Rebuilding the AAB on Windows — step by step
+# Travel Diaries — Optional Post Structuring Helper
 
-Same outcome as before (new AAB with Ripple icon + perf fixes uploaded to the same closed test track), but with Windows-specific commands. You already have your `.jks` keystore and previous `.aab` locally, so you're in good shape.
+Add a lightweight, optional helper to the Travel Diaries (`category === 'trip'`) flow on the post creation page. It surfaces 9 section templates as pills that inject formatted snippets into the body editor at the cursor. Fully optional, no validation, no forced structure.
 
-Use **PowerShell** (not Command Prompt) for everything below. Open it as your normal user, no Admin needed.
+## Scope
 
----
+- Only shown when `category === 'trip'`.
+- Lives directly above the body editor in `src/pages/CreatePostPage.tsx`.
+- Snippets get inserted into the existing `RichTextEditor`'s HTML body via the editor's contentEditable DOM (cursor-aware), with a fallback to append at the end.
+- Also wire into `EditPostPage.tsx` so the same helper is available when editing a Travel Diaries post (consistency — minor add, same component).
 
-## Step 0 — Sanity check (one minute)
+## UI
 
-In PowerShell, run:
+Collapsed default state, directly above the body editor:
 
-```powershell
-node -v
-java -version
+```text
+Need help structuring your post? Click here
 ```
 
-- `node` should be 18 or newer
-- `java` should be 17.something
+Subtle link styling (small text, muted color, underline on tap). When tapped, a compact panel expands underneath showing 9 pills in a 3×3 grid:
 
-If `java -version` shows a different version, you have Java 17 installed but not selected. Find it at `C:\Program Files\Eclipse Adoptium\jdk-17.x.x-hotspot` (or similar) and set:
-
-```powershell
-$env:JAVA_HOME = "C:\Program Files\Eclipse Adoptium\jdk-17.0.x-hotspot"
-$env:Path = "$env:JAVA_HOME\bin;" + $env:Path
-java -version
+```text
+[ 💰 Cost Breakdown ] [ 🙄 Overrated ]   [ 😲 Surprises ]
+[ 💡 Mistakes ]       [ 📍 How To Reach ][ ⚠️ Rules & Scams ]
+[ 🕒 Itinerary ]      [ ✨ Tips ]        [ ✍️ My Experience ]
 ```
 
-(Replace the version number with whatever's actually in `C:\Program Files\Eclipse Adoptium\`.)
+- Small rounded pills, lightweight border, no card chrome.
+- Selected pills get the existing red accent styling (`bg-[#ef4444]/10 border-[#ef4444] text-[#ef4444]`) used elsewhere for active toggles.
+- Multi-select. Tapping a selected pill does NOT remove the injected text (text belongs to the user now); it just stays visually active so they remember they used it. Re-tapping an active pill is a no-op (won't double-inject).
+- Helper can be collapsed again via the same link (toggle).
 
----
+## Injection Behavior
 
-## Step 1 — Navigate to your project + pull latest code
+On pill tap (first time only per pill):
 
-```powershell
-cd C:\path\to\your\ripple-project
-git pull
-npm install
-```
+1. Build the snippet as HTML matching the existing rich-text format used by `RichTextEditor` (lines separated by `<br>`, bullet glyph `•` on its own line, blank line padding before snippet if body is non-empty):
 
-Replace `C:\path\to\your\ripple-project` with wherever you cloned it (probably `C:\Users\YourName\Documents\...` or similar — wherever your existing `android` folder lives).
+   ```text
+   <br>💰 Cost Breakdown<br>• <br>• <br>
+   ```
 
-This pulls down today's perf fixes and the icon-generation docs.
+2. Insert at the current selection inside the editor's contentEditable div when it is focused and the selection is inside it; otherwise append to the end of the existing HTML.
+3. Update the body state via the editor's `onChange` path so debounce/draft-save still works.
 
----
+Exact snippet text per pill (heading line + two empty bullets):
 
-## Step 2 — Bump the version code
+- 💰 Cost Breakdown
+- 🙄 What Felt Overrated
+- 😲 What Surprised Me
+- 💡 Mistakes To Avoid
+- 📍 Getting There
+- ⚠️ Things To Know
+- 🕒 How I'd Plan This
+- ✨ Tips & Advice
+- ✍️ The Vibe & Experience
 
-**The #1 reason Play Console rejects re-uploads.** Open this file in Notepad or VS Code:
+## Constraints (explicit non-goals)
 
-```
-android\app\build.gradle
-```
+- No validation that sections are filled.
+- No locking, no required fields, no "completion" UI.
+- Users can freely edit/delete/rewrite injected text — it is plain body content after insertion.
+- No analytics events / no DB changes / no schema changes.
 
-Find the `defaultConfig` block near the top. You'll see:
+## Technical Notes
 
-```gradle
-versionCode 1
-versionName "1.0"
-```
+- New component `src/components/TravelStructureHelper.tsx`:
+  - Props: `body: string`, `onInsert: (snippetHtml: string) => void`, `editorRef?: RefObject<HTMLDivElement>` (optional, for cursor-aware insertion).
+  - Internal state: `open: boolean`, `usedKeys: Set<string>`.
+- `RichTextEditor` needs a way to insert HTML at the current cursor. Cleanest path: expose an imperative handle via `forwardRef` + `useImperativeHandle` with `insertHtml(html: string)` that:
+  - Focuses the editor.
+  - If `document.activeElement` is the editor and a selection range is inside it, uses `document.execCommand('insertHTML', false, html)` (matches existing patterns in the editor).
+  - Else appends to `el.innerHTML` and fires the existing change pipeline.
+  - Then schedules the debounced `onChange` (reuse existing `scheduleChange`).
+- In `CreatePostPage.tsx`, render the helper above the body block only when `category === 'trip'`. Pass the editor ref down. Add same block to `EditPostPage.tsx` for consistency.
+- Pills styled with existing tokens (no new colors). Grid: `grid grid-cols-3 gap-2`.
 
-Change to:
+## Out of Scope
 
-```gradle
-versionCode 2
-versionName "1.0.1"
-```
-
-Save and close.
-
----
-
-## Step 3 — Build the web bundle
-
-```powershell
-npm run build
-```
-
-Takes ~30 seconds. Produces a fresh `dist\` folder.
-
----
-
-## Step 4 — Regenerate the Ripple icon + splash (THE actual icon fix)
-
-```powershell
-npm install -D @capacitor/assets
-npx capacitor-assets generate --android --iconBackgroundColor "#ffffff" --splashBackgroundColor "#ffffff"
-```
-
-Wait for `✔ Generating Android Icons` and `✔ Generating Android Splashes`.
-
-Verify:
-
-```powershell
-dir android\app\src\main\res\mipmap-xxxhdpi\
-```
-
-You should see `ic_launcher.png`, `ic_launcher_foreground.png`, `ic_launcher_round.png`. If they're there, the icon is fixed in the source — now we just need to bake it into the AAB.
-
----
-
-## Step 5 — Sync web bundle into the Android project
-
-```powershell
-npx cap sync android
-```
-
-This copies `dist\` into the native Android project. Takes ~10 seconds.
-
----
-
-## Step 6 — Build the signed release AAB
-
-The keystore signing is the tricky part on Windows. Two possibilities — check which one you're in:
-
-### Path A — Your keystore is already wired into `build.gradle` (most likely if your first build worked from the command line)
-
-Just run:
-
-```powershell
-cd android
-.\gradlew.bat bundleRelease
-```
-
-If it prompts for the keystore password, type it. If it builds without prompting, your `gradle.properties` already has the password — even better.
-
-### Path B — You signed via Android Studio's "Generate Signed Bundle" wizard last time
-
-Then easier to do it the same way again:
-
-1. Open **Android Studio**
-2. **File → Open** → select the `android` folder inside your project
-3. Wait for Gradle sync (~1–2 minutes)
-4. Top menu → **Build → Generate Signed App Bundle / APK**
-5. Choose **Android App Bundle** → Next
-6. Browse to your `.jks` file → enter keystore password, key alias, key password → Next
-7. Select **release** → choose destination folder → Finish
-8. Wait for the green "locate" notification at the bottom right
-
-Either path produces:
-
-```
-android\app\build\outputs\bundle\release\app-release.aab
-```
-
----
-
-## Step 7 — Upload to Play Console
-
-1. Go to **Play Console → Ripple → Testing → Closed testing → [your track] → Manage track**
-2. Click **Create new release**
-3. Under **App bundles** → **Upload** → select your new `app-release.aab`
-4. Wait for it to process (~30 seconds). It should say `Version 2 (1.0.1)`.
-5. **Release notes** — paste:
-
-```
-<en-US>
-- New Ripple app icon
-- Faster feed loading
-- Smaller image downloads
-- Bug fixes
-</en-US>
-```
-
-6. **Next** → **Save** → **Review release** → **Start rollout to Closed testing**
-7. Confirm.
-
-Live for testers within minutes to a couple of hours. **The 14-day clock does NOT reset.**
-
----
-
-## Step 8 — Notify your testers (WhatsApp copy-paste)
-
-> Hey! New Ripple update is out — open Play Store, find Ripple, tap Update (or wait for overnight auto-update). You'll see the proper Ripple icon on your home screen and the app should feel noticeably faster. Keep using it normally — thanks again! 🙌
-
----
-
-## Common Windows-specific gotchas
-
-| Problem | Fix |
-|---|---|
-| `'npx' is not recognized` | You're in CMD instead of PowerShell, or Node isn't on PATH. Open PowerShell fresh. |
-| `gradlew is not recognized` | You're missing the `.\` prefix. On Windows use `.\gradlew.bat bundleRelease`, not `./gradlew`. |
-| `Could not find tools.jar` / Java version error | JAVA_HOME points to a JRE, not JDK. Install Eclipse Temurin JDK 17. |
-| Gradle hangs at "Resolving dependencies" forever | Corporate Wi-Fi/VPN blocking Maven. Switch to mobile hotspot. |
-| Play Console: "version code 1 already used" | You skipped Step 2. Bump versionCode and rebuild. |
-
----
-
-## When to come back to me
-
-- ❌ Step 6 fails with a signing error → paste the full error
-- ❌ Step 4 doesn't produce mipmap files → reply and I'll investigate `resources\icon.png`
-- ❌ Play Console upload is rejected → paste the rejection message
-- ✅ Upload succeeded → reply "done" and I'll send day-7 and day-14 reminder copy
-
-Ready when you are.
+- Other categories (Food, Beauty, Work) — not requested.
+- Persisting which pills were used across sessions.
+- Reordering / removing injected sections via the helper.

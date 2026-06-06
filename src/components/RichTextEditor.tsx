@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { forwardRef, useEffect, useImperativeHandle, useRef } from 'react';
 import { Bold, Italic, Underline } from 'lucide-react';
 
 // Debounce parent onChange so typing doesn't re-render the (often large)
@@ -16,16 +16,23 @@ interface Props {
   onFocus?: () => void;
 }
 
+export interface RichTextEditorHandle {
+  /** Insert raw HTML at the current caret position. Falls back to appending
+   *  at the end if the editor is not focused. Flushes through onChange. */
+  insertHtml: (html: string) => void;
+  focus: () => void;
+}
+
 /**
  * Mobile-friendly WYSIWYG editor. Stores content as a small HTML subset
  * (<strong>, <em>, <u>, <br>, <div>). Toolbar uses execCommand so the
  * formatting is applied in-place — users see real bold/italic/underline
  * instead of `**markdown**` markers.
  */
-export default function RichTextEditor({
+const RichTextEditor = forwardRef<RichTextEditorHandle, Props>(function RichTextEditor({
   value, onChange, placeholder, maxLength, rows = 5, className, onFocus,
-}: Props) {
-  const ref = useRef<HTMLDivElement>(null);
+}, ref) {
+  const elRef = useRef<HTMLDivElement>(null);
   const onChangeRef = useRef(onChange);
   const debounceRef = useRef<number | null>(null);
   const pendingHtmlRef = useRef<string | null>(null);
@@ -60,7 +67,7 @@ export default function RichTextEditor({
   // Sync external value into the DOM only when it actually differs AND the
   // editor is not currently focused, AND there's no pending local edit.
   useEffect(() => {
-    const el = ref.current;
+    const el = elRef.current;
     if (!el) return;
     if (document.activeElement === el) return;
     if (pendingHtmlRef.current != null) return;
@@ -72,7 +79,7 @@ export default function RichTextEditor({
   useEffect(() => () => flush(), []);
 
   const exec = (cmd: 'bold' | 'italic' | 'underline') => {
-    const el = ref.current;
+    const el = elRef.current;
     if (!el) return;
     el.focus();
     document.execCommand(cmd);
@@ -80,7 +87,7 @@ export default function RichTextEditor({
   };
 
   const handleInput = () => {
-    const el = ref.current;
+    const el = elRef.current;
     if (!el) return;
     if (maxLength && (el.innerText || '').length > maxLength) {
       const text = (el.innerText || '').slice(0, maxLength);
@@ -90,7 +97,7 @@ export default function RichTextEditor({
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    const el = ref.current;
+    const el = elRef.current;
     // On Enter, auto-continue bullet list: each new line gets a "• " prefix.
     // If the current line is an empty bullet ("• "), exit the list instead.
     if (e.key === 'Enter' && !e.shiftKey && el) {
@@ -130,6 +137,37 @@ export default function RichTextEditor({
     document.execCommand('insertText', false, text);
   };
 
+  useImperativeHandle(ref, () => ({
+    focus: () => { elRef.current?.focus(); },
+    insertHtml: (html: string) => {
+      const el = elRef.current;
+      if (!el) return;
+      flush();
+      const sel = window.getSelection();
+      const selInside =
+        document.activeElement === el &&
+        sel && sel.rangeCount > 0 && el.contains(sel.getRangeAt(0).commonAncestorContainer);
+      if (selInside) {
+        document.execCommand('insertHTML', false, html);
+      } else {
+        el.focus();
+        // Move caret to end before inserting.
+        const range = document.createRange();
+        range.selectNodeContents(el);
+        range.collapse(false);
+        const s = window.getSelection();
+        s?.removeAllRanges();
+        s?.addRange(range);
+        document.execCommand('insertHTML', false, html);
+      }
+      // Push the new HTML through the normal change pipeline (and flush so
+      // the parent receives it immediately — important for draft auto-save).
+      pendingHtmlRef.current = el.innerHTML;
+      onChangeRef.current(el.innerHTML);
+      pendingHtmlRef.current = null;
+    },
+  }), []);
+
   const plain = (value || '').replace(/<[^>]+>/g, '').trim();
   const isEmpty = plain.length === 0;
 
@@ -155,7 +193,7 @@ export default function RichTextEditor({
       </div>
       <div className="relative">
         <div
-          ref={ref}
+          ref={elRef}
           contentEditable
           suppressContentEditableWarning
           role="textbox"
@@ -176,4 +214,6 @@ export default function RichTextEditor({
       </div>
     </div>
   );
-}
+});
+
+export default RichTextEditor;

@@ -6,7 +6,8 @@ import { useToast } from '@/hooks/use-toast';
 import { invalidatePostDetail, invalidateTrending } from '@/lib/feedCache';
 import { ArrowLeft, Loader2, MapPin, Hash, X, Check, ImagePlus, Tag } from 'lucide-react';
 import { extractStoragePath } from '@/lib/storageUrls';
-import RichTextEditor from '@/components/RichTextEditor';
+import RichTextEditor, { type RichTextEditorHandle } from '@/components/RichTextEditor';
+import TravelStructureHelper, { buildPillSnippet } from '@/components/TravelStructureHelper';
 import { markdownToHtml, isRichTextEmpty } from '@/lib/richText';
 import { ImageCropperDialog } from '@/components/ImageCropperDialog';
 
@@ -68,6 +69,7 @@ const EditPostPage = () => {
   const [removedIds, setRemovedIds] = useState<string[]>([]);
   const [removedPaths, setRemovedPaths] = useState<string[]>([]);
   const [newMedia, setNewMedia] = useState<NewMedia[]>([]);
+  const bodyEditorRef = useRef<RichTextEditorHandle>(null);
 
   const [category, setCategory] = useState<CategoryKey | null>(null);
   const [reviewSub, setReviewSub] = useState<ReviewSubKey | null>(null);
@@ -444,7 +446,17 @@ const EditPostPage = () => {
 
         <div>
           <label className="block text-xs font-semibold text-[#6b6b6b] uppercase tracking-wide mb-1.5">Description</label>
+          {category === 'trip' && (
+            <TravelStructureHelper
+              bodyIsEmpty={isRichTextEmpty(body)}
+              onInsert={(pill) => {
+                const snippet = buildPillSnippet(pill, isRichTextEmpty(body));
+                bodyEditorRef.current?.insertHtml(snippet);
+              }}
+            />
+          )}
           <RichTextEditor
+            ref={bodyEditorRef}
             value={body}
             onChange={setBody}
             placeholder="Write something..."
@@ -452,6 +464,7 @@ const EditPostPage = () => {
             
           />
         </div>
+
 
 
         <div>
