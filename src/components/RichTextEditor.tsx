@@ -20,6 +20,8 @@ export interface RichTextEditorHandle {
   /** Insert raw HTML at the current caret position. Falls back to appending
    *  at the end if the editor is not focused. Flushes through onChange. */
   insertHtml: (html: string) => void;
+  /** Remove a previously-inserted block tagged with data-pill="<key>". */
+  removeByPill: (pillKey: string) => void;
   focus: () => void;
 }
 
