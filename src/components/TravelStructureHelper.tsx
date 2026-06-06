@@ -97,13 +97,14 @@ export default function TravelStructureHelper({ bodyIsEmpty, onInsert, onRemove,
                   key={pill.key}
                   type="button"
                   onClick={() => handlePillClick(pill)}
-                  className={`flex items-center justify-center gap-1 px-2 py-2 rounded-full border text-[11px] font-medium leading-tight transition-colors text-center ${
+                  className={`flex items-center justify-center gap-1 px-1.5 py-2 rounded-full border text-[10px] font-medium leading-tight transition-colors text-center min-h-[34px] ${
                     active
                       ? 'bg-[#ef4444]/10 border-[#ef4444] text-[#ef4444]'
                       : 'bg-white border-[#e5e5e5] text-[#3a3a3a] active:bg-[#f5f5f5]'
                   }`}
                 >
-                  <span className="truncate">{pill.label}</span>
+                  <span className="shrink-0 text-[11px] leading-none">{pill.emoji}</span>
+                  <span className="break-words">{pill.label}</span>
                 </button>
               );
             })}
@@ -111,6 +112,7 @@ export default function TravelStructureHelper({ bodyIsEmpty, onInsert, onRemove,
           <p className="mt-2 text-[10px] text-[#9b9b9b] text-center">
             Tap a section to add it. Edit or delete freely.
           </p>
+
         </div>
       )}
     </div>
