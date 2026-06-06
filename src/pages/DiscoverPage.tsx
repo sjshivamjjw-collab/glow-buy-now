@@ -697,7 +697,7 @@ const DiscoverPage = () => {
                       ) : (
                         <div className="w-5 h-5 rounded-full bg-gradient-to-br from-[#2a2a2a] to-[#ef4444] shrink-0" />
                       )}
-                      <span className="truncate text-[12px] font-semibold text-[#cfcfcf]">
+                      <span className="truncate text-[11px] font-semibold text-[#cfcfcf]/70">
                         {isAnon ? (
                           <>
                             {RIPPLER_NAME}
