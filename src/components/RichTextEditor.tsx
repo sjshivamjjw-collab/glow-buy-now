@@ -168,9 +168,24 @@ const RichTextEditor = forwardRef<RichTextEditorHandle, Props>(function RichText
       onChangeRef.current(el.innerHTML);
       pendingHtmlRef.current = null;
     },
+    removeByPill: (pillKey: string) => {
+      const el = elRef.current;
+      if (!el) return;
+      flush();
+      const node = el.querySelector(`[data-pill="${CSS.escape(pillKey)}"]`);
+      if (!node) return;
+      // Drop a trailing <br> immediately after the block so we don't leave
+      // an extra blank line behind.
+      const next = node.nextSibling;
+      if (next && next.nodeType === 1 && (next as Element).tagName === 'BR') {
+        next.parentNode?.removeChild(next);
+      }
+      node.parentNode?.removeChild(node);
+      pendingHtmlRef.current = el.innerHTML;
+      onChangeRef.current(el.innerHTML);
+      pendingHtmlRef.current = null;
+    },
   }), []);
-
-  const plain = (value || '').replace(/<[^>]+>/g, '').trim();
   const isEmpty = plain.length === 0;
 
   return (
