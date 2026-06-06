@@ -1,82 +1,65 @@
-# Travel Diaries — Optional Post Structuring Helper
+## Goal
 
-Add a lightweight, optional helper to the Travel Diaries (`category === 'trip'`) flow on the post creation page. It surfaces 9 section templates as pills that inject formatted snippets into the body editor at the cursor. Fully optional, no validation, no forced structure.
+Make the Travel Diaries structure pills truly toggle:
+- Tap once → insert the section into the body
+- Tap again (deselect) → remove that same section from the body
+- Tap a third time → re-insert it
 
-## Scope
+## How it works
 
-- Only shown when `category === 'trip'`.
-- Lives directly above the body editor in `src/pages/CreatePostPage.tsx`.
-- Snippets get inserted into the existing `RichTextEditor`'s HTML body via the editor's contentEditable DOM (cursor-aware), with a fallback to append at the end.
-- Also wire into `EditPostPage.tsx` so the same helper is available when editing a Travel Diaries post (consistency — minor add, same component).
+Each pill's inserted snippet gets wrapped in a marker element the editor can later locate and remove on its own — without touching anything the user wrote outside it.
 
-## UI
+### 1. Tag the inserted snippet
 
-Collapsed default state, directly above the body editor:
+In `TravelStructureHelper.tsx`, change `buildPillSnippet` to wrap the heading + two bullets in a block that carries the pill key:
 
-```text
-Need help structuring your post? Click here
+```html
+<div data-pill="cost">
+  <strong>💰 Cost Breakdown</strong><br>• <br>•&nbsp;
+</div>
 ```
 
-Subtle link styling (small text, muted color, underline on tap). When tapped, a compact panel expands underneath showing 9 pills in a 3×3 grid:
+The `data-pill` attribute is the only thing we need later — the inner content stays free-form so users can keep editing it.
 
-```text
-[ 💰 Cost Breakdown ] [ 🙄 Overrated ]   [ 😲 Surprises ]
-[ 💡 Mistakes ]       [ 📍 How To Reach ][ ⚠️ Rules & Scams ]
-[ 🕒 Itinerary ]      [ ✨ Tips ]        [ ✍️ My Experience ]
+### 2. Expose a "remove by pill" method on the editor
+
+In `src/components/RichTextEditor.tsx`, add a second imperative method alongside `insertHtml`:
+
+```ts
+removeByPill: (pillKey: string) => void;
 ```
 
-- Small rounded pills, lightweight border, no card chrome.
-- Selected pills get the existing red accent styling (`bg-[#ef4444]/10 border-[#ef4444] text-[#ef4444]`) used elsewhere for active toggles.
-- Multi-select. Tapping a selected pill does NOT remove the injected text (text belongs to the user now); it just stays visually active so they remember they used it. Re-tapping an active pill is a no-op (won't double-inject).
-- Helper can be collapsed again via the same link (toggle).
+Implementation:
+- Find `el.querySelector('[data-pill="<key>"]')`
+- If present, remove the node (and a trailing empty `<br>` if one is left behind so we don't accumulate blank lines)
+- Push the updated `el.innerHTML` through the same `onChange` pipeline `insertHtml` already uses
 
-## Injection Behavior
+### 3. Toggle behavior in the helper
 
-On pill tap (first time only per pill):
+In `TravelStructureHelper.tsx`:
+- Add `onRemove: (pill) => void` prop next to `onInsert`
+- When a pill is tapped:
+  - If not in `used` → call `onInsert`, add to `used`
+  - If already in `used` → call `onRemove`, remove from `used`
+- The active red styling stays as the visual indicator of "currently inserted"
 
-1. Build the snippet as HTML matching the existing rich-text format used by `RichTextEditor` (lines separated by `<br>`, bullet glyph `•` on its own line, blank line padding before snippet if body is non-empty):
+### 4. Wire it up in both pages
 
-   ```text
-   <br>💰 Cost Breakdown<br>• <br>• <br>
-   ```
+`CreatePostPage.tsx` and `EditPostPage.tsx` already hold the `bodyEditorRef`. Add an `onRemove` handler next to the existing `onInsert`:
 
-2. Insert at the current selection inside the editor's contentEditable div when it is focused and the selection is inside it; otherwise append to the end of the existing HTML.
-3. Update the body state via the editor's `onChange` path so debounce/draft-save still works.
+```ts
+onRemove={(pill) => bodyEditorRef.current?.removeByPill(pill.key)}
+```
 
-Exact snippet text per pill (heading line + two empty bullets):
+## Trade-off to call out
 
-- 💰 Cost Breakdown
-- 🙄 What Felt Overrated
-- 😲 What Surprised Me
-- 💡 Mistakes To Avoid
-- 📍 Getting There
-- ⚠️ Things To Know
-- 🕒 How I'd Plan This
-- ✨ Tips & Advice
-- ✍️ The Vibe & Experience
+If a user edits text *inside* a pill section and then deselects the pill, that edited text goes away with the section. This matches what "deselect = remove" intuitively means, and the user can paste anything they want to keep back in before deselecting. No confirmation dialog — keep the flow lightweight as the original spec required.
 
-## Constraints (explicit non-goals)
+## Files touched
 
-- No validation that sections are filled.
-- No locking, no required fields, no "completion" UI.
-- Users can freely edit/delete/rewrite injected text — it is plain body content after insertion.
-- No analytics events / no DB changes / no schema changes.
+- `src/components/TravelStructureHelper.tsx` — wrap snippet in `<div data-pill>`, add toggle logic, add `onRemove` prop
+- `src/components/RichTextEditor.tsx` — expose `removeByPill` on the handle
+- `src/pages/CreatePostPage.tsx` — pass `onRemove`
+- `src/pages/EditPostPage.tsx` — pass `onRemove`
 
-## Technical Notes
-
-- New component `src/components/TravelStructureHelper.tsx`:
-  - Props: `body: string`, `onInsert: (snippetHtml: string) => void`, `editorRef?: RefObject<HTMLDivElement>` (optional, for cursor-aware insertion).
-  - Internal state: `open: boolean`, `usedKeys: Set<string>`.
-- `RichTextEditor` needs a way to insert HTML at the current cursor. Cleanest path: expose an imperative handle via `forwardRef` + `useImperativeHandle` with `insertHtml(html: string)` that:
-  - Focuses the editor.
-  - If `document.activeElement` is the editor and a selection range is inside it, uses `document.execCommand('insertHTML', false, html)` (matches existing patterns in the editor).
-  - Else appends to `el.innerHTML` and fires the existing change pipeline.
-  - Then schedules the debounced `onChange` (reuse existing `scheduleChange`).
-- In `CreatePostPage.tsx`, render the helper above the body block only when `category === 'trip'`. Pass the editor ref down. Add same block to `EditPostPage.tsx` for consistency.
-- Pills styled with existing tokens (no new colors). Grid: `grid grid-cols-3 gap-2`.
-
-## Out of Scope
-
-- Other categories (Food, Beauty, Work) — not requested.
-- Persisting which pills were used across sessions.
-- Reordering / removing injected sections via the helper.
+No DB, no schema, no other components affected. Existing posts (which don't have the `data-pill` wrapper) are unaffected.
