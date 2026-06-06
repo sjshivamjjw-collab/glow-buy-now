@@ -152,15 +152,9 @@ const RichTextEditor = forwardRef<RichTextEditorHandle, Props>(function RichText
       if (selInside) {
         document.execCommand('insertHTML', false, html);
       } else {
-        el.focus();
-        // Move caret to end before inserting.
-        const range = document.createRange();
-        range.selectNodeContents(el);
-        range.collapse(false);
-        const s = window.getSelection();
-        s?.removeAllRanges();
-        s?.addRange(range);
-        document.execCommand('insertHTML', false, html);
+        // Append at the end WITHOUT focusing the editor, so the user can
+        // keep tapping pills and only focus when they actually want to type.
+        el.insertAdjacentHTML('beforeend', html);
       }
       // Push the new HTML through the normal change pipeline (and flush so
       // the parent receives it immediately — important for draft auto-save).
@@ -168,6 +162,7 @@ const RichTextEditor = forwardRef<RichTextEditorHandle, Props>(function RichText
       onChangeRef.current(el.innerHTML);
       pendingHtmlRef.current = null;
     },
+
     removeByPill: (pillKey: string) => {
       const el = elRef.current;
       if (!el) return;
