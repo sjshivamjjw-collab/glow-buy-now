@@ -26,16 +26,16 @@ const LazyVideoThumbnail = ({ src, className, poster }: LazyVideoThumbnailProps)
   return (
     <div ref={rootRef} className={className}>
       {shouldLoad ? (
-        // preload="none" — we only need a poster frame in the feed, not the
-        // video bytes. Range-requesting metadata for every video card on a
-        // mobile feed was costing seconds of perceived load time.
+        // preload="metadata" so the browser fetches enough of the file to
+        // render the first frame as a still. preload="none" leaves the
+        // <video> blank (black) when no poster is provided.
         <video
           src={`${src}#t=0.1`}
           poster={poster || undefined}
           className="h-full w-full object-cover"
           muted
           playsInline
-          preload="none"
+          preload="metadata"
           // @ts-ignore - iOS Safari attribute
           webkit-playsinline="true"
         />
