@@ -109,7 +109,7 @@ export default function TravelStructureHelper({ bodyIsEmpty, onInsert, onRemove,
             })}
           </div>
           <p className="mt-2 text-[10px] text-[#9b9b9b] text-center">
-            Tap a section to add it. Edit or delete freely — nothing is required.
+            Tap a section to add it. Edit or delete freely.
           </p>
         </div>
       )}
