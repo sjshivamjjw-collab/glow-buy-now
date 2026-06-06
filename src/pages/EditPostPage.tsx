@@ -452,6 +452,7 @@ const EditPostPage = () => {
                 const snippet = buildPillSnippet(pill, isRichTextEmpty(body));
                 bodyEditorRef.current?.insertHtml(snippet);
               }}
+              onRemove={(pill) => bodyEditorRef.current?.removeByPill(pill.key)}
               labelSlot={
                 <label className="block text-xs font-semibold text-[#6b6b6b] uppercase tracking-wide">Description</label>
               }
