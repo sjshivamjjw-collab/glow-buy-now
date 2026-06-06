@@ -69,6 +69,7 @@ const EditPostPage = () => {
   const [removedIds, setRemovedIds] = useState<string[]>([]);
   const [removedPaths, setRemovedPaths] = useState<string[]>([]);
   const [newMedia, setNewMedia] = useState<NewMedia[]>([]);
+  const bodyEditorRef = useRef<RichTextEditorHandle>(null);
 
   const [category, setCategory] = useState<CategoryKey | null>(null);
   const [reviewSub, setReviewSub] = useState<ReviewSubKey | null>(null);
