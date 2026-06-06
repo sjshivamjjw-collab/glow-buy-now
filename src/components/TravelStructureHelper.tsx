@@ -63,7 +63,7 @@ export default function TravelStructureHelper({ bodyIsEmpty, onInsert, labelSlot
       onClick={() => setOpen(o => !o)}
       className="inline-flex items-center gap-1 text-[12px] text-[#2563eb] hover:text-[#1d4ed8] underline underline-offset-2"
     >
-      Need help structuring your post? Click here
+      Need help writing your post?
       {open ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
     </button>
   );
