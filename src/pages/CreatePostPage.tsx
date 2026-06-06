@@ -176,6 +176,7 @@ const CreatePostPage = () => {
   const { userId } = useAuth();
   const { toast } = useToast();
   const fileRef = useRef<HTMLInputElement>(null);
+  const bodyEditorRef = useRef<RichTextEditorHandle>(null);
 
   // Hydrate once from localStorage so users return to exactly where they left off.
   const initial = (() => {
