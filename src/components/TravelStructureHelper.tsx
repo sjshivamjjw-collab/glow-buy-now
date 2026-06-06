@@ -103,7 +103,6 @@ export default function TravelStructureHelper({ bodyIsEmpty, onInsert, onRemove,
                       : 'bg-white border-[#e5e5e5] text-[#3a3a3a] active:bg-[#f5f5f5]'
                   }`}
                 >
-                  <span className="text-[13px]">{pill.emoji}</span>
                   <span className="truncate">{pill.label}</span>
                 </button>
               );
