@@ -711,15 +711,19 @@ const CreatePostPage = () => {
         const hasSuggestions = !!subPh || !!BODY_PLACEHOLDERS[category!];
         return (
           <>
-            <label className="text-xs font-semibold text-[#6b6b6b] mb-1 block">Tell people more... <span className="text-[#ef4444]">*</span></label>
-            {category === 'trip' && (
+            {category === 'trip' ? (
               <TravelStructureHelper
                 bodyIsEmpty={isRichTextEmpty(body)}
                 onInsert={(pill) => {
                   const snippet = buildPillSnippet(pill, isRichTextEmpty(body));
                   bodyEditorRef.current?.insertHtml(snippet);
                 }}
+                labelSlot={
+                  <label className="text-xs font-semibold text-[#6b6b6b] block">Tell people more... <span className="text-[#ef4444]">*</span></label>
+                }
               />
+            ) : (
+              <label className="text-xs font-semibold text-[#6b6b6b] mb-1 block">Tell people more... <span className="text-[#ef4444]">*</span></label>
             )}
             <div className="relative mb-4">
               <RichTextEditor

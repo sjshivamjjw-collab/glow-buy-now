@@ -33,6 +33,8 @@ export function buildPillSnippet(pill: TravelStructurePill, bodyIsEmpty: boolean
 interface Props {
   bodyIsEmpty: boolean;
   onInsert: (pill: TravelStructurePill) => void;
+  /** Optional node rendered on the same row as the trigger (e.g. the field label). */
+  labelSlot?: React.ReactNode;
 }
 
 /**
@@ -41,7 +43,7 @@ interface Props {
  * at the caret. Selection is purely visual — re-tapping a used pill is
  * a no-op so we never double-inject.
  */
-export default function TravelStructureHelper({ bodyIsEmpty, onInsert }: Props) {
+export default function TravelStructureHelper({ bodyIsEmpty, onInsert, labelSlot }: Props) {
   const [open, setOpen] = useState(false);
   const [used, setUsed] = useState<Set<string>>(new Set());
 
@@ -55,16 +57,28 @@ export default function TravelStructureHelper({ bodyIsEmpty, onInsert }: Props) 
     });
   };
 
+  const trigger = (
+    <button
+      type="button"
+      onClick={() => setOpen(o => !o)}
+      className="inline-flex items-center gap-1 text-[12px] text-[#2563eb] hover:text-[#1d4ed8] underline underline-offset-2"
+    >
+      Need help structuring your post? Click here
+      {open ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+    </button>
+  );
+
   return (
     <div className="mb-2">
-      <button
-        type="button"
-        onClick={() => setOpen(o => !o)}
-        className="inline-flex items-center gap-1 text-[12px] text-[#6b6b6b] hover:text-[#ef4444] underline underline-offset-2"
-      >
-        Need help structuring your post? Click here
-        {open ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
-      </button>
+      {labelSlot ? (
+        <div className="flex items-center justify-between gap-2 mb-1 flex-wrap">
+          {labelSlot}
+          {trigger}
+        </div>
+      ) : (
+        trigger
+      )}
+
 
       {open && (
         <div className="mt-2 p-2.5 rounded-xl bg-[#fafafa] border border-[#eee]">
