@@ -111,7 +111,7 @@ Deno.serve(async (req) => {
       body: new URLSearchParams({
         To: normalizedPhone,
         From: TWILIO_PHONE_NUMBER,
-        Body: `Your Ripple verification code is: ${code}. Valid for 5 minutes.`,
+        Body: `Your Ripple verification code is: ${code}. Valid for 10 minutes.`,
       }),
     });
 
