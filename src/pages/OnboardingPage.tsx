@@ -32,6 +32,7 @@ const OnboardingPage = () => {
   const [saving, setSaving] = useState(false);
   const [usernameError, setUsernameError] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const usernameDebounce = useRef<ReturnType<typeof setTimeout> | null>(null);
   const { userId, completeOnboarding, updateProfile } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -86,6 +87,11 @@ const OnboardingPage = () => {
       .maybeSingle();
     if (data) {
       setUsernameError('Username already taken');
+      toast({
+        title: 'Username not available',
+        description: `"${val}" is already taken. Please try another.`,
+        variant: 'destructive',
+      });
     } else {
       setUsernameError('');
     }
@@ -216,8 +222,12 @@ const OnboardingPage = () => {
                   onChange={e => {
                     const v = e.target.value.replace(/[^a-zA-Z0-9_]/g, '').slice(0, 20);
                     setUsername(v);
-                    if (v.length >= 3) checkUsername(v);
-                    else setUsernameError(v.length > 0 ? 'Username must be at least 3 characters' : '');
+                    if (v.length >= 3) {
+                      if (usernameDebounce.current) clearTimeout(usernameDebounce.current);
+                      usernameDebounce.current = setTimeout(() => checkUsername(v), 500);
+                    } else {
+                      setUsernameError(v.length > 0 ? 'Username must be at least 3 characters' : '');
+                    }
                   }}
                   className="w-full px-4 py-3.5 rounded-2xl bg-secondary text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 text-base"
                 />
