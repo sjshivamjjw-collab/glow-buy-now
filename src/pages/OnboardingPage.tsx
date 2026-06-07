@@ -32,6 +32,7 @@ const OnboardingPage = () => {
   const [saving, setSaving] = useState(false);
   const [usernameError, setUsernameError] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const usernameDebounce = useRef<ReturnType<typeof setTimeout> | null>(null);
   const { userId, completeOnboarding, updateProfile } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
