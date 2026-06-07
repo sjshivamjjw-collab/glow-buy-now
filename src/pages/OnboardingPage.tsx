@@ -120,7 +120,22 @@ const OnboardingPage = () => {
       toast({ title: 'Welcome to Ripple! 🎉' });
       navigate('/', { replace: true });
     } catch (err: any) {
-      toast({ title: 'Error saving profile', description: err.message, variant: 'destructive' });
+      const msg = String(err?.message || '');
+      const isDuplicateUsername =
+        err?.code === '23505' ||
+        msg.includes('profiles_username_key') ||
+        msg.toLowerCase().includes('duplicate key');
+      if (isDuplicateUsername) {
+        setUsernameError('Username already taken — please pick another');
+        setStep('basics');
+        toast({
+          title: 'Username already taken',
+          description: 'Please choose a different username and try again.',
+          variant: 'destructive',
+        });
+      } else {
+        toast({ title: 'Error saving profile', description: msg, variant: 'destructive' });
+      }
     } finally {
       setSaving(false);
     }
