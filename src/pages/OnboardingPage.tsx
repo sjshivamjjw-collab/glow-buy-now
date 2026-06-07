@@ -86,6 +86,11 @@ const OnboardingPage = () => {
       .maybeSingle();
     if (data) {
       setUsernameError('Username already taken');
+      toast({
+        title: 'Username not available',
+        description: `"${val}" is already taken. Please try another.`,
+        variant: 'destructive',
+      });
     } else {
       setUsernameError('');
     }
