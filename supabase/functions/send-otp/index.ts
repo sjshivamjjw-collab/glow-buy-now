@@ -74,7 +74,7 @@ Deno.serve(async (req) => {
     const code = isDevPhone
       ? (DEV_PHONE_OTPS[normalizedPhone] ?? "123456")
       : String(Math.floor(100000 + Math.random() * 900000));
-    const expiresAt = new Date(Date.now() + 5 * 60 * 1000); // 5 min
+    const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 min
 
     // Store OTP
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
@@ -111,7 +111,7 @@ Deno.serve(async (req) => {
       body: new URLSearchParams({
         To: normalizedPhone,
         From: TWILIO_PHONE_NUMBER,
-        Body: `Your Ripple verification code is: ${code}. Valid for 5 minutes.`,
+        Body: `Your Ripple verification code is: ${code}. Valid for 10 minutes.`,
       }),
     });
 
