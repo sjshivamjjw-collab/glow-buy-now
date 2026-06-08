@@ -5,9 +5,11 @@ import { supabase } from '@/integrations/supabase/client';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowRight, Phone, Smartphone } from 'lucide-react';
 import { lovable } from '@/integrations/lovable';
+import { isNative } from '@/lib/platform';
 import rippleLogo from '@/assets/ripple-logo.png';
 import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp';
 import { useToast } from '@/hooks/use-toast';
+
 
 
 type Step = 'welcome' | 'phone' | 'otp';
