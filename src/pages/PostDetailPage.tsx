@@ -461,7 +461,7 @@ const PostDetailPage = () => {
             </>
           )}
           {!isOwn && userId && (
-            <Sheet>
+            <Sheet open={moreOpen} onOpenChange={setMoreOpen}>
               <SheetTrigger asChild>
                 <button
                   type="button"
@@ -475,12 +475,9 @@ const PostDetailPage = () => {
                 <div className="flex flex-col gap-1 pt-4">
                   <button
                     type="button"
-                    onClick={(e) => {
-                      // Close sheet then open report dialog
-                      (e.currentTarget.closest('[role="dialog"]') as HTMLElement | null)
-                        ?.querySelector<HTMLButtonElement>('[data-sheet-close]')
-                        ?.click();
-                      setTimeout(() => setReportOpen(true), 50);
+                    onClick={() => {
+                      setMoreOpen(false);
+                      setTimeout(() => setReportOpen(true), 100);
                     }}
                     className="flex items-center gap-3 px-4 py-4 rounded-xl hover:bg-muted text-left"
                   >
@@ -490,7 +487,7 @@ const PostDetailPage = () => {
                   {post.user_id && !post.is_anonymous && (
                     <button
                       type="button"
-                      onClick={async (e) => {
+                      onClick={async () => {
                         if (!window.confirm('Block this user? You will no longer see their posts or comments.')) return;
                         const { error } = await supabase.from('user_blocks' as any).insert({ blocker_id: userId, blocked_id: post.user_id });
                         if (error && !/duplicate/i.test(error.message)) {
@@ -498,6 +495,7 @@ const PostDetailPage = () => {
                           return;
                         }
                         toast({ title: 'User blocked' });
+                        setMoreOpen(false);
                         await refreshBlocks();
                         navigate(-1);
                       }}
@@ -510,6 +508,7 @@ const PostDetailPage = () => {
                 </div>
               </SheetContent>
             </Sheet>
+
           )}
 
         </div>
