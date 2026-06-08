@@ -4,7 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { ArrowLeft, Heart, MessageCircle, MapPin, Loader2, Send, Trash2, ChevronLeft, ChevronRight, Bookmark, Share2, Reply, X, Music, Play, Pause, Pencil, EyeOff, Eye, MoreHorizontal, Flag, Ban } from 'lucide-react';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { ReportPostDialog } from '@/components/ReportPostDialog';
 import { useBlockedUsers } from '@/hooks/useBlockedUsers';
 import { formatDistanceToNow } from 'date-fns';
@@ -155,6 +155,8 @@ const PostDetailPage = () => {
 
   const [isOwn, setIsOwn] = useState(false);
   const [reportOpen, setReportOpen] = useState(false);
+  const [moreOpen, setMoreOpen] = useState(false);
+
   const { blocked, refresh: refreshBlocks } = useBlockedUsers();
 
   // Fetch the post itself (with one retry on empty/error) — this drives the main render.
@@ -459,37 +461,56 @@ const PostDetailPage = () => {
             </>
           )}
           {!isOwn && userId && (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <button className="w-10 h-10 rounded-full bg-[#1a1a1a] border border-[#2a2a2a]/60 flex items-center justify-center active:scale-95 transition-transform" aria-label="More options">
+            <Sheet open={moreOpen} onOpenChange={setMoreOpen}>
+              <SheetTrigger asChild>
+                <button
+                  type="button"
+                  className="w-10 h-10 rounded-full bg-[#1a1a1a] border border-[#2a2a2a]/60 flex items-center justify-center"
+                  aria-label="More options"
+                >
                   <MoreHorizontal className="w-5 h-5 text-[#fafafa]" />
                 </button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-52">
-                <DropdownMenuItem onClick={() => setReportOpen(true)} className="cursor-pointer">
-                  <Flag className="w-4 h-4 mr-2" /> Report post
-                </DropdownMenuItem>
-                {post.user_id && !post.is_anonymous && (
-                  <DropdownMenuItem
-                    onClick={async () => {
-                      if (!window.confirm('Block this user? You will no longer see their posts or comments.')) return;
-                      const { error } = await supabase.from('user_blocks' as any).insert({ blocker_id: userId, blocked_id: post.user_id });
-                      if (error && !/duplicate/i.test(error.message)) {
-                        toast({ title: 'Could not block', description: error.message, variant: 'destructive' });
-                        return;
-                      }
-                      toast({ title: 'User blocked' });
-                      await refreshBlocks();
-                      navigate(-1);
+              </SheetTrigger>
+              <SheetContent side="bottom" className="rounded-t-2xl pb-8">
+                <div className="flex flex-col gap-1 pt-4">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setMoreOpen(false);
+                      setTimeout(() => setReportOpen(true), 100);
                     }}
-                    className="cursor-pointer text-destructive focus:text-destructive"
+                    className="flex items-center gap-3 px-4 py-4 rounded-xl hover:bg-muted text-left"
                   >
-                    <Ban className="w-4 h-4 mr-2" /> Block user
-                  </DropdownMenuItem>
-                )}
-              </DropdownMenuContent>
-            </DropdownMenu>
+                    <Flag className="w-5 h-5" />
+                    <span className="font-medium">Report post</span>
+                  </button>
+                  {post.user_id && !post.is_anonymous && (
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        if (!window.confirm('Block this user? You will no longer see their posts or comments.')) return;
+                        const { error } = await supabase.from('user_blocks' as any).insert({ blocker_id: userId, blocked_id: post.user_id });
+                        if (error && !/duplicate/i.test(error.message)) {
+                          toast({ title: 'Could not block', description: error.message, variant: 'destructive' });
+                          return;
+                        }
+                        toast({ title: 'User blocked' });
+                        setMoreOpen(false);
+                        await refreshBlocks();
+                        navigate(-1);
+                      }}
+                      className="flex items-center gap-3 px-4 py-4 rounded-xl hover:bg-destructive/10 text-destructive text-left"
+                    >
+                      <Ban className="w-5 h-5" />
+                      <span className="font-medium">Block user</span>
+                    </button>
+                  )}
+                </div>
+              </SheetContent>
+            </Sheet>
+
           )}
+
         </div>
       </div>
       <ReportPostDialog open={reportOpen} onOpenChange={setReportOpen} postId={post.id} />
