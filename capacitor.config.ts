@@ -29,7 +29,7 @@ const config: CapacitorConfig = {
   // },
   ios: {
     contentInset: 'always',
-    packageManager: 'Cocoapods',
+    packageManager: 'SPM',
   },
   plugins: {
     SplashScreen: {
