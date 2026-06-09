@@ -72,7 +72,7 @@ const CATEGORIES: {
   { key: 'everyday_vibes', title: 'Daily Life', subtitle: 'Things you did, designed, decorated or bought', icon: Sparkles, accent: 'from-pink-500/20 to-orange-400/20 text-pink-500' },
   
   { key: 'trip', title: 'Travel Diaries', subtitle: 'A full journey or getaway', icon: Plane, accent: 'from-sky-500/20 to-cyan-400/20 text-sky-500' },
-  
+  { key: 'hidden_gems', title: 'Work Diaries', subtitle: <>option to post anonymous as <PenguinIcon /> Rippler</>, icon: Gem, accent: 'from-emerald-500/20 to-teal-400/20 text-emerald-500' },
   { key: 'review', title: 'Review', subtitle: 'A place, product, food spot, or experience you tried', icon: Star, accent: 'from-amber-500/20 to-yellow-400/20 text-amber-500' },
   { key: 'real_talk', title: 'Advice and Tips', subtitle: 'Share advice, recommendation or life lesson', icon: MessageSquareQuote, accent: 'from-sky-500/20 to-cyan-400/20 text-sky-500' },
 ];
