@@ -29,7 +29,6 @@ const config: CapacitorConfig = {
   // },
   ios: {
     contentInset: 'always',
-    packageManager: 'SPM',
   },
   plugins: {
     SplashScreen: {
