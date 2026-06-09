@@ -7,26 +7,48 @@ import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import AppLayout from "@/components/AppLayout";
 import DiscoverPage from "@/pages/DiscoverPage";
 
+// Retry a dynamic import once, then hard-reload if it still fails.
+// Fixes "Failed to fetch dynamically imported module" after a redeploy,
+// where the cached index.html points to chunk hashes that no longer exist.
+const lazyWithRetry = <T extends React.ComponentType<any>>(
+  factory: () => Promise<{ default: T }>,
+) =>
+  lazy(async () => {
+    try {
+      return await factory();
+    } catch (err) {
+      const reloadedKey = "lovable:chunk-reloaded";
+      if (typeof window !== "undefined" && !sessionStorage.getItem(reloadedKey)) {
+        sessionStorage.setItem(reloadedKey, "1");
+        window.location.reload();
+        // Return a never-resolving promise while reload happens
+        return new Promise<{ default: T }>(() => {});
+      }
+      throw err;
+    }
+  });
+
 // Code-split non-initial routes for faster mobile TTI
-const AuthPage = lazy(() => import("@/pages/AuthPage"));
-const OnboardingPage = lazy(() => import("@/pages/OnboardingPage"));
-const CreatePostPage = lazy(() => import("@/pages/CreatePostPage"));
-const EditPostPage = lazy(() => import("@/pages/EditPostPage"));
-const PostDetailPage = lazy(() => import("@/pages/PostDetailPage"));
-const UserProfilePage = lazy(() => import("@/pages/UserProfilePage"));
-const ProfilePage = lazy(() => import("@/pages/ProfilePage"));
-const NotificationsPage = lazy(() => import("@/pages/NotificationsPage"));
-const SavedPostsPage = lazy(() => import("@/pages/SavedPostsPage"));
-const AdminPanelPage = lazy(() => import("@/pages/AdminPanelPage"));
-const SettingsPage = lazy(() => import("@/pages/SettingsPage"));
-const BlockedAccountsPage = lazy(() => import("@/pages/BlockedAccountsPage"));
-const TermsPage = lazy(() => import("@/pages/TermsPage"));
-const PrivacyPage = lazy(() => import("@/pages/PrivacyPage"));
-const ContactPage = lazy(() => import("@/pages/ContactPage"));
-const AboutPage = lazy(() => import("@/pages/AboutPage"));
-const DeleteAccountPage = lazy(() => import("@/pages/DeleteAccountPage"));
-const SupportPage = lazy(() => import("@/pages/SupportPage"));
-const NotFound = lazy(() => import("@/pages/NotFound"));
+const AuthPage = lazyWithRetry(() => import("@/pages/AuthPage"));
+const OnboardingPage = lazyWithRetry(() => import("@/pages/OnboardingPage"));
+const CreatePostPage = lazyWithRetry(() => import("@/pages/CreatePostPage"));
+const EditPostPage = lazyWithRetry(() => import("@/pages/EditPostPage"));
+const PostDetailPage = lazyWithRetry(() => import("@/pages/PostDetailPage"));
+const UserProfilePage = lazyWithRetry(() => import("@/pages/UserProfilePage"));
+const ProfilePage = lazyWithRetry(() => import("@/pages/ProfilePage"));
+const NotificationsPage = lazyWithRetry(() => import("@/pages/NotificationsPage"));
+const SavedPostsPage = lazyWithRetry(() => import("@/pages/SavedPostsPage"));
+const AdminPanelPage = lazyWithRetry(() => import("@/pages/AdminPanelPage"));
+const SettingsPage = lazyWithRetry(() => import("@/pages/SettingsPage"));
+const BlockedAccountsPage = lazyWithRetry(() => import("@/pages/BlockedAccountsPage"));
+const TermsPage = lazyWithRetry(() => import("@/pages/TermsPage"));
+const PrivacyPage = lazyWithRetry(() => import("@/pages/PrivacyPage"));
+const ContactPage = lazyWithRetry(() => import("@/pages/ContactPage"));
+const AboutPage = lazyWithRetry(() => import("@/pages/AboutPage"));
+const DeleteAccountPage = lazyWithRetry(() => import("@/pages/DeleteAccountPage"));
+const SupportPage = lazyWithRetry(() => import("@/pages/SupportPage"));
+const NotFound = lazyWithRetry(() => import("@/pages/NotFound"));
+
 
 const queryClient = new QueryClient();
 
