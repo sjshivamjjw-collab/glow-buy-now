@@ -161,21 +161,18 @@ const AuthPage = () => {
                   try {
                     if (isNative()) {
                       // Native iOS: use system Sign in with Apple sheet
-                      const { SignInWithApple } = await import('@capacitor-community/apple-sign-in');
+                      const { AppleSignIn, SignInScope } = await import('@capawesome/capacitor-apple-sign-in');
                       // Generate a nonce for the id-token exchange
                       const nonceBytes = new Uint8Array(16);
                       crypto.getRandomValues(nonceBytes);
                       const rawNonce = Array.from(nonceBytes).map(b => b.toString(16).padStart(2, '0')).join('');
                       const hashBuf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(rawNonce));
                       const hashedNonce = Array.from(new Uint8Array(hashBuf)).map(b => b.toString(16).padStart(2, '0')).join('');
-                      const res = await SignInWithApple.authorize({
-                        clientId: 'in.myripple.app',
-                        redirectURI: 'https://myripple.co.in',
-                        scopes: 'email name',
-                        state: Math.random().toString(36).slice(2),
+                      const res = await AppleSignIn.signIn({
+                        scopes: [SignInScope.Email, SignInScope.FullName],
                         nonce: hashedNonce,
                       });
-                      const idToken = res?.response?.identityToken;
+                      const idToken = res?.idToken;
                       if (!idToken) {
                         toast({ title: 'Apple sign-in failed', description: 'No identity token returned', variant: 'destructive' });
                         return;
