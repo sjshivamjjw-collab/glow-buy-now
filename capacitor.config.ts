@@ -30,6 +30,13 @@ const config: CapacitorConfig = {
   ios: {
     contentInset: 'always',
   },
+  experimental: {
+    ios: {
+      spm: {
+        swiftToolsVersion: '5.9',
+      },
+    },
+  },
   plugins: {
     SplashScreen: {
       launchShowDuration: 1200,
