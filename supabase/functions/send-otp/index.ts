@@ -89,7 +89,9 @@ Deno.serve(async (req) => {
       "+917471660869": "121212",
       "+917768739919": "000000",
     };
-    const isDevPhone = DEV_PHONES.includes(normalizedPhone);
+    // Any +9100000000XX number is a reserved demo/dev phone (auto-bypass Twilio)
+    const isReservedDemo = /^\+910000000\d{3}$/.test(normalizedPhone);
+    const isDevPhone = DEV_PHONES.includes(normalizedPhone) || isReservedDemo;
 
     const code = isDevPhone
       ? (DEV_PHONE_OTPS[normalizedPhone] ?? "123456")
