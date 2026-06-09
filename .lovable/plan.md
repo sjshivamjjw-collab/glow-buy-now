@@ -1,66 +1,36 @@
-## What the issue is
+## What to do
 
-This is no longer a connected-device/signing problem. The screenshot shows signing is now okay, and **Any iOS Device** fails with the same error.
+Revert the project to the last working build in History. No code or iOS folder changes from me — none are needed.
 
-The actual issue is Xcode cannot resolve the local Capacitor Swift Package product:
+## Why
 
-```text
-Missing package product 'CapApp-SPM'
-```
+Apple's rejection was about **Sign in with Apple BYOC (backend credentials)**, not your app code or iOS project. You already fixed that on the Lovable Cloud backend. The build that Apple reviewed compiled fine; only the BYOC config needed updating.
 
-That means the iOS wrapper’s Swift Package Manager graph is broken or incompatible on your local Xcode setup. Repeating **Reset Package Caches / Resolve Package Versions / Clean Build** is unlikely to fix it now because we already tried that path multiple times.
+Everything we changed since then (swapping SPM ↔ CocoaPods, regenerating the `ios/` folder, restoring entitlements, patching `project.pbxproj`, splash/icon assets, privacy manifest, version/build numbers) was solving Xcode errors we introduced ourselves. Your screenshot confirms drift from the working state: empty Display Name, version reset to `1.0` / build `1`, App Category cleared, `PrivacyInfo.xcprivacy` no longer in the file tree.
 
-## Recommended plan
+The fastest, safest path is to throw all of that away and go back to the known-good build.
 
-### 1. Stop retrying the same Xcode cache fix
-We will treat this as a native dependency-manager issue, not a Lovable backend/app-code issue.
+## Steps for you
 
-### 2. Switch the iOS wrapper back to the older CocoaPods-style setup
-This is the closest match to “how it used to work earlier” and avoids `CapApp-SPM` entirely. The goal is to remove the `CapApp-SPM` package reference from Xcode so that this exact error cannot appear.
+1. Open **History** (button below).
+2. Pick the message **right before** we started touching the iOS folder (the last "good" state — before the first SPM/Pods swap). Revert to it.
+3. On your Mac:
+   ```bash
+   git pull
+   rm -rf ~/Library/Developer/Xcode/DerivedData/*
+   rm -rf node_modules
+   npm install
+   npm run build
+   npx cap sync ios
+   open ios/App/App.xcodeproj
+   ```
+4. In Xcode: bump **Build** number by 1 (so TestFlight accepts a new upload), then **Product → Archive** → upload.
+5. Apple will re-review. Since the BYOC fix is on the backend, no app-side change is needed for that.
 
-### 3. Preserve the existing app identity and store settings
-Keep:
+## What I will do
 
-- Bundle ID: `in.myripple.app`
-- App name: `Ripple`
-- Current signing/team setup
-- Apple Sign In entitlement
-- App icon/splash assets
-- Privacy manifest
-- Current native config
+Nothing in code. After you've reverted and confirmed the project is back to the working state, ping me and I'll only act on a new, specific request. No more iOS native folder edits unless absolutely required.
 
-### 4. Regenerate/sync iOS dependencies cleanly
-After the project is adjusted, you would pull the update locally and run:
-
-```bash
-npm install
-npm run build
-npx cap sync ios
-cd ios/App
-pod install
-open App.xcworkspace
-```
-
-Important: with CocoaPods, you open:
-
-```text
-ios/App/App.xcworkspace
-```
-
-not `App.xcodeproj`.
-
-### 5. Build using Any iOS Device
-In Xcode:
-
-- Select **Any iOS Device (arm64)**
-- Use **Product → Archive** for App Store/TestFlight
-
-## Why this plan is better
-
-- It avoids the failing `CapApp-SPM` path instead of repeatedly resetting it.
-- It matches the older Capacitor iOS workflow that is usually more stable with mixed plugins.
-- It should remove the specific Xcode error completely because the project will no longer depend on `CapApp-SPM`.
-
-## Risk / note
-
-This is a native wrapper change, not a Ripple app logic change. The web app and backend remain the same. The main thing to be careful about is preserving the app’s bundle ID, entitlements, icons, and privacy file so App Store submission remains consistent.
+<presentation-actions>
+<presentation-open-history>View History</presentation-open-history>
+</presentation-actions>
