@@ -1,96 +1,66 @@
-## Before handing back your friend's Mac — Ripple iOS checklist
+## What the issue is
 
-You've already submitted Build 3 to App Review. Goal now: make sure you can ship updates, respond to Apple, and rebuild from a fresh Mac later without losing anything that lives only on that laptop.
+This is no longer a connected-device/signing problem. The screenshot shows signing is now okay, and **Any iOS Device** fails with the same error.
 
----
+The actual issue is Xcode cannot resolve the local Capacitor Swift Package product:
 
-### 1. Push the `ios/` folder to GitHub (most important)
+```text
+Missing package product 'CapApp-SPM'
+```
 
-When you ran `npx cap add ios` on his Mac, it created an `/ios` folder with the Xcode project, signing config, `Info.plist`, `PrivacyInfo.xcprivacy`, generated icons/splash, and `Podfile.lock`. If this isn't committed to your repo, a new Mac has to redo all of section 1–2 of `docs/APP_STORE_SUBMISSION.md` from scratch.
+That means the iOS wrapper’s Swift Package Manager graph is broken or incompatible on your local Xcode setup. Repeating **Reset Package Caches / Resolve Package Versions / Clean Build** is unlikely to fix it now because we already tried that path multiple times.
 
-On his Mac, in the project folder:
-- Confirm `/ios` is committed and pushed to GitHub (check on github.com).
-- Same for `/resources/icon.png`, `/resources/splash.png` if you generated/edited them there.
-- Same for any screenshots you took for the App Store listing.
+## Recommended plan
 
-If `/ios` is in `.gitignore`, remove that line, commit, and push.
+### 1. Stop retrying the same Xcode cache fix
+We will treat this as a native dependency-manager issue, not a Lovable backend/app-code issue.
 
----
+### 2. Switch the iOS wrapper back to the older CocoaPods-style setup
+This is the closest match to “how it used to work earlier” and avoids `CapApp-SPM` entirely. The goal is to remove the `CapApp-SPM` package reference from Xcode so that this exact error cannot appear.
 
-### 2. Export the iOS Distribution signing assets
+### 3. Preserve the existing app identity and store settings
+Keep:
 
-This is the thing people forget and regret. Without these, a new Mac cannot upload a build that App Store Connect will accept as the same app — even though the bundle ID is the same.
+- Bundle ID: `in.myripple.app`
+- App name: `Ripple`
+- Current signing/team setup
+- Apple Sign In entitlement
+- App icon/splash assets
+- Privacy manifest
+- Current native config
 
-In **Xcode → Settings → Accounts → your Apple ID → Manage Certificates**:
-- Right-click your **Apple Distribution** certificate → **Export Certificate** → save as `Ripple-Distribution.p12` with a password you'll remember.
+### 4. Regenerate/sync iOS dependencies cleanly
+After the project is adjusted, you would pull the update locally and run:
 
-In **Keychain Access** (Login keychain → My Certificates):
-- Find the same Apple Distribution cert, expand it, select **both the cert and its private key**, right-click → Export → `.p12`.
+```bash
+npm install
+npm run build
+npx cap sync ios
+cd ios/App
+pod install
+open App.xcworkspace
+```
 
-Also download from https://developer.apple.com/account:
-- The **Distribution certificate** (`.cer`)
-- The **App Store provisioning profile** for `in.myripple.app` (`.mobileprovision`)
+Important: with CocoaPods, you open:
 
-Store all of these somewhere safe (1Password / iCloud Drive / encrypted USB) — NOT in the GitHub repo.
+```text
+ios/App/App.xcworkspace
+```
 
----
+not `App.xcodeproj`.
 
-### 3. Save the App Store Connect API key (optional but recommended)
+### 5. Build using Any iOS Device
+In Xcode:
 
-App Store Connect → Users and Access → Integrations → **App Store Connect API** → generate a key for yourself. Download the `.p8` file (Apple only lets you download it once) and note the **Key ID** and **Issuer ID**.
+- Select **Any iOS Device (arm64)**
+- Use **Product → Archive** for App Store/TestFlight
 
-This lets any future Mac (or a CI service) upload builds without re-doing certificate dance.
+## Why this plan is better
 
----
+- It avoids the failing `CapApp-SPM` path instead of repeatedly resetting it.
+- It matches the older Capacitor iOS workflow that is usually more stable with mixed plugins.
+- It should remove the specific Xcode error completely because the project will no longer depend on `CapApp-SPM`.
 
-### 4. Set up Capgo so you can ship JS updates without a Mac
+## Risk / note
 
-Your app already has `@capgo/capacitor-updater` wired in (`capacitor.config.ts` + `src/main.tsx`). Once Build 3 is approved, you can push UI/logic fixes to installed apps from any computer — Mac not required.
-
-On his Mac while you still have it, do the one-time setup from `docs/APP_STORE_SUBMISSION.md` section 9:
-- Sign up at https://capgo.app
-- `npx @capgo/cli@latest login` (paste your Capgo API key)
-- `npx @capgo/cli@latest app add`
-- `npx @capgo/cli@latest bundle upload --channel production` (ship the current build as the baseline)
-
-After this, any future change merged in Lovable can be pushed from your Windows/Linux machine with just `npm run build && npx @capgo/cli@latest bundle upload --channel production`. No Xcode needed.
-
-What still needs a Mac later: new Capacitor plugins, icon/splash/permission changes, Capacitor core upgrades, version bumps for the App Store. Everything else = Capgo.
-
----
-
-### 5. Things to check are saved off the Mac
-
-- [ ] `/ios` folder committed and pushed
-- [ ] `Ripple-Distribution.p12` exported with password (saved off-Mac)
-- [ ] Private key `.p12` from Keychain exported (saved off-Mac)
-- [ ] App Store Connect API key `.p8` downloaded (optional)
-- [ ] App Store screenshots saved somewhere outside the Mac
-- [ ] Any review-reply drafts / Apple correspondence copied
-- [ ] You are logged into App Store Connect from your own browser (not just his) — confirm at https://appstoreconnect.apple.com
-
----
-
-### 6. Clean up his Mac
-
-- Xcode → Settings → Accounts → remove your Apple ID
-- Keychain Access → delete your Apple Distribution cert + private key after you've confirmed the `.p12` export opens correctly on another machine
-- Sign out of App Store Connect / developer.apple.com in his browser
-- Delete the local repo clone if it has `.env` or any secrets
-
----
-
-### What you'll be able to do without his Mac
-
-- ✅ Reply to App Review messages (web only)
-- ✅ Ship JS/React/CSS fixes via Capgo OTA to all installed apps
-- ✅ Manage the App Store listing, screenshots, pricing, availability
-- ✅ Monitor crashes / analytics
-
-### What still needs a Mac
-
-- ❌ Uploading a new native build (Build 4, 5, …)
-- ❌ Adding a new Capacitor plugin or permission
-- ❌ Updating app icon / splash / version number for the store
-
-For those, either borrow his Mac again briefly, rent a cloud Mac (MacInCloud, MacStadium ~$30/mo), or set up GitHub Actions with the certs you exported in step 2 to build on a hosted macOS runner.
+This is a native wrapper change, not a Ripple app logic change. The web app and backend remain the same. The main thing to be careful about is preserving the app’s bundle ID, entitlements, icons, and privacy file so App Store submission remains consistent.
