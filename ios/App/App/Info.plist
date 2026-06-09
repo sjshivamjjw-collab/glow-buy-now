@@ -2,12 +2,10 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key>CAPACITOR_DEBUG</key>
-	<string>$(CAPACITOR_DEBUG)</string>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
 	<key>CFBundleDisplayName</key>
-	<string>Ripple</string>
+        <string>Ripple</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -47,15 +45,5 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<true/>
-	<key>NSCameraUsageDescription</key>
-	<string>Ripple needs camera access so you can capture photos and videos to share as posts.</string>
-	<key>NSPhotoLibraryUsageDescription</key>
-	<string>Ripple needs photo library access so you can pick photos and videos to share as posts.</string>
-	<key>NSPhotoLibraryAddUsageDescription</key>
-	<string>Ripple saves photos and videos you download from posts to your photo library.</string>
-	<key>NSMicrophoneUsageDescription</key>
-	<string>Ripple needs microphone access to record audio for video posts.</string>
-	<key>ITSAppUsesNonExemptEncryption</key>
-	<false/>
 </dict>
 </plist>
