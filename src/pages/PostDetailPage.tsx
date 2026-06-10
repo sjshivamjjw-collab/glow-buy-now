@@ -560,7 +560,7 @@ const PostDetailPage = () => {
             <video
               ref={videoRef}
               src={currentMedia.url}
-              className="w-full h-full object-contain"
+              className="w-full h-full object-cover"
               controls
               playsInline
               muted
