@@ -276,7 +276,10 @@ export const SingleImageTextEditor = ({ onDone, onCancel }: Props) => {
 
                     const onResizeDown = (e: React.PointerEvent) => {
                       e.stopPropagation();
-                      resizeState.current = { id: o.id, startX: e.clientX, startW: o.width ?? 0.7, stageW };
+                      resizeState.current = {
+                        id: o.id, startX: e.clientX, startY: e.clientY,
+                        startW: o.width ?? 0.7, startH: heights[o.id] ?? 0, stageW,
+                      };
                       (e.target as Element).setPointerCapture?.(e.pointerId);
                     };
                     const onResizeMove = (e: React.PointerEvent) => {
@@ -285,6 +288,8 @@ export const SingleImageTextEditor = ({ onDone, onCancel }: Props) => {
                       e.stopPropagation();
                       const dxFrac = ((e.clientX - r.startX) * 2) / r.stageW;
                       patchOverlay(o.id, { width: Math.max(0.18, Math.min(0.95, r.startW + dxFrac)) });
+                      const newH = Math.max(0, r.startH + (e.clientY - r.startY));
+                      setHeights((h) => ({ ...h, [o.id]: newH }));
                     };
                     const onResizeUp = () => { resizeState.current = null; };
 
