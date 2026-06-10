@@ -203,7 +203,7 @@ export const SingleImageTextEditor = ({ onDone, onCancel }: Props) => {
               const fontPx = Math.max(14, sizePx(s.overlay.size, trackRef.current?.clientWidth ?? 360));
               const textColor = COLOR_MAP[s.overlay.color];
               const bgColor = s.overlay.bgEnabled
-                ? (s.overlay.color === 'white' || s.overlay.color === 'cream' ? 'rgba(0,0,0,0.45)' : 'rgba(255,255,255,0.55)')
+                ? (LIGHT_COLORS.has(s.overlay.color) ? 'rgba(0,0,0,0.45)' : 'rgba(255,255,255,0.55)')
                 : 'transparent';
               return (
                 <div
