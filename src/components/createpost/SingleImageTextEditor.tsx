@@ -491,7 +491,9 @@ export const SingleImageTextEditor = ({ onDone, onCancel, initialState }: Props)
             <ToolButton
               icon={<Plus className="w-5 h-5" />}
               onClick={addOverlay}
+              label="Add text"
             />
+
           </div>
         )}
 
