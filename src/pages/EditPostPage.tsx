@@ -447,6 +447,15 @@ const EditPostPage = () => {
                   <img src={m.previewUrl} alt="" className="w-full h-full object-contain" />
                 )}
                 <span className="absolute bottom-1 left-1 px-1.5 py-0.5 rounded bg-[#ef4444] text-white text-[10px] font-semibold">New</span>
+                {m.editorState && (
+                  <button
+                    onClick={() => startEditNewMedia(m)}
+                    aria-label="Edit layout"
+                    className="absolute bottom-1 right-1 px-2 h-6 rounded-full bg-black/70 text-white text-[10px] font-semibold flex items-center gap-1"
+                  >
+                    <Pencil className="w-3 h-3" /> Edit
+                  </button>
+                )}
                 <button
                   onClick={() => removeNew(m.tempId)}
                   aria-label="Remove"
@@ -458,11 +467,11 @@ const EditPostPage = () => {
             ))}
             {totalMedia < MAX_FILES && (
               <button
-                onClick={() => fileRef.current?.click()}
+                onClick={() => setLayoutSheetOpen(true)}
                 className="aspect-square rounded-xl border-2 border-dashed border-[#e5e5e5] bg-[#fafafa] flex flex-col items-center justify-center gap-1 text-[#6b6b6b] hover:border-[#ef4444]/50 hover:text-[#ef4444] transition-colors"
               >
                 <ImagePlus className="w-6 h-6" />
-                <span className="text-[11px] font-semibold">Add</span>
+                <span className="text-[11px] font-semibold">Add media</span>
               </button>
             )}
           </div>
