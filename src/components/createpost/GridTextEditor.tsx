@@ -3,7 +3,7 @@ import { ArrowLeft, ImagePlus, X, Check, Plus, Type, Circle, Highlighter } from 
 import { composeGrid, type TextOverlay, type OverlayColor, type OverlaySize, COLOR_MAP, sizePx } from '@/lib/composeLayout';
 import { useToast } from '@/hooks/use-toast';
 
-interface Cell { file: File | null; previewUrl: string | null }
+interface Cell { file: File | null; previewUrl: string | null; posX: number; posY: number }
 
 interface Props {
   onDone: (files: File[]) => void;
@@ -23,12 +23,8 @@ const newOverlay = (id: string): TextOverlay => ({
 
 export const GridTextEditor = ({ onDone, onCancel }: Props) => {
   const { toast } = useToast();
-  const [cells, setCells] = useState<Cell[]>([
-    { file: null, previewUrl: null },
-    { file: null, previewUrl: null },
-    { file: null, previewUrl: null },
-    { file: null, previewUrl: null },
-  ]);
+  const emptyCell = (): Cell => ({ file: null, previewUrl: null, posX: 0.5, posY: 0.5 });
+  const [cells, setCells] = useState<Cell[]>([emptyCell(), emptyCell(), emptyCell(), emptyCell()]);
   const [overlays, setOverlays] = useState<TextOverlay[]>([]);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -39,19 +35,52 @@ export const GridTextEditor = ({ onDone, onCancel }: Props) => {
   const editInputRef = useRef<HTMLTextAreaElement>(null);
   const dragState = useRef<{ id: string; startX: number; startY: number; ox: number; oy: number; w: number; h: number; moved: boolean } | null>(null);
   const resizeState = useRef<{ id: string; startX: number; startY: number; startW: number; startH: number; stageW: number } | null>(null);
+  const panState = useRef<{ idx: number; startX: number; startY: number; sx: number; sy: number; size: number } | null>(null);
   const [heights, setHeights] = useState<Record<string, number>>({});
 
   useEffect(() => () => cells.forEach((c) => c.previewUrl && URL.revokeObjectURL(c.previewUrl)), []); // eslint-disable-line
 
-  const setFile = (idx: number, fl: FileList | null) => {
-    if (!fl || !fl[0]) return;
-    const file = fl[0];
-    if (!file.type.startsWith('image/')) return;
+  // Insert one or more files starting at startIdx, filling empty cells (or
+  // replacing startIdx if it already has an image). Multi-select on iOS lets
+  // the user pick all four at once.
+  const setFiles = (startIdx: number, fl: FileList | null) => {
+    if (!fl || !fl.length) return;
+    const arr = Array.from(fl).filter((f) => {
+      const looksImage = f.type.startsWith('image/') || /\.(jpe?g|png|gif|webp|heic|heif|bmp)$/i.test(f.name);
+      return looksImage;
+    });
+    if (!arr.length) return;
     setCells((prev) => {
-      const c = [...prev];
-      if (c[idx].previewUrl) URL.revokeObjectURL(c[idx].previewUrl!);
-      c[idx] = { file, previewUrl: URL.createObjectURL(file) };
-      return c;
+      const next = [...prev];
+      // Replace the tapped cell with the first picked file.
+      if (next[startIdx].previewUrl) URL.revokeObjectURL(next[startIdx].previewUrl!);
+      next[startIdx] = { file: arr[0], previewUrl: URL.createObjectURL(arr[0]), posX: 0.5, posY: 0.5 };
+      // Fill remaining files into the next empty cells (wrapping after startIdx).
+      let cursor = 1;
+      for (let k = 0; k < next.length && cursor < arr.length; k++) {
+        const i = (startIdx + k + 1) % next.length;
+        if (next[i].file) continue;
+        next[i] = { file: arr[cursor], previewUrl: URL.createObjectURL(arr[cursor]), posX: 0.5, posY: 0.5 };
+        cursor++;
+      }
+      return next;
+    });
+  };
+
+  const clearCell = (idx: number) => {
+    setCells((prev) => {
+      const next = [...prev];
+      if (next[idx].previewUrl) URL.revokeObjectURL(next[idx].previewUrl!);
+      next[idx] = emptyCell();
+      return next;
+    });
+  };
+
+  const setCellPos = (idx: number, posX: number, posY: number) => {
+    setCells((prev) => {
+      const next = [...prev];
+      next[idx] = { ...next[idx], posX, posY };
+      return next;
     });
   };
 
@@ -64,8 +93,13 @@ export const GridTextEditor = ({ onDone, onCancel }: Props) => {
     }
     setBusy(true);
     try {
-      const files = cells.map((c) => c.file!) as [File, File, File, File];
-      const out = await composeGrid(files, overlays.filter((o) => o.text.trim()));
+      const input = cells.map((c) => ({ file: c.file!, posX: c.posX, posY: c.posY })) as [
+        { file: File; posX: number; posY: number },
+        { file: File; posX: number; posY: number },
+        { file: File; posX: number; posY: number },
+        { file: File; posX: number; posY: number },
+      ];
+      const out = await composeGrid(input, overlays.filter((o) => o.text.trim()));
       onDone([out]);
     } catch (e) {
       console.error(e);
@@ -158,7 +192,9 @@ export const GridTextEditor = ({ onDone, onCancel }: Props) => {
               <CellPicker
                 key={i}
                 cell={c}
-                onPick={(fl) => setFile(i, fl)}
+                onPick={(fl) => setFiles(i, fl)}
+                onClear={() => clearCell(i)}
+                onPan={(posX, posY) => setCellPos(i, posX, posY)}
               />
             ))}
           </div>
@@ -365,18 +401,94 @@ const ToolButton = ({
   </div>
 );
 
-const CellPicker = ({ cell, onPick }: { cell: Cell; onPick: (fl: FileList | null) => void }) => {
+const CellPicker = ({
+  cell,
+  onPick,
+  onClear,
+  onPan,
+}: {
+  cell: Cell;
+  onPick: (fl: FileList | null) => void;
+  onClear: () => void;
+  onPan: (posX: number, posY: number) => void;
+}) => {
   const inputRef = useRef<HTMLInputElement>(null);
+  const wrapRef = useRef<HTMLDivElement>(null);
+  const imgRef = useRef<HTMLImageElement>(null);
+  const dragRef = useRef<{
+    startX: number; startY: number; startPosX: number; startPosY: number;
+    panRangeX: number; panRangeY: number; moved: boolean;
+  } | null>(null);
+
+  const onPointerDown = (e: React.PointerEvent) => {
+    if (!cell.file || !wrapRef.current || !imgRef.current) return;
+    const wrap = wrapRef.current.getBoundingClientRect();
+    const img = imgRef.current;
+    const ir = img.naturalWidth / img.naturalHeight;
+    const tr = wrap.width / wrap.height;
+    // displayed image size when object-cover is applied
+    let dispW: number, dispH: number;
+    if (ir > tr) { dispH = wrap.height; dispW = dispH * ir; }
+    else { dispW = wrap.width; dispH = dispW / ir; }
+    const panRangeX = Math.max(1, dispW - wrap.width);
+    const panRangeY = Math.max(1, dispH - wrap.height);
+    dragRef.current = {
+      startX: e.clientX, startY: e.clientY,
+      startPosX: cell.posX, startPosY: cell.posY,
+      panRangeX, panRangeY, moved: false,
+    };
+    (e.target as Element).setPointerCapture?.(e.pointerId);
+  };
+  const onPointerMove = (e: React.PointerEvent) => {
+    const d = dragRef.current;
+    if (!d) return;
+    const dx = e.clientX - d.startX;
+    const dy = e.clientY - d.startY;
+    if (Math.abs(dx) > 3 || Math.abs(dy) > 3) d.moved = true;
+    // Drag right -> reveal left of image -> posX decreases.
+    const nx = Math.max(0, Math.min(1, d.startPosX - dx / d.panRangeX));
+    const ny = Math.max(0, Math.min(1, d.startPosY - dy / d.panRangeY));
+    onPan(nx, ny);
+  };
+  const onPointerUp = () => {
+    const d = dragRef.current;
+    dragRef.current = null;
+    if (d && !d.moved && !cell.file) inputRef.current?.click();
+  };
+  const onTap = () => { if (!cell.file) inputRef.current?.click(); };
+
   return (
-    <button
-      type="button"
-      onClick={() => inputRef.current?.click()}
-      className="relative bg-[#1a1a1a] overflow-hidden flex items-center justify-center cursor-pointer w-full h-full"
+    <div
+      ref={wrapRef}
+      className="relative bg-[#1a1a1a] overflow-hidden w-full h-full select-none"
+      style={{ touchAction: cell.file ? 'none' : 'auto' }}
+      onClick={onTap}
     >
       {cell.previewUrl ? (
-        <img src={cell.previewUrl} alt="" className="w-full h-full object-cover pointer-events-none" />
+        <>
+          <img
+            ref={imgRef}
+            src={cell.previewUrl}
+            alt=""
+            draggable={false}
+            onPointerDown={onPointerDown}
+            onPointerMove={onPointerMove}
+            onPointerUp={onPointerUp}
+            onPointerCancel={onPointerUp}
+            className="w-full h-full object-cover cursor-move"
+            style={{ objectPosition: `${cell.posX * 100}% ${cell.posY * 100}%` }}
+          />
+          <button
+            type="button"
+            onClick={(e) => { e.stopPropagation(); onClear(); }}
+            aria-label="Remove photo"
+            className="absolute top-1.5 right-1.5 w-6 h-6 rounded-full bg-black/70 text-white flex items-center justify-center z-10"
+          >
+            <X className="w-3.5 h-3.5" />
+          </button>
+        </>
       ) : (
-        <div className="flex flex-col items-center justify-center text-white/70 gap-1 pointer-events-none">
+        <div className="w-full h-full flex flex-col items-center justify-center text-white/70 gap-1 pointer-events-none">
           <ImagePlus className="w-5 h-5" />
           <span className="text-[10px] font-semibold">Tap to add</span>
         </div>
@@ -385,9 +497,10 @@ const CellPicker = ({ cell, onPick }: { cell: Cell; onPick: (fl: FileList | null
         ref={inputRef}
         type="file"
         accept="image/*,image/heic,image/heif"
+        multiple
         className="hidden"
         onChange={(e) => { onPick(e.target.files); e.target.value = ''; }}
       />
-    </button>
+    </div>
   );
 };
