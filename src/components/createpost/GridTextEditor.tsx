@@ -388,13 +388,21 @@ export const GridTextEditor = ({ onDone, onCancel, initialState }: Props) => {
             />
           </div>
         )}
+
+        {/* Floating "Add text" button — middle right, always visible when no overlay is active */}
+        {!active && (
+          <button
+            type="button"
+            onClick={addOverlay}
+            className="absolute right-3 top-1/2 -translate-y-1/2 z-20 flex items-center gap-1.5 pl-3 pr-4 py-2.5 rounded-full bg-black/70 backdrop-blur text-white text-sm font-semibold shadow-lg border border-white/20"
+          >
+            <Plus className="w-4 h-4" /> Add text
+          </button>
+        )}
       </div>
 
-      <div className="px-4 py-3 bg-black/80 text-white flex items-center justify-between pb-[calc(env(safe-area-inset-bottom)+12px)]" data-dismiss-tool="1">
+      <div className="px-4 py-3 bg-black/80 text-white flex items-center justify-center pb-[calc(env(safe-area-inset-bottom)+12px)]" data-dismiss-tool="1">
         <span className="text-xs opacity-80">{filledCount}/4 photos</span>
-        <button type="button" onClick={addOverlay} className="flex items-center gap-1 text-sm font-semibold">
-          <Plus className="w-4 h-4" /> Add text
-        </button>
       </div>
     </div>
   );
