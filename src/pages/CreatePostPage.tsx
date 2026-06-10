@@ -245,7 +245,7 @@ const CreatePostPage = () => {
   const [activeLayout, setActiveLayout] = useState<LayoutChoice | null>(null);
   // When set, finishing the active layout editor REPLACES this entry instead of appending.
   const [editingMediaId, setEditingMediaId] = useState<string | null>(null);
-  const [draftRestored] = useState(() => !!(initial && (initial.title || initial.body || initial.location || initial.hashtags?.length || initial.category)));
+  const [draftRestored, setDraftRestored] = useState(() => !!(initial && (initial.title || initial.body || initial.location || initial.hashtags?.length || initial.category)));
 
   // Anonymous toggle only applies to Work Diaries — reset when leaving that category.
   useEffect(() => {
@@ -265,14 +265,55 @@ const CreatePostPage = () => {
     return () => clearTimeout(t);
   }, [category, reviewSub, recommendation, title, body, location, hashtags, music, postAnonymously]);
 
+  // ─── Media drafts (IndexedDB) ─────────────────────────────────────────────
+  // Skip the first auto-save right after we hydrate from IDB so an empty
+  // initial `media` state can't wipe the saved draft before load completes.
+  const mediaHydratedRef = useRef(false);
+  useEffect(() => {
+    (async () => {
+      const saved = await loadDraftMedia();
+      if (saved.length) {
+        setMedia(saved.map(s => ({
+          id: s.id,
+          file: new File([s.fileBlob], s.fileName || (s.kind === 'video' ? 'video.mp4' : 'photo.jpg'), { type: s.fileType || (s.kind === 'video' ? 'video/mp4' : 'image/jpeg') }),
+          previewUrl: URL.createObjectURL(s.fileBlob),
+          kind: s.kind,
+          editorState: s.editorState ? deserializeEditorState(s.editorState) : undefined,
+        })));
+        setDraftRestored(true);
+      }
+      mediaHydratedRef.current = true;
+    })();
+  }, []);
+
+  useEffect(() => {
+    if (!mediaHydratedRef.current) return;
+    const t = setTimeout(() => {
+      if (media.length === 0) { clearDraftMedia(); return; }
+      saveDraftMedia(media.map(m => ({
+        id: m.id,
+        kind: m.kind,
+        fileBlob: m.file,
+        fileName: m.file.name,
+        fileType: m.file.type,
+        editorState: m.editorState ? serializeEditorState(m.editorState) : undefined,
+      })));
+    }, 400);
+    return () => clearTimeout(t);
+  }, [media]);
+
   const clearDraft = () => {
     try { localStorage.removeItem(DRAFT_KEY); } catch {}
+    clearDraftMedia();
   };
 
   const discardDraft = () => {
     clearDraft();
     setCategory(null); setReviewSub(null); setRecommendation(null); setTitle(''); setBody('');
     setLocation(''); setHashtags([]); setMusic(null); setPostAnonymously(false);
+    setMedia(prev => { prev.forEach(m => URL.revokeObjectURL(m.previewUrl)); return []; });
+    setCoverFile(null); setCoverMediaId(null);
+    setDraftRestored(false);
     toast({ title: 'Draft discarded' });
   };
 
