@@ -141,6 +141,17 @@ const PostDetailPage = () => {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const [showCommentBar, setShowCommentBar] = useState(false);
   const currentMedia = media[mediaIdx];
+  const [emblaRef, emblaApi] = useEmblaCarousel({ loop: false, align: 'start', containScroll: 'trimSnaps' });
+  useEffect(() => {
+    if (!emblaApi) return;
+    const onSelect = () => setMediaIdx(emblaApi.selectedScrollSnap());
+    emblaApi.on('select', onSelect);
+    emblaApi.on('reInit', onSelect);
+    return () => { emblaApi.off('select', onSelect); emblaApi.off('reInit', onSelect); };
+  }, [emblaApi]);
+  useEffect(() => {
+    if (emblaApi) emblaApi.reInit();
+  }, [emblaApi, media.length]);
   const mention = useMentionAutocomplete({
     value: draft,
     cursor: draftCursor,
