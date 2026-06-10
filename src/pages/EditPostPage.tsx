@@ -30,8 +30,8 @@ const REVIEW_SUB_LABELS: Record<ReviewSubKey, string> = {
 };
 
 const TITLE_MAX = 90;
-const MAX_FILES = 10;
-const MAX_FILE_MB = 25;
+const MAX_FILES = 18;
+const MAX_FILE_MB = 50;
 
 interface ExistingMedia {
   id: string;
