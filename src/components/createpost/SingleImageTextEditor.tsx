@@ -264,7 +264,7 @@ export const SingleImageTextEditor = ({ onDone, onCancel }: Props) => {
 
                   {/* Overlays */}
                   {isActive && s.overlays.map((o) => {
-                    const fontPx = Math.max(14, sizePx(o.size, stageW));
+                    const fontPx = Math.max(10, sizePx(o.size, stageW));
                     const textColor = COLOR_MAP[o.color];
                     const bgColor = o.bgEnabled
                       ? (LIGHT_COLORS.has(o.color) ? 'rgba(0,0,0,0.45)' : 'rgba(255,255,255,0.55)')
