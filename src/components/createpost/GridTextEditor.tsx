@@ -200,7 +200,7 @@ export const GridTextEditor = ({ onDone, onCancel }: Props) => {
                 cell={c}
                 onPick={(fl) => setFiles(i, fl)}
                 onClear={() => clearCell(i)}
-                onPan={(posX, posY) => setCellPos(i, posX, posY)}
+                onTransform={(patch) => setCellTransform(i, patch)}
               />
             ))}
           </div>
