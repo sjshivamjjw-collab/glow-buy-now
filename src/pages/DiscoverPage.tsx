@@ -657,26 +657,17 @@ const DiscoverPage = () => {
                 onClick={() => navigate(`/p/${p.id}`)}
                 className="group mb-1.5 w-full text-left rounded-3xl overflow-hidden bg-[#161616] border border-[#2a2a2a]/50 hover:border-[#ef4444] hover:shadow-lg hover:shadow-[#dc2626]/10 transition-all duration-300"
               >
-                <div className={`relative w-full bg-[#1a1a1a] overflow-hidden ${p.cover_url ? '' : ''}`} style={p.cover_url ? undefined : { height: `${h}px` }}>
+                <div className={`relative w-full bg-[#1a1a1a] overflow-hidden ${p.cover_url ? 'aspect-[4/5]' : ''}`} style={p.cover_url ? undefined : { height: `${h}px` }}>
                   {p.cover_url ? (
                     p.cover_kind === 'video' ? (
-                      <div className="relative w-full aspect-[4/5]">
+                      <>
                         <LazyVideoThumbnail src={p.cover_url} className="w-full h-full group-hover:scale-105 transition-transform duration-500" />
                         <span className="absolute top-2 right-2 w-8 h-8 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center">
                           <Play className="w-3.5 h-3.5 text-white fill-white" />
                         </span>
-                      </div>
+                      </>
                     ) : (
-                      // Render at the image's natural aspect so square grids, 4:5
-                      // cost-breakdowns, and tall single photos all fit fully
-                      // (no cropping, no letterbox bands).
-                      <img
-                        src={optimizedImageUrl(p.cover_url, { width: 600, quality: 70 })!}
-                        alt={p.title || ''}
-                        className="w-full h-auto block group-hover:scale-105 transition-transform duration-500"
-                        loading="lazy"
-                        decoding="async"
-                      />
+                      <img src={optimizedImageUrl(p.cover_url, { width: 600, quality: 70, resize: 'contain' })!} alt={p.title || ''} className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-500" loading="lazy" decoding="async" />
                     )
                   ) : (
                     <TextCoverCard title={p.title || p.body} />
