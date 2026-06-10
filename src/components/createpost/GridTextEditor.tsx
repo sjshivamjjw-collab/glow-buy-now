@@ -6,7 +6,7 @@ import { useToast } from '@/hooks/use-toast';
 interface Cell { file: File | null; previewUrl: string | null; posX: number; posY: number; scale: number }
 
 interface Props {
-  onDone: (files: File[], state: LayoutEditorState) => void;
+  onDone: (files: File[], states: LayoutEditorState[]) => void;
   onCancel: () => void;
   initialState?: Extract<LayoutEditorState, { kind: 'grid' }>;
 }
