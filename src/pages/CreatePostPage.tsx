@@ -223,6 +223,8 @@ const CreatePostPage = () => {
   const [musicPickerOpen, setMusicPickerOpen] = useState(false);
   const [postAnonymously, setPostAnonymously] = useState<boolean>(initial?.postAnonymously ?? false);
   const [submitting, setSubmitting] = useState(false);
+  const [layoutSheetOpen, setLayoutSheetOpen] = useState(false);
+  const [activeLayout, setActiveLayout] = useState<LayoutChoice | null>(null);
   const [draftRestored] = useState(() => !!(initial && (initial.title || initial.body || initial.location || initial.hashtags?.length || initial.category)));
 
   // Anonymous toggle only applies to Work Diaries — reset when leaving that category.
