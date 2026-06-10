@@ -33,9 +33,9 @@ export const COLOR_MAP: Record<OverlayColor, string> = {
 
 // Font size as a fraction of canvas width.
 const SIZE_RATIO: Record<OverlaySize, number> = {
-  sm: 0.030,
-  md: 0.042,
-  lg: 0.058,
+  sm: 0.021,
+  md: 0.029,
+  lg: 0.041,
 };
 
 
