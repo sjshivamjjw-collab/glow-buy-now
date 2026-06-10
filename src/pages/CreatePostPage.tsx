@@ -756,7 +756,13 @@ const CreatePostPage = () => {
         <SortableContext items={media.map(m => m.id)} strategy={rectSortingStrategy}>
           <div className="grid grid-cols-3 gap-2 mb-1">
             {media.map((m, i) => (
-              <SortableMediaTile key={m.id} m={m} onRemove={() => removeMedia(i)} onCrop={i === 0 ? () => setEditCropId(m.id) : undefined} />
+              <SortableMediaTile
+                key={m.id}
+                m={m}
+                onRemove={() => removeMedia(i)}
+                onCrop={i === 0 ? () => setEditCropId(m.id) : undefined}
+                onEdit={m.editorState ? () => startEditMedia(m) : undefined}
+              />
             ))}
             {media.length < MAX_FILES && (
               <button
