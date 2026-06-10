@@ -152,6 +152,16 @@ const SortableMediaTile = ({ m, onRemove, onCrop, onEdit }: { m: PendingMedia; o
           <Crop className="w-3.5 h-3.5" />
         </button>
       )}
+      {onEdit && m.editorState && (
+        <button
+          onPointerDown={e => e.stopPropagation()}
+          onClick={e => { e.stopPropagation(); onEdit(); }}
+          aria-label="Edit layout"
+          className="absolute bottom-1 right-1 px-2 h-6 rounded-full bg-black/70 text-white text-[10px] font-semibold flex items-center gap-1"
+        >
+          <Pencil className="w-3 h-3" /> Edit
+        </button>
+      )}
       <button
         onPointerDown={e => e.stopPropagation()}
         onClick={e => { e.stopPropagation(); onRemove(); }}
