@@ -317,6 +317,9 @@ const CreatePostPage = () => {
       file,
       previewUrl: URL.createObjectURL(file),
       kind,
+    };
+    setMedia(prev => [...prev, entry]);
+    return entry.id;
   };
 
   const handleLayoutDone = (files: File[]) => {
@@ -330,14 +333,12 @@ const CreatePostPage = () => {
       const id = addMediaFile(f);
       if (i === 0) firstId = id;
     });
-    // Composed images are already designed by the user — use the first as the cover as-is.
     if (firstId && !coverFile) {
       setCoverFile(slice[0]);
       setCoverMediaId(firstId);
     }
     setActiveLayout(null);
-    setMedia(prev => [...prev, entry]);
-    return entry.id;
+  };
   };
 
   const handleFiles = (files: FileList | null) => {
