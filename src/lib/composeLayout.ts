@@ -17,6 +17,26 @@ export interface TextOverlay {
   width?: number;
 }
 
+// State snapshots persisted on a composed PendingMedia entry so the user
+// can tap it again and resume editing exactly where they left off.
+export interface SingleSlideState {
+  id: string;
+  file: File;
+  overlays: TextOverlay[];
+}
+export interface GridCellState {
+  file: File;
+  posX: number;
+  posY: number;
+  scale: number;
+}
+export type LayoutEditorState =
+  | { kind: 'single'; slides: SingleSlideState[] }
+  | { kind: 'grid'; cells: GridCellState[]; overlays: TextOverlay[] }
+  | { kind: 'cost'; headerL: string; headerR: string; rows: CostRow[] };
+
+
+
 
 export const COLOR_MAP: Record<OverlayColor, string> = {
   white: '#FFFFFF',

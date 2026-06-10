@@ -6,7 +6,7 @@ import { useToast } from '@/hooks/use-toast';
 import { invalidateTrending } from '@/lib/feedCache';
 import {
   ArrowLeft, ImagePlus, X, Loader2, MapPin, Hash, Music, Sparkles,
-  Palette, Star, MessageSquareQuote, Gem, ChevronRight, Crop,
+  Palette, Star, MessageSquareQuote, Gem, ChevronRight, Crop, Pencil,
   UtensilsCrossed, BedDouble, Plane, ShoppingBag, BookOpen, Ticket,
 } from 'lucide-react';
 import { ImageCropperDialog } from '@/components/ImageCropperDialog';
@@ -14,6 +14,7 @@ import { LayoutPickerSheet, type LayoutChoice } from '@/components/createpost/La
 import { SingleImageTextEditor } from '@/components/createpost/SingleImageTextEditor';
 import { GridTextEditor } from '@/components/createpost/GridTextEditor';
 import { CostBreakdownEditor } from '@/components/createpost/CostBreakdownEditor';
+import type { LayoutEditorState } from '@/lib/composeLayout';
 
 import { useMentionAutocomplete } from '@/hooks/useMentionAutocomplete';
 import { MentionSuggestions } from '@/components/MentionSuggestions';
@@ -100,9 +101,12 @@ interface PendingMedia {
   file: File;
   previewUrl: string;
   kind: 'image' | 'video';
+  // Set when this media was produced by a layout editor — lets the user
+  // tap the tile to reopen that editor and tweak everything.
+  editorState?: LayoutEditorState;
 }
 
-const SortableMediaTile = ({ m, onRemove, onCrop }: { m: PendingMedia; onRemove: () => void; onCrop?: () => void }) => {
+const SortableMediaTile = ({ m, onRemove, onCrop, onEdit }: { m: PendingMedia; onRemove: () => void; onCrop?: () => void; onEdit?: () => void }) => {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: m.id });
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -146,6 +150,16 @@ const SortableMediaTile = ({ m, onRemove, onCrop }: { m: PendingMedia; onRemove:
           className="absolute top-1 left-1 w-6 h-6 rounded-full bg-black/60 text-white flex items-center justify-center"
         >
           <Crop className="w-3.5 h-3.5" />
+        </button>
+      )}
+      {onEdit && m.editorState && (
+        <button
+          onPointerDown={e => e.stopPropagation()}
+          onClick={e => { e.stopPropagation(); onEdit(); }}
+          aria-label="Edit layout"
+          className="absolute bottom-1 right-1 px-2 h-6 rounded-full bg-black/70 text-white text-[10px] font-semibold flex items-center gap-1"
+        >
+          <Pencil className="w-3 h-3" /> Edit
         </button>
       )}
       <button
@@ -225,6 +239,8 @@ const CreatePostPage = () => {
   const [submitting, setSubmitting] = useState(false);
   const [layoutSheetOpen, setLayoutSheetOpen] = useState(false);
   const [activeLayout, setActiveLayout] = useState<LayoutChoice | null>(null);
+  // When set, finishing the active layout editor REPLACES this entry instead of appending.
+  const [editingMediaId, setEditingMediaId] = useState<string | null>(null);
   const [draftRestored] = useState(() => !!(initial && (initial.title || initial.body || initial.location || initial.hashtags?.length || initial.category)));
 
   // Anonymous toggle only applies to Work Diaries — reset when leaving that category.
@@ -310,19 +326,48 @@ const CreatePostPage = () => {
     : cropQueue[0] ?? null;
   const cropperOpen = !!currentCropFile;
 
-  const addMediaFile = (file: File) => {
+  const addMediaFile = (file: File, editorState?: LayoutEditorState) => {
     const kind: 'image' | 'video' = file.type.startsWith('video/') ? 'video' : 'image';
     const entry: PendingMedia = {
       id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
       file,
       previewUrl: URL.createObjectURL(file),
       kind,
+      editorState,
     };
     setMedia(prev => [...prev, entry]);
     return entry.id;
   };
 
-  const handleLayoutDone = (files: File[]) => {
+  const handleLayoutDone = (files: File[], states: LayoutEditorState[]) => {
+    // EDIT mode — replace the existing entry in place and append any extras
+    // (e.g. user added more slides to a Single-image post).
+    if (editingMediaId) {
+      const idx = media.findIndex(m => m.id === editingMediaId);
+      if (idx !== -1 && files.length > 0) {
+        const newPrimaryUrl = URL.createObjectURL(files[0]);
+        setMedia(prev => {
+          const next = [...prev];
+          URL.revokeObjectURL(next[idx].previewUrl);
+          next[idx] = {
+            ...next[idx],
+            file: files[0],
+            previewUrl: newPrimaryUrl,
+            editorState: states[0],
+          };
+          return next;
+        });
+        if (coverMediaId === editingMediaId) setCoverFile(files[0]);
+        // Append any extra files beyond the first as new entries.
+        const extras = files.slice(1);
+        const remaining = MAX_FILES - media.length;
+        extras.slice(0, Math.max(0, remaining)).forEach((f, i) => addMediaFile(f, states[i + 1]));
+      }
+      setEditingMediaId(null);
+      setActiveLayout(null);
+      return;
+    }
+
     const remaining = MAX_FILES - media.length;
     const slice = files.slice(0, Math.max(0, remaining));
     if (slice.length < files.length) {
@@ -330,7 +375,7 @@ const CreatePostPage = () => {
     }
     let firstId: string | null = null;
     slice.forEach((f, i) => {
-      const id = addMediaFile(f);
+      const id = addMediaFile(f, states[i]);
       if (i === 0) firstId = id;
     });
     if (firstId && !coverFile) {
@@ -339,6 +384,13 @@ const CreatePostPage = () => {
     }
     setActiveLayout(null);
   };
+
+  const startEditMedia = (m: PendingMedia) => {
+    if (!m.editorState) return;
+    setEditingMediaId(m.id);
+    setActiveLayout(m.editorState.kind);
+  };
+
 
 
   const handleFiles = (files: FileList | null) => {
@@ -356,7 +408,7 @@ const CreatePostPage = () => {
     }
     const images = accepted.filter(f => !f.type.startsWith('video/'));
     const videos = accepted.filter(f => f.type.startsWith('video/'));
-    videos.forEach(addMediaFile);
+    videos.forEach(f => addMediaFile(f));
     // Only the cover image (first slot) is cropped to 4:5 for the Discover grid.
     // Additional images keep their original aspect ratio.
     const needsCover = media.length === 0 && cropQueue.length === 0;
@@ -364,9 +416,9 @@ const CreatePostPage = () => {
       if (needsCover) {
         const [cover, ...rest] = images;
         setCropQueue(prev => [...prev, cover]);
-        rest.forEach(addMediaFile);
+        rest.forEach(f => addMediaFile(f));
       } else {
-        images.forEach(addMediaFile);
+        images.forEach(f => addMediaFile(f));
       }
     }
   };
@@ -704,7 +756,13 @@ const CreatePostPage = () => {
         <SortableContext items={media.map(m => m.id)} strategy={rectSortingStrategy}>
           <div className="grid grid-cols-3 gap-2 mb-1">
             {media.map((m, i) => (
-              <SortableMediaTile key={m.id} m={m} onRemove={() => removeMedia(i)} onCrop={i === 0 ? () => setEditCropId(m.id) : undefined} />
+              <SortableMediaTile
+                key={m.id}
+                m={m}
+                onRemove={() => removeMedia(i)}
+                onCrop={i === 0 ? () => setEditCropId(m.id) : undefined}
+                onEdit={m.editorState ? () => startEditMedia(m) : undefined}
+              />
             ))}
             {media.length < MAX_FILES && (
               <button
@@ -726,13 +784,34 @@ const CreatePostPage = () => {
         onPick={(c) => { setLayoutSheetOpen(false); setActiveLayout(c); }}
       />
       {activeLayout === 'single' && (
-        <SingleImageTextEditor onDone={handleLayoutDone} onCancel={() => setActiveLayout(null)} />
+        <SingleImageTextEditor
+          onDone={handleLayoutDone}
+          onCancel={() => { setActiveLayout(null); setEditingMediaId(null); }}
+          initialState={(() => {
+            const m = media.find(x => x.id === editingMediaId);
+            return m?.editorState?.kind === 'single' ? m.editorState : undefined;
+          })()}
+        />
       )}
       {activeLayout === 'grid' && (
-        <GridTextEditor onDone={handleLayoutDone} onCancel={() => setActiveLayout(null)} />
+        <GridTextEditor
+          onDone={handleLayoutDone}
+          onCancel={() => { setActiveLayout(null); setEditingMediaId(null); }}
+          initialState={(() => {
+            const m = media.find(x => x.id === editingMediaId);
+            return m?.editorState?.kind === 'grid' ? m.editorState : undefined;
+          })()}
+        />
       )}
       {activeLayout === 'cost' && (
-        <CostBreakdownEditor onDone={handleLayoutDone} onCancel={() => setActiveLayout(null)} />
+        <CostBreakdownEditor
+          onDone={handleLayoutDone}
+          onCancel={() => { setActiveLayout(null); setEditingMediaId(null); }}
+          initialState={(() => {
+            const m = media.find(x => x.id === editingMediaId);
+            return m?.editorState?.kind === 'cost' ? m.editorState : undefined;
+          })()}
+        />
       )}
 
 

@@ -1,13 +1,14 @@
 import { useEffect, useRef, useState } from 'react';
 import { ArrowLeft, ImagePlus, X, Check, Plus, Type, Circle, Highlighter } from 'lucide-react';
-import { composeGrid, type TextOverlay, type OverlayColor, type OverlaySize, COLOR_MAP, sizePx } from '@/lib/composeLayout';
+import { composeGrid, type TextOverlay, type OverlayColor, type OverlaySize, COLOR_MAP, sizePx, type LayoutEditorState } from '@/lib/composeLayout';
 import { useToast } from '@/hooks/use-toast';
 
 interface Cell { file: File | null; previewUrl: string | null; posX: number; posY: number; scale: number }
 
 interface Props {
-  onDone: (files: File[]) => void;
+  onDone: (files: File[], states: LayoutEditorState[]) => void;
   onCancel: () => void;
+  initialState?: Extract<LayoutEditorState, { kind: 'grid' }>;
 }
 
 const SIZES: OverlaySize[] = ['sm', 'md', 'lg', 'xl'];
@@ -21,7 +22,7 @@ const newOverlay = (id: string): TextOverlay => ({
   id, text: '', x: 0.5, y: 0.5, size: 'md', color: 'white', bgEnabled: true, width: 0.7,
 });
 
-export const GridTextEditor = ({ onDone, onCancel }: Props) => {
+export const GridTextEditor = ({ onDone, onCancel, initialState }: Props) => {
   const { toast } = useToast();
   // Default scale 1.15 gives both axes some pan room even for images that
   // share the cell's aspect ratio. Users can pinch to zoom further.
@@ -30,8 +31,19 @@ export const GridTextEditor = ({ onDone, onCancel }: Props) => {
   const newFilledCell = (f: File): Cell => ({
     file: f, previewUrl: URL.createObjectURL(f), posX: 0.5, posY: 0.5, scale: DEFAULT_SCALE,
   });
-  const [cells, setCells] = useState<Cell[]>([emptyCell(), emptyCell(), emptyCell(), emptyCell()]);
-  const [overlays, setOverlays] = useState<TextOverlay[]>([]);
+  const fromInitial = (): Cell[] => {
+    if (!initialState) return [emptyCell(), emptyCell(), emptyCell(), emptyCell()];
+    return initialState.cells.map((c) => ({
+      file: c.file,
+      previewUrl: URL.createObjectURL(c.file),
+      posX: c.posX,
+      posY: c.posY,
+      scale: c.scale,
+    }));
+  };
+  const [cells, setCells] = useState<Cell[]>(fromInitial);
+  const [overlays, setOverlays] = useState<TextOverlay[]>(initialState?.overlays ?? []);
+
   const [activeId, setActiveId] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [openTool, setOpenTool] = useState<Tool>(null);
@@ -106,7 +118,11 @@ export const GridTextEditor = ({ onDone, onCancel }: Props) => {
         { file: File; posX: number; posY: number; scale: number },
       ];
       const out = await composeGrid(input, overlays.filter((o) => o.text.trim()));
-      onDone([out]);
+      onDone([out], [{
+        kind: 'grid',
+        cells: cells.map((c) => ({ file: c.file!, posX: c.posX, posY: c.posY, scale: c.scale })),
+        overlays,
+      }]);
     } catch (e) {
       console.error(e);
       toast({ title: 'Could not export grid', variant: 'destructive' });

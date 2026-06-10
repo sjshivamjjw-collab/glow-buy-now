@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { ArrowLeft, ImagePlus, X, Check, Type, Circle, Highlighter, Plus } from 'lucide-react';
-import { composeSingleSlide, type TextOverlay, type OverlayColor, type OverlaySize, COLOR_MAP, sizePx } from '@/lib/composeLayout';
+import { composeSingleSlide, type TextOverlay, type OverlayColor, type OverlaySize, COLOR_MAP, sizePx, type LayoutEditorState } from '@/lib/composeLayout';
 import { useToast } from '@/hooks/use-toast';
 
 interface Slide {
@@ -11,9 +11,11 @@ interface Slide {
 }
 
 interface Props {
-  onDone: (files: File[]) => void;
+  onDone: (files: File[], states: LayoutEditorState[]) => void;
   onCancel: () => void;
+  initialState?: Extract<LayoutEditorState, { kind: 'single' }>;
 }
+
 
 const makeOverlay = (id: string): TextOverlay => ({
   id,
@@ -33,9 +35,18 @@ const LIGHT_COLORS = new Set<OverlayColor>(['white', 'cream', 'yellow']);
 
 type Tool = 'size' | 'color' | null;
 
-export const SingleImageTextEditor = ({ onDone, onCancel }: Props) => {
+export const SingleImageTextEditor = ({ onDone, onCancel, initialState }: Props) => {
   const { toast } = useToast();
-  const [slides, setSlides] = useState<Slide[]>([]);
+  const [slides, setSlides] = useState<Slide[]>(() =>
+    initialState
+      ? initialState.slides.map((s) => ({
+          id: s.id,
+          file: s.file,
+          previewUrl: URL.createObjectURL(s.file),
+          overlays: s.overlays,
+        }))
+      : [],
+  );
   const [active, setActive] = useState(0);
   const [busy, setBusy] = useState(false);
   const [openTool, setOpenTool] = useState<Tool>(null);
@@ -147,7 +158,11 @@ export const SingleImageTextEditor = ({ onDone, onCancel }: Props) => {
           return outFile;
         }),
       );
-      onDone(files);
+      const states: LayoutEditorState[] = slides.map((s) => ({
+        kind: 'single',
+        slides: [{ id: s.id, file: s.file, overlays: s.overlays }],
+      }));
+      onDone(files, states);
     } catch (e) {
       console.error(e);
       toast({ title: 'Could not export slides', variant: 'destructive' });
