@@ -535,21 +535,29 @@ const ToolButton = ({
   active,
   onClick,
   expanded,
+  label,
 }: {
   icon: React.ReactNode;
   active?: boolean;
   onClick: () => void;
   expanded?: React.ReactNode | false;
+  label?: string;
 }) => (
   <div className="flex items-center gap-2">
     {expanded && (
       <div className="bg-black/70 backdrop-blur rounded-full p-1.5 flex flex-col gap-1.5">{expanded}</div>
     )}
-    <button
-      onClick={onClick}
-      className={`w-11 h-11 rounded-full flex items-center justify-center ${active ? 'bg-white text-black' : 'bg-black/60 text-white'} shadow-lg`}
-    >
-      {icon}
-    </button>
+    <div className="flex flex-col items-center gap-1">
+      <button
+        onClick={onClick}
+        className={`w-11 h-11 rounded-full flex items-center justify-center ${active ? 'bg-white text-black' : 'bg-black/60 text-white'} shadow-lg`}
+      >
+        {icon}
+      </button>
+      {label && (
+        <span className="text-[10px] font-semibold text-white/90 leading-none">{label}</span>
+      )}
+    </div>
   </div>
 );
+
