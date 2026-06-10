@@ -249,6 +249,7 @@ export const composeGrid = async (
 };
 
 // LAYOUT 3: beige cost-breakdown receipt.
+// Auto-scales typography so up to ~22 rows fit in a single 4:5 image.
 export interface CostRow { left: string; right: string }
 export const composeCostBreakdown = async (
   headers: { left: string; right: string },
@@ -273,26 +274,69 @@ export const composeCostBreakdown = async (
   const leftX = padX;
   const rightX = padX + leftColW;
 
-  const bodyFont = '500 44px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
-  const headerFont = '700 42px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
-  const rowPadY = 28;
-  const lineGap = 12;
+  // Vertical area for the table.
+  const topY = 200;
+  const bottomReserve = 140;
+  const available = H - topY - bottomReserve;
+
+  // Candidate type-scale tiers (largest first). Padding/line-height shrink
+  // together with the body size so receipts of any length stay legible.
+  const tiers = [
+    { body: 44, header: 42, bodyLine: 56, headerLine: 52, rowPad: 28, gap: 12 },
+    { body: 40, header: 40, bodyLine: 50, headerLine: 48, rowPad: 24, gap: 10 },
+    { body: 36, header: 36, bodyLine: 46, headerLine: 44, rowPad: 20, gap: 8 },
+    { body: 32, header: 32, bodyLine: 40, headerLine: 40, rowPad: 16, gap: 6 },
+    { body: 28, header: 30, bodyLine: 36, headerLine: 36, rowPad: 13, gap: 4 },
+    { body: 24, header: 26, bodyLine: 30, headerLine: 32, rowPad: 10, gap: 3 },
+    { body: 22, header: 24, bodyLine: 28, headerLine: 30, rowPad: 8,  gap: 2 },
+  ];
+
+  // Pick the largest tier whose actual wrapped content fits.
+  const fonts = (size: number, weight: number) =>
+    `${weight} ${size}px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif`;
+
+  let chosen = tiers[tiers.length - 1];
+  let chosenLayout: { hLeft: string[]; hRight: string[]; rowLines: { l: string[]; r: string[] }[] } | null = null;
+  for (const t of tiers) {
+    ctx.font = fonts(t.header, 700);
+    const hLeft = wrapText(ctx, headers.left.toUpperCase(), leftColW - 24);
+    const hRight = wrapText(ctx, headers.right.toUpperCase(), rightColW - 24);
+    const headerH = Math.max(hLeft.length, hRight.length) * t.headerLine + 18;
+
+    ctx.font = fonts(t.body, 500);
+    const rowLines = rows.map(r => ({
+      l: wrapText(ctx, r.left, leftColW - 24),
+      r: wrapText(ctx, r.right, rightColW - 24),
+    }));
+    const rowsH = rowLines.reduce((sum, rl) => {
+      const lines = Math.max(rl.l.length, rl.r.length);
+      return sum + lines * t.bodyLine + t.rowPad * 2 + t.gap;
+    }, 0);
+
+    if (headerH + t.rowPad + rowsH <= available) {
+      chosen = t;
+      chosenLayout = { hLeft, hRight, rowLines };
+      break;
+    }
+    chosen = t;
+    chosenLayout = { hLeft, hRight, rowLines };
+  }
+
+  const t = chosen;
+  const layout = chosenLayout!;
 
   ctx.fillStyle = INK;
   ctx.textBaseline = 'top';
 
   // Headers
-  let y = 220;
-  ctx.font = headerFont;
-  const hLeftLines = wrapText(ctx, headers.left.toUpperCase(), leftColW - 24);
-  const hRightLines = wrapText(ctx, headers.right.toUpperCase(), rightColW - 24);
-  const headerLineH = 52;
-  hLeftLines.forEach((l, i) => ctx.fillText(l, leftX, y + i * headerLineH));
-  hRightLines.forEach((l, i) => {
+  let y = topY;
+  ctx.font = fonts(t.header, 700);
+  layout.hLeft.forEach((l, i) => ctx.fillText(l, leftX, y + i * t.headerLine));
+  layout.hRight.forEach((l, i) => {
     const w = ctx.measureText(l).width;
-    ctx.fillText(l, rightX + rightColW - w, y + i * headerLineH);
+    ctx.fillText(l, rightX + rightColW - w, y + i * t.headerLine);
   });
-  const headerH = Math.max(hLeftLines.length, hRightLines.length) * headerLineH;
+  const headerH = Math.max(layout.hLeft.length, layout.hRight.length) * t.headerLine;
   y += headerH + 18;
 
   // Hairline under header
@@ -302,28 +346,29 @@ export const composeCostBreakdown = async (
   ctx.moveTo(padX, y);
   ctx.lineTo(W - padX, y);
   ctx.stroke();
-  y += rowPadY;
+  y += t.rowPad;
 
   // Rows
-  ctx.font = bodyFont;
-  const bodyLineH = 56;
-  for (const row of rows) {
-    const leftLines = wrapText(ctx, row.left, leftColW - 24);
-    const rightLines = wrapText(ctx, row.right, rightColW - 24);
-    const rowH = Math.max(leftLines.length, rightLines.length) * bodyLineH;
-    leftLines.forEach((l, i) => ctx.fillText(l, leftX, y + i * bodyLineH));
+  ctx.font = fonts(t.body, 500);
+  for (let idx = 0; idx < rows.length; idx++) {
+    const { l: leftLines, r: rightLines } = layout.rowLines[idx];
+    const lines = Math.max(leftLines.length, rightLines.length);
+    const rowH = lines * t.bodyLine;
+    leftLines.forEach((l, i) => ctx.fillText(l, leftX, y + i * t.bodyLine));
     rightLines.forEach((l, i) => {
       const w = ctx.measureText(l).width;
-      ctx.fillText(l, rightX + rightColW - w, y + i * bodyLineH);
+      ctx.fillText(l, rightX + rightColW - w, y + i * t.bodyLine);
     });
-    y += rowH + rowPadY;
+    y += rowH + t.rowPad;
     ctx.beginPath();
     ctx.moveTo(padX, y);
     ctx.lineTo(W - padX, y);
     ctx.stroke();
-    y += lineGap + rowPadY;
-    if (y > H - 200) break;
+    y += t.gap + t.rowPad;
+    // Safety stop only if we somehow overflow the canvas entirely.
+    if (y > H - 40 && idx < rows.length - 1) break;
   }
 
   return canvasToJpegFile(canvas, `cost-${Date.now()}.jpg`);
 };
+
