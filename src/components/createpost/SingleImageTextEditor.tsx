@@ -61,13 +61,18 @@ export const SingleImageTextEditor = ({ onDone, onCancel }: Props) => {
     if (!fl) return;
     const next: Slide[] = [];
     for (const f of Array.from(fl)) {
-      if (!f.type.startsWith('image/')) continue;
+      // Accept anything that looks like an image (HEIC/HEIF on iOS sometimes
+      // arrives with an empty or non-standard MIME type).
+      const looksImage = f.type.startsWith('image/') || /\.(jpe?g|png|gif|webp|heic|heif|bmp)$/i.test(f.name);
+      if (!looksImage) continue;
       const id = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
       next.push({ id, file: f, previewUrl: URL.createObjectURL(f), overlays: [] });
     }
     if (!next.length) return;
-    setSlides((prev) => [...prev, ...next]);
-    setActive(slides.length);
+    setSlides((prev) => {
+      setActive(prev.length); // jump to first newly-added slide
+      return [...prev, ...next];
+    });
     setActiveOverlayId(null);
     setEditingId(null);
     setOpenTool(null);
@@ -469,7 +474,7 @@ export const SingleImageTextEditor = ({ onDone, onCancel }: Props) => {
       <input
         ref={fileRef}
         type="file"
-        accept="image/*"
+        accept="image/*,image/heic,image/heif"
         multiple
         className="hidden"
         onChange={(e) => { addFiles(e.target.files); e.target.value = ''; }}
