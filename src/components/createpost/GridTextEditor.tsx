@@ -10,8 +10,8 @@ interface Props {
   onCancel: () => void;
 }
 
-const SIZES: OverlaySize[] = ['sm', 'md', 'lg'];
-const SIZE_LABELS: Record<OverlaySize, string> = { sm: 'S', md: 'M', lg: 'L' };
+const SIZES: OverlaySize[] = ['sm', 'md', 'lg', 'xl'];
+const SIZE_LABELS: Record<OverlaySize, string> = { sm: 'S', md: 'M', lg: 'L', xl: 'XL' };
 const COLORS: OverlayColor[] = ['white', 'black', 'cream', 'charcoal', 'red', 'yellow', 'pink', 'blue', 'green', 'purple'];
 const LIGHT_COLORS = new Set<OverlayColor>(['white', 'cream', 'yellow']);
 

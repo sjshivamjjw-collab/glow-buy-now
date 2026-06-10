@@ -1,7 +1,7 @@
 // Canvas helpers for the New Post layout templates.
 // Each composer returns a JPEG File ready to push into pendingMedia.
 
-export type OverlaySize = 'sm' | 'md' | 'lg';
+export type OverlaySize = 'sm' | 'md' | 'lg' | 'xl';
 export type OverlayColor = 'white' | 'black' | 'cream' | 'charcoal' | 'red' | 'yellow' | 'pink' | 'blue' | 'green' | 'purple';
 
 export interface TextOverlay {
@@ -36,6 +36,7 @@ const SIZE_RATIO: Record<OverlaySize, number> = {
   sm: 0.021,
   md: 0.029,
   lg: 0.041,
+  xl: 0.058,
 };
 
 
