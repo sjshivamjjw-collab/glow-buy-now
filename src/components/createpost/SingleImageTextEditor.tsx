@@ -384,9 +384,11 @@ export const SingleImageTextEditor = ({ onDone, onCancel }: Props) => {
                             </div>
                           )}
                           <button
-                            onClick={() => removeOverlay(o.id)}
+                            onPointerDown={(e) => { e.stopPropagation(); e.preventDefault(); removeOverlay(o.id); }}
+                            onClick={(e) => { e.stopPropagation(); removeOverlay(o.id); }}
                             aria-label="Delete text"
-                            className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-black/80 text-white border border-white/40 flex items-center justify-center"
+                            className="absolute -top-2 -right-2 w-7 h-7 rounded-full bg-black/90 text-white border border-white/60 flex items-center justify-center shadow-lg"
+                            style={{ touchAction: 'none' }}
                           >
                             <X className="w-3.5 h-3.5" />
                           </button>
