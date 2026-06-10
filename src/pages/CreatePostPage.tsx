@@ -408,7 +408,7 @@ const CreatePostPage = () => {
     }
     const images = accepted.filter(f => !f.type.startsWith('video/'));
     const videos = accepted.filter(f => f.type.startsWith('video/'));
-    videos.forEach(addMediaFile);
+    videos.forEach(f => addMediaFile(f));
     // Only the cover image (first slot) is cropped to 4:5 for the Discover grid.
     // Additional images keep their original aspect ratio.
     const needsCover = media.length === 0 && cropQueue.length === 0;
@@ -416,9 +416,9 @@ const CreatePostPage = () => {
       if (needsCover) {
         const [cover, ...rest] = images;
         setCropQueue(prev => [...prev, cover]);
-        rest.forEach(addMediaFile);
+        rest.forEach(f => addMediaFile(f));
       } else {
-        images.forEach(addMediaFile);
+        images.forEach(f => addMediaFile(f));
       }
     }
   };
