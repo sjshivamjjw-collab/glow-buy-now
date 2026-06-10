@@ -330,7 +330,7 @@ export const SingleImageTextEditor = ({ onDone, onCancel }: Props) => {
                                 fontSize: `${fontPx}px`,
                                 lineHeight: 1.25,
                                 caretColor: textColor,
-                                minHeight: `${fontPx * 1.6}px`,
+                                minHeight: `${Math.max(fontPx * 1.6, heights[o.id] ?? 0)}px`,
                               }}
                             />
                           ) : (
@@ -347,6 +347,7 @@ export const SingleImageTextEditor = ({ onDone, onCancel }: Props) => {
                                 lineHeight: 1.25,
                                 whiteSpace: 'pre-wrap',
                                 wordBreak: 'break-word',
+                                minHeight: heights[o.id] ? `${heights[o.id]}px` : undefined,
                               }}
                             >
                               {o.text || 'Tap to type'}
