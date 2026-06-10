@@ -575,6 +575,42 @@ const EditPostPage = () => {
         onCancel={handleCropCancel}
         onApply={handleCropApply}
       />
+
+      <LayoutPickerSheet
+        open={layoutSheetOpen}
+        onOpenChange={setLayoutSheetOpen}
+        onPick={(c) => { setLayoutSheetOpen(false); setActiveLayout(c); }}
+      />
+      {activeLayout === 'single' && (
+        <SingleImageTextEditor
+          onDone={handleLayoutDone}
+          onCancel={() => { setActiveLayout(null); setEditingTempId(null); }}
+          initialState={(() => {
+            const m = newMedia.find(x => x.tempId === editingTempId);
+            return m?.editorState?.kind === 'single' ? m.editorState : undefined;
+          })()}
+        />
+      )}
+      {activeLayout === 'grid' && (
+        <GridTextEditor
+          onDone={handleLayoutDone}
+          onCancel={() => { setActiveLayout(null); setEditingTempId(null); }}
+          initialState={(() => {
+            const m = newMedia.find(x => x.tempId === editingTempId);
+            return m?.editorState?.kind === 'grid' ? m.editorState : undefined;
+          })()}
+        />
+      )}
+      {activeLayout === 'cost' && (
+        <CostBreakdownEditor
+          onDone={handleLayoutDone}
+          onCancel={() => { setActiveLayout(null); setEditingTempId(null); }}
+          initialState={(() => {
+            const m = newMedia.find(x => x.tempId === editingTempId);
+            return m?.editorState?.kind === 'cost' ? m.editorState : undefined;
+          })()}
+        />
+      )}
     </div>
   );
 };
