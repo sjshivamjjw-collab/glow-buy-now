@@ -409,7 +409,6 @@ const ToolButton = ({
 
 const CellPicker = ({
   cell,
-const CellPicker = ({
   cell,
   onPick,
   onClear,
