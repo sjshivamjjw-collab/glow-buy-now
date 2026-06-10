@@ -101,9 +101,12 @@ interface PendingMedia {
   file: File;
   previewUrl: string;
   kind: 'image' | 'video';
+  // Set when this media was produced by a layout editor — lets the user
+  // tap the tile to reopen that editor and tweak everything.
+  editorState?: LayoutEditorState;
 }
 
-const SortableMediaTile = ({ m, onRemove, onCrop }: { m: PendingMedia; onRemove: () => void; onCrop?: () => void }) => {
+const SortableMediaTile = ({ m, onRemove, onCrop, onEdit }: { m: PendingMedia; onRemove: () => void; onCrop?: () => void; onEdit?: () => void }) => {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: m.id });
   const style = {
     transform: CSS.Transform.toString(transform),
