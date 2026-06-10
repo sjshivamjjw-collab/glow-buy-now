@@ -108,28 +108,33 @@ export const serializeEditorState = (s: LayoutEditorState): SerializedEditorStat
   return { kind: 'cost', headerL: s.headerL, headerR: s.headerR, rows: s.rows };
 };
 
-export const deserializeEditorState = (s: SerializedEditorState): LayoutEditorState => {
+const isValidBlob = (b: unknown): b is Blob =>
+  !!b && typeof (b as Blob).size === 'number' && (b as Blob).size > 0;
+
+export const deserializeEditorState = (s: SerializedEditorState): LayoutEditorState | undefined => {
   if (s.kind === 'single') {
-    return {
-      kind: 'single',
-      slides: s.slides.map(sl => ({
+    const slides = s.slides
+      .filter(sl => isValidBlob(sl.fileBlob))
+      .map(sl => ({
         id: sl.id,
         file: new File([sl.fileBlob], sl.fileName || 'photo.jpg', { type: sl.fileType || 'image/jpeg' }),
         overlays: sl.overlays as any,
-      })),
-    };
+      }));
+    if (!slides.length) return undefined;
+    return { kind: 'single', slides };
   }
   if (s.kind === 'grid') {
-    return {
-      kind: 'grid',
-      overlays: s.overlays as any,
-      cells: s.cells.map(c => ({
+    const cells = s.cells
+      .filter(c => isValidBlob(c.fileBlob))
+      .map(c => ({
         file: new File([c.fileBlob], c.fileName || 'photo.jpg', { type: c.fileType || 'image/jpeg' }),
         posX: c.posX,
         posY: c.posY,
         scale: c.scale,
-      })),
-    };
+      }));
+    if (cells.length !== s.cells.length || cells.length === 0) return undefined;
+    return { kind: 'grid', overlays: s.overlays as any, cells };
   }
   return { kind: 'cost', headerL: s.headerL, headerR: s.headerR, rows: s.rows };
 };
+
