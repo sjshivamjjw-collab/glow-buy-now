@@ -200,7 +200,7 @@ export const composeGrid = async (
   overlays: TextOverlay[],
 ): Promise<File> => {
   const SIZE = 1440;
-  const GUTTER = 8; // ~2px feel on a phone, sharper than 2px when scaled down.
+  const GUTTER = 2; // hairline divider between cells.
   const cell = (SIZE - GUTTER) / 2;
   const canvas = document.createElement('canvas');
   canvas.width = SIZE;
