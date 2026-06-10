@@ -576,7 +576,7 @@ const PostDetailPage = () => {
                     <video
                       ref={i === mediaIdx ? videoRef : undefined}
                       src={m.url}
-                      className="w-full max-h-[70vh] object-contain"
+                      className="w-full max-h-[60vh] object-contain"
                       controls
                       playsInline
                       muted
@@ -586,7 +586,7 @@ const PostDetailPage = () => {
                     <img
                       src={optimizedImageUrl(m.url, { width: 1080, quality: 75, resize: 'contain' }) || m.url}
                       alt=""
-                      className="w-full max-h-[70vh] object-contain cursor-pointer select-none"
+                      className="w-full max-h-[60vh] object-contain cursor-pointer select-none"
                       loading={Math.abs(i - mediaIdx) <= 1 ? 'eager' : 'lazy'}
                       decoding="async"
                       draggable={false}
