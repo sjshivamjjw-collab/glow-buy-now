@@ -598,11 +598,6 @@ const PostDetailPage = () => {
             </div>
           </div>
 
-          {post.category && CATEGORY_META[post.category] && (
-            <span className="absolute top-2 left-2 z-10 px-2 py-0.5 rounded-md bg-black/55 backdrop-blur-sm text-white/90 text-[10px] font-medium tracking-wide">
-              {CATEGORY_META[post.category].label}
-            </span>
-          )}
           {media.length > 1 && (
             <>
               <div className="absolute bottom-2 left-1/2 -translate-x-1/2 px-2.5 py-0.5 rounded-full bg-[#0a0a0a]/85 backdrop-blur-sm text-[#fafafa] text-[10px] font-semibold z-10">
