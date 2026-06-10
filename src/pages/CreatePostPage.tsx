@@ -272,8 +272,16 @@ const CreatePostPage = () => {
   useEffect(() => {
     (async () => {
       const saved = await loadDraftMedia();
-      if (saved.length) {
-        setMedia(saved.map(s => ({
+      // Filter out entries whose blob is missing/empty (e.g. drafts saved by an
+      // older format). Without this guard the editor would try to render an
+      // empty File and show the broken-image placeholder.
+      const valid = saved.filter(s => s.fileBlob && (s.fileBlob as Blob).size > 0);
+      if (valid.length !== saved.length) {
+        // Clean up corrupted draft so we don't keep retrying.
+        await clearDraftMedia();
+      }
+      if (valid.length) {
+        setMedia(valid.map(s => ({
           id: s.id,
           file: new File([s.fileBlob], s.fileName || (s.kind === 'video' ? 'video.mp4' : 'photo.jpg'), { type: s.fileType || (s.kind === 'video' ? 'video/mp4' : 'image/jpeg') }),
           previewUrl: URL.createObjectURL(s.fileBlob),
@@ -285,6 +293,7 @@ const CreatePostPage = () => {
       mediaHydratedRef.current = true;
     })();
   }, []);
+
 
   useEffect(() => {
     if (!mediaHydratedRef.current) return;
