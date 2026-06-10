@@ -155,25 +155,11 @@ export const GridTextEditor = ({ onDone, onCancel }: Props) => {
         <div ref={surfaceRef} className="relative w-full aspect-square bg-white">
           <div className="absolute inset-0 grid grid-cols-2 grid-rows-2 gap-[2px] bg-white">
             {cells.map((c, i) => (
-              <label
+              <CellPicker
                 key={i}
-                className="relative bg-[#1a1a1a] overflow-hidden flex items-center justify-center cursor-pointer"
-              >
-                {c.previewUrl ? (
-                  <img src={c.previewUrl} alt="" className="w-full h-full object-cover" />
-                ) : (
-                  <div className="flex flex-col items-center justify-center text-white/70 gap-1">
-                    <ImagePlus className="w-5 h-5" />
-                    <span className="text-[10px] font-semibold">Tap to add</span>
-                  </div>
-                )}
-                <input
-                  type="file"
-                  accept="image/*"
-                  className="sr-only"
-                  onChange={(e) => { setFile(i, e.target.files); e.target.value = ''; }}
-                />
-              </label>
+                cell={c}
+                onPick={(fl) => setFile(i, fl)}
+              />
             ))}
           </div>
 
@@ -376,3 +362,30 @@ const ToolButton = ({
     </button>
   </div>
 );
+
+const CellPicker = ({ cell, onPick }: { cell: Cell; onPick: (fl: FileList | null) => void }) => {
+  const inputRef = useRef<HTMLInputElement>(null);
+  return (
+    <button
+      type="button"
+      onClick={() => inputRef.current?.click()}
+      className="relative bg-[#1a1a1a] overflow-hidden flex items-center justify-center cursor-pointer w-full h-full"
+    >
+      {cell.previewUrl ? (
+        <img src={cell.previewUrl} alt="" className="w-full h-full object-cover pointer-events-none" />
+      ) : (
+        <div className="flex flex-col items-center justify-center text-white/70 gap-1 pointer-events-none">
+          <ImagePlus className="w-5 h-5" />
+          <span className="text-[10px] font-semibold">Tap to add</span>
+        </div>
+      )}
+      <input
+        ref={inputRef}
+        type="file"
+        accept="image/*,image/heic,image/heif"
+        className="hidden"
+        onChange={(e) => { onPick(e.target.files); e.target.value = ''; }}
+      />
+    </button>
+  );
+};
