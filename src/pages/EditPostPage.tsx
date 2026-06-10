@@ -4,12 +4,17 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { invalidatePostDetail, invalidateTrending } from '@/lib/feedCache';
-import { ArrowLeft, Loader2, MapPin, Hash, X, Check, ImagePlus, Tag } from 'lucide-react';
+import { ArrowLeft, Loader2, MapPin, Hash, X, Check, ImagePlus, Tag, Pencil } from 'lucide-react';
 import { extractStoragePath } from '@/lib/storageUrls';
 import RichTextEditor, { type RichTextEditorHandle } from '@/components/RichTextEditor';
 import TravelStructureHelper, { buildPillSnippet } from '@/components/TravelStructureHelper';
 import { markdownToHtml, isRichTextEmpty } from '@/lib/richText';
 import { ImageCropperDialog } from '@/components/ImageCropperDialog';
+import { LayoutPickerSheet, type LayoutChoice } from '@/components/createpost/LayoutPickerSheet';
+import { SingleImageTextEditor } from '@/components/createpost/SingleImageTextEditor';
+import { GridTextEditor } from '@/components/createpost/GridTextEditor';
+import { CostBreakdownEditor } from '@/components/createpost/CostBreakdownEditor';
+import type { LayoutEditorState } from '@/lib/composeLayout';
 
 type CategoryKey = 'everyday_vibes' | 'trip' | 'review' | 'real_talk' | 'hidden_gems';
 type ReviewSubKey = 'restaurant' | 'hotel' | 'product' | 'media' | 'activity';
@@ -45,6 +50,7 @@ interface NewMedia {
   file: File;
   previewUrl: string;
   kind: 'image' | 'video';
+  editorState?: LayoutEditorState;
 }
 
 const EditPostPage = () => {
@@ -130,16 +136,55 @@ const EditPostPage = () => {
   const [coverFile, setCoverFile] = useState<File | null>(null);
   const [coverTempId, setCoverTempId] = useState<string | null>(null);
 
-  const addNewMediaFile = (file: File) => {
+  const [layoutSheetOpen, setLayoutSheetOpen] = useState(false);
+  const [activeLayout, setActiveLayout] = useState<LayoutChoice | null>(null);
+  const [editingTempId, setEditingTempId] = useState<string | null>(null);
+
+  const addNewMediaFile = (file: File, editorState?: LayoutEditorState) => {
     const kind: 'image' | 'video' = file.type.startsWith('video/') ? 'video' : 'image';
     const entry: NewMedia = {
       tempId: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
       file,
       previewUrl: URL.createObjectURL(file),
       kind,
+      editorState,
     };
     setNewMedia(prev => [...prev, entry]);
     return entry.tempId;
+  };
+
+  const handleLayoutDone = (files: File[], states: LayoutEditorState[]) => {
+    if (editingTempId) {
+      const idx = newMedia.findIndex(m => m.tempId === editingTempId);
+      if (idx !== -1 && files.length > 0) {
+        const newUrl = URL.createObjectURL(files[0]);
+        setNewMedia(prev => {
+          const next = [...prev];
+          URL.revokeObjectURL(next[idx].previewUrl);
+          next[idx] = { ...next[idx], file: files[0], previewUrl: newUrl, editorState: states[0] };
+          return next;
+        });
+        const extras = files.slice(1);
+        const remaining = MAX_FILES - (existing.length + newMedia.length);
+        extras.slice(0, Math.max(0, remaining)).forEach((f, i) => addNewMediaFile(f, states[i + 1]));
+      }
+      setEditingTempId(null);
+      setActiveLayout(null);
+      return;
+    }
+    const remaining = MAX_FILES - (existing.length + newMedia.length);
+    const slice = files.slice(0, Math.max(0, remaining));
+    if (slice.length < files.length) {
+      toast({ title: `Only added ${slice.length} of ${files.length}`, description: `Max ${MAX_FILES} attachments per post.` });
+    }
+    slice.forEach((f, i) => addNewMediaFile(f, states[i]));
+    setActiveLayout(null);
+  };
+
+  const startEditNewMedia = (m: NewMedia) => {
+    if (!m.editorState) return;
+    setEditingTempId(m.tempId);
+    setActiveLayout(m.editorState.kind);
   };
 
   const handleFiles = (files: FileList | null) => {
@@ -155,16 +200,16 @@ const EditPostPage = () => {
     });
     const videos = accepted.filter(f => f.type.startsWith('video/'));
     const images = accepted.filter(f => !f.type.startsWith('video/'));
-    videos.forEach(addNewMediaFile);
+    videos.forEach(f => addNewMediaFile(f));
     // Only crop the cover (first image overall) to 4:5 for the Discover grid.
     const needsCover = existing.length === 0 && newMedia.length === 0 && cropQueue.length === 0;
     if (images.length) {
       if (needsCover) {
         const [cover, ...rest] = images;
         setCropQueue(prev => [...prev, cover]);
-        rest.forEach(addNewMediaFile);
+        rest.forEach(f => addNewMediaFile(f));
       } else {
-        images.forEach(addNewMediaFile);
+        images.forEach(f => addNewMediaFile(f));
       }
     }
   };
@@ -402,6 +447,15 @@ const EditPostPage = () => {
                   <img src={m.previewUrl} alt="" className="w-full h-full object-contain" />
                 )}
                 <span className="absolute bottom-1 left-1 px-1.5 py-0.5 rounded bg-[#ef4444] text-white text-[10px] font-semibold">New</span>
+                {m.editorState && (
+                  <button
+                    onClick={() => startEditNewMedia(m)}
+                    aria-label="Edit layout"
+                    className="absolute bottom-1 right-1 px-2 h-6 rounded-full bg-black/70 text-white text-[10px] font-semibold flex items-center gap-1"
+                  >
+                    <Pencil className="w-3 h-3" /> Edit
+                  </button>
+                )}
                 <button
                   onClick={() => removeNew(m.tempId)}
                   aria-label="Remove"
@@ -413,11 +467,11 @@ const EditPostPage = () => {
             ))}
             {totalMedia < MAX_FILES && (
               <button
-                onClick={() => fileRef.current?.click()}
+                onClick={() => setLayoutSheetOpen(true)}
                 className="aspect-square rounded-xl border-2 border-dashed border-[#e5e5e5] bg-[#fafafa] flex flex-col items-center justify-center gap-1 text-[#6b6b6b] hover:border-[#ef4444]/50 hover:text-[#ef4444] transition-colors"
               >
                 <ImagePlus className="w-6 h-6" />
-                <span className="text-[11px] font-semibold">Add</span>
+                <span className="text-[11px] font-semibold">Add media</span>
               </button>
             )}
           </div>
@@ -521,6 +575,42 @@ const EditPostPage = () => {
         onCancel={handleCropCancel}
         onApply={handleCropApply}
       />
+
+      <LayoutPickerSheet
+        open={layoutSheetOpen}
+        onOpenChange={setLayoutSheetOpen}
+        onPick={(c) => { setLayoutSheetOpen(false); setActiveLayout(c); }}
+      />
+      {activeLayout === 'single' && (
+        <SingleImageTextEditor
+          onDone={handleLayoutDone}
+          onCancel={() => { setActiveLayout(null); setEditingTempId(null); }}
+          initialState={(() => {
+            const m = newMedia.find(x => x.tempId === editingTempId);
+            return m?.editorState?.kind === 'single' ? m.editorState : undefined;
+          })()}
+        />
+      )}
+      {activeLayout === 'grid' && (
+        <GridTextEditor
+          onDone={handleLayoutDone}
+          onCancel={() => { setActiveLayout(null); setEditingTempId(null); }}
+          initialState={(() => {
+            const m = newMedia.find(x => x.tempId === editingTempId);
+            return m?.editorState?.kind === 'grid' ? m.editorState : undefined;
+          })()}
+        />
+      )}
+      {activeLayout === 'cost' && (
+        <CostBreakdownEditor
+          onDone={handleLayoutDone}
+          onCancel={() => { setActiveLayout(null); setEditingTempId(null); }}
+          initialState={(() => {
+            const m = newMedia.find(x => x.tempId === editingTempId);
+            return m?.editorState?.kind === 'cost' ? m.editorState : undefined;
+          })()}
+        />
+      )}
     </div>
   );
 };
