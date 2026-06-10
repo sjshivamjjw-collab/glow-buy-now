@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { ArrowLeft, ImagePlus, X, Check, Type, Circle, Highlighter, Plus } from 'lucide-react';
-import { composeSingleSlide, type TextOverlay, type OverlayColor, type OverlaySize, COLOR_MAP, sizePx } from '@/lib/composeLayout';
+import { composeSingleSlide, type TextOverlay, type OverlayColor, type OverlaySize, COLOR_MAP, sizePx, type LayoutEditorState } from '@/lib/composeLayout';
 import { useToast } from '@/hooks/use-toast';
 
 interface Slide {
@@ -11,9 +11,11 @@ interface Slide {
 }
 
 interface Props {
-  onDone: (files: File[]) => void;
+  onDone: (files: File[], state: LayoutEditorState) => void;
   onCancel: () => void;
+  initialState?: Extract<LayoutEditorState, { kind: 'single' }>;
 }
+
 
 const makeOverlay = (id: string): TextOverlay => ({
   id,
