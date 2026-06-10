@@ -35,9 +35,18 @@ const LIGHT_COLORS = new Set<OverlayColor>(['white', 'cream', 'yellow']);
 
 type Tool = 'size' | 'color' | null;
 
-export const SingleImageTextEditor = ({ onDone, onCancel }: Props) => {
+export const SingleImageTextEditor = ({ onDone, onCancel, initialState }: Props) => {
   const { toast } = useToast();
-  const [slides, setSlides] = useState<Slide[]>([]);
+  const [slides, setSlides] = useState<Slide[]>(() =>
+    initialState
+      ? initialState.slides.map((s) => ({
+          id: s.id,
+          file: s.file,
+          previewUrl: URL.createObjectURL(s.file),
+          overlays: s.overlays,
+        }))
+      : [],
+  );
   const [active, setActive] = useState(0);
   const [busy, setBusy] = useState(false);
   const [openTool, setOpenTool] = useState<Tool>(null);
