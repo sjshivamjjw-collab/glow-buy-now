@@ -428,47 +428,51 @@ export const SingleImageTextEditor = ({ onDone, onCancel }: Props) => {
         )}
 
         {/* Floating right toolbar */}
-        {activeOverlay && (
+        {activeSlide && (
           <div className="absolute right-3 top-1/2 -translate-y-1/2 flex flex-col gap-2 z-20">
-            <ToolButton
-              icon={<Type className="w-5 h-5" />}
-              active={openTool === 'size'}
-              onClick={() => setOpenTool(openTool === 'size' ? null : 'size')}
-              expanded={openTool === 'size' && (
-                <div className="flex flex-col gap-1.5">
-                  {SIZES.map((sz) => (
-                    <button
-                      key={sz}
-                      onClick={() => patchOverlay(activeOverlay.id, { size: sz })}
-                      className={`w-9 h-9 rounded-full text-sm font-bold flex items-center justify-center ${activeOverlay.size === sz ? 'bg-white text-black' : 'bg-black/60 text-white'}`}
-                    >{SIZE_LABELS[sz]}</button>
-                  ))}
-                </div>
-              )}
-            />
-            <ToolButton
-              icon={<Circle className="w-5 h-5" fill={COLOR_MAP[activeOverlay.color]} stroke="white" />}
-              active={openTool === 'color'}
-              onClick={() => setOpenTool(openTool === 'color' ? null : 'color')}
-              expanded={openTool === 'color' && (
-                <div className="flex flex-col gap-1.5">
-                  {COLORS.map((c) => (
-                    <button
-                      key={c}
-                      onClick={() => patchOverlay(activeOverlay.id, { color: c })}
-                      aria-label={c}
-                      className={`w-9 h-9 rounded-full border-2 ${activeOverlay.color === c ? 'border-[#ef4444]' : 'border-white/60'}`}
-                      style={{ backgroundColor: COLOR_MAP[c] }}
-                    />
-                  ))}
-                </div>
-              )}
-            />
-            <ToolButton
-              icon={<Highlighter className="w-5 h-5" />}
-              active={activeOverlay.bgEnabled}
-              onClick={() => patchOverlay(activeOverlay.id, { bgEnabled: !activeOverlay.bgEnabled })}
-            />
+            {activeOverlay && (
+              <>
+                <ToolButton
+                  icon={<Type className="w-5 h-5" />}
+                  active={openTool === 'size'}
+                  onClick={() => setOpenTool(openTool === 'size' ? null : 'size')}
+                  expanded={openTool === 'size' && (
+                    <div className="flex flex-col gap-1.5">
+                      {SIZES.map((sz) => (
+                        <button
+                          key={sz}
+                          onClick={() => patchOverlay(activeOverlay.id, { size: sz })}
+                          className={`w-9 h-9 rounded-full text-sm font-bold flex items-center justify-center ${activeOverlay.size === sz ? 'bg-white text-black' : 'bg-black/60 text-white'}`}
+                        >{SIZE_LABELS[sz]}</button>
+                      ))}
+                    </div>
+                  )}
+                />
+                <ToolButton
+                  icon={<Circle className="w-5 h-5" fill={COLOR_MAP[activeOverlay.color]} stroke="white" />}
+                  active={openTool === 'color'}
+                  onClick={() => setOpenTool(openTool === 'color' ? null : 'color')}
+                  expanded={openTool === 'color' && (
+                    <div className="flex flex-col gap-1.5">
+                      {COLORS.map((c) => (
+                        <button
+                          key={c}
+                          onClick={() => patchOverlay(activeOverlay.id, { color: c })}
+                          aria-label={c}
+                          className={`w-9 h-9 rounded-full border-2 ${activeOverlay.color === c ? 'border-[#ef4444]' : 'border-white/60'}`}
+                          style={{ backgroundColor: COLOR_MAP[c] }}
+                        />
+                      ))}
+                    </div>
+                  )}
+                />
+                <ToolButton
+                  icon={<Highlighter className="w-5 h-5" />}
+                  active={activeOverlay.bgEnabled}
+                  onClick={() => patchOverlay(activeOverlay.id, { bgEnabled: !activeOverlay.bgEnabled })}
+                />
+              </>
+            )}
             <ToolButton
               icon={<Plus className="w-5 h-5" />}
               onClick={addOverlay}
