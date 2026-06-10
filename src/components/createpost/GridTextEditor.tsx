@@ -3,7 +3,7 @@ import { ArrowLeft, ImagePlus, X, Check, Plus, Type, Circle, Highlighter } from 
 import { composeGrid, type TextOverlay, type OverlayColor, type OverlaySize, COLOR_MAP, sizePx } from '@/lib/composeLayout';
 import { useToast } from '@/hooks/use-toast';
 
-interface Cell { file: File | null; previewUrl: string | null; posX: number; posY: number }
+interface Cell { file: File | null; previewUrl: string | null; posX: number; posY: number; scale: number }
 
 interface Props {
   onDone: (files: File[]) => void;
@@ -23,7 +23,13 @@ const newOverlay = (id: string): TextOverlay => ({
 
 export const GridTextEditor = ({ onDone, onCancel }: Props) => {
   const { toast } = useToast();
-  const emptyCell = (): Cell => ({ file: null, previewUrl: null, posX: 0.5, posY: 0.5 });
+  // Default scale 1.15 gives both axes some pan room even for images that
+  // share the cell's aspect ratio. Users can pinch to zoom further.
+  const DEFAULT_SCALE = 1.15;
+  const emptyCell = (): Cell => ({ file: null, previewUrl: null, posX: 0.5, posY: 0.5, scale: DEFAULT_SCALE });
+  const newFilledCell = (f: File): Cell => ({
+    file: f, previewUrl: URL.createObjectURL(f), posX: 0.5, posY: 0.5, scale: DEFAULT_SCALE,
+  });
   const [cells, setCells] = useState<Cell[]>([emptyCell(), emptyCell(), emptyCell(), emptyCell()]);
   const [overlays, setOverlays] = useState<TextOverlay[]>([]);
   const [activeId, setActiveId] = useState<string | null>(null);
@@ -54,13 +60,13 @@ export const GridTextEditor = ({ onDone, onCancel }: Props) => {
       const next = [...prev];
       // Replace the tapped cell with the first picked file.
       if (next[startIdx].previewUrl) URL.revokeObjectURL(next[startIdx].previewUrl!);
-      next[startIdx] = { file: arr[0], previewUrl: URL.createObjectURL(arr[0]), posX: 0.5, posY: 0.5 };
+      next[startIdx] = newFilledCell(arr[0]);
       // Fill remaining files into the next empty cells (wrapping after startIdx).
       let cursor = 1;
       for (let k = 0; k < next.length && cursor < arr.length; k++) {
         const i = (startIdx + k + 1) % next.length;
         if (next[i].file) continue;
-        next[i] = { file: arr[cursor], previewUrl: URL.createObjectURL(arr[cursor]), posX: 0.5, posY: 0.5 };
+        next[i] = newFilledCell(arr[cursor]);
         cursor++;
       }
       return next;
@@ -76,10 +82,10 @@ export const GridTextEditor = ({ onDone, onCancel }: Props) => {
     });
   };
 
-  const setCellPos = (idx: number, posX: number, posY: number) => {
+  const setCellTransform = (idx: number, patch: Partial<Pick<Cell, 'posX' | 'posY' | 'scale'>>) => {
     setCells((prev) => {
       const next = [...prev];
-      next[idx] = { ...next[idx], posX, posY };
+      next[idx] = { ...next[idx], ...patch };
       return next;
     });
   };
@@ -93,11 +99,11 @@ export const GridTextEditor = ({ onDone, onCancel }: Props) => {
     }
     setBusy(true);
     try {
-      const input = cells.map((c) => ({ file: c.file!, posX: c.posX, posY: c.posY })) as [
-        { file: File; posX: number; posY: number },
-        { file: File; posX: number; posY: number },
-        { file: File; posX: number; posY: number },
-        { file: File; posX: number; posY: number },
+      const input = cells.map((c) => ({ file: c.file!, posX: c.posX, posY: c.posY, scale: c.scale })) as [
+        { file: File; posX: number; posY: number; scale: number },
+        { file: File; posX: number; posY: number; scale: number },
+        { file: File; posX: number; posY: number; scale: number },
+        { file: File; posX: number; posY: number; scale: number },
       ];
       const out = await composeGrid(input, overlays.filter((o) => o.text.trim()));
       onDone([out]);
@@ -194,7 +200,7 @@ export const GridTextEditor = ({ onDone, onCancel }: Props) => {
                 cell={c}
                 onPick={(fl) => setFiles(i, fl)}
                 onClear={() => clearCell(i)}
-                onPan={(posX, posY) => setCellPos(i, posX, posY)}
+                onTransform={(patch) => setCellTransform(i, patch)}
               />
             ))}
           </div>
@@ -405,56 +411,121 @@ const CellPicker = ({
   cell,
   onPick,
   onClear,
-  onPan,
+  onTransform,
 }: {
   cell: Cell;
   onPick: (fl: FileList | null) => void;
   onClear: () => void;
-  onPan: (posX: number, posY: number) => void;
+  onTransform: (patch: Partial<Pick<Cell, 'posX' | 'posY' | 'scale'>>) => void;
 }) => {
   const inputRef = useRef<HTMLInputElement>(null);
   const wrapRef = useRef<HTMLDivElement>(null);
   const imgRef = useRef<HTMLImageElement>(null);
-  const dragRef = useRef<{
-    startX: number; startY: number; startPosX: number; startPosY: number;
-    panRangeX: number; panRangeY: number; moved: boolean;
+
+  // Natural aspect ratio of the loaded image (width / height) and current
+  // wrap size. Both are needed to compute pan ranges and image display size.
+  const [natRatio, setNatRatio] = useState(1);
+  const [wrap, setWrap] = useState({ w: 1, h: 1 });
+
+  useEffect(() => {
+    if (!wrapRef.current) return;
+    const el = wrapRef.current;
+    const update = () => {
+      const r = el.getBoundingClientRect();
+      setWrap({ w: r.width || 1, h: r.height || 1 });
+    };
+    update();
+    const ro = new ResizeObserver(update);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
+  // Cover-fit size at scale=1: one axis matches wrap exactly, the other overflows.
+  const wr = wrap.w / wrap.h;
+  let baseW: number, baseH: number;
+  if (natRatio > wr) { baseH = wrap.h; baseW = baseH * natRatio; }
+  else { baseW = wrap.w; baseH = baseW / natRatio; }
+  const dispW = baseW * cell.scale;
+  const dispH = baseH * cell.scale;
+  const panRangeX = Math.max(0, dispW - wrap.w);
+  const panRangeY = Math.max(0, dispH - wrap.h);
+  // posX/posY 0 = left/top edge; 0.5 = centered. Translate value relative to centered position.
+  const tx = (0.5 - cell.posX) * panRangeX;
+  const ty = (0.5 - cell.posY) * panRangeY;
+
+  // Track active pointers so we can detect pinch (2 fingers).
+  const pointers = useRef<Map<number, { x: number; y: number }>>(new Map());
+  const gesture = useRef<{
+    mode: 'pan' | 'pinch';
+    startPosX: number; startPosY: number; startScale: number;
+    panRangeX: number; panRangeY: number;
+    startMidX: number; startMidY: number;
+    startDist: number;
   } | null>(null);
 
+  const currentRanges = (scale: number) => {
+    const s = Math.max(1, scale);
+    const dW = baseW * s;
+    const dH = baseH * s;
+    return { panRangeX: Math.max(1, dW - wrap.w), panRangeY: Math.max(1, dH - wrap.h) };
+  };
+
+  const beginGesture = () => {
+    if (pointers.current.size === 2) {
+      const pts = Array.from(pointers.current.values());
+      const r = currentRanges(cell.scale);
+      gesture.current = {
+        mode: 'pinch',
+        startPosX: cell.posX, startPosY: cell.posY, startScale: cell.scale,
+        panRangeX: r.panRangeX, panRangeY: r.panRangeY,
+        startMidX: (pts[0].x + pts[1].x) / 2,
+        startMidY: (pts[0].y + pts[1].y) / 2,
+        startDist: Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y) || 1,
+      };
+    } else if (pointers.current.size === 1) {
+      const p = Array.from(pointers.current.values())[0];
+      const r = currentRanges(cell.scale);
+      gesture.current = {
+        mode: 'pan',
+        startPosX: cell.posX, startPosY: cell.posY, startScale: cell.scale,
+        panRangeX: r.panRangeX, panRangeY: r.panRangeY,
+        startMidX: p.x, startMidY: p.y,
+        startDist: 1,
+      };
+    }
+  };
+
   const onPointerDown = (e: React.PointerEvent) => {
-    if (!cell.file || !wrapRef.current || !imgRef.current) return;
-    const wrap = wrapRef.current.getBoundingClientRect();
-    const img = imgRef.current;
-    const ir = img.naturalWidth / img.naturalHeight;
-    const tr = wrap.width / wrap.height;
-    // displayed image size when object-cover is applied
-    let dispW: number, dispH: number;
-    if (ir > tr) { dispH = wrap.height; dispW = dispH * ir; }
-    else { dispW = wrap.width; dispH = dispW / ir; }
-    const panRangeX = Math.max(1, dispW - wrap.width);
-    const panRangeY = Math.max(1, dispH - wrap.height);
-    dragRef.current = {
-      startX: e.clientX, startY: e.clientY,
-      startPosX: cell.posX, startPosY: cell.posY,
-      panRangeX, panRangeY, moved: false,
-    };
+    if (!cell.file) return;
+    pointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
     (e.target as Element).setPointerCapture?.(e.pointerId);
+    beginGesture();
   };
   const onPointerMove = (e: React.PointerEvent) => {
-    const d = dragRef.current;
-    if (!d) return;
-    const dx = e.clientX - d.startX;
-    const dy = e.clientY - d.startY;
-    if (Math.abs(dx) > 3 || Math.abs(dy) > 3) d.moved = true;
-    // Drag right -> reveal left of image -> posX decreases.
-    const nx = Math.max(0, Math.min(1, d.startPosX - dx / d.panRangeX));
-    const ny = Math.max(0, Math.min(1, d.startPosY - dy / d.panRangeY));
-    onPan(nx, ny);
+    if (!pointers.current.has(e.pointerId)) return;
+    pointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    const g = gesture.current;
+    if (!g) return;
+    if (g.mode === 'pinch' && pointers.current.size >= 2) {
+      const pts = Array.from(pointers.current.values()).slice(0, 2);
+      const dist = Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y) || 1;
+      const nextScale = Math.max(1, Math.min(3, g.startScale * (dist / g.startDist)));
+      onTransform({ scale: nextScale });
+    } else if (g.mode === 'pan') {
+      const dx = e.clientX - g.startMidX;
+      const dy = e.clientY - g.startMidY;
+      // Drag right → reveal left of image → posX decreases.
+      const nx = Math.max(0, Math.min(1, g.startPosX - dx / g.panRangeX));
+      const ny = Math.max(0, Math.min(1, g.startPosY - dy / g.panRangeY));
+      onTransform({ posX: nx, posY: ny });
+    }
   };
-  const onPointerUp = () => {
-    const d = dragRef.current;
-    dragRef.current = null;
-    if (d && !d.moved && !cell.file) inputRef.current?.click();
+  const onPointerUp = (e: React.PointerEvent) => {
+    pointers.current.delete(e.pointerId);
+    if (pointers.current.size === 0) gesture.current = null;
+    else beginGesture();
   };
+
   const onTap = () => { if (!cell.file) inputRef.current?.click(); };
 
   return (
@@ -463,6 +534,10 @@ const CellPicker = ({
       className="relative bg-[#1a1a1a] overflow-hidden w-full h-full select-none"
       style={{ touchAction: cell.file ? 'none' : 'auto' }}
       onClick={onTap}
+      onPointerDown={onPointerDown}
+      onPointerMove={onPointerMove}
+      onPointerUp={onPointerUp}
+      onPointerCancel={onPointerUp}
     >
       {cell.previewUrl ? (
         <>
@@ -471,12 +546,19 @@ const CellPicker = ({
             src={cell.previewUrl}
             alt=""
             draggable={false}
-            onPointerDown={onPointerDown}
-            onPointerMove={onPointerMove}
-            onPointerUp={onPointerUp}
-            onPointerCancel={onPointerUp}
-            className="w-full h-full object-cover cursor-move"
-            style={{ objectPosition: `${cell.posX * 100}% ${cell.posY * 100}%` }}
+            onLoad={(e) => {
+              const i = e.currentTarget;
+              if (i.naturalWidth && i.naturalHeight) {
+                setNatRatio(i.naturalWidth / i.naturalHeight);
+              }
+            }}
+            className="absolute top-1/2 left-1/2 max-w-none cursor-move pointer-events-none"
+            style={{
+              width: `${baseW}px`,
+              height: `${baseH}px`,
+              transform: `translate(-50%, -50%) translate(${tx}px, ${ty}px) scale(${cell.scale})`,
+              transformOrigin: 'center',
+            }}
           />
           <button
             type="button"
