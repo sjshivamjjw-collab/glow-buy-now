@@ -401,18 +401,94 @@ const ToolButton = ({
   </div>
 );
 
-const CellPicker = ({ cell, onPick }: { cell: Cell; onPick: (fl: FileList | null) => void }) => {
+const CellPicker = ({
+  cell,
+  onPick,
+  onClear,
+  onPan,
+}: {
+  cell: Cell;
+  onPick: (fl: FileList | null) => void;
+  onClear: () => void;
+  onPan: (posX: number, posY: number) => void;
+}) => {
   const inputRef = useRef<HTMLInputElement>(null);
+  const wrapRef = useRef<HTMLDivElement>(null);
+  const imgRef = useRef<HTMLImageElement>(null);
+  const dragRef = useRef<{
+    startX: number; startY: number; startPosX: number; startPosY: number;
+    panRangeX: number; panRangeY: number; moved: boolean;
+  } | null>(null);
+
+  const onPointerDown = (e: React.PointerEvent) => {
+    if (!cell.file || !wrapRef.current || !imgRef.current) return;
+    const wrap = wrapRef.current.getBoundingClientRect();
+    const img = imgRef.current;
+    const ir = img.naturalWidth / img.naturalHeight;
+    const tr = wrap.width / wrap.height;
+    // displayed image size when object-cover is applied
+    let dispW: number, dispH: number;
+    if (ir > tr) { dispH = wrap.height; dispW = dispH * ir; }
+    else { dispW = wrap.width; dispH = dispW / ir; }
+    const panRangeX = Math.max(1, dispW - wrap.width);
+    const panRangeY = Math.max(1, dispH - wrap.height);
+    dragRef.current = {
+      startX: e.clientX, startY: e.clientY,
+      startPosX: cell.posX, startPosY: cell.posY,
+      panRangeX, panRangeY, moved: false,
+    };
+    (e.target as Element).setPointerCapture?.(e.pointerId);
+  };
+  const onPointerMove = (e: React.PointerEvent) => {
+    const d = dragRef.current;
+    if (!d) return;
+    const dx = e.clientX - d.startX;
+    const dy = e.clientY - d.startY;
+    if (Math.abs(dx) > 3 || Math.abs(dy) > 3) d.moved = true;
+    // Drag right -> reveal left of image -> posX decreases.
+    const nx = Math.max(0, Math.min(1, d.startPosX - dx / d.panRangeX));
+    const ny = Math.max(0, Math.min(1, d.startPosY - dy / d.panRangeY));
+    onPan(nx, ny);
+  };
+  const onPointerUp = () => {
+    const d = dragRef.current;
+    dragRef.current = null;
+    if (d && !d.moved && !cell.file) inputRef.current?.click();
+  };
+  const onTap = () => { if (!cell.file) inputRef.current?.click(); };
+
   return (
-    <button
-      type="button"
-      onClick={() => inputRef.current?.click()}
-      className="relative bg-[#1a1a1a] overflow-hidden flex items-center justify-center cursor-pointer w-full h-full"
+    <div
+      ref={wrapRef}
+      className="relative bg-[#1a1a1a] overflow-hidden w-full h-full select-none"
+      style={{ touchAction: cell.file ? 'none' : 'auto' }}
+      onClick={onTap}
     >
       {cell.previewUrl ? (
-        <img src={cell.previewUrl} alt="" className="w-full h-full object-cover pointer-events-none" />
+        <>
+          <img
+            ref={imgRef}
+            src={cell.previewUrl}
+            alt=""
+            draggable={false}
+            onPointerDown={onPointerDown}
+            onPointerMove={onPointerMove}
+            onPointerUp={onPointerUp}
+            onPointerCancel={onPointerUp}
+            className="w-full h-full object-cover cursor-move"
+            style={{ objectPosition: `${cell.posX * 100}% ${cell.posY * 100}%` }}
+          />
+          <button
+            type="button"
+            onClick={(e) => { e.stopPropagation(); onClear(); }}
+            aria-label="Remove photo"
+            className="absolute top-1.5 right-1.5 w-6 h-6 rounded-full bg-black/70 text-white flex items-center justify-center z-10"
+          >
+            <X className="w-3.5 h-3.5" />
+          </button>
+        </>
       ) : (
-        <div className="flex flex-col items-center justify-center text-white/70 gap-1 pointer-events-none">
+        <div className="w-full h-full flex flex-col items-center justify-center text-white/70 gap-1 pointer-events-none">
           <ImagePlus className="w-5 h-5" />
           <span className="text-[10px] font-semibold">Tap to add</span>
         </div>
@@ -421,9 +497,10 @@ const CellPicker = ({ cell, onPick }: { cell: Cell; onPick: (fl: FileList | null
         ref={inputRef}
         type="file"
         accept="image/*,image/heic,image/heif"
+        multiple
         className="hidden"
         onChange={(e) => { onPick(e.target.files); e.target.value = ''; }}
       />
-    </button>
+    </div>
   );
 };
