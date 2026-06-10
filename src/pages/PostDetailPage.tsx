@@ -604,16 +604,6 @@ const PostDetailPage = () => {
           )}
           {media.length > 1 && (
             <>
-              <button
-                onClick={() => emblaApi?.scrollPrev()}
-                disabled={mediaIdx === 0}
-                className="absolute left-2 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-[#0a0a0a]/80 backdrop-blur-sm text-[#fafafa] flex items-center justify-center disabled:opacity-30 z-10"
-              ><ChevronLeft className="w-5 h-5" /></button>
-              <button
-                onClick={() => emblaApi?.scrollNext()}
-                disabled={mediaIdx === media.length - 1}
-                className="absolute right-2 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-[#0a0a0a]/80 backdrop-blur-sm text-[#fafafa] flex items-center justify-center disabled:opacity-30 z-10"
-              ><ChevronRight className="w-5 h-5" /></button>
               <div className="absolute bottom-2 left-1/2 -translate-x-1/2 px-2.5 py-0.5 rounded-full bg-[#0a0a0a]/85 backdrop-blur-sm text-[#fafafa] text-[10px] font-semibold z-10">
                 {mediaIdx + 1} / {media.length}
               </div>
