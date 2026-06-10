@@ -38,7 +38,8 @@ export const GridTextEditor = ({ onDone, onCancel }: Props) => {
   const surfaceRef = useRef<HTMLDivElement>(null);
   const editInputRef = useRef<HTMLTextAreaElement>(null);
   const dragState = useRef<{ id: string; startX: number; startY: number; ox: number; oy: number; w: number; h: number; moved: boolean } | null>(null);
-  const resizeState = useRef<{ id: string; startX: number; startW: number; stageW: number } | null>(null);
+  const resizeState = useRef<{ id: string; startX: number; startY: number; startW: number; startH: number; stageW: number } | null>(null);
+  const [heights, setHeights] = useState<Record<string, number>>({});
 
   useEffect(() => () => cells.forEach((c) => c.previewUrl && URL.revokeObjectURL(c.previewUrl)), []); // eslint-disable-line
 
@@ -191,7 +192,10 @@ export const GridTextEditor = ({ onDone, onCancel }: Props) => {
 
             const onResizeDown = (e: React.PointerEvent) => {
               e.stopPropagation();
-              resizeState.current = { id: o.id, startX: e.clientX, startW: o.width ?? 0.7, stageW };
+              resizeState.current = {
+                id: o.id, startX: e.clientX, startY: e.clientY,
+                startW: o.width ?? 0.7, startH: heights[o.id] ?? 0, stageW,
+              };
               (e.target as Element).setPointerCapture?.(e.pointerId);
             };
             const onResizeMove = (e: React.PointerEvent) => {
@@ -200,6 +204,8 @@ export const GridTextEditor = ({ onDone, onCancel }: Props) => {
               e.stopPropagation();
               const dxFrac = ((e.clientX - r.startX) * 2) / r.stageW;
               updateOverlay(o.id, { width: Math.max(0.18, Math.min(0.95, r.startW + dxFrac)) });
+              const newH = Math.max(0, r.startH + (e.clientY - r.startY));
+              setHeights((h) => ({ ...h, [o.id]: newH }));
             };
             const onResizeUp = () => { resizeState.current = null; };
 
@@ -237,7 +243,7 @@ export const GridTextEditor = ({ onDone, onCancel }: Props) => {
                         fontSize: `${fontPx}px`,
                         lineHeight: 1.25,
                         caretColor: textColor,
-                        minHeight: `${fontPx * 1.6}px`,
+                        minHeight: `${Math.max(fontPx * 1.6, heights[o.id] ?? 0)}px`,
                       }}
                     />
                   ) : (
@@ -254,6 +260,7 @@ export const GridTextEditor = ({ onDone, onCancel }: Props) => {
                         lineHeight: 1.25,
                         whiteSpace: 'pre-wrap',
                         wordBreak: 'break-word',
+                        minHeight: heights[o.id] ? `${heights[o.id]}px` : undefined,
                       }}
                     >
                       {o.text || 'Tap to type'}
