@@ -23,12 +23,8 @@ const newOverlay = (id: string): TextOverlay => ({
 
 export const GridTextEditor = ({ onDone, onCancel }: Props) => {
   const { toast } = useToast();
-  const [cells, setCells] = useState<Cell[]>([
-    { file: null, previewUrl: null },
-    { file: null, previewUrl: null },
-    { file: null, previewUrl: null },
-    { file: null, previewUrl: null },
-  ]);
+  const emptyCell = (): Cell => ({ file: null, previewUrl: null, posX: 0.5, posY: 0.5 });
+  const [cells, setCells] = useState<Cell[]>([emptyCell(), emptyCell(), emptyCell(), emptyCell()]);
   const [overlays, setOverlays] = useState<TextOverlay[]>([]);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -39,19 +35,52 @@ export const GridTextEditor = ({ onDone, onCancel }: Props) => {
   const editInputRef = useRef<HTMLTextAreaElement>(null);
   const dragState = useRef<{ id: string; startX: number; startY: number; ox: number; oy: number; w: number; h: number; moved: boolean } | null>(null);
   const resizeState = useRef<{ id: string; startX: number; startY: number; startW: number; startH: number; stageW: number } | null>(null);
+  const panState = useRef<{ idx: number; startX: number; startY: number; sx: number; sy: number; size: number } | null>(null);
   const [heights, setHeights] = useState<Record<string, number>>({});
 
   useEffect(() => () => cells.forEach((c) => c.previewUrl && URL.revokeObjectURL(c.previewUrl)), []); // eslint-disable-line
 
-  const setFile = (idx: number, fl: FileList | null) => {
-    if (!fl || !fl[0]) return;
-    const file = fl[0];
-    if (!file.type.startsWith('image/')) return;
+  // Insert one or more files starting at startIdx, filling empty cells (or
+  // replacing startIdx if it already has an image). Multi-select on iOS lets
+  // the user pick all four at once.
+  const setFiles = (startIdx: number, fl: FileList | null) => {
+    if (!fl || !fl.length) return;
+    const arr = Array.from(fl).filter((f) => {
+      const looksImage = f.type.startsWith('image/') || /\.(jpe?g|png|gif|webp|heic|heif|bmp)$/i.test(f.name);
+      return looksImage;
+    });
+    if (!arr.length) return;
     setCells((prev) => {
-      const c = [...prev];
-      if (c[idx].previewUrl) URL.revokeObjectURL(c[idx].previewUrl!);
-      c[idx] = { file, previewUrl: URL.createObjectURL(file) };
-      return c;
+      const next = [...prev];
+      // Replace the tapped cell with the first picked file.
+      if (next[startIdx].previewUrl) URL.revokeObjectURL(next[startIdx].previewUrl!);
+      next[startIdx] = { file: arr[0], previewUrl: URL.createObjectURL(arr[0]), posX: 0.5, posY: 0.5 };
+      // Fill remaining files into the next empty cells (wrapping after startIdx).
+      let cursor = 1;
+      for (let k = 0; k < next.length && cursor < arr.length; k++) {
+        const i = (startIdx + k + 1) % next.length;
+        if (next[i].file) continue;
+        next[i] = { file: arr[cursor], previewUrl: URL.createObjectURL(arr[cursor]), posX: 0.5, posY: 0.5 };
+        cursor++;
+      }
+      return next;
+    });
+  };
+
+  const clearCell = (idx: number) => {
+    setCells((prev) => {
+      const next = [...prev];
+      if (next[idx].previewUrl) URL.revokeObjectURL(next[idx].previewUrl!);
+      next[idx] = emptyCell();
+      return next;
+    });
+  };
+
+  const setCellPos = (idx: number, posX: number, posY: number) => {
+    setCells((prev) => {
+      const next = [...prev];
+      next[idx] = { ...next[idx], posX, posY };
+      return next;
     });
   };
 
@@ -64,8 +93,13 @@ export const GridTextEditor = ({ onDone, onCancel }: Props) => {
     }
     setBusy(true);
     try {
-      const files = cells.map((c) => c.file!) as [File, File, File, File];
-      const out = await composeGrid(files, overlays.filter((o) => o.text.trim()));
+      const input = cells.map((c) => ({ file: c.file!, posX: c.posX, posY: c.posY })) as [
+        { file: File; posX: number; posY: number },
+        { file: File; posX: number; posY: number },
+        { file: File; posX: number; posY: number },
+        { file: File; posX: number; posY: number },
+      ];
+      const out = await composeGrid(input, overlays.filter((o) => o.text.trim()));
       onDone([out]);
     } catch (e) {
       console.error(e);
