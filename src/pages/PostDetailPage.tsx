@@ -21,6 +21,7 @@ import {
   invalidateTrending,
 } from '@/lib/feedCache';
 import { optimizedImageUrl } from '@/lib/storageUrls';
+import useEmblaCarousel from 'embla-carousel-react';
 
 
 const CATEGORY_META: Record<string, { label: string }> = {
