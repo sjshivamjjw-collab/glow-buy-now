@@ -332,9 +332,10 @@ export const SingleImageTextEditor = ({ onDone, onCancel }: Props) => {
                             </svg>
                           </div>
                         </div>
+                      </div>
+                    );
+                  })()}
 
-                    </div>
-                  )}
 
                   {/* Tap-to-add-text hint when empty */}
                   {isActive && !s.hasText && !editingText && (
