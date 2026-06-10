@@ -215,15 +215,19 @@ export const GridTextEditor = ({ onDone, onCancel }: Props) => {
                   maxWidth: '95%',
                   touchAction: 'none',
                   zIndex: isActive ? 5 : 4,
+                  pointerEvents: 'none',
                 }}
               >
-                <div className={`relative ${isActive && !isEditing ? 'ring-2 ring-[#ef4444] rounded-lg' : ''}`}>
+                <div className={`relative ${isActive && !isEditing ? 'ring-2 ring-[#ef4444] rounded-lg' : ''}`} style={{ pointerEvents: 'auto' }}>
                   {isEditing ? (
                     <textarea
                       ref={editInputRef}
                       value={o.text}
                       onChange={(e) => updateOverlay(o.id, { text: e.target.value })}
-                      onBlur={() => setEditingId(null)}
+                      onBlur={() => {
+                        setEditingId(null);
+                        if (!o.text.trim()) removeOverlay(o.id);
+                      }}
                       rows={1}
                       placeholder="Type…"
                       className="block w-full resize-none bg-transparent outline-none text-center font-semibold px-3 py-1.5 rounded-lg"
@@ -324,6 +328,10 @@ export const GridTextEditor = ({ onDone, onCancel }: Props) => {
               icon={<Highlighter className="w-5 h-5" />}
               active={active.bgEnabled}
               onClick={() => updateOverlay(active.id, { bgEnabled: !active.bgEnabled })}
+            />
+            <ToolButton
+              icon={<Plus className="w-5 h-5" />}
+              onClick={addOverlay}
             />
           </div>
         )}
