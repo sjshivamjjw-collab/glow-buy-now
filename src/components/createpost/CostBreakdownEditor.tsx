@@ -1,25 +1,27 @@
 import { useState } from 'react';
 import { ArrowLeft, Check, Plus, Trash2 } from 'lucide-react';
-import { composeCostBreakdown, type CostRow } from '@/lib/composeLayout';
+import { composeCostBreakdown, type CostRow, type LayoutEditorState } from '@/lib/composeLayout';
 import { useToast } from '@/hooks/use-toast';
 
 interface Props {
-  onDone: (files: File[]) => void;
+  onDone: (files: File[], state: LayoutEditorState) => void;
   onCancel: () => void;
+  initialState?: Extract<LayoutEditorState, { kind: 'cost' }>;
 }
 
 const BG = '#F5F0E8';
 
-export const CostBreakdownEditor = ({ onDone, onCancel }: Props) => {
+export const CostBreakdownEditor = ({ onDone, onCancel, initialState }: Props) => {
   const { toast } = useToast();
-  const [headerL, setHeaderL] = useState('Item');
-  const [headerR, setHeaderR] = useState('Amount');
-  const [rows, setRows] = useState<CostRow[]>([
+  const [headerL, setHeaderL] = useState(initialState?.headerL ?? 'Item');
+  const [headerR, setHeaderR] = useState(initialState?.headerR ?? 'Amount');
+  const [rows, setRows] = useState<CostRow[]>(initialState?.rows ?? [
     { left: '', right: '' },
     { left: '', right: '' },
     { left: '', right: '' },
   ]);
   const [busy, setBusy] = useState(false);
+
 
   const updateRow = (i: number, key: 'left' | 'right', v: string) => {
     setRows((p) => p.map((r, idx) => (idx === i ? { ...r, [key]: v } : r)));
