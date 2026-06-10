@@ -12,7 +12,7 @@ interface Props {
 const OPTIONS: { key: LayoutChoice; title: string; subtitle: string; Icon: typeof ImageIcon }[] = [
   { key: 'single', title: 'Single Image', subtitle: 'Swipeable carousel', Icon: ImageIcon },
   { key: 'grid', title: '2×2 Grid Layout', subtitle: 'Four photos in one square card', Icon: LayoutGrid },
-  { key: 'cost', title: 'Table Layout', subtitle: 'Used for cost breakdowns, itineraries etc', Icon: Table },
+  { key: 'cost', title: 'Cost Breakdown', subtitle: 'Used for cost breakdowns, itineraries etc', Icon: Table },
 ];
 
 export const LayoutPickerSheet = ({ open, onOpenChange, onPick }: Props) => {
