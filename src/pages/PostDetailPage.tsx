@@ -567,16 +567,16 @@ const PostDetailPage = () => {
 
       {/* Media carousel */}
       {currentMedia && (
-        <div className="relative w-full bg-[#161616] h-[55vh] overflow-hidden">
+        <div className="relative w-full bg-black h-[55vh] overflow-hidden">
           <div ref={emblaRef} className="w-full h-full overflow-hidden">
             <div className="flex h-full touch-pan-y">
               {media.map((m, i) => (
-                <div key={m.id} className="relative min-w-0 shrink-0 grow-0 basis-full h-full">
+                <div key={m.id} className="relative min-w-0 shrink-0 grow-0 basis-full h-full flex items-center justify-center bg-black">
                   {m.kind === 'video' ? (
                     <video
                       ref={i === mediaIdx ? videoRef : undefined}
                       src={m.url}
-                      className="w-full h-full object-cover"
+                      className="w-full h-full object-contain"
                       controls
                       playsInline
                       muted
@@ -584,9 +584,9 @@ const PostDetailPage = () => {
                     />
                   ) : (
                     <img
-                      src={optimizedImageUrl(m.url, { width: 1080, quality: 75, resize: 'cover' }) || m.url}
+                      src={optimizedImageUrl(m.url, { width: 1080, quality: 80, resize: 'contain' }) || m.url}
                       alt=""
-                      className="w-full h-full object-cover cursor-pointer select-none"
+                      className="w-full h-full object-contain cursor-pointer select-none"
                       loading={Math.abs(i - mediaIdx) <= 1 ? 'eager' : 'lazy'}
                       decoding="async"
                       draggable={false}
