@@ -224,7 +224,10 @@ export const GridTextEditor = ({ onDone, onCancel }: Props) => {
                       ref={editInputRef}
                       value={o.text}
                       onChange={(e) => updateOverlay(o.id, { text: e.target.value })}
-                      onBlur={() => setEditingId(null)}
+                      onBlur={() => {
+                        setEditingId(null);
+                        if (!o.text.trim()) removeOverlay(o.id);
+                      }}
                       rows={1}
                       placeholder="Type…"
                       className="block w-full resize-none bg-transparent outline-none text-center font-semibold px-3 py-1.5 rounded-lg"
