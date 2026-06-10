@@ -23,7 +23,13 @@ const newOverlay = (id: string): TextOverlay => ({
 
 export const GridTextEditor = ({ onDone, onCancel }: Props) => {
   const { toast } = useToast();
-  const emptyCell = (): Cell => ({ file: null, previewUrl: null, posX: 0.5, posY: 0.5 });
+  // Default scale 1.15 gives both axes some pan room even for images that
+  // share the cell's aspect ratio. Users can pinch to zoom further.
+  const DEFAULT_SCALE = 1.15;
+  const emptyCell = (): Cell => ({ file: null, previewUrl: null, posX: 0.5, posY: 0.5, scale: DEFAULT_SCALE });
+  const newFilledCell = (f: File): Cell => ({
+    file: f, previewUrl: URL.createObjectURL(f), posX: 0.5, posY: 0.5, scale: DEFAULT_SCALE,
+  });
   const [cells, setCells] = useState<Cell[]>([emptyCell(), emptyCell(), emptyCell(), emptyCell()]);
   const [overlays, setOverlays] = useState<TextOverlay[]>([]);
   const [activeId, setActiveId] = useState<string | null>(null);
