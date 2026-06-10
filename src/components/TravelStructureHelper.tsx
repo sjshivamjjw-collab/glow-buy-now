@@ -10,7 +10,7 @@ export interface TravelStructurePill {
 }
 
 export const TRAVEL_STRUCTURE_PILLS: TravelStructurePill[] = [
-  { key: 'cost',       emoji: '💰', label: 'Cost Breakdown',    heading: 'Cost Breakdown' },
+  { key: 'cost',       emoji: '💰', label: 'Table format for cost breakdowns',    heading: 'Table format for cost breakdowns' },
   { key: 'overrated',  emoji: '🙄', label: 'Overrated Things',  heading: 'What Felt Overrated' },
   { key: 'surprises',  emoji: '😲', label: 'Biggest Surprises', heading: 'What Surprised Me' },
   { key: 'mistakes',   emoji: '💡', label: 'Mistakes & Lessons',heading: 'Mistakes To Avoid' },
