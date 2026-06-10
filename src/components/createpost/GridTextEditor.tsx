@@ -38,7 +38,8 @@ export const GridTextEditor = ({ onDone, onCancel }: Props) => {
   const surfaceRef = useRef<HTMLDivElement>(null);
   const editInputRef = useRef<HTMLTextAreaElement>(null);
   const dragState = useRef<{ id: string; startX: number; startY: number; ox: number; oy: number; w: number; h: number; moved: boolean } | null>(null);
-  const resizeState = useRef<{ id: string; startX: number; startW: number; stageW: number } | null>(null);
+  const resizeState = useRef<{ id: string; startX: number; startY: number; startW: number; startH: number; stageW: number } | null>(null);
+  const [heights, setHeights] = useState<Record<string, number>>({});
 
   useEffect(() => () => cells.forEach((c) => c.previewUrl && URL.revokeObjectURL(c.previewUrl)), []); // eslint-disable-line
 
