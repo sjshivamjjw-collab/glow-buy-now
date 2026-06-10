@@ -317,7 +317,25 @@ const CreatePostPage = () => {
       file,
       previewUrl: URL.createObjectURL(file),
       kind,
-    };
+  };
+
+  const handleLayoutDone = (files: File[]) => {
+    const remaining = MAX_FILES - media.length;
+    const slice = files.slice(0, Math.max(0, remaining));
+    if (slice.length < files.length) {
+      toast({ title: `Only added ${slice.length} of ${files.length}`, description: `Max ${MAX_FILES} attachments per post.` });
+    }
+    let firstId: string | null = null;
+    slice.forEach((f, i) => {
+      const id = addMediaFile(f);
+      if (i === 0) firstId = id;
+    });
+    // Composed images are already designed by the user — use the first as the cover as-is.
+    if (firstId && !coverFile) {
+      setCoverFile(slice[0]);
+      setCoverMediaId(firstId);
+    }
+    setActiveLayout(null);
     setMedia(prev => [...prev, entry]);
     return entry.id;
   };
