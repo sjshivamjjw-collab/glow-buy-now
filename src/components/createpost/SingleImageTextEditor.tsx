@@ -24,7 +24,9 @@ const makeOverlay = (id: string): TextOverlay => ({
   size: 'md',
   color: 'white',
   bgEnabled: true,
+  width: 0.7,
 });
+
 
 const SIZES: OverlaySize[] = ['sm', 'md', 'lg'];
 const SIZE_LABELS: Record<OverlaySize, string> = { sm: 'S', md: 'M', lg: 'L' };
