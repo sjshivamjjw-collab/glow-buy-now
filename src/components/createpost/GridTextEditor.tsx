@@ -329,6 +329,10 @@ export const GridTextEditor = ({ onDone, onCancel }: Props) => {
               active={active.bgEnabled}
               onClick={() => updateOverlay(active.id, { bgEnabled: !active.bgEnabled })}
             />
+            <ToolButton
+              icon={<Plus className="w-5 h-5" />}
+              onClick={addOverlay}
+            />
           </div>
         )}
       </div>
