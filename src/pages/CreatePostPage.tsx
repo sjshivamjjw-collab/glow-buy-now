@@ -709,7 +709,7 @@ const CreatePostPage = () => {
             {media.length < MAX_FILES && (
               <button
                 type="button"
-                onClick={() => fileRef.current?.click()}
+                onClick={() => setLayoutSheetOpen(true)}
                 className="aspect-square rounded-xl border-2 border-dashed border-[#e5e5e5] bg-[#f5f5f5] flex flex-col items-center justify-center text-[#6b6b6b] gap-1 hover:border-[#ef4444]/50 transition-colors"
               >
                 <ImagePlus className="w-6 h-6" />
@@ -719,8 +719,23 @@ const CreatePostPage = () => {
           </div>
         </SortableContext>
       </DndContext>
-      <input ref={fileRef} type="file" accept="image/*,video/*" multiple className="hidden"
-        onChange={e => { handleFiles(e.target.files); e.target.value = ''; }} />
+
+      <LayoutPickerSheet
+        open={layoutSheetOpen}
+        onOpenChange={setLayoutSheetOpen}
+        onPick={(c) => { setLayoutSheetOpen(false); setActiveLayout(c); }}
+      />
+      {activeLayout === 'single' && (
+        <SingleImageTextEditor onDone={handleLayoutDone} onCancel={() => setActiveLayout(null)} />
+      )}
+      {activeLayout === 'grid' && (
+        <GridTextEditor onDone={handleLayoutDone} onCancel={() => setActiveLayout(null)} />
+      )}
+      {activeLayout === 'cost' && (
+        <CostBreakdownEditor onDone={handleLayoutDone} onCancel={() => setActiveLayout(null)} />
+      )}
+
+
       
 
       {/* Title */}
