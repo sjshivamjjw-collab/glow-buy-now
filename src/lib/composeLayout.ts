@@ -13,7 +13,10 @@ export interface TextOverlay {
   size: OverlaySize;
   color: OverlayColor;
   bgEnabled: boolean;
+  // Optional: max width as fraction of canvas width (controls wrapping).
+  width?: number;
 }
+
 
 export const COLOR_MAP: Record<OverlayColor, string> = {
   white: '#FFFFFF',
