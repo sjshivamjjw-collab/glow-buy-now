@@ -50,6 +50,12 @@ export const SingleImageTextEditor = ({ onDone, onCancel }: Props) => {
 
   useEffect(() => () => slides.forEach((s) => URL.revokeObjectURL(s.previewUrl)), []); // eslint-disable-line
 
+  useEffect(() => {
+    const track = trackRef.current;
+    if (!track || slides.length === 0) return;
+    track.scrollTo({ left: active * track.clientWidth, behavior: 'smooth' });
+  }, [active, slides.length]);
+
   const addFiles = (fl: FileList | null) => {
     if (!fl) return;
     const next: Slide[] = [];
