@@ -239,6 +239,8 @@ const CreatePostPage = () => {
   const [submitting, setSubmitting] = useState(false);
   const [layoutSheetOpen, setLayoutSheetOpen] = useState(false);
   const [activeLayout, setActiveLayout] = useState<LayoutChoice | null>(null);
+  // When set, finishing the active layout editor REPLACES this entry instead of appending.
+  const [editingMediaId, setEditingMediaId] = useState<string | null>(null);
   const [draftRestored] = useState(() => !!(initial && (initial.title || initial.body || initial.location || initial.hashtags?.length || initial.category)));
 
   // Anonymous toggle only applies to Work Diaries — reset when leaving that category.
