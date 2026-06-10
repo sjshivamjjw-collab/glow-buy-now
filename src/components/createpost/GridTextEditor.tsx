@@ -3,7 +3,7 @@ import { ArrowLeft, ImagePlus, X, Check, Plus, Type, Circle, Highlighter } from 
 import { composeGrid, type TextOverlay, type OverlayColor, type OverlaySize, COLOR_MAP, sizePx } from '@/lib/composeLayout';
 import { useToast } from '@/hooks/use-toast';
 
-interface Cell { file: File | null; previewUrl: string | null; posX: number; posY: number }
+interface Cell { file: File | null; previewUrl: string | null; posX: number; posY: number; scale: number }
 
 interface Props {
   onDone: (files: File[]) => void;
