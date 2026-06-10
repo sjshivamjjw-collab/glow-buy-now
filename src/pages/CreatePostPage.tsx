@@ -339,7 +339,7 @@ const CreatePostPage = () => {
     }
     setActiveLayout(null);
   };
-  };
+
 
   const handleFiles = (files: FileList | null) => {
     if (!files) return;
