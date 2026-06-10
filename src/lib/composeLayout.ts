@@ -147,12 +147,6 @@ const roundRect = (ctx: CanvasRenderingContext2D, x: number, y: number, w: numbe
 };
 
 // Draw an image covering the target rect (object-cover behavior).
-const drawCover = (
-  ctx: CanvasRenderingContext2D,
-  img: HTMLImageElement,
-  dx: number, dy: number, dw: number, dh: number,
-) => {
-// Draw an image covering the target rect (object-cover behavior).
 // posX/posY are in [0,1] and control which part of the image stays visible
 // when cropping (0 = left/top, 0.5 = center, 1 = right/bottom).
 const drawCover = (
