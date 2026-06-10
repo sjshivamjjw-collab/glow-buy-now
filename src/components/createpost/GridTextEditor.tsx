@@ -581,9 +581,9 @@ const CellPicker = ({
             type="button"
             onClick={(e) => { e.stopPropagation(); onClear(); }}
             aria-label="Remove photo"
-            className="absolute top-1.5 right-1.5 w-6 h-6 rounded-full bg-black/70 text-white flex items-center justify-center z-10"
+            className="absolute top-1 right-1 w-4 h-4 rounded-full bg-black/70 text-white flex items-center justify-center z-10"
           >
-            <X className="w-3.5 h-3.5" />
+            <X className="w-2.5 h-2.5" />
           </button>
         </>
       ) : (
