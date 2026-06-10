@@ -10,6 +10,10 @@ import {
   UtensilsCrossed, BedDouble, Plane, ShoppingBag, BookOpen, Ticket,
 } from 'lucide-react';
 import { ImageCropperDialog } from '@/components/ImageCropperDialog';
+import { LayoutPickerSheet, type LayoutChoice } from '@/components/createpost/LayoutPickerSheet';
+import { SingleImageTextEditor } from '@/components/createpost/SingleImageTextEditor';
+import { GridTextEditor } from '@/components/createpost/GridTextEditor';
+import { CostBreakdownEditor } from '@/components/createpost/CostBreakdownEditor';
 
 import { useMentionAutocomplete } from '@/hooks/useMentionAutocomplete';
 import { MentionSuggestions } from '@/components/MentionSuggestions';
@@ -219,6 +223,8 @@ const CreatePostPage = () => {
   const [musicPickerOpen, setMusicPickerOpen] = useState(false);
   const [postAnonymously, setPostAnonymously] = useState<boolean>(initial?.postAnonymously ?? false);
   const [submitting, setSubmitting] = useState(false);
+  const [layoutSheetOpen, setLayoutSheetOpen] = useState(false);
+  const [activeLayout, setActiveLayout] = useState<LayoutChoice | null>(null);
   const [draftRestored] = useState(() => !!(initial && (initial.title || initial.body || initial.location || initial.hashtags?.length || initial.category)));
 
   // Anonymous toggle only applies to Work Diaries — reset when leaving that category.
@@ -315,6 +321,25 @@ const CreatePostPage = () => {
     setMedia(prev => [...prev, entry]);
     return entry.id;
   };
+
+  const handleLayoutDone = (files: File[]) => {
+    const remaining = MAX_FILES - media.length;
+    const slice = files.slice(0, Math.max(0, remaining));
+    if (slice.length < files.length) {
+      toast({ title: `Only added ${slice.length} of ${files.length}`, description: `Max ${MAX_FILES} attachments per post.` });
+    }
+    let firstId: string | null = null;
+    slice.forEach((f, i) => {
+      const id = addMediaFile(f);
+      if (i === 0) firstId = id;
+    });
+    if (firstId && !coverFile) {
+      setCoverFile(slice[0]);
+      setCoverMediaId(firstId);
+    }
+    setActiveLayout(null);
+  };
+
 
   const handleFiles = (files: FileList | null) => {
     if (!files) return;
@@ -684,7 +709,7 @@ const CreatePostPage = () => {
             {media.length < MAX_FILES && (
               <button
                 type="button"
-                onClick={() => fileRef.current?.click()}
+                onClick={() => setLayoutSheetOpen(true)}
                 className="aspect-square rounded-xl border-2 border-dashed border-[#e5e5e5] bg-[#f5f5f5] flex flex-col items-center justify-center text-[#6b6b6b] gap-1 hover:border-[#ef4444]/50 transition-colors"
               >
                 <ImagePlus className="w-6 h-6" />
@@ -694,8 +719,23 @@ const CreatePostPage = () => {
           </div>
         </SortableContext>
       </DndContext>
-      <input ref={fileRef} type="file" accept="image/*,video/*" multiple className="hidden"
-        onChange={e => { handleFiles(e.target.files); e.target.value = ''; }} />
+
+      <LayoutPickerSheet
+        open={layoutSheetOpen}
+        onOpenChange={setLayoutSheetOpen}
+        onPick={(c) => { setLayoutSheetOpen(false); setActiveLayout(c); }}
+      />
+      {activeLayout === 'single' && (
+        <SingleImageTextEditor onDone={handleLayoutDone} onCancel={() => setActiveLayout(null)} />
+      )}
+      {activeLayout === 'grid' && (
+        <GridTextEditor onDone={handleLayoutDone} onCancel={() => setActiveLayout(null)} />
+      )}
+      {activeLayout === 'cost' && (
+        <CostBreakdownEditor onDone={handleLayoutDone} onCancel={() => setActiveLayout(null)} />
+      )}
+
+
       
 
       {/* Title */}
