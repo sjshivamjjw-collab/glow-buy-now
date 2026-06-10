@@ -221,7 +221,7 @@ export const SingleImageTextEditor = ({ onDone, onCancel, initialState }: Props)
 
   return (
     <div
-      className="fixed inset-0 z-50 bg-black flex flex-col"
+      className="fixed inset-0 z-[60] bg-black flex flex-col"
       onClick={(e) => {
         if ((e.target as HTMLElement).dataset.dismissTool === '1') setOpenTool(null);
       }}

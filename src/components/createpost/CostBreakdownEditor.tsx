@@ -46,7 +46,7 @@ export const CostBreakdownEditor = ({ onDone, onCancel, initialState }: Props) =
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col" style={{ backgroundColor: BG }}>
+    <div className="fixed inset-0 z-[60] flex flex-col" style={{ backgroundColor: BG }}>
       <div className="flex items-center justify-between px-3 py-3 pt-[calc(env(safe-area-inset-top)+12px)]" style={{ color: '#2B2B2B' }}>
         <button onClick={onCancel} className="p-2 -ml-2"><ArrowLeft className="w-6 h-6" /></button>
         <span className="text-sm font-semibold">Table Layout</span>
