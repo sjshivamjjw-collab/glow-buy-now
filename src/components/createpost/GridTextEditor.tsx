@@ -118,11 +118,11 @@ export const GridTextEditor = ({ onDone, onCancel, initialState }: Props) => {
         { file: File; posX: number; posY: number; scale: number },
       ];
       const out = await composeGrid(input, overlays.filter((o) => o.text.trim()));
-      onDone([out], {
+      onDone([out], [{
         kind: 'grid',
         cells: cells.map((c) => ({ file: c.file!, posX: c.posX, posY: c.posY, scale: c.scale })),
         overlays,
-      });
+      }]);
     } catch (e) {
       console.error(e);
       toast({ title: 'Could not export grid', variant: 'destructive' });
