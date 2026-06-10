@@ -36,6 +36,7 @@ const SIZE_RATIO: Record<OverlaySize, number> = {
   sm: 0.021,
   md: 0.029,
   lg: 0.041,
+  xl: 0.058,
 };
 
 
