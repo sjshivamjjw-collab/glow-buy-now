@@ -246,6 +246,8 @@ export const GridTextEditor = ({ onDone, onCancel }: Props) => {
                         whiteSpace: 'pre-wrap',
                         wordBreak: 'break-word',
                         minHeight: heights[o.id] ? `${heights[o.id]}px` : undefined,
+                        touchAction: 'none',
+                        opacity: o.text ? 1 : 0.85,
                       }}
                     >
                       {o.text || 'Tap to type'}
