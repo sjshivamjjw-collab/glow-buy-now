@@ -50,6 +50,12 @@ export const SingleImageTextEditor = ({ onDone, onCancel }: Props) => {
 
   useEffect(() => () => slides.forEach((s) => URL.revokeObjectURL(s.previewUrl)), []); // eslint-disable-line
 
+  useEffect(() => {
+    const track = trackRef.current;
+    if (!track || slides.length === 0) return;
+    track.scrollTo({ left: active * track.clientWidth, behavior: 'smooth' });
+  }, [active, slides.length]);
+
   const addFiles = (fl: FileList | null) => {
     if (!fl) return;
     const next: Slide[] = [];
@@ -58,7 +64,12 @@ export const SingleImageTextEditor = ({ onDone, onCancel }: Props) => {
       const id = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
       next.push({ id, file: f, previewUrl: URL.createObjectURL(f), overlays: [] });
     }
+    if (!next.length) return;
     setSlides((prev) => [...prev, ...next]);
+    setActive(slides.length);
+    setActiveOverlayId(null);
+    setEditingId(null);
+    setOpenTool(null);
   };
 
   const removeSlide = (i: number) => {
@@ -210,6 +221,7 @@ export const SingleImageTextEditor = ({ onDone, onCancel }: Props) => {
       <div className="flex-1 relative overflow-hidden" data-dismiss-tool="1">
         {slides.length === 0 ? (
           <button
+            type="button"
             onClick={() => fileRef.current?.click()}
             className="absolute inset-0 m-6 rounded-2xl border-2 border-dashed border-white/40 flex flex-col items-center justify-center text-white/80 gap-2"
           >
@@ -436,11 +448,11 @@ export const SingleImageTextEditor = ({ onDone, onCancel }: Props) => {
       </div>
 
       <div className="px-4 py-3 bg-black/80 text-white flex items-center justify-between pb-[calc(env(safe-area-inset-bottom)+12px)]" data-dismiss-tool="1">
-        <button onClick={() => fileRef.current?.click()} className="flex items-center gap-2 text-sm font-semibold">
+          <button type="button" onClick={() => fileRef.current?.click()} className="flex items-center gap-2 text-sm font-semibold">
           <ImagePlus className="w-5 h-5" /> Add more
         </button>
         {activeSlide && (
-          <button onClick={addOverlay} className="flex items-center gap-1 text-sm font-semibold">
+          <button type="button" onClick={addOverlay} className="flex items-center gap-1 text-sm font-semibold">
             <Plus className="w-4 h-4" /> Add text
           </button>
         )}

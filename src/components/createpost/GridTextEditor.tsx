@@ -35,8 +35,6 @@ export const GridTextEditor = ({ onDone, onCancel }: Props) => {
   const [openTool, setOpenTool] = useState<Tool>(null);
   const [busy, setBusy] = useState(false);
 
-  const fileRef = useRef<HTMLInputElement>(null);
-  const pickingIdx = useRef<number | null>(null);
   const surfaceRef = useRef<HTMLDivElement>(null);
   const editInputRef = useRef<HTMLTextAreaElement>(null);
   const dragState = useRef<{ id: string; startX: number; startY: number; ox: number; oy: number; w: number; h: number; moved: boolean } | null>(null);
@@ -44,13 +42,10 @@ export const GridTextEditor = ({ onDone, onCancel }: Props) => {
 
   useEffect(() => () => cells.forEach((c) => c.previewUrl && URL.revokeObjectURL(c.previewUrl)), []); // eslint-disable-line
 
-  const pickFor = (i: number) => { pickingIdx.current = i; fileRef.current?.click(); };
-
-  const setFile = (fl: FileList | null) => {
+  const setFile = (idx: number, fl: FileList | null) => {
     if (!fl || !fl[0]) return;
     const file = fl[0];
-    const idx = pickingIdx.current;
-    if (idx == null) return;
+    if (!file.type.startsWith('image/')) return;
     setCells((prev) => {
       const c = [...prev];
       if (c[idx].previewUrl) URL.revokeObjectURL(c[idx].previewUrl!);
@@ -160,10 +155,9 @@ export const GridTextEditor = ({ onDone, onCancel }: Props) => {
         <div ref={surfaceRef} className="relative w-full aspect-square bg-white">
           <div className="absolute inset-0 grid grid-cols-2 grid-rows-2 gap-[2px] bg-white">
             {cells.map((c, i) => (
-              <button
+              <label
                 key={i}
-                onClick={() => pickFor(i)}
-                className="relative bg-[#1a1a1a] overflow-hidden flex items-center justify-center"
+                className="relative bg-[#1a1a1a] overflow-hidden flex items-center justify-center cursor-pointer"
               >
                 {c.previewUrl ? (
                   <img src={c.previewUrl} alt="" className="w-full h-full object-cover" />
@@ -173,7 +167,13 @@ export const GridTextEditor = ({ onDone, onCancel }: Props) => {
                     <span className="text-[10px] font-semibold">Tap to add</span>
                   </div>
                 )}
-              </button>
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="sr-only"
+                  onChange={(e) => { setFile(i, e.target.files); e.target.value = ''; }}
+                />
+              </label>
             ))}
           </div>
 
@@ -339,18 +339,10 @@ export const GridTextEditor = ({ onDone, onCancel }: Props) => {
 
       <div className="px-4 py-3 bg-black/80 text-white flex items-center justify-between pb-[calc(env(safe-area-inset-bottom)+12px)]" data-dismiss-tool="1">
         <span className="text-xs opacity-80">{filledCount}/4 photos</span>
-        <button onClick={addOverlay} className="flex items-center gap-1 text-sm font-semibold">
+        <button type="button" onClick={addOverlay} className="flex items-center gap-1 text-sm font-semibold">
           <Plus className="w-4 h-4" /> Add text
         </button>
       </div>
-
-      <input
-        ref={fileRef}
-        type="file"
-        accept="image/*"
-        className="hidden"
-        onChange={(e) => { setFile(e.target.files); e.target.value = ''; pickingIdx.current = null; }}
-      />
     </div>
   );
 };
