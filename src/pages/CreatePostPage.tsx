@@ -10,6 +10,10 @@ import {
   UtensilsCrossed, BedDouble, Plane, ShoppingBag, BookOpen, Ticket,
 } from 'lucide-react';
 import { ImageCropperDialog } from '@/components/ImageCropperDialog';
+import { LayoutPickerSheet, type LayoutChoice } from '@/components/createpost/LayoutPickerSheet';
+import { SingleImageTextEditor } from '@/components/createpost/SingleImageTextEditor';
+import { GridTextEditor } from '@/components/createpost/GridTextEditor';
+import { CostBreakdownEditor } from '@/components/createpost/CostBreakdownEditor';
 
 import { useMentionAutocomplete } from '@/hooks/useMentionAutocomplete';
 import { MentionSuggestions } from '@/components/MentionSuggestions';
