@@ -4,7 +4,7 @@ import { composeCostBreakdown, type CostRow, type LayoutEditorState } from '@/li
 import { useToast } from '@/hooks/use-toast';
 
 interface Props {
-  onDone: (files: File[], state: LayoutEditorState) => void;
+  onDone: (files: File[], states: LayoutEditorState[]) => void;
   onCancel: () => void;
   initialState?: Extract<LayoutEditorState, { kind: 'cost' }>;
 }
