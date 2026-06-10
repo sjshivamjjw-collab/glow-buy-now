@@ -59,10 +59,8 @@ export const SingleImageTextEditor = ({ onDone, onCancel }: Props) => {
       next.push({ id, file: f, previewUrl: URL.createObjectURL(f), overlays: [] });
     }
     if (!next.length) return;
-    setSlides((prev) => {
-      setActive(prev.length);
-      return [...prev, ...next];
-    });
+    setSlides((prev) => [...prev, ...next]);
+    setActive(slides.length);
     setActiveOverlayId(null);
     setEditingId(null);
     setOpenTool(null);
@@ -444,7 +442,7 @@ export const SingleImageTextEditor = ({ onDone, onCancel }: Props) => {
       </div>
 
       <div className="px-4 py-3 bg-black/80 text-white flex items-center justify-between pb-[calc(env(safe-area-inset-bottom)+12px)]" data-dismiss-tool="1">
-        <button onClick={() => fileRef.current?.click()} className="flex items-center gap-2 text-sm font-semibold">
+          <button type="button" onClick={() => fileRef.current?.click()} className="flex items-center gap-2 text-sm font-semibold">
           <ImagePlus className="w-5 h-5" /> Add more
         </button>
         {activeSlide && (
