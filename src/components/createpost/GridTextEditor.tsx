@@ -119,8 +119,9 @@ export const GridTextEditor = ({ onDone, onCancel }: Props) => {
     const id = `o-${Date.now()}`;
     setOverlays((p) => [...p, newOverlay(id)]);
     setActiveId(id);
-    setEditingId(null);
+    setEditingId(id);
     setOpenTool(null);
+    setTimeout(() => editInputRef.current?.focus(), 50);
   };
 
   const updateOverlay = (id: string, patch: Partial<TextOverlay>) => {
