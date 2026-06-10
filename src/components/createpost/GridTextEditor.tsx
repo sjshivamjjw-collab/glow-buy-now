@@ -60,13 +60,13 @@ export const GridTextEditor = ({ onDone, onCancel }: Props) => {
       const next = [...prev];
       // Replace the tapped cell with the first picked file.
       if (next[startIdx].previewUrl) URL.revokeObjectURL(next[startIdx].previewUrl!);
-      next[startIdx] = { file: arr[0], previewUrl: URL.createObjectURL(arr[0]), posX: 0.5, posY: 0.5 };
+      next[startIdx] = newFilledCell(arr[0]);
       // Fill remaining files into the next empty cells (wrapping after startIdx).
       let cursor = 1;
       for (let k = 0; k < next.length && cursor < arr.length; k++) {
         const i = (startIdx + k + 1) % next.length;
         if (next[i].file) continue;
-        next[i] = { file: arr[cursor], previewUrl: URL.createObjectURL(arr[cursor]), posX: 0.5, posY: 0.5 };
+        next[i] = newFilledCell(arr[cursor]);
         cursor++;
       }
       return next;
