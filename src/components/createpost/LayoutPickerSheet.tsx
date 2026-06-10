@@ -10,9 +10,9 @@ interface Props {
 }
 
 const OPTIONS: { key: LayoutChoice; title: string; subtitle: string; Icon: typeof ImageIcon }[] = [
-  { key: 'single', title: 'Single Image with Text', subtitle: 'Swipeable carousel · text on each slide', Icon: ImageIcon },
-  { key: 'grid', title: '2×2 Grid with Text', subtitle: 'Four photos in one square card', Icon: LayoutGrid },
-  { key: 'cost', title: 'Cost Breakdown', subtitle: 'Clean beige receipt with rows', Icon: Receipt },
+  { key: 'single', title: 'Single Image', subtitle: 'Swipeable carousel', Icon: ImageIcon },
+  { key: 'grid', title: '2×2 Grid Layout', subtitle: 'Four photos in one square card', Icon: LayoutGrid },
+  { key: 'cost', title: 'Table format for cost breakdowns', subtitle: 'Clean beige receipt with rows', Icon: Receipt },
 ];
 
 export const LayoutPickerSheet = ({ open, onOpenChange, onPick }: Props) => {
