@@ -221,7 +221,7 @@ export const GridTextEditor = ({ onDone, onCancel }: Props) => {
                       }}
                       rows={1}
                       placeholder="Type…"
-                      className="block w-full resize-none bg-transparent outline-none text-center font-semibold px-1 py-0 rounded-md"
+                      className="block w-full resize-none bg-transparent outline-none text-center font-semibold px-2 py-1 rounded-md"
                       style={{
                         color: textColor,
                         backgroundColor: bgColor,
