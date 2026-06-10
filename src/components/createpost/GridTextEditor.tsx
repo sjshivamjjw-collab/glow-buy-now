@@ -180,7 +180,7 @@ export const GridTextEditor = ({ onDone, onCancel }: Props) => {
           {/* Overlays */}
           {overlays.map((o) => {
             const stageW = surfaceRef.current?.clientWidth ?? 360;
-            const fontPx = Math.max(13, sizePx(o.size, stageW));
+            const fontPx = Math.max(9, sizePx(o.size, stageW));
             const textColor = COLOR_MAP[o.color];
             const bgColor = o.bgEnabled
               ? (LIGHT_COLORS.has(o.color) ? 'rgba(0,0,0,0.45)' : 'rgba(255,255,255,0.55)')
