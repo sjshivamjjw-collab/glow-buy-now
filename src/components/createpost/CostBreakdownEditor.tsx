@@ -36,7 +36,7 @@ export const CostBreakdownEditor = ({ onDone, onCancel, initialState }: Props) =
     setBusy(true);
     try {
       const file = await composeCostBreakdown({ left: headerL || 'Item', right: headerR || 'Amount' }, cleaned);
-      onDone([file]);
+      onDone([file], { kind: 'cost', headerL: headerL || 'Item', headerR: headerR || 'Amount', rows: cleaned });
     } catch (e) {
       console.error(e);
       toast({ title: 'Could not export receipt', variant: 'destructive' });
