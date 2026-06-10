@@ -192,7 +192,9 @@ export const GridTextEditor = ({ onDone, onCancel }: Props) => {
               <CellPicker
                 key={i}
                 cell={c}
-                onPick={(fl) => setFile(i, fl)}
+                onPick={(fl) => setFiles(i, fl)}
+                onClear={() => clearCell(i)}
+                onPan={(posX, posY) => setCellPos(i, posX, posY)}
               />
             ))}
           </div>
