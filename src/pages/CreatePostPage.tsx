@@ -6,7 +6,7 @@ import { useToast } from '@/hooks/use-toast';
 import { invalidateTrending } from '@/lib/feedCache';
 import {
   ArrowLeft, ImagePlus, X, Loader2, MapPin, Hash, Music, Sparkles,
-  Palette, Star, MessageSquareQuote, Gem, ChevronRight, Crop,
+  Palette, Star, MessageSquareQuote, Gem, ChevronRight, Crop, Pencil,
   UtensilsCrossed, BedDouble, Plane, ShoppingBag, BookOpen, Ticket,
 } from 'lucide-react';
 import { ImageCropperDialog } from '@/components/ImageCropperDialog';
@@ -14,6 +14,7 @@ import { LayoutPickerSheet, type LayoutChoice } from '@/components/createpost/La
 import { SingleImageTextEditor } from '@/components/createpost/SingleImageTextEditor';
 import { GridTextEditor } from '@/components/createpost/GridTextEditor';
 import { CostBreakdownEditor } from '@/components/createpost/CostBreakdownEditor';
+import type { LayoutEditorState } from '@/lib/composeLayout';
 
 import { useMentionAutocomplete } from '@/hooks/useMentionAutocomplete';
 import { MentionSuggestions } from '@/components/MentionSuggestions';
