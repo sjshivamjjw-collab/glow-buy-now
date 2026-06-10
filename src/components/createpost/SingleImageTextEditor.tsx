@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { ArrowLeft, ImagePlus, X, Check, Type, Circle, Highlighter } from 'lucide-react';
+import { ArrowLeft, ImagePlus, X, Check, Type, Circle, Highlighter, Plus } from 'lucide-react';
 import { composeSingleSlide, type TextOverlay, type OverlayColor, type OverlaySize, COLOR_MAP, sizePx } from '@/lib/composeLayout';
 import { useToast } from '@/hooks/use-toast';
 
@@ -7,8 +7,7 @@ interface Slide {
   id: string;
   file: File;
   previewUrl: string;
-  overlay: TextOverlay;
-  hasText: boolean;
+  overlays: TextOverlay[];
 }
 
 interface Props {
@@ -27,14 +26,12 @@ const makeOverlay = (id: string): TextOverlay => ({
   width: 0.7,
 });
 
-
 const SIZES: OverlaySize[] = ['sm', 'md', 'lg'];
 const SIZE_LABELS: Record<OverlaySize, string> = { sm: 'S', md: 'M', lg: 'L' };
 const COLORS: OverlayColor[] = ['white', 'black', 'cream', 'charcoal', 'red', 'yellow', 'pink', 'blue', 'green', 'purple'];
 const LIGHT_COLORS = new Set<OverlayColor>(['white', 'cream', 'yellow']);
 
-
-type Tool = 'size' | 'color' | 'bg' | null;
+type Tool = 'size' | 'color' | null;
 
 export const SingleImageTextEditor = ({ onDone, onCancel }: Props) => {
   const { toast } = useToast();
@@ -42,14 +39,14 @@ export const SingleImageTextEditor = ({ onDone, onCancel }: Props) => {
   const [active, setActive] = useState(0);
   const [busy, setBusy] = useState(false);
   const [openTool, setOpenTool] = useState<Tool>(null);
-  const [editingText, setEditingText] = useState(false);
+  const [activeOverlayId, setActiveOverlayId] = useState<string | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const trackRef = useRef<HTMLDivElement>(null);
   const stageRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const textInputRef = useRef<HTMLTextAreaElement>(null);
   const dragState = useRef<{ id: string; startX: number; startY: number; ox: number; oy: number; w: number; h: number; moved: boolean } | null>(null);
-  const resizeState = useRef<{ startX: number; startY: number; startW: number; stageW: number } | null>(null);
-
+  const resizeState = useRef<{ id: string; startX: number; startW: number; stageW: number } | null>(null);
 
   useEffect(() => () => slides.forEach((s) => URL.revokeObjectURL(s.previewUrl)), []); // eslint-disable-line
 
@@ -59,7 +56,7 @@ export const SingleImageTextEditor = ({ onDone, onCancel }: Props) => {
     for (const f of Array.from(fl)) {
       if (!f.type.startsWith('image/')) continue;
       const id = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-      next.push({ id, file: f, previewUrl: URL.createObjectURL(f), overlay: makeOverlay(id), hasText: false });
+      next.push({ id, file: f, previewUrl: URL.createObjectURL(f), overlays: [] });
     }
     setSlides((prev) => [...prev, ...next]);
   };
@@ -72,10 +69,36 @@ export const SingleImageTextEditor = ({ onDone, onCancel }: Props) => {
       return c;
     });
     setActive(0);
+    setActiveOverlayId(null);
+    setEditingId(null);
   };
 
-  const updateOverlay = (next: Partial<TextOverlay>) => {
-    setSlides((prev) => prev.map((s, i) => (i === active ? { ...s, overlay: { ...s.overlay, ...next } } : s)));
+  const patchOverlay = (overlayId: string, patch: Partial<TextOverlay>) => {
+    setSlides((prev) => prev.map((s, i) =>
+      i === active
+        ? { ...s, overlays: s.overlays.map((o) => (o.id === overlayId ? { ...o, ...patch } : o)) }
+        : s,
+    ));
+  };
+
+  const removeOverlay = (overlayId: string) => {
+    setSlides((prev) => prev.map((s, i) =>
+      i === active ? { ...s, overlays: s.overlays.filter((o) => o.id !== overlayId) } : s,
+    ));
+    if (activeOverlayId === overlayId) setActiveOverlayId(null);
+    if (editingId === overlayId) setEditingId(null);
+  };
+
+  const addOverlay = () => {
+    const s = slides[active];
+    if (!s) return;
+    const id = `o-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
+    const o = makeOverlay(id);
+    setSlides((prev) => prev.map((sl, i) => (i === active ? { ...sl, overlays: [...sl.overlays, o] } : sl)));
+    setActiveOverlayId(id);
+    setEditingId(id);
+    setOpenTool(null);
+    setTimeout(() => textInputRef.current?.focus(), 50);
   };
 
   const handleScroll = () => {
@@ -85,7 +108,8 @@ export const SingleImageTextEditor = ({ onDone, onCancel }: Props) => {
     if (idx !== active) {
       setActive(idx);
       setOpenTool(null);
-      setEditingText(false);
+      setActiveOverlayId(null);
+      setEditingId(null);
     }
   };
 
@@ -94,7 +118,18 @@ export const SingleImageTextEditor = ({ onDone, onCancel }: Props) => {
     setBusy(true);
     try {
       const files = await Promise.all(
-        slides.map((s, i) => composeSingleSlide(s.file, s.hasText ? s.overlay : { ...s.overlay, text: '' }, i)),
+        slides.map(async (s, i) => {
+          const nonEmpty = s.overlays.filter((o) => o.text.trim());
+          if (nonEmpty.length === 0) {
+            return composeSingleSlide(s.file, { ...makeOverlay(s.id), text: '' }, i);
+          }
+          // composeSingleSlide signature accepts a single overlay. Iteratively compose each overlay.
+          let outFile = s.file;
+          for (let k = 0; k < nonEmpty.length; k++) {
+            outFile = await composeSingleSlide(outFile, nonEmpty[k], i + k * 1000);
+          }
+          return outFile;
+        }),
       );
       onDone(files);
     } catch (e) {
@@ -105,37 +140,24 @@ export const SingleImageTextEditor = ({ onDone, onCancel }: Props) => {
     }
   };
 
-  const addOrFocusText = () => {
+  // Drag
+  const onPointerDown = (e: React.PointerEvent, overlayId: string) => {
+    if (editingId === overlayId) return;
     const s = slides[active];
     if (!s) return;
-    if (!s.hasText) {
-      setSlides((prev) => prev.map((sl, i) => (i === active ? { ...sl, hasText: true } : sl)));
-    }
-    setOpenTool(null);
-    setEditingText(true);
-    setTimeout(() => textInputRef.current?.focus(), 50);
-  };
-
-  const deleteText = () => {
-    setSlides((prev) => prev.map((sl, i) => (i === active ? { ...sl, hasText: false, overlay: { ...sl.overlay, text: '' } } : sl)));
-    setEditingText(false);
-    setOpenTool(null);
-  };
-
-  // Drag (pointer events) - press & hold to move
-  const onPointerDown = (e: React.PointerEvent, slideId: string) => {
-    if (editingText) return;
-    const stage = stageRefs.current[slideId];
+    const stage = stageRefs.current[s.id];
     if (!stage) return;
     const rect = stage.getBoundingClientRect();
-    const s = slides.find((sl) => sl.id === slideId);
-    if (!s) return;
+    const o = s.overlays.find((ov) => ov.id === overlayId);
+    if (!o) return;
+    setActiveOverlayId(overlayId);
+    setOpenTool(null);
     dragState.current = {
-      id: slideId,
+      id: overlayId,
       startX: e.clientX,
       startY: e.clientY,
-      ox: s.overlay.x,
-      oy: s.overlay.y,
+      ox: o.x,
+      oy: o.y,
       w: rect.width,
       h: rect.height,
       moved: false,
@@ -148,30 +170,31 @@ export const SingleImageTextEditor = ({ onDone, onCancel }: Props) => {
     const dx = (e.clientX - d.startX) / d.w;
     const dy = (e.clientY - d.startY) / d.h;
     if (Math.abs(e.clientX - d.startX) > 4 || Math.abs(e.clientY - d.startY) > 4) d.moved = true;
-    const nx = Math.max(0.05, Math.min(0.95, d.ox + dx));
-    const ny = Math.max(0.05, Math.min(0.95, d.oy + dy));
-    updateOverlay({ x: nx, y: ny });
+    patchOverlay(d.id, {
+      x: Math.max(0.05, Math.min(0.95, d.ox + dx)),
+      y: Math.max(0.05, Math.min(0.95, d.oy + dy)),
+    });
   };
-  const onPointerUp = (e: React.PointerEvent) => {
+  const onPointerUp = (e: React.PointerEvent, overlayId: string) => {
     const d = dragState.current;
     dragState.current = null;
-    if (d && !d.moved) {
-      // tap on text → edit
-      addOrFocusText();
+    if (d && !d.moved && d.id === overlayId) {
+      setEditingId(overlayId);
+      setOpenTool(null);
+      setTimeout(() => textInputRef.current?.focus(), 50);
     }
   };
 
   const activeSlide = slides[active];
+  const activeOverlay = activeSlide?.overlays.find((o) => o.id === activeOverlayId) ?? null;
 
   return (
     <div
       className="fixed inset-0 z-50 bg-black flex flex-col"
       onClick={(e) => {
-        // collapse expanded tool when tapping empty area
         if ((e.target as HTMLElement).dataset.dismissTool === '1') setOpenTool(null);
       }}
     >
-      {/* Top bar */}
       <div className="flex items-center justify-between px-3 py-3 text-white pt-[calc(env(safe-area-inset-top)+12px)]" data-dismiss-tool="1">
         <button onClick={onCancel} className="p-2 -ml-2"><ArrowLeft className="w-6 h-6" /></button>
         <span className="text-sm font-semibold">Single Image + Text</span>
@@ -184,7 +207,6 @@ export const SingleImageTextEditor = ({ onDone, onCancel }: Props) => {
         </button>
       </div>
 
-      {/* Carousel */}
       <div className="flex-1 relative overflow-hidden" data-dismiss-tool="1">
         {slides.length === 0 ? (
           <button
@@ -204,11 +226,7 @@ export const SingleImageTextEditor = ({ onDone, onCancel }: Props) => {
           >
             {slides.map((s, i) => {
               const isActive = i === active;
-              const fontPx = Math.max(14, sizePx(s.overlay.size, trackRef.current?.clientWidth ?? 360));
-              const textColor = COLOR_MAP[s.overlay.color];
-              const bgColor = s.overlay.bgEnabled
-                ? (LIGHT_COLORS.has(s.overlay.color) ? 'rgba(0,0,0,0.45)' : 'rgba(255,255,255,0.55)')
-                : 'transparent';
+              const stageW = stageRefs.current[s.id]?.clientWidth ?? 360;
               return (
                 <div
                   key={s.id}
@@ -216,16 +234,14 @@ export const SingleImageTextEditor = ({ onDone, onCancel }: Props) => {
                   className="relative shrink-0 w-full h-full snap-center flex items-center justify-center"
                   data-dismiss-tool="1"
                   onClick={(e) => {
-                    // Tap blank canvas → add text if none, else dismiss tool
                     if (e.target === e.currentTarget) {
-                      if (isActive && !s.hasText) addOrFocusText();
-                      else setOpenTool(null);
+                      setActiveOverlayId(null);
+                      setOpenTool(null);
                     }
                   }}
                 >
                   <img src={s.previewUrl} alt="" className="max-h-full max-w-full object-contain pointer-events-none" />
 
-                  {/* Remove slide */}
                   <button
                     onClick={() => removeSlide(i)}
                     aria-label="Remove slide"
@@ -234,51 +250,59 @@ export const SingleImageTextEditor = ({ onDone, onCancel }: Props) => {
                     <X className="w-4 h-4" />
                   </button>
 
-                  {/* Draggable + resizable text overlay */}
-                  {isActive && s.hasText && (() => {
-                    const stageW = stageRefs.current[s.id]?.clientWidth ?? 360;
-                    const boxWidthPx = Math.round((s.overlay.width ?? 0.7) * stageW);
+                  {/* Overlays */}
+                  {isActive && s.overlays.map((o) => {
+                    const fontPx = Math.max(14, sizePx(o.size, stageW));
+                    const textColor = COLOR_MAP[o.color];
+                    const bgColor = o.bgEnabled
+                      ? (LIGHT_COLORS.has(o.color) ? 'rgba(0,0,0,0.45)' : 'rgba(255,255,255,0.55)')
+                      : 'transparent';
+                    const boxWidthPx = Math.round((o.width ?? 0.7) * stageW);
+                    const isEditing = editingId === o.id;
+                    const isActiveOv = activeOverlayId === o.id;
+
                     const onResizeDown = (e: React.PointerEvent) => {
                       e.stopPropagation();
-                      resizeState.current = {
-                        startX: e.clientX,
-                        startY: e.clientY,
-                        startW: s.overlay.width ?? 0.7,
-                        stageW,
-                      };
+                      resizeState.current = { id: o.id, startX: e.clientX, startW: o.width ?? 0.7, stageW };
                       (e.target as Element).setPointerCapture?.(e.pointerId);
                     };
                     const onResizeMove = (e: React.PointerEvent) => {
                       const r = resizeState.current;
-                      if (!r) return;
+                      if (!r || r.id !== o.id) return;
                       e.stopPropagation();
-                      // Box grows symmetrically (anchor is center), so 1px drag = 2px width.
                       const dxFrac = ((e.clientX - r.startX) * 2) / r.stageW;
-                      const nw = Math.max(0.18, Math.min(0.95, r.startW + dxFrac));
-                      updateOverlay({ width: nw });
+                      patchOverlay(o.id, { width: Math.max(0.18, Math.min(0.95, r.startW + dxFrac)) });
                     };
-                    const onResizeUp = (e: React.PointerEvent) => {
-                      resizeState.current = null;
-                    };
+                    const onResizeUp = () => { resizeState.current = null; };
+
                     return (
                       <div
+                        key={o.id}
                         className="absolute select-none"
                         style={{
-                          left: `${s.overlay.x * 100}%`,
-                          top: `${s.overlay.y * 100}%`,
+                          left: `${o.x * 100}%`,
+                          top: `${o.y * 100}%`,
                           transform: 'translate(-50%, -50%)',
                           width: `${boxWidthPx}px`,
                           maxWidth: '95%',
                           touchAction: 'none',
+                          zIndex: isActiveOv ? 5 : 4,
+                          pointerEvents: 'none',
                         }}
                       >
-                        <div className="relative">
-                          {editingText ? (
+                        <div
+                          className={`relative ${isActiveOv && !isEditing ? 'ring-2 ring-[#ef4444] rounded-lg' : ''}`}
+                          style={{ pointerEvents: 'auto' }}
+                        >
+                          {isEditing ? (
                             <textarea
                               ref={textInputRef}
-                              value={s.overlay.text}
-                              onChange={(e) => updateOverlay({ text: e.target.value })}
-                              onBlur={() => setEditingText(false)}
+                              value={o.text}
+                              onChange={(e) => patchOverlay(o.id, { text: e.target.value })}
+                              onBlur={() => {
+                                setEditingId(null);
+                                if (!o.text.trim()) removeOverlay(o.id);
+                              }}
                               rows={1}
                               placeholder="Type…"
                               className="block w-full resize-none bg-transparent outline-none text-center font-semibold px-3 py-1.5 rounded-lg"
@@ -293,11 +317,11 @@ export const SingleImageTextEditor = ({ onDone, onCancel }: Props) => {
                             />
                           ) : (
                             <div
-                              onPointerDown={(e) => onPointerDown(e, s.id)}
+                              onPointerDown={(e) => onPointerDown(e, o.id)}
                               onPointerMove={onPointerMove}
-                              onPointerUp={onPointerUp}
-                              onPointerCancel={onPointerUp}
-                              className={`w-full px-3 py-1.5 rounded-lg font-semibold text-center cursor-move ${s.overlay.bgEnabled ? 'backdrop-blur-md' : ''}`}
+                              onPointerUp={(e) => onPointerUp(e, o.id)}
+                              onPointerCancel={(e) => onPointerUp(e, o.id)}
+                              className={`w-full px-3 py-1.5 rounded-lg font-semibold text-center cursor-move ${o.bgEnabled ? 'backdrop-blur-md' : ''}`}
                               style={{
                                 color: textColor,
                                 backgroundColor: bgColor,
@@ -307,40 +331,40 @@ export const SingleImageTextEditor = ({ onDone, onCancel }: Props) => {
                                 wordBreak: 'break-word',
                               }}
                             >
-                              {s.overlay.text || 'Tap to type'}
+                              {o.text || 'Tap to type'}
                             </div>
                           )}
                           <button
-                            onClick={deleteText}
+                            onClick={() => removeOverlay(o.id)}
                             aria-label="Delete text"
                             className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-black/80 text-white border border-white/40 flex items-center justify-center"
                           >
                             <X className="w-3.5 h-3.5" />
                           </button>
-                          {/* Resize handle (bottom-right) */}
-                          <div
-                            onPointerDown={onResizeDown}
-                            onPointerMove={onResizeMove}
-                            onPointerUp={onResizeUp}
-                            onPointerCancel={onResizeUp}
-                            aria-label="Resize"
-                            className="absolute -bottom-2 -right-2 w-6 h-6 rounded-full bg-white border-2 border-[#ef4444] flex items-center justify-center cursor-se-resize"
-                            style={{ touchAction: 'none' }}
-                          >
-                            <svg width="10" height="10" viewBox="0 0 10 10" className="text-[#ef4444]">
-                              <path d="M9 1 L1 9 M9 5 L5 9 M9 9 L9 9" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinecap="round" />
-                            </svg>
-                          </div>
+                          {isActiveOv && (
+                            <div
+                              onPointerDown={onResizeDown}
+                              onPointerMove={onResizeMove}
+                              onPointerUp={onResizeUp}
+                              onPointerCancel={onResizeUp}
+                              aria-label="Resize"
+                              className="absolute -bottom-2 -right-2 w-6 h-6 rounded-full bg-white border-2 border-[#ef4444] flex items-center justify-center cursor-se-resize"
+                              style={{ touchAction: 'none' }}
+                            >
+                              <svg width="10" height="10" viewBox="0 0 10 10" className="text-[#ef4444]">
+                                <path d="M9 1 L1 9 M9 5 L5 9" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinecap="round" />
+                              </svg>
+                            </div>
+                          )}
                         </div>
                       </div>
                     );
-                  })()}
+                  })}
 
-
-                  {/* Tap-to-add-text hint when empty */}
-                  {isActive && !s.hasText && !editingText && (
+                  {/* Tap-to-add hint when this slide has no overlays */}
+                  {isActive && s.overlays.length === 0 && (
                     <button
-                      onClick={addOrFocusText}
+                      onClick={addOverlay}
                       className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 px-4 py-2 rounded-full bg-white/85 text-[#0a0a0a] text-xs font-semibold"
                     >
                       Tap to add text
@@ -353,7 +377,7 @@ export const SingleImageTextEditor = ({ onDone, onCancel }: Props) => {
         )}
 
         {/* Floating right toolbar */}
-        {activeSlide && activeSlide.hasText && (
+        {activeOverlay && (
           <div className="absolute right-3 top-1/2 -translate-y-1/2 flex flex-col gap-2 z-20">
             <ToolButton
               icon={<Type className="w-5 h-5" />}
@@ -364,15 +388,15 @@ export const SingleImageTextEditor = ({ onDone, onCancel }: Props) => {
                   {SIZES.map((sz) => (
                     <button
                       key={sz}
-                      onClick={() => updateOverlay({ size: sz })}
-                      className={`w-9 h-9 rounded-full text-sm font-bold flex items-center justify-center ${activeSlide.overlay.size === sz ? 'bg-white text-black' : 'bg-black/60 text-white'}`}
+                      onClick={() => patchOverlay(activeOverlay.id, { size: sz })}
+                      className={`w-9 h-9 rounded-full text-sm font-bold flex items-center justify-center ${activeOverlay.size === sz ? 'bg-white text-black' : 'bg-black/60 text-white'}`}
                     >{SIZE_LABELS[sz]}</button>
                   ))}
                 </div>
               )}
             />
             <ToolButton
-              icon={<Circle className="w-5 h-5" fill={COLOR_MAP[activeSlide.overlay.color]} stroke="white" />}
+              icon={<Circle className="w-5 h-5" fill={COLOR_MAP[activeOverlay.color]} stroke="white" />}
               active={openTool === 'color'}
               onClick={() => setOpenTool(openTool === 'color' ? null : 'color')}
               expanded={openTool === 'color' && (
@@ -380,9 +404,9 @@ export const SingleImageTextEditor = ({ onDone, onCancel }: Props) => {
                   {COLORS.map((c) => (
                     <button
                       key={c}
-                      onClick={() => updateOverlay({ color: c })}
+                      onClick={() => patchOverlay(activeOverlay.id, { color: c })}
                       aria-label={c}
-                      className={`w-9 h-9 rounded-full border-2 ${activeSlide.overlay.color === c ? 'border-[#ef4444]' : 'border-white/60'}`}
+                      className={`w-9 h-9 rounded-full border-2 ${activeOverlay.color === c ? 'border-[#ef4444]' : 'border-white/60'}`}
                       style={{ backgroundColor: COLOR_MAP[c] }}
                     />
                   ))}
@@ -391,8 +415,12 @@ export const SingleImageTextEditor = ({ onDone, onCancel }: Props) => {
             />
             <ToolButton
               icon={<Highlighter className="w-5 h-5" />}
-              active={activeSlide.overlay.bgEnabled}
-              onClick={() => updateOverlay({ bgEnabled: !activeSlide.overlay.bgEnabled })}
+              active={activeOverlay.bgEnabled}
+              onClick={() => patchOverlay(activeOverlay.id, { bgEnabled: !activeOverlay.bgEnabled })}
+            />
+            <ToolButton
+              icon={<Plus className="w-5 h-5" />}
+              onClick={addOverlay}
             />
           </div>
         )}
@@ -407,14 +435,13 @@ export const SingleImageTextEditor = ({ onDone, onCancel }: Props) => {
         )}
       </div>
 
-      {/* Bottom bar */}
       <div className="px-4 py-3 bg-black/80 text-white flex items-center justify-between pb-[calc(env(safe-area-inset-bottom)+12px)]" data-dismiss-tool="1">
         <button onClick={() => fileRef.current?.click()} className="flex items-center gap-2 text-sm font-semibold">
           <ImagePlus className="w-5 h-5" /> Add more
         </button>
-        {activeSlide && !activeSlide.hasText && (
-          <button onClick={addOrFocusText} className="px-3 py-1.5 rounded-full bg-white/15 text-sm font-semibold">
-            Add text
+        {activeSlide && (
+          <button onClick={addOverlay} className="flex items-center gap-1 text-sm font-semibold">
+            <Plus className="w-4 h-4" /> Add text
           </button>
         )}
       </div>
