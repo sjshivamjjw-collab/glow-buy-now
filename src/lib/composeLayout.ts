@@ -149,7 +149,9 @@ const drawOverlay = (
 
   ctx.fillStyle = COLOR_MAP[o.color];
   lines.forEach((line, i) => {
-    ctx.fillText(line, left, top + i * lineHeight);
+    const lw = lineWidths[i];
+    const lx = left + (blockW - lw) / 2; // center each line, matching editor
+    ctx.fillText(line, lx, top + i * lineHeight);
   });
 };
 
