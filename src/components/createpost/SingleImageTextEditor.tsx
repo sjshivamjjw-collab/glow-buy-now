@@ -427,15 +427,8 @@ export const SingleImageTextEditor = ({ onDone, onCancel, initialState }: Props)
                     );
                   })}
 
-                  {/* Tap-to-add hint when this slide has no overlays */}
-                  {isActive && s.overlays.length === 0 && (
-                    <button
-                      onClick={addOverlay}
-                      className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 px-4 py-2 rounded-full bg-white/85 text-[#0a0a0a] text-xs font-semibold"
-                    >
-                      Tap to add text
-                    </button>
-                  )}
+
+
                 </div>
               );
             })}
