@@ -568,9 +568,10 @@ const PostDetailPage = () => {
             />
           ) : (
             <img
-              src={optimizedImageUrl(currentMedia.url, { width: 1080, quality: 75, resize: 'contain' }) || currentMedia.url}
+              src={optimizedImageUrl(currentMedia.url, { width: 1080, quality: 75, resize: 'cover' }) || currentMedia.url}
               alt=""
-              className="w-full h-full object-contain cursor-pointer"
+              className="w-full h-full object-cover cursor-pointer"
+
               loading="eager"
               decoding="async"
               onClick={() => window.dispatchEvent(new Event('post-music-stop'))}
