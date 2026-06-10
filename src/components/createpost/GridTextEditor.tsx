@@ -218,7 +218,7 @@ export const GridTextEditor = ({ onDone, onCancel }: Props) => {
                   pointerEvents: 'none',
                 }}
               >
-                <div className={`relative ${isActive && !isEditing ? 'ring-2 ring-[#ef4444] rounded-lg' : ''}`}>
+                <div className={`relative ${isActive && !isEditing ? 'ring-2 ring-[#ef4444] rounded-lg' : ''}`} style={{ pointerEvents: 'auto' }}>
                   {isEditing ? (
                     <textarea
                       ref={editInputRef}
