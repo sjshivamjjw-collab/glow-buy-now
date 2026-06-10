@@ -136,16 +136,55 @@ const EditPostPage = () => {
   const [coverFile, setCoverFile] = useState<File | null>(null);
   const [coverTempId, setCoverTempId] = useState<string | null>(null);
 
-  const addNewMediaFile = (file: File) => {
+  const [layoutSheetOpen, setLayoutSheetOpen] = useState(false);
+  const [activeLayout, setActiveLayout] = useState<LayoutChoice | null>(null);
+  const [editingTempId, setEditingTempId] = useState<string | null>(null);
+
+  const addNewMediaFile = (file: File, editorState?: LayoutEditorState) => {
     const kind: 'image' | 'video' = file.type.startsWith('video/') ? 'video' : 'image';
     const entry: NewMedia = {
       tempId: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
       file,
       previewUrl: URL.createObjectURL(file),
       kind,
+      editorState,
     };
     setNewMedia(prev => [...prev, entry]);
     return entry.tempId;
+  };
+
+  const handleLayoutDone = (files: File[], states: LayoutEditorState[]) => {
+    if (editingTempId) {
+      const idx = newMedia.findIndex(m => m.tempId === editingTempId);
+      if (idx !== -1 && files.length > 0) {
+        const newUrl = URL.createObjectURL(files[0]);
+        setNewMedia(prev => {
+          const next = [...prev];
+          URL.revokeObjectURL(next[idx].previewUrl);
+          next[idx] = { ...next[idx], file: files[0], previewUrl: newUrl, editorState: states[0] };
+          return next;
+        });
+        const extras = files.slice(1);
+        const remaining = MAX_FILES - (existing.length + newMedia.length);
+        extras.slice(0, Math.max(0, remaining)).forEach((f, i) => addNewMediaFile(f, states[i + 1]));
+      }
+      setEditingTempId(null);
+      setActiveLayout(null);
+      return;
+    }
+    const remaining = MAX_FILES - (existing.length + newMedia.length);
+    const slice = files.slice(0, Math.max(0, remaining));
+    if (slice.length < files.length) {
+      toast({ title: `Only added ${slice.length} of ${files.length}`, description: `Max ${MAX_FILES} attachments per post.` });
+    }
+    slice.forEach((f, i) => addNewMediaFile(f, states[i]));
+    setActiveLayout(null);
+  };
+
+  const startEditNewMedia = (m: NewMedia) => {
+    if (!m.editorState) return;
+    setEditingTempId(m.tempId);
+    setActiveLayout(m.editorState.kind);
   };
 
   const handleFiles = (files: FileList | null) => {
