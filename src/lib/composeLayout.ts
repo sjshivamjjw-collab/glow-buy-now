@@ -2,7 +2,7 @@
 // Each composer returns a JPEG File ready to push into pendingMedia.
 
 export type OverlaySize = 'sm' | 'md' | 'lg';
-export type OverlayColor = 'white' | 'black' | 'cream' | 'charcoal';
+export type OverlayColor = 'white' | 'black' | 'cream' | 'charcoal' | 'red' | 'yellow' | 'pink' | 'blue' | 'green' | 'purple';
 
 export interface TextOverlay {
   id: string;
@@ -20,14 +20,21 @@ export const COLOR_MAP: Record<OverlayColor, string> = {
   black: '#0A0A0A',
   cream: '#F5F0E8',
   charcoal: '#2B2B2B',
+  red: '#EF4444',
+  yellow: '#FACC15',
+  pink: '#EC4899',
+  blue: '#3B82F6',
+  green: '#22C55E',
+  purple: '#A855F7',
 };
 
 // Font size as a fraction of canvas width.
 const SIZE_RATIO: Record<OverlaySize, number> = {
-  sm: 0.045,
-  md: 0.065,
-  lg: 0.095,
+  sm: 0.030,
+  md: 0.042,
+  lg: 0.058,
 };
+
 
 export const sizePx = (size: OverlaySize, canvasWidth: number) =>
   Math.round(SIZE_RATIO[size] * canvasWidth);
