@@ -108,9 +108,8 @@ export const SingleImageTextEditor = ({ onDone, onCancel }: Props) => {
     const o = makeOverlay(id);
     setSlides((prev) => prev.map((sl, i) => (i === active ? { ...sl, overlays: [...sl.overlays, o] } : sl)));
     setActiveOverlayId(id);
-    setEditingId(id);
+    setEditingId(null);
     setOpenTool(null);
-    setTimeout(() => textInputRef.current?.focus(), 50);
   };
 
   const handleScroll = () => {
