@@ -158,7 +158,10 @@ export const SingleImageTextEditor = ({ onDone, onCancel, initialState }: Props)
           return outFile;
         }),
       );
-      onDone(files);
+      onDone(files, {
+        kind: 'single',
+        slides: slides.map((s) => ({ id: s.id, file: s.file, overlays: s.overlays })),
+      });
     } catch (e) {
       console.error(e);
       toast({ title: 'Could not export slides', variant: 'destructive' });
