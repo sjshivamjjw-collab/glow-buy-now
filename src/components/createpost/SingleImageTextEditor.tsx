@@ -28,7 +28,9 @@ const makeOverlay = (id: string): TextOverlay => ({
 
 const SIZES: OverlaySize[] = ['sm', 'md', 'lg'];
 const SIZE_LABELS: Record<OverlaySize, string> = { sm: 'S', md: 'M', lg: 'L' };
-const COLORS: OverlayColor[] = ['white', 'black', 'cream', 'charcoal'];
+const COLORS: OverlayColor[] = ['white', 'black', 'cream', 'charcoal', 'red', 'yellow', 'pink', 'blue', 'green', 'purple'];
+const LIGHT_COLORS = new Set<OverlayColor>(['white', 'cream', 'yellow']);
+
 
 type Tool = 'size' | 'color' | 'bg' | null;
 
@@ -201,7 +203,7 @@ export const SingleImageTextEditor = ({ onDone, onCancel }: Props) => {
               const fontPx = Math.max(14, sizePx(s.overlay.size, trackRef.current?.clientWidth ?? 360));
               const textColor = COLOR_MAP[s.overlay.color];
               const bgColor = s.overlay.bgEnabled
-                ? (s.overlay.color === 'white' || s.overlay.color === 'cream' ? 'rgba(0,0,0,0.45)' : 'rgba(255,255,255,0.55)')
+                ? (LIGHT_COLORS.has(s.overlay.color) ? 'rgba(0,0,0,0.45)' : 'rgba(255,255,255,0.55)')
                 : 'transparent';
               return (
                 <div
