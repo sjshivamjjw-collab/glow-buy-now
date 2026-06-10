@@ -15,6 +15,10 @@ import { SingleImageTextEditor } from '@/components/createpost/SingleImageTextEd
 import { GridTextEditor } from '@/components/createpost/GridTextEditor';
 import { CostBreakdownEditor } from '@/components/createpost/CostBreakdownEditor';
 import type { LayoutEditorState } from '@/lib/composeLayout';
+import {
+  saveDraftMedia, loadDraftMedia, clearDraftMedia,
+  serializeEditorState, deserializeEditorState,
+} from '@/lib/draftMediaStore';
 
 import { useMentionAutocomplete } from '@/hooks/useMentionAutocomplete';
 import { MentionSuggestions } from '@/components/MentionSuggestions';
