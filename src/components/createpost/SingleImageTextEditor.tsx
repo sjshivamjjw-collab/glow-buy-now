@@ -11,7 +11,7 @@ interface Slide {
 }
 
 interface Props {
-  onDone: (files: File[], state: LayoutEditorState) => void;
+  onDone: (files: File[], states: LayoutEditorState[]) => void;
   onCancel: () => void;
   initialState?: Extract<LayoutEditorState, { kind: 'single' }>;
 }
