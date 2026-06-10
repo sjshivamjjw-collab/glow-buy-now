@@ -567,35 +567,36 @@ const PostDetailPage = () => {
 
       {/* Media carousel */}
       {currentMedia && (
-        <div className="relative w-full bg-[#161616] h-[70vh] overflow-hidden">
-          {currentMedia.kind === 'video' ? (
-            <video
-              ref={videoRef}
-              src={currentMedia.url}
-              className="w-full h-full object-cover"
-              controls
-              playsInline
-              muted
-              preload="metadata"
-            />
-          ) : (
-            <img
-              src={optimizedImageUrl(currentMedia.url, { width: 1080, quality: 75, resize: 'cover' }) || currentMedia.url}
-              alt=""
-              className="w-full h-full object-cover cursor-pointer"
-
-              loading="eager"
-              decoding="async"
-              onClick={() => window.dispatchEvent(new Event('post-music-stop'))}
-            />
-          )}
-          {/* Preload neighbor images so swiping feels instant */}
-          {media.map((m, i) => {
-            if (m.kind !== 'image' || i === mediaIdx) return null;
-            if (Math.abs(i - mediaIdx) > 2) return null;
-            const url = optimizedImageUrl(m.url, { width: 1080, quality: 75, resize: 'contain' }) || m.url;
-            return <link key={m.id} rel="preload" as="image" href={url} />;
-          })}
+        <div className="relative w-full bg-[#161616] h-[55vh] overflow-hidden">
+          <div ref={emblaRef} className="w-full h-full overflow-hidden">
+            <div className="flex h-full touch-pan-y">
+              {media.map((m, i) => (
+                <div key={m.id} className="relative min-w-0 shrink-0 grow-0 basis-full h-full">
+                  {m.kind === 'video' ? (
+                    <video
+                      ref={i === mediaIdx ? videoRef : undefined}
+                      src={m.url}
+                      className="w-full h-full object-cover"
+                      controls
+                      playsInline
+                      muted
+                      preload="metadata"
+                    />
+                  ) : (
+                    <img
+                      src={optimizedImageUrl(m.url, { width: 1080, quality: 75, resize: 'cover' }) || m.url}
+                      alt=""
+                      className="w-full h-full object-cover cursor-pointer select-none"
+                      loading={Math.abs(i - mediaIdx) <= 1 ? 'eager' : 'lazy'}
+                      decoding="async"
+                      draggable={false}
+                      onClick={() => window.dispatchEvent(new Event('post-music-stop'))}
+                    />
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
           {post.category && CATEGORY_META[post.category] && (
             <span className="absolute top-2 left-2 z-10 px-2 py-0.5 rounded-md bg-black/55 backdrop-blur-sm text-white/90 text-[10px] font-medium tracking-wide">
               {CATEGORY_META[post.category].label}
@@ -604,16 +605,16 @@ const PostDetailPage = () => {
           {media.length > 1 && (
             <>
               <button
-                onClick={() => setMediaIdx(i => Math.max(0, i - 1))}
+                onClick={() => emblaApi?.scrollPrev()}
                 disabled={mediaIdx === 0}
-                className="absolute left-2 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-[#0a0a0a]/80 backdrop-blur-sm text-[#fafafa] flex items-center justify-center disabled:opacity-30"
+                className="absolute left-2 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-[#0a0a0a]/80 backdrop-blur-sm text-[#fafafa] flex items-center justify-center disabled:opacity-30 z-10"
               ><ChevronLeft className="w-5 h-5" /></button>
               <button
-                onClick={() => setMediaIdx(i => Math.min(media.length - 1, i + 1))}
+                onClick={() => emblaApi?.scrollNext()}
                 disabled={mediaIdx === media.length - 1}
-                className="absolute right-2 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-[#0a0a0a]/80 backdrop-blur-sm text-[#fafafa] flex items-center justify-center disabled:opacity-30"
+                className="absolute right-2 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-[#0a0a0a]/80 backdrop-blur-sm text-[#fafafa] flex items-center justify-center disabled:opacity-30 z-10"
               ><ChevronRight className="w-5 h-5" /></button>
-              <div className="absolute bottom-2 left-1/2 -translate-x-1/2 px-2.5 py-0.5 rounded-full bg-[#0a0a0a]/85 backdrop-blur-sm text-[#fafafa] text-[10px] font-semibold">
+              <div className="absolute bottom-2 left-1/2 -translate-x-1/2 px-2.5 py-0.5 rounded-full bg-[#0a0a0a]/85 backdrop-blur-sm text-[#fafafa] text-[10px] font-semibold z-10">
                 {mediaIdx + 1} / {media.length}
               </div>
             </>
