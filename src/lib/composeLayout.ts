@@ -152,16 +152,25 @@ const drawCover = (
   img: HTMLImageElement,
   dx: number, dy: number, dw: number, dh: number,
 ) => {
+// Draw an image covering the target rect (object-cover behavior).
+// posX/posY are in [0,1] and control which part of the image stays visible
+// when cropping (0 = left/top, 0.5 = center, 1 = right/bottom).
+const drawCover = (
+  ctx: CanvasRenderingContext2D,
+  img: HTMLImageElement,
+  dx: number, dy: number, dw: number, dh: number,
+  posX = 0.5, posY = 0.5,
+) => {
   const ir = img.naturalWidth / img.naturalHeight;
   const tr = dw / dh;
   let sx = 0, sy = 0, sw = img.naturalWidth, sh = img.naturalHeight;
   if (ir > tr) {
-    // image wider -> crop sides
+    // image wider -> crop sides; pan horizontally
     sw = img.naturalHeight * tr;
-    sx = (img.naturalWidth - sw) / 2;
+    sx = (img.naturalWidth - sw) * Math.max(0, Math.min(1, posX));
   } else {
     sh = img.naturalWidth / tr;
-    sy = (img.naturalHeight - sh) / 2;
+    sy = (img.naturalHeight - sh) * Math.max(0, Math.min(1, posY));
   }
   ctx.drawImage(img, sx, sy, sw, sh, dx, dy, dw, dh);
 };
