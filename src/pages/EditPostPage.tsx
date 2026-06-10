@@ -50,6 +50,7 @@ interface NewMedia {
   file: File;
   previewUrl: string;
   kind: 'image' | 'video';
+  editorState?: LayoutEditorState;
 }
 
 const EditPostPage = () => {
