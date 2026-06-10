@@ -13,7 +13,10 @@ export interface TextOverlay {
   size: OverlaySize;
   color: OverlayColor;
   bgEnabled: boolean;
+  // Optional: max width as fraction of canvas width (controls wrapping).
+  width?: number;
 }
+
 
 export const COLOR_MAP: Record<OverlayColor, string> = {
   white: '#FFFFFF',
@@ -94,7 +97,7 @@ const drawOverlay = (
   ctx.font = `600 ${fontPx}px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif`;
   ctx.textBaseline = 'top';
 
-  const maxWidth = canvasW * 0.86;
+  const maxWidth = canvasW * Math.max(0.15, Math.min(0.95, o.width ?? 0.86));
   const lines = wrapText(ctx, o.text, maxWidth);
   const lineHeight = Math.round(fontPx * 1.25);
   const blockH = lineHeight * lines.length;

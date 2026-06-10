@@ -24,7 +24,9 @@ const makeOverlay = (id: string): TextOverlay => ({
   size: 'md',
   color: 'white',
   bgEnabled: true,
+  width: 0.7,
 });
+
 
 const SIZES: OverlaySize[] = ['sm', 'md', 'lg'];
 const SIZE_LABELS: Record<OverlaySize, string> = { sm: 'S', md: 'M', lg: 'L' };
@@ -46,6 +48,8 @@ export const SingleImageTextEditor = ({ onDone, onCancel }: Props) => {
   const stageRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const textInputRef = useRef<HTMLTextAreaElement>(null);
   const dragState = useRef<{ id: string; startX: number; startY: number; ox: number; oy: number; w: number; h: number; moved: boolean } | null>(null);
+  const resizeState = useRef<{ startX: number; startY: number; startW: number; stageW: number } | null>(null);
+
 
   useEffect(() => () => slides.forEach((s) => URL.revokeObjectURL(s.previewUrl)), []); // eslint-disable-line
 
@@ -230,66 +234,108 @@ export const SingleImageTextEditor = ({ onDone, onCancel }: Props) => {
                     <X className="w-4 h-4" />
                   </button>
 
-                  {/* Draggable text overlay */}
-                  {isActive && s.hasText && (
-                    <div
-                      className="absolute select-none"
-                      style={{
-                        left: `${s.overlay.x * 100}%`,
-                        top: `${s.overlay.y * 100}%`,
-                        transform: 'translate(-50%, -50%)',
-                        maxWidth: '86%',
-                        touchAction: 'none',
-                      }}
-                    >
-                      <div className="relative">
-                        {editingText ? (
-                          <textarea
-                            ref={textInputRef}
-                            value={s.overlay.text}
-                            onChange={(e) => updateOverlay({ text: e.target.value.slice(0, 60) })}
-                            onBlur={() => setEditingText(false)}
-                            maxLength={60}
-                            rows={1}
-                            placeholder="Type…"
-                            className="block w-[80vw] max-w-[420px] resize-none bg-transparent outline-none text-center font-semibold px-3 py-1.5 rounded-lg"
-                            style={{
-                              color: textColor,
-                              backgroundColor: bgColor,
-                              fontSize: `${fontPx}px`,
-                              lineHeight: 1.25,
-                              caretColor: textColor,
-                            }}
-                          />
-                        ) : (
-                          <div
-                            onPointerDown={(e) => onPointerDown(e, s.id)}
-                            onPointerMove={onPointerMove}
-                            onPointerUp={onPointerUp}
-                            onPointerCancel={onPointerUp}
-                            className={`px-3 py-1.5 rounded-lg font-semibold text-center cursor-move ${s.overlay.bgEnabled ? 'backdrop-blur-md' : ''}`}
-                            style={{
-                              color: textColor,
-                              backgroundColor: bgColor,
-                              fontSize: `${fontPx}px`,
-                              lineHeight: 1.25,
-                              whiteSpace: 'pre-wrap',
-                              wordBreak: 'break-word',
-                            }}
+                  {/* Draggable + resizable text overlay */}
+                  {isActive && s.hasText && (() => {
+                    const stageW = stageRefs.current[s.id]?.clientWidth ?? 360;
+                    const boxWidthPx = Math.round((s.overlay.width ?? 0.7) * stageW);
+                    const onResizeDown = (e: React.PointerEvent) => {
+                      e.stopPropagation();
+                      resizeState.current = {
+                        startX: e.clientX,
+                        startY: e.clientY,
+                        startW: s.overlay.width ?? 0.7,
+                        stageW,
+                      };
+                      (e.target as Element).setPointerCapture?.(e.pointerId);
+                    };
+                    const onResizeMove = (e: React.PointerEvent) => {
+                      const r = resizeState.current;
+                      if (!r) return;
+                      e.stopPropagation();
+                      // Box grows symmetrically (anchor is center), so 1px drag = 2px width.
+                      const dxFrac = ((e.clientX - r.startX) * 2) / r.stageW;
+                      const nw = Math.max(0.18, Math.min(0.95, r.startW + dxFrac));
+                      updateOverlay({ width: nw });
+                    };
+                    const onResizeUp = (e: React.PointerEvent) => {
+                      resizeState.current = null;
+                    };
+                    return (
+                      <div
+                        className="absolute select-none"
+                        style={{
+                          left: `${s.overlay.x * 100}%`,
+                          top: `${s.overlay.y * 100}%`,
+                          transform: 'translate(-50%, -50%)',
+                          width: `${boxWidthPx}px`,
+                          maxWidth: '95%',
+                          touchAction: 'none',
+                        }}
+                      >
+                        <div className="relative">
+                          {editingText ? (
+                            <textarea
+                              ref={textInputRef}
+                              value={s.overlay.text}
+                              onChange={(e) => updateOverlay({ text: e.target.value })}
+                              onBlur={() => setEditingText(false)}
+                              rows={1}
+                              placeholder="Type…"
+                              className="block w-full resize-none bg-transparent outline-none text-center font-semibold px-3 py-1.5 rounded-lg"
+                              style={{
+                                color: textColor,
+                                backgroundColor: bgColor,
+                                fontSize: `${fontPx}px`,
+                                lineHeight: 1.25,
+                                caretColor: textColor,
+                                minHeight: `${fontPx * 1.6}px`,
+                              }}
+                            />
+                          ) : (
+                            <div
+                              onPointerDown={(e) => onPointerDown(e, s.id)}
+                              onPointerMove={onPointerMove}
+                              onPointerUp={onPointerUp}
+                              onPointerCancel={onPointerUp}
+                              className={`w-full px-3 py-1.5 rounded-lg font-semibold text-center cursor-move ${s.overlay.bgEnabled ? 'backdrop-blur-md' : ''}`}
+                              style={{
+                                color: textColor,
+                                backgroundColor: bgColor,
+                                fontSize: `${fontPx}px`,
+                                lineHeight: 1.25,
+                                whiteSpace: 'pre-wrap',
+                                wordBreak: 'break-word',
+                              }}
+                            >
+                              {s.overlay.text || 'Tap to type'}
+                            </div>
+                          )}
+                          <button
+                            onClick={deleteText}
+                            aria-label="Delete text"
+                            className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-black/80 text-white border border-white/40 flex items-center justify-center"
                           >
-                            {s.overlay.text || 'Tap to type'}
+                            <X className="w-3.5 h-3.5" />
+                          </button>
+                          {/* Resize handle (bottom-right) */}
+                          <div
+                            onPointerDown={onResizeDown}
+                            onPointerMove={onResizeMove}
+                            onPointerUp={onResizeUp}
+                            onPointerCancel={onResizeUp}
+                            aria-label="Resize"
+                            className="absolute -bottom-2 -right-2 w-6 h-6 rounded-full bg-white border-2 border-[#ef4444] flex items-center justify-center cursor-se-resize"
+                            style={{ touchAction: 'none' }}
+                          >
+                            <svg width="10" height="10" viewBox="0 0 10 10" className="text-[#ef4444]">
+                              <path d="M9 1 L1 9 M9 5 L5 9 M9 9 L9 9" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinecap="round" />
+                            </svg>
                           </div>
-                        )}
-                        <button
-                          onClick={deleteText}
-                          aria-label="Delete text"
-                          className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-black/80 text-white border border-white/40 flex items-center justify-center"
-                        >
-                          <X className="w-3.5 h-3.5" />
-                        </button>
+                        </div>
                       </div>
-                    </div>
-                  )}
+                    );
+                  })()}
+
 
                   {/* Tap-to-add-text hint when empty */}
                   {isActive && !s.hasText && !editingText && (
