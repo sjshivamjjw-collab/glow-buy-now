@@ -79,9 +79,8 @@ export const GridTextEditor = ({ onDone, onCancel }: Props) => {
     const id = `o-${Date.now()}`;
     setOverlays((p) => [...p, newOverlay(id)]);
     setActiveId(id);
-    setEditingId(id);
+    setEditingId(null);
     setOpenTool(null);
-    setTimeout(() => editInputRef.current?.focus(), 50);
   };
 
   const updateOverlay = (id: string, patch: Partial<TextOverlay>) => {
@@ -236,7 +235,7 @@ export const GridTextEditor = ({ onDone, onCancel }: Props) => {
                       }}
                       rows={1}
                       placeholder="Type…"
-                      className="block w-full resize-none bg-transparent outline-none text-center font-semibold px-3 py-1.5 rounded-lg"
+                      className="block w-full resize-none bg-transparent outline-none text-center font-semibold px-1 py-0 rounded-md"
                       style={{
                         color: textColor,
                         backgroundColor: bgColor,
@@ -252,7 +251,7 @@ export const GridTextEditor = ({ onDone, onCancel }: Props) => {
                       onPointerMove={onPointerMove}
                       onPointerUp={(e) => onPointerUp(e, o.id)}
                       onPointerCancel={(e) => onPointerUp(e, o.id)}
-                      className={`w-full px-3 py-1.5 rounded-lg font-semibold text-center cursor-move ${o.bgEnabled ? 'backdrop-blur-md' : ''}`}
+                      className={`w-full px-1 py-0 rounded-md font-semibold text-center cursor-move ${o.bgEnabled ? 'backdrop-blur-md' : ''}`}
                       style={{
                         color: textColor,
                         backgroundColor: bgColor,
