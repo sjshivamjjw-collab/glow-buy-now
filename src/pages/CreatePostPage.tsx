@@ -326,19 +326,48 @@ const CreatePostPage = () => {
     : cropQueue[0] ?? null;
   const cropperOpen = !!currentCropFile;
 
-  const addMediaFile = (file: File) => {
+  const addMediaFile = (file: File, editorState?: LayoutEditorState) => {
     const kind: 'image' | 'video' = file.type.startsWith('video/') ? 'video' : 'image';
     const entry: PendingMedia = {
       id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
       file,
       previewUrl: URL.createObjectURL(file),
       kind,
+      editorState,
     };
     setMedia(prev => [...prev, entry]);
     return entry.id;
   };
 
-  const handleLayoutDone = (files: File[]) => {
+  const handleLayoutDone = (files: File[], states: LayoutEditorState[]) => {
+    // EDIT mode — replace the existing entry in place and append any extras
+    // (e.g. user added more slides to a Single-image post).
+    if (editingMediaId) {
+      const idx = media.findIndex(m => m.id === editingMediaId);
+      if (idx !== -1 && files.length > 0) {
+        const newPrimaryUrl = URL.createObjectURL(files[0]);
+        setMedia(prev => {
+          const next = [...prev];
+          URL.revokeObjectURL(next[idx].previewUrl);
+          next[idx] = {
+            ...next[idx],
+            file: files[0],
+            previewUrl: newPrimaryUrl,
+            editorState: states[0],
+          };
+          return next;
+        });
+        if (coverMediaId === editingMediaId) setCoverFile(files[0]);
+        // Append any extra files beyond the first as new entries.
+        const extras = files.slice(1);
+        const remaining = MAX_FILES - media.length;
+        extras.slice(0, Math.max(0, remaining)).forEach((f, i) => addMediaFile(f, states[i + 1]));
+      }
+      setEditingMediaId(null);
+      setActiveLayout(null);
+      return;
+    }
+
     const remaining = MAX_FILES - media.length;
     const slice = files.slice(0, Math.max(0, remaining));
     if (slice.length < files.length) {
@@ -346,7 +375,7 @@ const CreatePostPage = () => {
     }
     let firstId: string | null = null;
     slice.forEach((f, i) => {
-      const id = addMediaFile(f);
+      const id = addMediaFile(f, states[i]);
       if (i === 0) firstId = id;
     });
     if (firstId && !coverFile) {
@@ -355,6 +384,13 @@ const CreatePostPage = () => {
     }
     setActiveLayout(null);
   };
+
+  const startEditMedia = (m: PendingMedia) => {
+    if (!m.editorState) return;
+    setEditingMediaId(m.id);
+    setActiveLayout(m.editorState.kind);
+  };
+
 
 
   const handleFiles = (files: FileList | null) => {
