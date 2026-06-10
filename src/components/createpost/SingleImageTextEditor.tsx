@@ -305,8 +305,8 @@ export const SingleImageTextEditor = ({ onDone, onCancel }: Props) => {
                           left: `${o.x * 100}%`,
                           top: `${o.y * 100}%`,
                           transform: 'translate(-50%, -50%)',
-                          width: `${boxWidthPx}px`,
-                          maxWidth: '95%',
+                          width: 'auto',
+                          maxWidth: `${boxWidthPx}px`,
                           touchAction: 'none',
                           zIndex: isActiveOv ? 5 : 4,
                           pointerEvents: 'none',
@@ -317,33 +317,56 @@ export const SingleImageTextEditor = ({ onDone, onCancel }: Props) => {
                           style={{ pointerEvents: 'auto' }}
                         >
                           {isEditing ? (
-                            <textarea
-                              ref={textInputRef}
-                              value={o.text}
-                              onChange={(e) => patchOverlay(o.id, { text: e.target.value })}
-                              onBlur={() => {
-                                setEditingId(null);
-                                if (!o.text.trim()) removeOverlay(o.id);
-                              }}
-                              rows={1}
-                              placeholder="Type…"
-                              className="block w-full resize-none bg-transparent outline-none text-center font-semibold px-2 py-1 rounded-md"
+                            <div
+                              className="inline-grid"
                               style={{
-                                color: textColor,
-                                backgroundColor: bgColor,
-                                fontSize: `${fontPx}px`,
-                                lineHeight: 1.25,
-                                caretColor: textColor,
-                                minHeight: `${Math.max(fontPx * 1.6, heights[o.id] ?? 0)}px`,
+                                maxWidth: `${boxWidthPx}px`,
+                                minWidth: `${Math.max(fontPx * 3, 64)}px`,
                               }}
-                            />
+                            >
+                              <textarea
+                                ref={textInputRef}
+                                value={o.text}
+                                onChange={(e) => patchOverlay(o.id, { text: e.target.value })}
+                                onBlur={() => {
+                                  setEditingId(null);
+                                  if (!o.text.trim()) removeOverlay(o.id);
+                                }}
+                                rows={1}
+                                placeholder="Type…"
+                                className="resize-none bg-transparent outline-none text-center font-semibold px-2 py-1 rounded-md overflow-hidden"
+                                style={{
+                                  gridArea: '1 / 1 / 2 / 2',
+                                  color: textColor,
+                                  backgroundColor: bgColor,
+                                  fontSize: `${fontPx}px`,
+                                  lineHeight: 1.25,
+                                  caretColor: textColor,
+                                  width: '100%',
+                                  height: '100%',
+                                }}
+                              />
+                              {/* Invisible sizer mirrors textarea content so the grid cell
+                                  grows in width AND height to fit what the user types. */}
+                              <span
+                                aria-hidden
+                                className="px-2 py-1 font-semibold text-center invisible whitespace-pre-wrap break-words"
+                                style={{
+                                  gridArea: '1 / 1 / 2 / 2',
+                                  fontSize: `${fontPx}px`,
+                                  lineHeight: 1.25,
+                                }}
+                              >
+                                {(o.text || 'Type…') + '\u200b'}
+                              </span>
+                            </div>
                           ) : (
                             <div
                               onPointerDown={(e) => onPointerDown(e, o.id)}
                               onPointerMove={onPointerMove}
                               onPointerUp={(e) => onPointerUp(e, o.id)}
                               onPointerCancel={(e) => onPointerUp(e, o.id)}
-                              className={`w-full px-2 py-1 rounded-md font-semibold text-center cursor-move ${o.bgEnabled ? 'backdrop-blur-md' : ''}`}
+                              className={`inline-block px-2 py-1 rounded-md font-semibold text-center cursor-move ${o.bgEnabled ? 'backdrop-blur-md' : ''}`}
                               style={{
                                 color: textColor,
                                 backgroundColor: bgColor,
@@ -351,6 +374,7 @@ export const SingleImageTextEditor = ({ onDone, onCancel }: Props) => {
                                 lineHeight: 1.25,
                                 whiteSpace: 'pre-wrap',
                                 wordBreak: 'break-word',
+                                maxWidth: `${boxWidthPx}px`,
                                 minHeight: heights[o.id] ? `${heights[o.id]}px` : undefined,
                                 touchAction: 'none',
                                 opacity: o.text ? 1 : 0.85,
