@@ -146,26 +146,30 @@ const roundRect = (ctx: CanvasRenderingContext2D, x: number, y: number, w: numbe
   ctx.closePath();
 };
 
-// Draw an image covering the target rect (object-cover behavior).
-// posX/posY are in [0,1] and control which part of the image stays visible
-// when cropping (0 = left/top, 0.5 = center, 1 = right/bottom).
+// Draw an image covering the target rect (object-cover behavior) with
+// optional zoom + pan. posX/posY are in [0,1] and control which part of the
+// image stays visible after cropping (0.5 = center). scale >= 1 zooms in
+// (1 = exact cover, 2 = 2x zoom).
 const drawCover = (
   ctx: CanvasRenderingContext2D,
   img: HTMLImageElement,
   dx: number, dy: number, dw: number, dh: number,
-  posX = 0.5, posY = 0.5,
+  posX = 0.5, posY = 0.5, scale = 1,
 ) => {
+  const s = Math.max(1, scale);
   const ir = img.naturalWidth / img.naturalHeight;
   const tr = dw / dh;
-  let sx = 0, sy = 0, sw = img.naturalWidth, sh = img.naturalHeight;
-  if (ir > tr) {
-    // image wider -> crop sides; pan horizontally
-    sw = img.naturalHeight * tr;
-    sx = (img.naturalWidth - sw) * Math.max(0, Math.min(1, posX));
-  } else {
-    sh = img.naturalWidth / tr;
-    sy = (img.naturalHeight - sh) * Math.max(0, Math.min(1, posY));
-  }
+  // Source rect that exactly covers the target at scale=1.
+  let baseSW: number, baseSH: number;
+  if (ir > tr) { baseSH = img.naturalHeight; baseSW = baseSH * tr; }
+  else { baseSW = img.naturalWidth; baseSH = baseSW / tr; }
+  // Zooming in shrinks the source rect.
+  const sw = baseSW / s;
+  const sh = baseSH / s;
+  const maxSX = img.naturalWidth - sw;
+  const maxSY = img.naturalHeight - sh;
+  const sx = maxSX * Math.max(0, Math.min(1, posX));
+  const sy = maxSY * Math.max(0, Math.min(1, posY));
   ctx.drawImage(img, sx, sy, sw, sh, dx, dy, dw, dh);
 };
 
