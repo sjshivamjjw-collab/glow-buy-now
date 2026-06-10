@@ -215,6 +215,7 @@ export const GridTextEditor = ({ onDone, onCancel }: Props) => {
                   maxWidth: '95%',
                   touchAction: 'none',
                   zIndex: isActive ? 5 : 4,
+                  pointerEvents: 'none',
                 }}
               >
                 <div className={`relative ${isActive && !isEditing ? 'ring-2 ring-[#ef4444] rounded-lg' : ''}`}>
