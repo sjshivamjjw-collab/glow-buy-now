@@ -237,7 +237,7 @@ export const GridTextEditor = ({ onDone, onCancel }: Props) => {
                       onPointerMove={onPointerMove}
                       onPointerUp={(e) => onPointerUp(e, o.id)}
                       onPointerCancel={(e) => onPointerUp(e, o.id)}
-                      className={`w-full px-1 py-0 rounded-md font-semibold text-center cursor-move ${o.bgEnabled ? 'backdrop-blur-md' : ''}`}
+                      className={`w-full px-2 py-1 rounded-md font-semibold text-center cursor-move ${o.bgEnabled ? 'backdrop-blur-md' : ''}`}
                       style={{
                         color: textColor,
                         backgroundColor: bgColor,
