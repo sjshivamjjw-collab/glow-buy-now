@@ -409,58 +409,115 @@ const ToolButton = ({
 
 const CellPicker = ({
   cell,
+const CellPicker = ({
+  cell,
   onPick,
   onClear,
-  onPan,
+  onTransform,
 }: {
   cell: Cell;
   onPick: (fl: FileList | null) => void;
   onClear: () => void;
-  onPan: (posX: number, posY: number) => void;
+  onTransform: (patch: Partial<Pick<Cell, 'posX' | 'posY' | 'scale'>>) => void;
 }) => {
   const inputRef = useRef<HTMLInputElement>(null);
   const wrapRef = useRef<HTMLDivElement>(null);
   const imgRef = useRef<HTMLImageElement>(null);
-  const dragRef = useRef<{
-    startX: number; startY: number; startPosX: number; startPosY: number;
-    panRangeX: number; panRangeY: number; moved: boolean;
+
+  // Track active pointers so we can detect pinch (2 fingers).
+  const pointers = useRef<Map<number, { x: number; y: number }>>(new Map());
+  const gesture = useRef<{
+    mode: 'pan' | 'pinch';
+    startPosX: number; startPosY: number; startScale: number;
+    panRangeX: number; panRangeY: number;
+    startMidX: number; startMidY: number;
+    startDist: number;
+    moved: boolean;
   } | null>(null);
 
-  const onPointerDown = (e: React.PointerEvent) => {
-    if (!cell.file || !wrapRef.current || !imgRef.current) return;
-    const wrap = wrapRef.current.getBoundingClientRect();
-    const img = imgRef.current;
+  // Compute the panning range in CSS px given the current zoom.
+  const computeRanges = (scale: number) => {
+    const wrap = wrapRef.current!.getBoundingClientRect();
+    const img = imgRef.current!;
     const ir = img.naturalWidth / img.naturalHeight;
     const tr = wrap.width / wrap.height;
-    // displayed image size when object-cover is applied
+    // size of the image at object-cover + zoom
     let dispW: number, dispH: number;
     if (ir > tr) { dispH = wrap.height; dispW = dispH * ir; }
     else { dispW = wrap.width; dispH = dispW / ir; }
-    const panRangeX = Math.max(1, dispW - wrap.width);
-    const panRangeY = Math.max(1, dispH - wrap.height);
-    dragRef.current = {
-      startX: e.clientX, startY: e.clientY,
-      startPosX: cell.posX, startPosY: cell.posY,
-      panRangeX, panRangeY, moved: false,
+    dispW *= scale;
+    dispH *= scale;
+    return {
+      panRangeX: Math.max(1, dispW - wrap.width),
+      panRangeY: Math.max(1, dispH - wrap.height),
     };
+  };
+
+  const beginGesture = () => {
+    if (!wrapRef.current || !imgRef.current) return;
+    const ranges = computeRanges(cell.scale);
+    if (pointers.current.size === 2) {
+      const pts = Array.from(pointers.current.values());
+      const dx = pts[0].x - pts[1].x;
+      const dy = pts[0].y - pts[1].y;
+      gesture.current = {
+        mode: 'pinch',
+        startPosX: cell.posX, startPosY: cell.posY, startScale: cell.scale,
+        panRangeX: ranges.panRangeX, panRangeY: ranges.panRangeY,
+        startMidX: (pts[0].x + pts[1].x) / 2,
+        startMidY: (pts[0].y + pts[1].y) / 2,
+        startDist: Math.hypot(dx, dy) || 1,
+        moved: false,
+      };
+    } else if (pointers.current.size === 1) {
+      const p = Array.from(pointers.current.values())[0];
+      gesture.current = {
+        mode: 'pan',
+        startPosX: cell.posX, startPosY: cell.posY, startScale: cell.scale,
+        panRangeX: ranges.panRangeX, panRangeY: ranges.panRangeY,
+        startMidX: p.x, startMidY: p.y,
+        startDist: 1,
+        moved: false,
+      };
+    }
+  };
+
+  const onPointerDown = (e: React.PointerEvent) => {
+    if (!cell.file) return;
+    pointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
     (e.target as Element).setPointerCapture?.(e.pointerId);
+    beginGesture();
   };
   const onPointerMove = (e: React.PointerEvent) => {
-    const d = dragRef.current;
-    if (!d) return;
-    const dx = e.clientX - d.startX;
-    const dy = e.clientY - d.startY;
-    if (Math.abs(dx) > 3 || Math.abs(dy) > 3) d.moved = true;
-    // Drag right -> reveal left of image -> posX decreases.
-    const nx = Math.max(0, Math.min(1, d.startPosX - dx / d.panRangeX));
-    const ny = Math.max(0, Math.min(1, d.startPosY - dy / d.panRangeY));
-    onPan(nx, ny);
+    if (!pointers.current.has(e.pointerId)) return;
+    pointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    const g = gesture.current;
+    if (!g) return;
+    if (g.mode === 'pinch' && pointers.current.size >= 2) {
+      const pts = Array.from(pointers.current.values()).slice(0, 2);
+      const dist = Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y) || 1;
+      const nextScale = Math.max(1, Math.min(3, g.startScale * (dist / g.startDist)));
+      g.moved = true;
+      onTransform({ scale: nextScale });
+    } else if (g.mode === 'pan') {
+      const dx = e.clientX - g.startMidX;
+      const dy = e.clientY - g.startMidY;
+      if (Math.abs(dx) > 3 || Math.abs(dy) > 3) g.moved = true;
+      const nx = Math.max(0, Math.min(1, g.startPosX - dx / g.panRangeX));
+      const ny = Math.max(0, Math.min(1, g.startPosY - dy / g.panRangeY));
+      onTransform({ posX: nx, posY: ny });
+    }
   };
-  const onPointerUp = () => {
-    const d = dragRef.current;
-    dragRef.current = null;
-    if (d && !d.moved && !cell.file) inputRef.current?.click();
+  const onPointerUp = (e: React.PointerEvent) => {
+    pointers.current.delete(e.pointerId);
+    if (pointers.current.size === 0) {
+      gesture.current = null;
+    } else {
+      // Restart gesture with remaining pointers so pan resumes smoothly after pinch release.
+      beginGesture();
+    }
   };
+
   const onTap = () => { if (!cell.file) inputRef.current?.click(); };
 
   return (
@@ -469,6 +526,10 @@ const CellPicker = ({
       className="relative bg-[#1a1a1a] overflow-hidden w-full h-full select-none"
       style={{ touchAction: cell.file ? 'none' : 'auto' }}
       onClick={onTap}
+      onPointerDown={onPointerDown}
+      onPointerMove={onPointerMove}
+      onPointerUp={onPointerUp}
+      onPointerCancel={onPointerUp}
     >
       {cell.previewUrl ? (
         <>
@@ -477,12 +538,12 @@ const CellPicker = ({
             src={cell.previewUrl}
             alt=""
             draggable={false}
-            onPointerDown={onPointerDown}
-            onPointerMove={onPointerMove}
-            onPointerUp={onPointerUp}
-            onPointerCancel={onPointerUp}
-            className="w-full h-full object-cover cursor-move"
-            style={{ objectPosition: `${cell.posX * 100}% ${cell.posY * 100}%` }}
+            className="absolute inset-0 w-full h-full object-cover cursor-move pointer-events-none"
+            style={{
+              transform: `scale(${cell.scale})`,
+              transformOrigin: `${cell.posX * 100}% ${cell.posY * 100}%`,
+              objectPosition: `${cell.posX * 100}% ${cell.posY * 100}%`,
+            }}
           />
           <button
             type="button"
