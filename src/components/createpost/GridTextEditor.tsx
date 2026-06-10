@@ -82,10 +82,10 @@ export const GridTextEditor = ({ onDone, onCancel }: Props) => {
     });
   };
 
-  const setCellPos = (idx: number, posX: number, posY: number) => {
+  const setCellTransform = (idx: number, patch: Partial<Pick<Cell, 'posX' | 'posY' | 'scale'>>) => {
     setCells((prev) => {
       const next = [...prev];
-      next[idx] = { ...next[idx], posX, posY };
+      next[idx] = { ...next[idx], ...patch };
       return next;
     });
   };
@@ -99,11 +99,11 @@ export const GridTextEditor = ({ onDone, onCancel }: Props) => {
     }
     setBusy(true);
     try {
-      const input = cells.map((c) => ({ file: c.file!, posX: c.posX, posY: c.posY })) as [
-        { file: File; posX: number; posY: number },
-        { file: File; posX: number; posY: number },
-        { file: File; posX: number; posY: number },
-        { file: File; posX: number; posY: number },
+      const input = cells.map((c) => ({ file: c.file!, posX: c.posX, posY: c.posY, scale: c.scale })) as [
+        { file: File; posX: number; posY: number; scale: number },
+        { file: File; posX: number; posY: number; scale: number },
+        { file: File; posX: number; posY: number; scale: number },
+        { file: File; posX: number; posY: number; scale: number },
       ];
       const out = await composeGrid(input, overlays.filter((o) => o.text.trim()));
       onDone([out]);
