@@ -117,7 +117,7 @@ const drawOverlay = (
     const bgY = top - padY;
     const bgW = blockW + padX * 2;
     const bgH = blockH + padY * 2;
-    ctx.fillStyle = o.color === 'white' || o.color === 'cream' ? 'rgba(0,0,0,0.45)' : 'rgba(255,255,255,0.55)';
+    ctx.fillStyle = (o.color === 'white' || o.color === 'cream' || o.color === 'yellow') ? 'rgba(0,0,0,0.45)' : 'rgba(255,255,255,0.55)';
     roundRect(ctx, bgX, bgY, bgW, bgH, r);
     ctx.fill();
   }
