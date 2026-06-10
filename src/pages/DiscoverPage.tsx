@@ -672,11 +672,6 @@ const DiscoverPage = () => {
                   ) : (
                     <TextCoverCard title={p.title || p.body} />
                   )}
-                  {p.category && CATEGORY_META[p.category] && (
-                    <span className="absolute top-1.5 left-1.5 px-1.5 py-[2px] rounded-md bg-black/55 backdrop-blur-sm text-white/90 text-[9px] font-medium tracking-wide">
-                      {CATEGORY_META[p.category].label}
-                    </span>
-                  )}
                   {p.media_count > 1 && (
                     <span className="absolute bottom-2 right-2 px-2 py-0.5 rounded-full bg-black/55 backdrop-blur-sm text-white text-[10px] font-bold flex items-center gap-1">
                       <Images className="w-3 h-3" /> {p.media_count}
