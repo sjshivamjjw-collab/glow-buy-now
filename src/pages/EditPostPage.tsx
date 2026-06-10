@@ -200,16 +200,16 @@ const EditPostPage = () => {
     });
     const videos = accepted.filter(f => f.type.startsWith('video/'));
     const images = accepted.filter(f => !f.type.startsWith('video/'));
-    videos.forEach(addNewMediaFile);
+    videos.forEach(f => addNewMediaFile(f));
     // Only crop the cover (first image overall) to 4:5 for the Discover grid.
     const needsCover = existing.length === 0 && newMedia.length === 0 && cropQueue.length === 0;
     if (images.length) {
       if (needsCover) {
         const [cover, ...rest] = images;
         setCropQueue(prev => [...prev, cover]);
-        rest.forEach(addNewMediaFile);
+        rest.forEach(f => addNewMediaFile(f));
       } else {
-        images.forEach(addNewMediaFile);
+        images.forEach(f => addNewMediaFile(f));
       }
     }
   };
