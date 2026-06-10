@@ -118,20 +118,21 @@ const drawOverlay = (
   ctx.font = `600 ${fontPx}px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif`;
   ctx.textBaseline = 'top';
 
-  const maxWidth = canvasW * Math.max(0.15, Math.min(0.95, o.width ?? 0.86));
+  const maxWidth = canvasW * Math.max(0.15, Math.min(0.95, o.width ?? 0.7));
   const lines = wrapText(ctx, o.text, maxWidth);
   const lineHeight = Math.round(fontPx * 1.25);
   const blockH = lineHeight * lines.length;
-  const blockW = Math.min(
-    maxWidth,
-    Math.max(...lines.map((l) => ctx.measureText(l).width)),
-  );
+  // Editor renders the text box at full maxWidth (centered), so match it here
+  // — otherwise centered/right-aligned shifts won't match the preview.
+  const blockW = maxWidth;
+  const lineWidths = lines.map((l) => ctx.measureText(l).width);
 
-  // Anchor x,y is the top-left of the block in % space; clamp inside canvas.
-  let left = o.x * canvasW;
-  let top = o.y * canvasH;
-  left = Math.max(canvasW * 0.05, Math.min(canvasW - blockW - canvasW * 0.05, left));
-  top = Math.max(canvasH * 0.04, Math.min(canvasH - blockH - canvasH * 0.04, top));
+  // Anchor x,y is the CENTER of the block in % space (matches the editor's
+  // translate(-50%, -50%)). Clamp the block so it stays fully on-canvas.
+  let left = o.x * canvasW - blockW / 2;
+  let top = o.y * canvasH - blockH / 2;
+  left = Math.max(canvasW * 0.025, Math.min(canvasW - blockW - canvasW * 0.025, left));
+  top = Math.max(canvasH * 0.025, Math.min(canvasH - blockH - canvasH * 0.025, top));
 
   if (o.bgEnabled) {
     const padX = fontPx * 0.5;
@@ -148,7 +149,9 @@ const drawOverlay = (
 
   ctx.fillStyle = COLOR_MAP[o.color];
   lines.forEach((line, i) => {
-    ctx.fillText(line, left, top + i * lineHeight);
+    const lw = lineWidths[i];
+    const lx = left + (blockW - lw) / 2; // center each line, matching editor
+    ctx.fillText(line, lx, top + i * lineHeight);
   });
 };
 
