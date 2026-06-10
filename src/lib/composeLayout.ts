@@ -190,8 +190,9 @@ export const composeSingleSlide = async (
 };
 
 // LAYOUT 2: square 2x2 grid with overlays.
+export interface GridCellInput { file: File; posX?: number; posY?: number }
 export const composeGrid = async (
-  files: [File, File, File, File],
+  cells: [GridCellInput, GridCellInput, GridCellInput, GridCellInput],
   overlays: TextOverlay[],
 ): Promise<File> => {
   const SIZE = 1440;
@@ -203,7 +204,7 @@ export const composeGrid = async (
   const ctx = canvas.getContext('2d')!;
   ctx.fillStyle = '#FFFFFF';
   ctx.fillRect(0, 0, SIZE, SIZE);
-  const imgs = await Promise.all(files.map(loadImage));
+  const imgs = await Promise.all(cells.map((c) => loadImage(c.file)));
   const rects = [
     [0, 0],
     [cell + GUTTER, 0],
@@ -211,7 +212,7 @@ export const composeGrid = async (
     [cell + GUTTER, cell + GUTTER],
   ] as const;
   imgs.forEach((img, i) => {
-    drawCover(ctx, img, rects[i][0], rects[i][1], cell, cell);
+    drawCover(ctx, img, rects[i][0], rects[i][1], cell, cell, cells[i].posX ?? 0.5, cells[i].posY ?? 0.5);
   });
   overlays.forEach((o) => drawOverlay(ctx, o, SIZE, SIZE));
   return canvasToJpegFile(canvas, `grid-${Date.now()}.jpg`);
