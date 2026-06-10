@@ -422,6 +422,37 @@ const CellPicker = ({
   const wrapRef = useRef<HTMLDivElement>(null);
   const imgRef = useRef<HTMLImageElement>(null);
 
+  // Natural aspect ratio of the loaded image (width / height) and current
+  // wrap size. Both are needed to compute pan ranges and image display size.
+  const [natRatio, setNatRatio] = useState(1);
+  const [wrap, setWrap] = useState({ w: 1, h: 1 });
+
+  useEffect(() => {
+    if (!wrapRef.current) return;
+    const el = wrapRef.current;
+    const update = () => {
+      const r = el.getBoundingClientRect();
+      setWrap({ w: r.width || 1, h: r.height || 1 });
+    };
+    update();
+    const ro = new ResizeObserver(update);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
+  // Cover-fit size at scale=1: one axis matches wrap exactly, the other overflows.
+  const wr = wrap.w / wrap.h;
+  let baseW: number, baseH: number;
+  if (natRatio > wr) { baseH = wrap.h; baseW = baseH * natRatio; }
+  else { baseW = wrap.w; baseH = baseW / natRatio; }
+  const dispW = baseW * cell.scale;
+  const dispH = baseH * cell.scale;
+  const panRangeX = Math.max(0, dispW - wrap.w);
+  const panRangeY = Math.max(0, dispH - wrap.h);
+  // posX/posY 0 = left/top edge; 0.5 = centered. Translate value relative to centered position.
+  const tx = (0.5 - cell.posX) * panRangeX;
+  const ty = (0.5 - cell.posY) * panRangeY;
+
   // Track active pointers so we can detect pinch (2 fingers).
   const pointers = useRef<Map<number, { x: number; y: number }>>(new Map());
   const gesture = useRef<{
@@ -430,52 +461,36 @@ const CellPicker = ({
     panRangeX: number; panRangeY: number;
     startMidX: number; startMidY: number;
     startDist: number;
-    moved: boolean;
   } | null>(null);
 
-  // Compute the panning range in CSS px given the current zoom.
-  const computeRanges = (scale: number) => {
-    const wrap = wrapRef.current!.getBoundingClientRect();
-    const img = imgRef.current!;
-    const ir = img.naturalWidth / img.naturalHeight;
-    const tr = wrap.width / wrap.height;
-    // size of the image at object-cover + zoom
-    let dispW: number, dispH: number;
-    if (ir > tr) { dispH = wrap.height; dispW = dispH * ir; }
-    else { dispW = wrap.width; dispH = dispW / ir; }
-    dispW *= scale;
-    dispH *= scale;
-    return {
-      panRangeX: Math.max(1, dispW - wrap.width),
-      panRangeY: Math.max(1, dispH - wrap.height),
-    };
+  const currentRanges = (scale: number) => {
+    const s = Math.max(1, scale);
+    const dW = baseW * s;
+    const dH = baseH * s;
+    return { panRangeX: Math.max(1, dW - wrap.w), panRangeY: Math.max(1, dH - wrap.h) };
   };
 
   const beginGesture = () => {
-    if (!wrapRef.current || !imgRef.current) return;
-    const ranges = computeRanges(cell.scale);
     if (pointers.current.size === 2) {
       const pts = Array.from(pointers.current.values());
-      const dx = pts[0].x - pts[1].x;
-      const dy = pts[0].y - pts[1].y;
+      const r = currentRanges(cell.scale);
       gesture.current = {
         mode: 'pinch',
         startPosX: cell.posX, startPosY: cell.posY, startScale: cell.scale,
-        panRangeX: ranges.panRangeX, panRangeY: ranges.panRangeY,
+        panRangeX: r.panRangeX, panRangeY: r.panRangeY,
         startMidX: (pts[0].x + pts[1].x) / 2,
         startMidY: (pts[0].y + pts[1].y) / 2,
-        startDist: Math.hypot(dx, dy) || 1,
-        moved: false,
+        startDist: Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y) || 1,
       };
     } else if (pointers.current.size === 1) {
       const p = Array.from(pointers.current.values())[0];
+      const r = currentRanges(cell.scale);
       gesture.current = {
         mode: 'pan',
         startPosX: cell.posX, startPosY: cell.posY, startScale: cell.scale,
-        panRangeX: ranges.panRangeX, panRangeY: ranges.panRangeY,
+        panRangeX: r.panRangeX, panRangeY: r.panRangeY,
         startMidX: p.x, startMidY: p.y,
         startDist: 1,
-        moved: false,
       };
     }
   };
@@ -495,12 +510,11 @@ const CellPicker = ({
       const pts = Array.from(pointers.current.values()).slice(0, 2);
       const dist = Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y) || 1;
       const nextScale = Math.max(1, Math.min(3, g.startScale * (dist / g.startDist)));
-      g.moved = true;
       onTransform({ scale: nextScale });
     } else if (g.mode === 'pan') {
       const dx = e.clientX - g.startMidX;
       const dy = e.clientY - g.startMidY;
-      if (Math.abs(dx) > 3 || Math.abs(dy) > 3) g.moved = true;
+      // Drag right → reveal left of image → posX decreases.
       const nx = Math.max(0, Math.min(1, g.startPosX - dx / g.panRangeX));
       const ny = Math.max(0, Math.min(1, g.startPosY - dy / g.panRangeY));
       onTransform({ posX: nx, posY: ny });
@@ -508,12 +522,8 @@ const CellPicker = ({
   };
   const onPointerUp = (e: React.PointerEvent) => {
     pointers.current.delete(e.pointerId);
-    if (pointers.current.size === 0) {
-      gesture.current = null;
-    } else {
-      // Restart gesture with remaining pointers so pan resumes smoothly after pinch release.
-      beginGesture();
-    }
+    if (pointers.current.size === 0) gesture.current = null;
+    else beginGesture();
   };
 
   const onTap = () => { if (!cell.file) inputRef.current?.click(); };
@@ -536,11 +546,18 @@ const CellPicker = ({
             src={cell.previewUrl}
             alt=""
             draggable={false}
-            className="absolute inset-0 w-full h-full object-cover cursor-move pointer-events-none"
+            onLoad={(e) => {
+              const i = e.currentTarget;
+              if (i.naturalWidth && i.naturalHeight) {
+                setNatRatio(i.naturalWidth / i.naturalHeight);
+              }
+            }}
+            className="absolute top-1/2 left-1/2 max-w-none cursor-move pointer-events-none"
             style={{
-              transform: `scale(${cell.scale})`,
-              transformOrigin: `${cell.posX * 100}% ${cell.posY * 100}%`,
-              objectPosition: `${cell.posX * 100}% ${cell.posY * 100}%`,
+              width: `${baseW}px`,
+              height: `${baseH}px`,
+              transform: `translate(-50%, -50%) translate(${tx}px, ${ty}px) scale(${cell.scale})`,
+              transformOrigin: 'center',
             }}
           />
           <button
