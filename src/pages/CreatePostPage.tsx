@@ -784,13 +784,34 @@ const CreatePostPage = () => {
         onPick={(c) => { setLayoutSheetOpen(false); setActiveLayout(c); }}
       />
       {activeLayout === 'single' && (
-        <SingleImageTextEditor onDone={handleLayoutDone} onCancel={() => setActiveLayout(null)} />
+        <SingleImageTextEditor
+          onDone={handleLayoutDone}
+          onCancel={() => { setActiveLayout(null); setEditingMediaId(null); }}
+          initialState={(() => {
+            const m = media.find(x => x.id === editingMediaId);
+            return m?.editorState?.kind === 'single' ? m.editorState : undefined;
+          })()}
+        />
       )}
       {activeLayout === 'grid' && (
-        <GridTextEditor onDone={handleLayoutDone} onCancel={() => setActiveLayout(null)} />
+        <GridTextEditor
+          onDone={handleLayoutDone}
+          onCancel={() => { setActiveLayout(null); setEditingMediaId(null); }}
+          initialState={(() => {
+            const m = media.find(x => x.id === editingMediaId);
+            return m?.editorState?.kind === 'grid' ? m.editorState : undefined;
+          })()}
+        />
       )}
       {activeLayout === 'cost' && (
-        <CostBreakdownEditor onDone={handleLayoutDone} onCancel={() => setActiveLayout(null)} />
+        <CostBreakdownEditor
+          onDone={handleLayoutDone}
+          onCancel={() => { setActiveLayout(null); setEditingMediaId(null); }}
+          initialState={(() => {
+            const m = media.find(x => x.id === editingMediaId);
+            return m?.editorState?.kind === 'cost' ? m.editorState : undefined;
+          })()}
+        />
       )}
 
 
