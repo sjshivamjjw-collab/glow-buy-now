@@ -46,7 +46,8 @@ export const SingleImageTextEditor = ({ onDone, onCancel }: Props) => {
   const stageRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const textInputRef = useRef<HTMLTextAreaElement>(null);
   const dragState = useRef<{ id: string; startX: number; startY: number; ox: number; oy: number; w: number; h: number; moved: boolean } | null>(null);
-  const resizeState = useRef<{ id: string; startX: number; startW: number; stageW: number } | null>(null);
+  const resizeState = useRef<{ id: string; startX: number; startY: number; startW: number; startH: number; stageW: number } | null>(null);
+  const [heights, setHeights] = useState<Record<string, number>>({});
 
   useEffect(() => () => slides.forEach((s) => URL.revokeObjectURL(s.previewUrl)), []); // eslint-disable-line
 
