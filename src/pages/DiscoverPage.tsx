@@ -667,7 +667,7 @@ const DiscoverPage = () => {
                         </span>
                       </>
                     ) : (
-                      <img src={optimizedImageUrl(p.cover_url, { width: 600, quality: 70, resize: 'cover' })!} alt={p.title || ''} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" decoding="async" />
+                      <img src={optimizedImageUrl(p.cover_url, { width: 600, quality: 70, resize: 'contain' })!} alt={p.title || ''} className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-500" loading="lazy" decoding="async" />
                     )
                   ) : (
                     <TextCoverCard title={p.title || p.body} />
