@@ -4,7 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { invalidatePostDetail, invalidateTrending } from '@/lib/feedCache';
-import { ArrowLeft, Loader2, MapPin, Hash, X, Check, ImagePlus, Tag, Pencil, ChevronLeft, ChevronRight } from 'lucide-react';
+import { ArrowLeft, Loader2, MapPin, Hash, X, Check, ImagePlus, Tag, Pencil, ChevronLeft, ChevronRight, Crop } from 'lucide-react';
 import { extractStoragePath } from '@/lib/storageUrls';
 import RichTextEditor, { type RichTextEditorHandle } from '@/components/RichTextEditor';
 import TravelStructureHelper, { buildPillSnippet } from '@/components/TravelStructureHelper';
