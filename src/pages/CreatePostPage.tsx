@@ -549,8 +549,9 @@ const CreatePostPage = () => {
       setCoverMediaId(null);
     }
     if (newFirstIdToCrop) {
+      const idToCrop = newFirstIdToCrop;
       // Re-crop whichever image is now in slot #1 so the Discover cover stays 4:5.
-      setTimeout(() => setEditCropId(newFirstIdToCrop), 0);
+      setTimeout(() => setEditCropId(idToCrop), 0);
     }
   };
 
