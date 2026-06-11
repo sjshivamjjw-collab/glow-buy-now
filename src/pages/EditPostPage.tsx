@@ -105,9 +105,11 @@ const EditPostPage = () => {
         .select('id, url, kind, sort_order')
         .eq('post_id', id)
         .order('sort_order', { ascending: true });
-      setExisting((mediaRows as any[] || []).map(m => ({
-        id: m.id, url: m.url, kind: m.kind, sort_order: m.sort_order,
-      })));
+      const rows = (mediaRows as any[] || []).map(m => ({
+        id: m.id, url: m.url, kind: m.kind as 'image' | 'video', sort_order: m.sort_order,
+      }));
+      setExisting(rows);
+      setOriginalFirstUrl(rows[0]?.url ?? null);
       setLoading(false);
     };
     load();
