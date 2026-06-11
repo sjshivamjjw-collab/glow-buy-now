@@ -564,7 +564,9 @@ const EditPostPage = () => {
                 </div>
               </div>
             ))}
-            {newMedia.map(m => (
+            {newMedia.map((m, nIdx) => {
+              const isCoverSlot = existing.length === 0 && nIdx === 0 && m.kind === 'image';
+              return (
               <div key={m.tempId} className="relative aspect-square rounded-xl overflow-hidden bg-[#f5f5f5] border border-[#ef4444]/40">
                 {m.kind === 'video' ? (
                   <video
@@ -581,6 +583,16 @@ const EditPostPage = () => {
                   <img src={m.previewUrl} alt="" className="w-full h-full object-contain" />
                 )}
                 <span className="absolute bottom-1 left-1 px-1.5 py-0.5 rounded bg-[#ef4444] text-white text-[10px] font-semibold">New</span>
+                {isCoverSlot && (
+                  <button
+                    onClick={() => setRecropFile(m.file)}
+                    aria-label="Recrop cover"
+                    title="Recrop cover"
+                    className="absolute top-1 right-8 w-6 h-6 rounded-full bg-black/60 text-white flex items-center justify-center"
+                  >
+                    <Crop className="w-3.5 h-3.5" />
+                  </button>
+                )}
                 {m.editorState && (
                   <button
                     onClick={() => startEditNewMedia(m)}
@@ -598,7 +610,8 @@ const EditPostPage = () => {
                   <X className="w-3.5 h-3.5" />
                 </button>
               </div>
-            ))}
+              );
+            })}
             {totalMedia < MAX_FILES && (
               <button
                 onClick={() => setLayoutSheetOpen(true)}
