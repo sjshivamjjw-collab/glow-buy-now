@@ -138,6 +138,39 @@ const EditPostPage = () => {
   const currentCropFile = cropQueue[0] ?? null;
   const [coverFile, setCoverFile] = useState<File | null>(null);
   const [coverTempId, setCoverTempId] = useState<string | null>(null);
+  // Triggered when the image in slot #1 changes (reorder, delete, recrop tap).
+  // Fetches existing-image URLs into a File so the cropper can open on them.
+  const [recropFile, setRecropFile] = useState<File | null>(null);
+
+  const urlToFile = async (url: string): Promise<File | null> => {
+    try {
+      const r = await fetch(url);
+      const blob = await r.blob();
+      return new File([blob], 'cover-source.jpg', { type: blob.type || 'image/jpeg' });
+    } catch (e) {
+      console.warn('cover source fetch failed', e);
+      return null;
+    }
+  };
+
+  // Given the latest existing/newMedia state, open the cropper on whatever
+  // image is in slot #1 (the post's cover). No-op when slot #1 is a video.
+  const triggerCoverRecrop = async (
+    nextExisting: ExistingMedia[],
+    nextNew: NewMedia[],
+  ) => {
+    const firstExisting = nextExisting[0];
+    if (firstExisting) {
+      if (firstExisting.kind !== 'image') return;
+      const f = await urlToFile(firstExisting.url);
+      if (f) setRecropFile(f);
+      return;
+    }
+    const firstNew = nextNew[0];
+    if (firstNew && firstNew.kind === 'image') {
+      setRecropFile(firstNew.file);
+    }
+  };
 
   const [layoutSheetOpen, setLayoutSheetOpen] = useState(false);
   const [activeLayout, setActiveLayout] = useState<LayoutChoice | null>(null);
