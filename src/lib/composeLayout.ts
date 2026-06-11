@@ -222,29 +222,32 @@ export const composeGrid = async (
   cells: [GridCellInput, GridCellInput, GridCellInput, GridCellInput],
   overlays: TextOverlay[],
 ): Promise<File> => {
-  const SIZE = 1440;
+  const W = 1200;
+  const H = 1500; // 4:5 portrait to match cover card aspect
   const GUTTER = 2; // hairline divider between cells.
-  const cell = (SIZE - GUTTER) / 2;
+  const cellW = (W - GUTTER) / 2;
+  const cellH = (H - GUTTER) / 2;
   const canvas = document.createElement('canvas');
-  canvas.width = SIZE;
-  canvas.height = SIZE;
+  canvas.width = W;
+  canvas.height = H;
   const ctx = canvas.getContext('2d')!;
   ctx.fillStyle = '#FFFFFF';
-  ctx.fillRect(0, 0, SIZE, SIZE);
+  ctx.fillRect(0, 0, W, H);
   const imgs = await Promise.all(cells.map((c) => loadImage(c.file)));
   const rects = [
     [0, 0],
-    [cell + GUTTER, 0],
-    [0, cell + GUTTER],
-    [cell + GUTTER, cell + GUTTER],
+    [cellW + GUTTER, 0],
+    [0, cellH + GUTTER],
+    [cellW + GUTTER, cellH + GUTTER],
   ] as const;
   imgs.forEach((img, i) => {
     drawCover(
-      ctx, img, rects[i][0], rects[i][1], cell, cell,
+      ctx, img, rects[i][0], rects[i][1], cellW, cellH,
       cells[i].posX ?? 0.5, cells[i].posY ?? 0.5, cells[i].scale ?? 1,
     );
   });
-  overlays.forEach((o) => drawOverlay(ctx, o, SIZE, SIZE));
+  overlays.forEach((o) => drawOverlay(ctx, o, W, H));
+
   return canvasToJpegFile(canvas, `grid-${Date.now()}.jpg`);
 };
 
