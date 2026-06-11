@@ -67,6 +67,7 @@
 			children = (
 				50379B222058CBB4000EE86E /* capacitor.config.json */,
 				50379B252058CBB4000EE86E /* PrivacyInfo.xcprivacy */,
+				ABCDEF0123456789ABCDEF01 /* App.entitlements */,
 				504EC3071FED79650016851F /* AppDelegate.swift */,
 				504EC30B1FED79650016851F /* Main.storyboard */,
 				504EC30E1FED79650016851F /* Assets.xcassets */,
