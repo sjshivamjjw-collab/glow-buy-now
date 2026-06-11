@@ -1087,8 +1087,7 @@ const CreatePostPage = () => {
         open={cropperOpen}
         onApply={handleCropApply}
         onCancel={handleCropCancel}
-        onSkip={editCropId ? undefined : handleCropSkip}
-        title={editCropId ? 'Recrop image' : (cropQueue.length > 1 ? `Crop image (${cropQueue.length} left)` : 'Crop image')}
+        title={editCropId ? 'Recrop cover for Discover' : (cropQueue.length > 1 ? `Crop cover (${cropQueue.length} left)` : 'Crop your cover photo (shown on Discover)')}
       />
 
 
