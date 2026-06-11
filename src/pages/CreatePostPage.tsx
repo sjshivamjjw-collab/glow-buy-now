@@ -252,16 +252,23 @@ const CreatePostPage = () => {
     if (category !== 'hidden_gems' && postAnonymously) setPostAnonymously(false);
   }, [category, postAnonymously]);
 
-  // Persist draft on any change (debounced).
+  // Persist draft on any change (debounced) and expose a synchronous flush
+  // for visibility/unload events so a sudden refresh can't lose recent edits.
+  const textDraftRef = useRef<PersistedDraft | null>(null);
+  textDraftRef.current = { category, reviewSub, recommendation, title, body, location, hashtags, music, postAnonymously };
+
+  const flushTextDraft = () => {
+    const d = textDraftRef.current;
+    if (!d) return;
+    const hasContent = !!(d.category || d.title || d.body || d.location || d.hashtags.length || d.music);
+    try {
+      if (hasContent) localStorage.setItem(DRAFT_KEY, JSON.stringify(d));
+      else localStorage.removeItem(DRAFT_KEY);
+    } catch {}
+  };
+
   useEffect(() => {
-    const t = setTimeout(() => {
-      const draft: PersistedDraft = { category, reviewSub, recommendation, title, body, location, hashtags, music, postAnonymously };
-      const hasContent = !!(category || title || body || location || hashtags.length || music);
-      try {
-        if (hasContent) localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
-        else localStorage.removeItem(DRAFT_KEY);
-      } catch {}
-    }, 250);
+    const t = setTimeout(flushTextDraft, 150);
     return () => clearTimeout(t);
   }, [category, reviewSub, recommendation, title, body, location, hashtags, music, postAnonymously]);
 
@@ -272,12 +279,8 @@ const CreatePostPage = () => {
   useEffect(() => {
     (async () => {
       const saved = await loadDraftMedia();
-      // Filter out entries whose blob is missing/empty (e.g. drafts saved by an
-      // older format). Without this guard the editor would try to render an
-      // empty File and show the broken-image placeholder.
       const valid = saved.filter(s => s.fileBlob && (s.fileBlob as Blob).size > 0);
       if (valid.length !== saved.length) {
-        // Clean up corrupted draft so we don't keep retrying.
         await clearDraftMedia();
       }
       if (valid.length) {
@@ -294,22 +297,42 @@ const CreatePostPage = () => {
     })();
   }, []);
 
+  const mediaRef = useRef<PendingMedia[]>([]);
+  mediaRef.current = media;
+  const flushMediaDraft = () => {
+    if (!mediaHydratedRef.current) return;
+    const m = mediaRef.current;
+    if (m.length === 0) { clearDraftMedia(); return; }
+    saveDraftMedia(m.map(x => ({
+      id: x.id,
+      kind: x.kind,
+      fileBlob: x.file,
+      fileName: x.file.name,
+      fileType: x.file.type,
+      editorState: x.editorState ? serializeEditorState(x.editorState) : undefined,
+    })));
+  };
 
   useEffect(() => {
     if (!mediaHydratedRef.current) return;
-    const t = setTimeout(() => {
-      if (media.length === 0) { clearDraftMedia(); return; }
-      saveDraftMedia(media.map(m => ({
-        id: m.id,
-        kind: m.kind,
-        fileBlob: m.file,
-        fileName: m.file.name,
-        fileType: m.file.type,
-        editorState: m.editorState ? serializeEditorState(m.editorState) : undefined,
-      })));
-    }, 400);
+    const t = setTimeout(flushMediaDraft, 200);
     return () => clearTimeout(t);
   }, [media]);
+
+  // Flush drafts immediately when the tab is hidden or the page is unloaded
+  // so a connection drop / refresh in the middle of typing never loses work.
+  useEffect(() => {
+    const handler = () => { flushTextDraft(); flushMediaDraft(); };
+    const onVisibility = () => { if (document.visibilityState === 'hidden') handler(); };
+    window.addEventListener('pagehide', handler);
+    window.addEventListener('beforeunload', handler);
+    document.addEventListener('visibilitychange', onVisibility);
+    return () => {
+      window.removeEventListener('pagehide', handler);
+      window.removeEventListener('beforeunload', handler);
+      document.removeEventListener('visibilitychange', onVisibility);
+    };
+  }, []);
 
   const clearDraft = () => {
     try { localStorage.removeItem(DRAFT_KEY); } catch {}
