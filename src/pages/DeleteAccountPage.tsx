@@ -21,16 +21,17 @@ const DeleteAccountPage = () => {
       return;
     }
     setDeleting(true);
-    const { error } = await supabase.from('profiles').update({
-      name: null, username: null, avatar_url: null, date_of_birth: null, gender: null,
-    }).eq('id', userId);
+    const { data: { session } } = await supabase.auth.getSession();
+    const { error } = await supabase.functions.invoke('delete-user', {
+      headers: session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : undefined,
+    });
     setDeleting(false);
     setConfirmOpen(false);
     if (error) {
-      toast({ title: 'Could not process request', description: 'Please email support.', variant: 'destructive' });
+      toast({ title: 'Could not delete account', description: 'Please email support.', variant: 'destructive' });
       return;
     }
-    toast({ title: 'Account data cleared', description: 'You will be signed out now.' });
+    toast({ title: 'Account deleted', description: 'Your account and data have been removed.' });
     setTimeout(() => { logout(); navigate('/auth'); }, 800);
   };
 
