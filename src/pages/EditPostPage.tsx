@@ -689,12 +689,23 @@ const EditPostPage = () => {
 
 
       <ImageCropperDialog
-        file={currentCropFile}
-        open={!!currentCropFile}
+        file={currentCropFile ?? recropFile}
+        open={!!currentCropFile || !!recropFile}
         aspect={4 / 5}
-        title="Crop your cover photo (shown on Discover)"
-        onCancel={handleCropCancel}
-        onApply={handleCropApply}
+        title={recropFile ? 'Recrop cover for Discover' : 'Crop your cover photo (shown on Discover)'}
+        onCancel={() => {
+          if (recropFile) setRecropFile(null);
+          else handleCropCancel();
+        }}
+        onApply={(f) => {
+          if (recropFile) {
+            setCoverFile(f);
+            setCoverTempId(null);
+            setRecropFile(null);
+          } else {
+            handleCropApply(f);
+          }
+        }}
       />
 
       <LayoutPickerSheet
