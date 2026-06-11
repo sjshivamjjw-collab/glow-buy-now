@@ -524,6 +524,19 @@ const EditPostPage = () => {
                 {idx === 0 && (
                   <span className="absolute top-1 left-1 px-1.5 py-0.5 rounded bg-black/70 text-white text-[10px] font-semibold">Cover</span>
                 )}
+                {idx === 0 && m.kind === 'image' && (
+                  <button
+                    onClick={async () => {
+                      const f = await urlToFile(m.url);
+                      if (f) setRecropFile(f);
+                    }}
+                    aria-label="Recrop cover"
+                    title="Recrop cover"
+                    className="absolute top-1 right-8 w-6 h-6 rounded-full bg-black/60 text-white flex items-center justify-center"
+                  >
+                    <Crop className="w-3.5 h-3.5" />
+                  </button>
+                )}
                 <button
                   onClick={() => removeExisting(m)}
                   aria-label="Remove"
