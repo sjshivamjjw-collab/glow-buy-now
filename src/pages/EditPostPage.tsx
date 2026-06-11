@@ -290,7 +290,7 @@ const EditPostPage = () => {
 
       // Dedicated Discover cover: upload the user's selected portrait crop
       // separately so the original post media remains unchanged in the post.
-      let coverUpdate: Record<string, string> | null = null;
+      let coverUpdate: Record<string, string | null> | null = null;
       if (coverFile) {
         const coverPath = `${userId}/${id}/cover-${Date.now()}.jpg`;
         const { error: coverUpErr } = await supabase.storage.from('post-media').upload(coverPath, coverFile, {
@@ -301,6 +301,13 @@ const EditPostPage = () => {
           cover_url: supabase.storage.from('post-media').getPublicUrl(coverPath).data.publicUrl,
           cover_kind: 'image',
         };
+      } else {
+        // If the first media changed (removed/reordered) or all existing were removed,
+        // clear cover so trending falls back to the new first post_media item.
+        const newFirstUrl = existing[0]?.url ?? null;
+        if (newFirstUrl !== originalFirstUrl) {
+          coverUpdate = { cover_url: null, cover_kind: null };
+        }
       }
 
       // 2. Reorder remaining existing media
