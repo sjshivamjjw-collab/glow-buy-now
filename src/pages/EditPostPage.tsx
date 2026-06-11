@@ -435,7 +435,7 @@ const EditPostPage = () => {
             Photos & videos ({totalMedia}/{MAX_FILES})
           </label>
           <div className="grid grid-cols-3 gap-2">
-            {existing.map(m => (
+            {existing.map((m, idx) => (
               <div key={m.id} className="relative aspect-square rounded-xl overflow-hidden bg-[#f5f5f5] border border-[#e5e5e5]">
                 {m.kind === 'video' ? (
                   <video
@@ -451,6 +451,9 @@ const EditPostPage = () => {
                 ) : (
                   <img src={m.url} alt="" className="w-full h-full object-contain" />
                 )}
+                {idx === 0 && (
+                  <span className="absolute top-1 left-1 px-1.5 py-0.5 rounded bg-black/70 text-white text-[10px] font-semibold">Cover</span>
+                )}
                 <button
                   onClick={() => removeExisting(m)}
                   aria-label="Remove"
@@ -458,6 +461,24 @@ const EditPostPage = () => {
                 >
                   <X className="w-3.5 h-3.5" />
                 </button>
+                <div className="absolute bottom-1 left-1 right-1 flex items-center justify-between gap-1">
+                  <button
+                    onClick={() => moveExisting(idx, -1)}
+                    disabled={idx === 0}
+                    aria-label="Move left"
+                    className="w-6 h-6 rounded-full bg-black/60 text-white flex items-center justify-center disabled:opacity-30"
+                  >
+                    <ChevronLeft className="w-3.5 h-3.5" />
+                  </button>
+                  <button
+                    onClick={() => moveExisting(idx, 1)}
+                    disabled={idx === existing.length - 1}
+                    aria-label="Move right"
+                    className="w-6 h-6 rounded-full bg-black/60 text-white flex items-center justify-center disabled:opacity-30"
+                  >
+                    <ChevronRight className="w-3.5 h-3.5" />
+                  </button>
+                </div>
               </div>
             ))}
             {newMedia.map(m => (
