@@ -111,6 +111,7 @@ const AppRoutes = () => {
               <Suspense fallback={<RouteFallback />}>
                 <Routes>
                   <Route path="/" element={<DiscoverPage />} />
+                  <Route path="/auth" element={<Navigate to="/" replace />} />
                   <Route path="/onboarding" element={<Navigate to="/" replace />} />
                   <Route path="/post/new" element={<CreatePostPage />} />
                   <Route path="/p/:id/edit" element={<EditPostPage />} />

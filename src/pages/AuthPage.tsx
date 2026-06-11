@@ -72,7 +72,7 @@ const AuthPage = () => {
       }
 
       login(user_id, phone, roles || ['creator'], profile);
-      navigate('/');
+      navigate('/', { replace: true });
     } catch (err: any) {
       console.error('Verify OTP error:', err);
       toast({
@@ -146,7 +146,7 @@ const AuthPage = () => {
                       return;
                     }
                     if (result.redirected) return;
-                    navigate('/');
+                    navigate('/', { replace: true });
                   } catch (err: any) {
                     toast({ title: 'Google sign-in failed', description: err?.message || 'Please try again', variant: 'destructive' });
                   }
@@ -186,7 +186,7 @@ const AuthPage = () => {
                         toast({ title: 'Apple sign-in failed', description: error.message, variant: 'destructive' });
                         return;
                       }
-                      navigate('/');
+                      navigate('/', { replace: true });
                       return;
                     }
                     // Web: existing Lovable OAuth broker flow
@@ -198,7 +198,7 @@ const AuthPage = () => {
                       return;
                     }
                     if (result.redirected) return;
-                    navigate('/');
+                    navigate('/', { replace: true });
                   } catch (err: any) {
                     // User cancellation on native throws — surface a friendly message
                     const msg = err?.message || String(err);
