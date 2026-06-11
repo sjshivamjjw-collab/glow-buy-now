@@ -533,15 +533,25 @@ const CreatePostPage = () => {
 
   const removeMedia = (i: number) => {
     const removedId = media[i]?.id;
+    const wasFirst = i === 0;
+    let newFirstIdToCrop: string | null = null;
     setMedia(prev => {
       const copy = [...prev];
       URL.revokeObjectURL(copy[i].previewUrl);
       copy.splice(i, 1);
+      if (wasFirst && copy[0]?.kind === 'image') {
+        newFirstIdToCrop = copy[0].id;
+      }
       return copy;
     });
     if (removedId && removedId === coverMediaId) {
       setCoverFile(null);
       setCoverMediaId(null);
+    }
+    if (newFirstIdToCrop) {
+      const idToCrop = newFirstIdToCrop;
+      // Re-crop whichever image is now in slot #1 so the Discover cover stays 4:5.
+      setTimeout(() => setEditCropId(idToCrop), 0);
     }
   };
 
@@ -555,12 +565,22 @@ const CreatePostPage = () => {
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
     if (!over || active.id === over.id) return;
+    let newFirstIdToCrop: string | null = null;
     setMedia(prev => {
       const oldIndex = prev.findIndex(m => m.id === active.id);
       const newIndex = prev.findIndex(m => m.id === over.id);
       if (oldIndex === -1 || newIndex === -1) return prev;
-      return arrayMove(prev, oldIndex, newIndex);
+      const next = arrayMove(prev, oldIndex, newIndex);
+      const newFirst = next[0];
+      if (newFirst && newFirst.kind === 'image' && newFirst.id !== coverMediaId) {
+        newFirstIdToCrop = newFirst.id;
+      }
+      return next;
     });
+    if (newFirstIdToCrop) {
+      const idToCrop = newFirstIdToCrop;
+      setTimeout(() => setEditCropId(idToCrop), 0);
+    }
   };
 
 
@@ -1069,8 +1089,7 @@ const CreatePostPage = () => {
         open={cropperOpen}
         onApply={handleCropApply}
         onCancel={handleCropCancel}
-        onSkip={editCropId ? undefined : handleCropSkip}
-        title={editCropId ? 'Recrop image' : (cropQueue.length > 1 ? `Crop image (${cropQueue.length} left)` : 'Crop image')}
+        title={editCropId ? 'Recrop cover for Discover' : (cropQueue.length > 1 ? `Crop cover (${cropQueue.length} left)` : 'Crop your cover photo (shown on Discover)')}
       />
 
 

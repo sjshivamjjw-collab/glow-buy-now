@@ -4,7 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { invalidatePostDetail, invalidateTrending } from '@/lib/feedCache';
-import { ArrowLeft, Loader2, MapPin, Hash, X, Check, ImagePlus, Tag, Pencil, ChevronLeft, ChevronRight } from 'lucide-react';
+import { ArrowLeft, Loader2, MapPin, Hash, X, Check, ImagePlus, Tag, Pencil, ChevronLeft, ChevronRight, Crop } from 'lucide-react';
 import { extractStoragePath } from '@/lib/storageUrls';
 import RichTextEditor, { type RichTextEditorHandle } from '@/components/RichTextEditor';
 import TravelStructureHelper, { buildPillSnippet } from '@/components/TravelStructureHelper';
@@ -138,6 +138,39 @@ const EditPostPage = () => {
   const currentCropFile = cropQueue[0] ?? null;
   const [coverFile, setCoverFile] = useState<File | null>(null);
   const [coverTempId, setCoverTempId] = useState<string | null>(null);
+  // Triggered when the image in slot #1 changes (reorder, delete, recrop tap).
+  // Fetches existing-image URLs into a File so the cropper can open on them.
+  const [recropFile, setRecropFile] = useState<File | null>(null);
+
+  const urlToFile = async (url: string): Promise<File | null> => {
+    try {
+      const r = await fetch(url);
+      const blob = await r.blob();
+      return new File([blob], 'cover-source.jpg', { type: blob.type || 'image/jpeg' });
+    } catch (e) {
+      console.warn('cover source fetch failed', e);
+      return null;
+    }
+  };
+
+  // Given the latest existing/newMedia state, open the cropper on whatever
+  // image is in slot #1 (the post's cover). No-op when slot #1 is a video.
+  const triggerCoverRecrop = async (
+    nextExisting: ExistingMedia[],
+    nextNew: NewMedia[],
+  ) => {
+    const firstExisting = nextExisting[0];
+    if (firstExisting) {
+      if (firstExisting.kind !== 'image') return;
+      const f = await urlToFile(firstExisting.url);
+      if (f) setRecropFile(f);
+      return;
+    }
+    const firstNew = nextNew[0];
+    if (firstNew && firstNew.kind === 'image') {
+      setRecropFile(firstNew.file);
+    }
+  };
 
   const [layoutSheetOpen, setLayoutSheetOpen] = useState(false);
   const [activeLayout, setActiveLayout] = useState<LayoutChoice | null>(null);
@@ -234,42 +267,63 @@ const EditPostPage = () => {
   };
 
   const removeExisting = (m: ExistingMedia) => {
-    setExisting(prev => prev.filter(x => x.id !== m.id));
+    const wasFirst = existing[0]?.id === m.id;
+    const nextExisting = existing.filter(x => x.id !== m.id);
+    setExisting(nextExisting);
     setRemovedIds(prev => [...prev, m.id]);
     const path = extractStoragePath(m.url, 'post-media');
     if (path) setRemovedPaths(prev => [...prev, path]);
+    if (wasFirst) {
+      // The slot-#1 image just changed — clear any stale cover and re-crop the new first.
+      setCoverFile(null);
+      setCoverTempId(null);
+      triggerCoverRecrop(nextExisting, newMedia);
+    }
   };
 
   const removeNew = (tempId: string) => {
-    setNewMedia(prev => {
-      const target = prev.find(x => x.tempId === tempId);
-      if (target) URL.revokeObjectURL(target.previewUrl);
-      if (tempId === coverTempId) {
-        setCoverFile(null);
-        setCoverTempId(null);
-      }
-      return prev.filter(x => x.tempId !== tempId);
-    });
+    const wasFirstOverall = existing.length === 0 && newMedia[0]?.tempId === tempId;
+    const target = newMedia.find(x => x.tempId === tempId);
+    if (target) URL.revokeObjectURL(target.previewUrl);
+    if (tempId === coverTempId) {
+      setCoverFile(null);
+      setCoverTempId(null);
+    }
+    const nextNew = newMedia.filter(x => x.tempId !== tempId);
+    setNewMedia(nextNew);
+    if (wasFirstOverall) {
+      setCoverFile(null);
+      setCoverTempId(null);
+      triggerCoverRecrop(existing, nextNew);
+    }
   };
 
   const moveExisting = (idx: number, dir: -1 | 1) => {
-    setExisting(prev => {
-      const j = idx + dir;
-      if (j < 0 || j >= prev.length) return prev;
-      const next = [...prev];
-      [next[idx], next[j]] = [next[j], next[idx]];
-      return next;
-    });
+    const j = idx + dir;
+    if (j < 0 || j >= existing.length) return;
+    const next = [...existing];
+    [next[idx], next[j]] = [next[j], next[idx]];
+    setExisting(next);
+    if (idx === 0 || j === 0) {
+      // Slot #1 changed — recrop the new first image.
+      setCoverFile(null);
+      setCoverTempId(null);
+      triggerCoverRecrop(next, newMedia);
+    }
   };
 
   const moveNew = (idx: number, dir: -1 | 1) => {
-    setNewMedia(prev => {
-      const j = idx + dir;
-      if (j < 0 || j >= prev.length) return prev;
-      const next = [...prev];
-      [next[idx], next[j]] = [next[j], next[idx]];
-      return next;
-    });
+    const j = idx + dir;
+    if (j < 0 || j >= newMedia.length) return;
+    const next = [...newMedia];
+    [next[idx], next[j]] = [next[j], next[idx]];
+    setNewMedia(next);
+    // Only matters for the cover when there are no existing images in front.
+    if (existing.length === 0 && (idx === 0 || j === 0)) {
+      setCoverFile(null);
+      setCoverTempId(null);
+      triggerCoverRecrop(existing, next);
+    }
   };
 
   const handleSave = async () => {
@@ -470,6 +524,19 @@ const EditPostPage = () => {
                 {idx === 0 && (
                   <span className="absolute top-1 left-1 px-1.5 py-0.5 rounded bg-black/70 text-white text-[10px] font-semibold">Cover</span>
                 )}
+                {idx === 0 && m.kind === 'image' && (
+                  <button
+                    onClick={async () => {
+                      const f = await urlToFile(m.url);
+                      if (f) setRecropFile(f);
+                    }}
+                    aria-label="Recrop cover"
+                    title="Recrop cover"
+                    className="absolute top-1 right-8 w-6 h-6 rounded-full bg-black/60 text-white flex items-center justify-center"
+                  >
+                    <Crop className="w-3.5 h-3.5" />
+                  </button>
+                )}
                 <button
                   onClick={() => removeExisting(m)}
                   aria-label="Remove"
@@ -497,7 +564,9 @@ const EditPostPage = () => {
                 </div>
               </div>
             ))}
-            {newMedia.map(m => (
+            {newMedia.map((m, nIdx) => {
+              const isCoverSlot = existing.length === 0 && nIdx === 0 && m.kind === 'image';
+              return (
               <div key={m.tempId} className="relative aspect-square rounded-xl overflow-hidden bg-[#f5f5f5] border border-[#ef4444]/40">
                 {m.kind === 'video' ? (
                   <video
@@ -514,6 +583,16 @@ const EditPostPage = () => {
                   <img src={m.previewUrl} alt="" className="w-full h-full object-contain" />
                 )}
                 <span className="absolute bottom-1 left-1 px-1.5 py-0.5 rounded bg-[#ef4444] text-white text-[10px] font-semibold">New</span>
+                {isCoverSlot && (
+                  <button
+                    onClick={() => setRecropFile(m.file)}
+                    aria-label="Recrop cover"
+                    title="Recrop cover"
+                    className="absolute top-1 right-8 w-6 h-6 rounded-full bg-black/60 text-white flex items-center justify-center"
+                  >
+                    <Crop className="w-3.5 h-3.5" />
+                  </button>
+                )}
                 {m.editorState && (
                   <button
                     onClick={() => startEditNewMedia(m)}
@@ -531,7 +610,8 @@ const EditPostPage = () => {
                   <X className="w-3.5 h-3.5" />
                 </button>
               </div>
-            ))}
+              );
+            })}
             {totalMedia < MAX_FILES && (
               <button
                 onClick={() => setLayoutSheetOpen(true)}
@@ -635,12 +715,23 @@ const EditPostPage = () => {
 
 
       <ImageCropperDialog
-        file={currentCropFile}
-        open={!!currentCropFile}
+        file={currentCropFile ?? recropFile}
+        open={!!currentCropFile || !!recropFile}
         aspect={4 / 5}
-        title="Crop your cover photo (shown on Discover)"
-        onCancel={handleCropCancel}
-        onApply={handleCropApply}
+        title={recropFile ? 'Recrop cover for Discover' : 'Crop your cover photo (shown on Discover)'}
+        onCancel={() => {
+          if (recropFile) setRecropFile(null);
+          else handleCropCancel();
+        }}
+        onApply={(f) => {
+          if (recropFile) {
+            setCoverFile(f);
+            setCoverTempId(null);
+            setRecropFile(null);
+          } else {
+            handleCropApply(f);
+          }
+        }}
       />
 
       <LayoutPickerSheet
