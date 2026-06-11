@@ -4,7 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { invalidatePostDetail, invalidateTrending } from '@/lib/feedCache';
-import { ArrowLeft, Loader2, MapPin, Hash, X, Check, ImagePlus, Tag, Pencil } from 'lucide-react';
+import { ArrowLeft, Loader2, MapPin, Hash, X, Check, ImagePlus, Tag, Pencil, ChevronLeft, ChevronRight } from 'lucide-react';
 import { extractStoragePath } from '@/lib/storageUrls';
 import RichTextEditor, { type RichTextEditorHandle } from '@/components/RichTextEditor';
 import TravelStructureHelper, { buildPillSnippet } from '@/components/TravelStructureHelper';
@@ -72,6 +72,7 @@ const EditPostPage = () => {
   const [hashtagInput, setHashtagInput] = useState('');
 
   const [existing, setExisting] = useState<ExistingMedia[]>([]);
+  const [originalFirstUrl, setOriginalFirstUrl] = useState<string | null>(null);
   const [removedIds, setRemovedIds] = useState<string[]>([]);
   const [removedPaths, setRemovedPaths] = useState<string[]>([]);
   const [newMedia, setNewMedia] = useState<NewMedia[]>([]);
@@ -104,9 +105,11 @@ const EditPostPage = () => {
         .select('id, url, kind, sort_order')
         .eq('post_id', id)
         .order('sort_order', { ascending: true });
-      setExisting((mediaRows as any[] || []).map(m => ({
-        id: m.id, url: m.url, kind: m.kind, sort_order: m.sort_order,
-      })));
+      const rows = (mediaRows as any[] || []).map(m => ({
+        id: m.id, url: m.url, kind: m.kind as 'image' | 'video', sort_order: m.sort_order,
+      }));
+      setExisting(rows);
+      setOriginalFirstUrl(rows[0]?.url ?? null);
       setLoading(false);
     };
     load();
@@ -249,6 +252,26 @@ const EditPostPage = () => {
     });
   };
 
+  const moveExisting = (idx: number, dir: -1 | 1) => {
+    setExisting(prev => {
+      const j = idx + dir;
+      if (j < 0 || j >= prev.length) return prev;
+      const next = [...prev];
+      [next[idx], next[j]] = [next[j], next[idx]];
+      return next;
+    });
+  };
+
+  const moveNew = (idx: number, dir: -1 | 1) => {
+    setNewMedia(prev => {
+      const j = idx + dir;
+      if (j < 0 || j >= prev.length) return prev;
+      const next = [...prev];
+      [next[idx], next[j]] = [next[j], next[idx]];
+      return next;
+    });
+  };
+
   const handleSave = async () => {
     if (!id || !userId) return;
     if (!title.trim()) { toast({ title: 'Add a title', variant: 'destructive' }); return; }
@@ -267,7 +290,7 @@ const EditPostPage = () => {
 
       // Dedicated Discover cover: upload the user's selected portrait crop
       // separately so the original post media remains unchanged in the post.
-      let coverUpdate: Record<string, string> | null = null;
+      let coverUpdate: Record<string, string | null> | null = null;
       if (coverFile) {
         const coverPath = `${userId}/${id}/cover-${Date.now()}.jpg`;
         const { error: coverUpErr } = await supabase.storage.from('post-media').upload(coverPath, coverFile, {
@@ -278,6 +301,13 @@ const EditPostPage = () => {
           cover_url: supabase.storage.from('post-media').getPublicUrl(coverPath).data.publicUrl,
           cover_kind: 'image',
         };
+      } else {
+        // If the first media changed (removed/reordered) or all existing were removed,
+        // clear cover so trending falls back to the new first post_media item.
+        const newFirstUrl = existing[0]?.url ?? null;
+        if (newFirstUrl !== originalFirstUrl) {
+          coverUpdate = { cover_url: null, cover_kind: null };
+        }
       }
 
       // 2. Reorder remaining existing media
@@ -405,7 +435,7 @@ const EditPostPage = () => {
             Photos & videos ({totalMedia}/{MAX_FILES})
           </label>
           <div className="grid grid-cols-3 gap-2">
-            {existing.map(m => (
+            {existing.map((m, idx) => (
               <div key={m.id} className="relative aspect-square rounded-xl overflow-hidden bg-[#f5f5f5] border border-[#e5e5e5]">
                 {m.kind === 'video' ? (
                   <video
@@ -421,6 +451,9 @@ const EditPostPage = () => {
                 ) : (
                   <img src={m.url} alt="" className="w-full h-full object-contain" />
                 )}
+                {idx === 0 && (
+                  <span className="absolute top-1 left-1 px-1.5 py-0.5 rounded bg-black/70 text-white text-[10px] font-semibold">Cover</span>
+                )}
                 <button
                   onClick={() => removeExisting(m)}
                   aria-label="Remove"
@@ -428,6 +461,24 @@ const EditPostPage = () => {
                 >
                   <X className="w-3.5 h-3.5" />
                 </button>
+                <div className="absolute bottom-1 left-1 right-1 flex items-center justify-between gap-1">
+                  <button
+                    onClick={() => moveExisting(idx, -1)}
+                    disabled={idx === 0}
+                    aria-label="Move left"
+                    className="w-6 h-6 rounded-full bg-black/60 text-white flex items-center justify-center disabled:opacity-30"
+                  >
+                    <ChevronLeft className="w-3.5 h-3.5" />
+                  </button>
+                  <button
+                    onClick={() => moveExisting(idx, 1)}
+                    disabled={idx === existing.length - 1}
+                    aria-label="Move right"
+                    className="w-6 h-6 rounded-full bg-black/60 text-white flex items-center justify-center disabled:opacity-30"
+                  >
+                    <ChevronRight className="w-3.5 h-3.5" />
+                  </button>
+                </div>
               </div>
             ))}
             {newMedia.map(m => (
