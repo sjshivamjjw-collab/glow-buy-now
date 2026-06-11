@@ -72,6 +72,7 @@ const EditPostPage = () => {
   const [hashtagInput, setHashtagInput] = useState('');
 
   const [existing, setExisting] = useState<ExistingMedia[]>([]);
+  const [originalFirstUrl, setOriginalFirstUrl] = useState<string | null>(null);
   const [removedIds, setRemovedIds] = useState<string[]>([]);
   const [removedPaths, setRemovedPaths] = useState<string[]>([]);
   const [newMedia, setNewMedia] = useState<NewMedia[]>([]);
