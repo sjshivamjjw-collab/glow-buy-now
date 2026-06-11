@@ -252,6 +252,26 @@ const EditPostPage = () => {
     });
   };
 
+  const moveExisting = (idx: number, dir: -1 | 1) => {
+    setExisting(prev => {
+      const j = idx + dir;
+      if (j < 0 || j >= prev.length) return prev;
+      const next = [...prev];
+      [next[idx], next[j]] = [next[j], next[idx]];
+      return next;
+    });
+  };
+
+  const moveNew = (idx: number, dir: -1 | 1) => {
+    setNewMedia(prev => {
+      const j = idx + dir;
+      if (j < 0 || j >= prev.length) return prev;
+      const next = [...prev];
+      [next[idx], next[j]] = [next[j], next[idx]];
+      return next;
+    });
+  };
+
   const handleSave = async () => {
     if (!id || !userId) return;
     if (!title.trim()) { toast({ title: 'Add a title', variant: 'destructive' }); return; }
