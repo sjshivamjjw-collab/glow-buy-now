@@ -578,7 +578,8 @@ const CreatePostPage = () => {
       return next;
     });
     if (newFirstIdToCrop) {
-      setTimeout(() => setEditCropId(newFirstIdToCrop), 0);
+      const idToCrop = newFirstIdToCrop;
+      setTimeout(() => setEditCropId(idToCrop), 0);
     }
   };
 
