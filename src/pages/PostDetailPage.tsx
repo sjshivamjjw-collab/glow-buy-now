@@ -444,11 +444,40 @@ const PostDetailPage = () => {
 
   return (
     <div className="min-h-screen max-w-lg mx-auto pb-32 font-[Figtree] bg-[linear-gradient(180deg,#0a0a0a_0%,#111111_40%,#000000_100%)]">
-      <div className="sticky top-0 z-10 bg-[#0a0a0a]/80 backdrop-blur-xl px-4 py-3 flex items-center justify-between border-b border-[#2a2a2a]/40">
-        <button onClick={() => navigate(-1)} className="w-10 h-10 rounded-full bg-[#1a1a1a] border border-[#2a2a2a]/60 flex items-center justify-center active:scale-95 transition-transform">
+      <div className="sticky top-0 z-10 bg-[#0a0a0a]/80 backdrop-blur-xl px-3 py-2 flex items-center gap-2 border-b border-[#2a2a2a]/40">
+        <button onClick={() => navigate(-1)} className="w-9 h-9 shrink-0 rounded-full bg-[#1a1a1a] border border-[#2a2a2a]/60 flex items-center justify-center active:scale-95 transition-transform" aria-label="Back">
           <ArrowLeft className="w-5 h-5 text-[#fafafa]" />
         </button>
-        <div className="flex items-center gap-2">
+
+        {/* Author inline */}
+        {isAnon ? (
+          <div className="flex items-center gap-2 flex-1 min-w-0">
+            <PenguinAvatar size={36} />
+            <div className="flex-1 min-w-0">
+              <p className="font-[Outfit] font-bold text-[#fafafa] text-sm truncate">{RIPPLER_NAME}</p>
+              <p className="text-[11px] text-[#a0a0a0] truncate">{formatDistanceToNow(new Date(post.created_at), { addSuffix: true })} · Anonymous</p>
+            </div>
+          </div>
+        ) : (
+          <button
+            onClick={() => navigate(isOwn ? '/profile' : `/u/${post.user_id}`)}
+            className="flex items-center gap-2 flex-1 min-w-0 text-left"
+          >
+            {author?.avatar_url ? (
+              <img src={author.avatar_url} alt="" className="w-9 h-9 rounded-full object-cover ring-1 ring-[#2a2a2a] shrink-0" />
+            ) : (
+              <div className="w-9 h-9 shrink-0 rounded-full bg-gradient-to-br from-[#2a2a2a] to-[#ef4444]/40 flex items-center justify-center font-bold text-[#fafafa]">
+                {(author?.name || author?.username || '?')[0]?.toUpperCase()}
+              </div>
+            )}
+            <div className="flex-1 min-w-0">
+              <p className="font-[Outfit] font-bold text-[#fafafa] text-sm truncate">{author?.name || author?.username || 'User'}</p>
+              <p className="text-[11px] text-[#a0a0a0] truncate">{formatDistanceToNow(new Date(post.created_at), { addSuffix: true })}</p>
+            </div>
+          </button>
+        )}
+
+        <div className="flex items-center gap-1.5 shrink-0">
           <button
             onClick={async () => {
               try {
@@ -456,119 +485,20 @@ const PostDetailPage = () => {
                 if (result === 'copied') toast({ title: 'Link copied' });
               } catch {}
             }}
-            className="w-10 h-10 rounded-full bg-[#1a1a1a] border border-[#2a2a2a]/60 flex items-center justify-center active:scale-95 transition-transform"
+            className="w-9 h-9 rounded-full bg-[#1a1a1a] border border-[#2a2a2a]/60 flex items-center justify-center active:scale-95 transition-transform"
             aria-label="Share"
           >
-            <Share2 className="w-5 h-5 text-[#fafafa]" />
+            <Share2 className="w-4.5 h-4.5 text-[#fafafa]" />
           </button>
-          {(isOwn || isAdmin) && (
-            <>
-              <button onClick={() => navigate(`/p/${post.id}/edit`)} className="px-3 py-2 rounded-full bg-[#1a1a1a] border border-[#2a2a2a]/60 text-[#fafafa] text-xs font-semibold flex items-center gap-1" aria-label="Edit post">
-                <Pencil className="w-3.5 h-3.5" /> Edit
-              </button>
-              {isAdmin && (
-                <button onClick={handleToggleHide} className="px-3 py-2 rounded-full bg-[#1a1a1a] border border-[#2a2a2a]/60 text-[#fafafa] text-xs font-semibold flex items-center gap-1" aria-label={post.is_hidden ? 'Unhide post' : 'Hide post'}>
-                  {post.is_hidden ? <><Eye className="w-3.5 h-3.5" /> Unhide</> : <><EyeOff className="w-3.5 h-3.5" /> Hide</>}
-                </button>
-              )}
-              {isOwn && (
-                <button onClick={handleDeletePost} className="px-3 py-2 rounded-full bg-[#ef4444]/10 text-[#ef4444] border border-[#ef4444]/30 text-xs font-semibold flex items-center gap-1">
-                  <Trash2 className="w-3.5 h-3.5" /> Delete
-                </button>
-              )}
-            </>
-          )}
-          {!isOwn && userId && (
-            <Sheet open={moreOpen} onOpenChange={setMoreOpen}>
-              <SheetTrigger asChild>
-                <button
-                  type="button"
-                  className="w-10 h-10 rounded-full bg-[#1a1a1a] border border-[#2a2a2a]/60 flex items-center justify-center"
-                  aria-label="More options"
-                >
-                  <MoreHorizontal className="w-5 h-5 text-[#fafafa]" />
-                </button>
-              </SheetTrigger>
-              <SheetContent side="bottom" className="rounded-t-2xl pb-8">
-                <div className="flex flex-col gap-1 pt-4">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setMoreOpen(false);
-                      setTimeout(() => setReportOpen(true), 100);
-                    }}
-                    className="flex items-center gap-3 px-4 py-4 rounded-xl hover:bg-muted text-left"
-                  >
-                    <Flag className="w-5 h-5" />
-                    <span className="font-medium">Report post</span>
-                  </button>
-                  {post.user_id && !post.is_anonymous && (
-                    <button
-                      type="button"
-                      onClick={async () => {
-                        if (!window.confirm('Block this user? You will no longer see their posts or comments.')) return;
-                        const { error } = await supabase.from('user_blocks' as any).insert({ blocker_id: userId, blocked_id: post.user_id });
-                        if (error && !/duplicate/i.test(error.message)) {
-                          toast({ title: 'Could not block', description: error.message, variant: 'destructive' });
-                          return;
-                        }
-                        toast({ title: 'User blocked' });
-                        setMoreOpen(false);
-                        await refreshBlocks();
-                        navigate(-1);
-                      }}
-                      className="flex items-center gap-3 px-4 py-4 rounded-xl hover:bg-destructive/10 text-destructive text-left"
-                    >
-                      <Ban className="w-5 h-5" />
-                      <span className="font-medium">Block user</span>
-                    </button>
-                  )}
-                </div>
-              </SheetContent>
-            </Sheet>
-
-          )}
-
+...
         </div>
       </div>
       <ReportPostDialog open={reportOpen} onOpenChange={setReportOpen} postId={post.id} />
 
-      {/* Author header */}
-      {isAnon ? (
-        <div className="flex items-center gap-3 w-full px-4 py-3">
-          <PenguinAvatar size={40} />
-          <div className="flex-1 min-w-0">
-            <p className="font-[Outfit] font-bold text-[#fafafa] text-sm truncate">{RIPPLER_NAME}</p>
-            <p className="text-xs text-[#a0a0a0]">{formatDistanceToNow(new Date(post.created_at), { addSuffix: true })} · Anonymous</p>
-            {post.music_url && (
-              <div className="mt-1.5">
-                <PostMusicPlayer url={post.music_url} title={post.music_title} />
-              </div>
-            )}
-          </div>
+      {post.music_url && (
+        <div className="px-4 pt-3">
+          <PostMusicPlayer url={post.music_url} title={post.music_title} />
         </div>
-      ) : (
-        <button
-          onClick={() => navigate(isOwn ? '/profile' : `/u/${post.user_id}`)}
-          className="flex items-center gap-3 w-full px-4 py-3 text-left"
-        >
-          {author?.avatar_url ? (
-            <img src={author.avatar_url} alt="" className="w-10 h-10 rounded-full object-cover ring-1 ring-[#2a2a2a]" />
-          ) : (
-            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#2a2a2a] to-[#ef4444]/40 flex items-center justify-center font-bold text-[#fafafa]">
-              {(author?.name || author?.username || '?')[0]?.toUpperCase()}
-            </div>
-          )}
-          <div className="flex-1 min-w-0">
-            <p className="font-[Outfit] font-bold text-[#fafafa] text-sm truncate">{author?.name || author?.username || 'User'}</p>
-            <p className="text-xs text-[#a0a0a0]">{formatDistanceToNow(new Date(post.created_at), { addSuffix: true })}</p>
-            {post.music_url && (
-              <div className="mt-1.5" onClick={(e) => e.stopPropagation()}>
-                <PostMusicPlayer url={post.music_url} title={post.music_title} />
-              </div>
-            )}
-          </div>
-        </button>
       )}
 
       {/* Media carousel */}
