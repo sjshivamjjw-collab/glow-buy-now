@@ -17,7 +17,7 @@ export interface StoredMedia {
 }
 
 type SerializedEditorState =
-  | { kind: 'single'; slides: { id: string; fileBlob: Blob; fileName: string; fileType: string; overlays: any[] }[] }
+  | { kind: 'single'; slides: { id: string; fileBlob: Blob; fileName: string; fileType: string; overlays: any[]; posX?: number; posY?: number; scale?: number }[] }
   | { kind: 'grid'; cells: { fileBlob: Blob; fileName: string; fileType: string; posX: number; posY: number; scale: number }[]; overlays: any[] }
   | { kind: 'cost'; headerL: string; headerR: string; rows: { left: string; right: string }[] };
 
