@@ -620,8 +620,9 @@ const PanZoomImage = ({
 
   const currentRanges = (s: number) => {
     const sc = Math.max(1, s);
-    const dW = baseW * sc;
-    const dH = baseH * sc;
+    // Pan only meaningful in cover mode; use cover rect for range math.
+    const dW = coverW * sc;
+    const dH = coverH * sc;
     return { panRangeX: Math.max(1, dW - wrap.w), panRangeY: Math.max(1, dH - wrap.h) };
   };
 
