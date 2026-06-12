@@ -1,52 +1,26 @@
 ## Problem
 
-The new 4:5 stage uses **cover-fit** (drawCover) by default with `scale=1`, so any image taller than 4:5 — i.e. most phone portraits (3:4, 9:16) — gets auto-cropped on top/bottom to fill the frame. Previously, Single Image + Text preserved the photo's native aspect, so tall portraits showed fully.
+On the post detail page (`/p/:id`), images render with `w-full max-h-[60vh] object-contain`. Because most uploaded posts are now standardized to a 4:5 portrait, `object-contain` + the `60vh` cap can letterbox the photo and leave visible black side bars on tall screens — the image doesn't feel edge-to-edge.
 
 ## Fix
 
-Switch Single Image + Text default fit mode from **cover** → **contain** (letterbox onto the black stage). The whole image is always visible by default; users who want to fill the frame can pinch-zoom (and pan) exactly like they do today.
+In `src/pages/PostDetailPage.tsx`, change each carousel slide's image wrapper so the picture truly fills the device width with the standardized 4:5 aspect:
 
-### Changes
+- Slide container: keep the `w-screen left-1/2 -translate-x-1/2 bg-[#0a0a0a]` escape that already breaks out of the `max-w-lg` column.
+- Each slide (`basis-full` div): give it `aspect-[4/5] w-full` and remove the centering flex so the image occupies the entire slide rect.
+- `<img>`: drop `max-h-[60vh]`, switch to `w-full h-full object-cover` so the standardized 4:5 image fills the full viewport width with no padding or letterbox bars.
+- Videos: keep `object-contain` (legacy posts may be any ratio and we don't want to crop video). Same `aspect-[4/5] w-full` wrapper, video uses `w-full h-full object-contain` on a black background — visually edge-to-edge for portrait videos, letterboxed only when truly needed.
 
-1. **`src/lib/composeLayout.ts` — `composeSingleSlide`**
-   - Add a `fit: 'cover' | 'contain'` option, default `'contain'`.
-   - When `contain`: compute the largest dest rect that fits inside 1200×1500 preserving the image's aspect, center it, leave the rest filled with the existing black background. Apply pan/zoom only when scale > 1 (then switch to cover-style drawing so user-zoomed framing is honored).
-   - When `cover`: existing drawCover behavior (used once the user zooms in).
-
-2. **`src/components/createpost/SingleImageTextEditor.tsx` — `PanZoomImage`**
-   - When `scale === 1`: render the photo with `object-contain` semantics — show the entire image centered, no crop. (Match the composer exactly.)
-   - When `scale > 1`: switch to the current cover + translate behavior so pinch-to-zoom and pan still work and the preview stays WYSIWYG with the export.
-   - Pinch-to-zoom: starting from contain at scale 1, allow zooming up to the same max (4×). First nudge above 1 transitions to cover-fit at that scale, so there's no visual jump (we use cover's baseW/baseH as the reference at scale=1 boundary — see technical notes).
-
-3. **`SingleSlideState` default `scale`**
-   - Stays `1`. No data migration needed.
-
-## Result
-
-- **Portrait (3:4, 9:16, etc.):** fully visible, letterboxed with thin black side/top-bottom bars on the 4:5 stage. Same smooth feel as before.
-- **Square:** fully visible, black bars on top/bottom.
-- **Landscape:** fully visible, black bars on top/bottom (instead of being auto-center-cropped). User pinches to zoom in if they want to fill the frame.
-- **All three layouts still export 1200×1500** → the feed cover slot is consistent across templates. The only difference is portrait covers may show small black bars instead of cropping content, which matches the pre-change behavior the user liked.
-
-## Technical notes (single-image only — grid + cost unchanged)
-
-The seamless transition between contain (scale=1) and cover (scale>1) needs the same reference rect on both sides of the boundary:
-
-- Contain rect at scale 1: fits inside the 4:5 frame, no crop.
-- Cover rect at scale 1: fills the 4:5 frame, may crop.
-- We interpolate by keeping `scale` user-facing (1 = "default fit"). At exactly 1 we render contain. As soon as the user pinches above 1 we switch to cover with `effectiveScale = scale` and animate to it; the small visual snap is acceptable since the user is actively pinching.
-
-If a perfectly smooth transition matters more than parity, an alternative is to do contain-only and disable zoom entirely — let me know which you prefer.
+The page counter pill (`{mediaIdx + 1} / {media.length}`) stays absolutely positioned over the carousel — unaffected.
 
 ## Out of scope
 
-- 2×2 Grid (already does cover and looks correct because each cell is a small tile — cropping is expected and the user has explicit pan/zoom per cell).
-- Cost Breakdown layout (no images).
-- Feed cover rendering.
+- Feed cover, profile grid, comments, header — unchanged.
+- No changes to compose/export pipeline; existing 1200×1500 JPEGs already match the new 4:5 slot exactly.
+- Legacy non-4:5 images uploaded before standardization will be center-cropped to 4:5 in the detail view. If you'd rather show them with letterboxing instead, say so and I'll gate `object-cover` to standardized posts only.
 
 ## Verification
 
-1. `/post/new` → Single Image + Text → upload a 3:4 portrait → confirm full image is visible with thin black side bars, no top crop.
-2. Upload a 9:16 portrait → same, fully visible.
-3. Upload a landscape → fully visible with black bars top/bottom; pinch to zoom to fill.
-4. Feed cover for each of the above matches the editor preview.
+1. Open a new (post-standardization) single-image post on mobile → image fills full width, no side or top/bottom bars.
+2. Open a multi-image post → swipe left/right; every slide is full-width 4:5, counter pill still visible.
+3. Open a video post → video fills width on portrait clips; landscape clips show black bars (acceptable).
