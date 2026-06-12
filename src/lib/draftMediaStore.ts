@@ -88,6 +88,9 @@ export const serializeEditorState = (s: LayoutEditorState): SerializedEditorStat
         fileName: sl.file.name,
         fileType: sl.file.type,
         overlays: sl.overlays,
+        posX: sl.posX,
+        posY: sl.posY,
+        scale: sl.scale,
       })),
     };
   }
