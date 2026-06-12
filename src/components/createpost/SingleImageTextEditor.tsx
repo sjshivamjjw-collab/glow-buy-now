@@ -324,8 +324,7 @@ export const SingleImageTextEditor = ({ onDone, onCancel, initialState }: Props)
                             left: `${o.x * 100}%`,
                             top: `${o.y * 100}%`,
                             transform: 'translate(-50%, -50%)',
-                            width: 'auto',
-                            maxWidth: `${boxWidthPx}px`,
+                            width: `${boxWidthPx}px`,
                             touchAction: 'none',
                             zIndex: isActiveOv ? 5 : 4,
                             pointerEvents: 'none',
@@ -333,15 +332,12 @@ export const SingleImageTextEditor = ({ onDone, onCancel, initialState }: Props)
                         >
                           <div
                             className={`relative ${isActiveOv && !isEditing ? 'ring-2 ring-[#ef4444] rounded-lg' : ''}`}
-                            style={{ pointerEvents: 'auto' }}
+                            style={{ pointerEvents: 'auto', width: '100%' }}
                           >
                             {isEditing ? (
                               <div
-                                className="inline-grid"
-                                style={{
-                                  maxWidth: `${boxWidthPx}px`,
-                                  minWidth: `${Math.max(fontPx * 3, 64)}px`,
-                                }}
+                                className="grid"
+                                style={{ width: '100%' }}
                               >
                                 <textarea
                                   ref={textInputRef}
@@ -383,7 +379,7 @@ export const SingleImageTextEditor = ({ onDone, onCancel, initialState }: Props)
                                 onPointerMove={onPointerMove}
                                 onPointerUp={(e) => onPointerUp(e, o.id)}
                                 onPointerCancel={(e) => onPointerUp(e, o.id)}
-                                className={`inline-block px-2 py-1 rounded-md font-semibold text-center cursor-move ${o.bgEnabled ? 'backdrop-blur-md' : ''}`}
+                                className={`block px-2 py-1 rounded-md font-semibold text-center cursor-move ${o.bgEnabled ? 'backdrop-blur-md' : ''}`}
                                 style={{
                                   color: textColor,
                                   backgroundColor: bgColor,
@@ -391,7 +387,7 @@ export const SingleImageTextEditor = ({ onDone, onCancel, initialState }: Props)
                                   lineHeight: 1.25,
                                   whiteSpace: 'pre-wrap',
                                   wordBreak: 'break-word',
-                                  maxWidth: `${boxWidthPx}px`,
+                                  width: '100%',
                                   minHeight: heights[o.id] ? `${heights[o.id]}px` : undefined,
                                   touchAction: 'none',
                                   opacity: o.text ? 1 : 0.85,
