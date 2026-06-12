@@ -122,6 +122,9 @@ export const deserializeEditorState = (s: SerializedEditorState): LayoutEditorSt
         id: sl.id,
         file: new File([sl.fileBlob], sl.fileName || 'photo.jpg', { type: sl.fileType || 'image/jpeg' }),
         overlays: sl.overlays as any,
+        posX: sl.posX ?? 0.5,
+        posY: sl.posY ?? 0.5,
+        scale: sl.scale ?? 1,
       }));
     if (!slides.length) return undefined;
     return { kind: 'single', slides };
