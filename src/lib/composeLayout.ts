@@ -23,6 +23,9 @@ export interface SingleSlideState {
   id: string;
   file: File;
   overlays: TextOverlay[];
+  posX: number;
+  posY: number;
+  scale: number;
 }
 export interface GridCellState {
   file: File;
