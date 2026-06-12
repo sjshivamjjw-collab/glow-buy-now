@@ -654,12 +654,26 @@ const PanZoomImage = ({
   const onPointerDown = (e: React.PointerEvent) => {
     if (!enabled) return;
     pointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
-    (e.target as Element).setPointerCapture?.(e.pointerId);
-    beginGesture();
+    // At scale 1 (contain), a single finger should belong to the horizontal
+    // swipe between slides — do NOT capture so the snap track can scroll.
+    // Capture only when zoomed in (pan matters) or when a 2nd finger arrives
+    // (pinch). beginGesture() handles the 2-finger case via onPointerMove.
+    const isZoomed = scale > 1.0001;
+    if (isZoomed || pointers.current.size >= 2) {
+      (e.target as Element).setPointerCapture?.(e.pointerId);
+      beginGesture();
+    }
   };
   const onPointerMove = (e: React.PointerEvent) => {
     if (!pointers.current.has(e.pointerId)) return;
     pointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    // 2nd finger landed while we weren't gesturing yet → start pinch now.
+    if (!gesture.current && pointers.current.size >= 2) {
+      pointers.current.forEach((_, id) => {
+        try { (e.target as Element).setPointerCapture?.(id); } catch { /* noop */ }
+      });
+      beginGesture();
+    }
     const g = gesture.current;
     if (!g) return;
     if (g.mode === 'pinch' && pointers.current.size >= 2) {
@@ -678,19 +692,25 @@ const PanZoomImage = ({
   const onPointerUp = (e: React.PointerEvent) => {
     pointers.current.delete(e.pointerId);
     if (pointers.current.size === 0) gesture.current = null;
-    else beginGesture();
+    else if (gesture.current) beginGesture();
   };
+
+  // Allow horizontal swipe (to change slide) when not zoomed; lock touch
+  // entirely once the user has pinched in so pan gestures don't scroll.
+  const isZoomed = scale > 1.0001;
+  const touchAction = enabled ? (isZoomed ? 'none' : 'pan-x') : 'auto';
 
   return (
     <div
       ref={wrapRef}
       className="absolute inset-0 overflow-hidden select-none"
-      style={{ touchAction: enabled ? 'none' : 'auto' }}
+      style={{ touchAction }}
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
       onPointerUp={onPointerUp}
       onPointerCancel={onPointerUp}
     >
+
       <img
         src={previewUrl}
         alt=""
