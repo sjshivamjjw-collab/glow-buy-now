@@ -217,7 +217,22 @@ export const composeSingleSlide = async (
   const ctx = canvas.getContext('2d')!;
   ctx.fillStyle = '#000000';
   ctx.fillRect(0, 0, W, H);
-  drawCover(ctx, img, 0, 0, W, H, opts.posX ?? 0.5, opts.posY ?? 0.5, opts.scale ?? 1);
+  const scale = opts.scale ?? 1;
+  if (scale <= 1.0001) {
+    // Contain-fit: show the entire image, letterboxed onto the black bg.
+    // Matches the editor preview when the user hasn't pinched to zoom.
+    const ir = img.naturalWidth / img.naturalHeight;
+    const tr = W / H;
+    let dw: number, dh: number;
+    if (ir > tr) { dw = W; dh = W / ir; }
+    else { dh = H; dw = H * ir; }
+    const dx = (W - dw) / 2;
+    const dy = (H - dh) / 2;
+    ctx.drawImage(img, 0, 0, img.naturalWidth, img.naturalHeight, dx, dy, dw, dh);
+  } else {
+    // Cover-fit with user pan/zoom — engaged once the user pinches in.
+    drawCover(ctx, img, 0, 0, W, H, opts.posX ?? 0.5, opts.posY ?? 0.5, scale);
+  }
   overlays.filter((o) => o.text.trim()).forEach((o) => drawOverlay(ctx, o, W, H));
   return canvasToJpegFile(canvas, `slide-${index}.jpg`);
 };
