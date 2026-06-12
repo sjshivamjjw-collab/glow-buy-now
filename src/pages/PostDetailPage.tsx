@@ -575,14 +575,14 @@ const PostDetailPage = () => {
       {currentMedia && (
         <div className="relative w-screen left-1/2 -translate-x-1/2 bg-[#0a0a0a] overflow-hidden">
           <div ref={emblaRef} className="w-full overflow-hidden">
-            <div className="flex touch-pan-y">
+            <div className="flex touch-pan-y items-center">
               {media.map((m, i) => (
-                <div key={m.id} className="relative min-w-0 shrink-0 grow-0 basis-full aspect-[4/5]">
+                <div key={m.id} className="relative min-w-0 shrink-0 grow-0 basis-full flex items-center justify-center">
                   {m.kind === 'video' ? (
                     <video
                       ref={i === mediaIdx ? videoRef : undefined}
                       src={m.url}
-                      className="w-full h-full object-contain"
+                      className="w-full max-h-[60vh] object-contain"
                       controls
                       playsInline
                       muted
@@ -592,7 +592,7 @@ const PostDetailPage = () => {
                     <img
                       src={optimizedImageUrl(m.url, { width: 1080, quality: 75, resize: 'contain' }) || m.url}
                       alt=""
-                      className="w-full h-full object-cover cursor-pointer select-none"
+                      className="w-full max-h-[60vh] object-contain cursor-pointer select-none"
                       loading={Math.abs(i - mediaIdx) <= 1 ? 'eager' : 'lazy'}
                       decoding="async"
                       draggable={false}
