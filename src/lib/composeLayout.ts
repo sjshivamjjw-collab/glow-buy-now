@@ -23,6 +23,9 @@ export interface SingleSlideState {
   id: string;
   file: File;
   overlays: TextOverlay[];
+  posX: number;
+  posY: number;
+  scale: number;
 }
 export interface GridCellState {
   file: File;
@@ -196,23 +199,26 @@ const drawCover = (
   ctx.drawImage(img, sx, sy, sw, sh, dx, dy, dw, dh);
 };
 
-// LAYOUT 1: single image with one overlay. Preserves the image's natural aspect.
+// LAYOUT 1: single image with overlays. Exports a fixed 4:5 portrait
+// (1200×1500) using drawCover with the editor's pan/zoom so the result
+// matches every other layout's cover ratio.
 export const composeSingleSlide = async (
   file: File,
-  overlay: TextOverlay,
+  overlays: TextOverlay[],
   index: number,
+  opts: { posX?: number; posY?: number; scale?: number } = {},
 ): Promise<File> => {
   const img = await loadImage(file);
-  const maxW = 1440;
-  const scale = img.naturalWidth > maxW ? maxW / img.naturalWidth : 1;
-  const w = Math.round(img.naturalWidth * scale);
-  const h = Math.round(img.naturalHeight * scale);
+  const W = 1200;
+  const H = 1500;
   const canvas = document.createElement('canvas');
-  canvas.width = w;
-  canvas.height = h;
+  canvas.width = W;
+  canvas.height = H;
   const ctx = canvas.getContext('2d')!;
-  ctx.drawImage(img, 0, 0, w, h);
-  drawOverlay(ctx, overlay, w, h);
+  ctx.fillStyle = '#000000';
+  ctx.fillRect(0, 0, W, H);
+  drawCover(ctx, img, 0, 0, W, H, opts.posX ?? 0.5, opts.posY ?? 0.5, opts.scale ?? 1);
+  overlays.filter((o) => o.text.trim()).forEach((o) => drawOverlay(ctx, o, W, H));
   return canvasToJpegFile(canvas, `slide-${index}.jpg`);
 };
 

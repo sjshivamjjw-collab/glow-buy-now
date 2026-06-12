@@ -8,6 +8,9 @@ interface Slide {
   file: File;
   previewUrl: string;
   overlays: TextOverlay[];
+  posX: number;
+  posY: number;
+  scale: number;
 }
 
 interface Props {
@@ -44,6 +47,9 @@ export const SingleImageTextEditor = ({ onDone, onCancel, initialState }: Props)
           file: s.file,
           previewUrl: URL.createObjectURL(s.file),
           overlays: s.overlays,
+          posX: s.posX ?? 0.5,
+          posY: s.posY ?? 0.5,
+          scale: s.scale ?? 1,
         }))
       : [],
   );
@@ -72,16 +78,14 @@ export const SingleImageTextEditor = ({ onDone, onCancel, initialState }: Props)
     if (!fl) return;
     const next: Slide[] = [];
     for (const f of Array.from(fl)) {
-      // Accept anything that looks like an image (HEIC/HEIF on iOS sometimes
-      // arrives with an empty or non-standard MIME type).
       const looksImage = f.type.startsWith('image/') || /\.(jpe?g|png|gif|webp|heic|heif|bmp)$/i.test(f.name);
       if (!looksImage) continue;
       const id = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-      next.push({ id, file: f, previewUrl: URL.createObjectURL(f), overlays: [] });
+      next.push({ id, file: f, previewUrl: URL.createObjectURL(f), overlays: [], posX: 0.5, posY: 0.5, scale: 1 });
     }
     if (!next.length) return;
     setSlides((prev) => {
-      setActive(prev.length); // jump to first newly-added slide
+      setActive(prev.length);
       return [...prev, ...next];
     });
     setActiveOverlayId(null);
@@ -107,6 +111,10 @@ export const SingleImageTextEditor = ({ onDone, onCancel, initialState }: Props)
         ? { ...s, overlays: s.overlays.map((o) => (o.id === overlayId ? { ...o, ...patch } : o)) }
         : s,
     ));
+  };
+
+  const patchSlideTransform = (slideId: string, patch: Partial<Pick<Slide, 'posX' | 'posY' | 'scale'>>) => {
+    setSlides((prev) => prev.map((s) => (s.id === slideId ? { ...s, ...patch } : s)));
   };
 
   const removeOverlay = (overlayId: string) => {
@@ -145,22 +153,13 @@ export const SingleImageTextEditor = ({ onDone, onCancel, initialState }: Props)
     setBusy(true);
     try {
       const files = await Promise.all(
-        slides.map(async (s, i) => {
-          const nonEmpty = s.overlays.filter((o) => o.text.trim());
-          if (nonEmpty.length === 0) {
-            return composeSingleSlide(s.file, { ...makeOverlay(s.id), text: '' }, i);
-          }
-          // composeSingleSlide signature accepts a single overlay. Iteratively compose each overlay.
-          let outFile = s.file;
-          for (let k = 0; k < nonEmpty.length; k++) {
-            outFile = await composeSingleSlide(outFile, nonEmpty[k], i + k * 1000);
-          }
-          return outFile;
-        }),
+        slides.map((s, i) =>
+          composeSingleSlide(s.file, s.overlays, i, { posX: s.posX, posY: s.posY, scale: s.scale }),
+        ),
       );
       const states: LayoutEditorState[] = slides.map((s) => ({
         kind: 'single',
-        slides: [{ id: s.id, file: s.file, overlays: s.overlays }],
+        slides: [{ id: s.id, file: s.file, overlays: s.overlays, posX: s.posX, posY: s.posY, scale: s.scale }],
       }));
       onDone(files, states);
     } catch (e) {
@@ -171,7 +170,7 @@ export const SingleImageTextEditor = ({ onDone, onCancel, initialState }: Props)
     }
   };
 
-  // Drag
+  // Drag overlays
   const onPointerDown = (e: React.PointerEvent, overlayId: string) => {
     if (editingId === overlayId) return;
     const s = slides[active];
@@ -262,173 +261,174 @@ export const SingleImageTextEditor = ({ onDone, onCancel, initialState }: Props)
               return (
                 <div
                   key={s.id}
-                  ref={(el) => { stageRefs.current[s.id] = el; }}
-                  className="relative shrink-0 w-full h-full snap-center flex items-center justify-center"
+                  className="relative shrink-0 w-full h-full snap-center flex items-center justify-center px-0"
                   data-dismiss-tool="1"
-                  onClick={(e) => {
-                    if (e.target === e.currentTarget) {
-                      setActiveOverlayId(null);
-                      setOpenTool(null);
-                    }
-                  }}
                 >
-                  <img src={s.previewUrl} alt="" className="max-h-full max-w-full object-contain pointer-events-none" />
-
-                  <button
-                    onClick={() => removeSlide(i)}
-                    aria-label="Remove slide"
-                    className="absolute top-3 right-3 w-8 h-8 rounded-full bg-black/60 text-white flex items-center justify-center z-10"
+                  {/* 4:5 portrait stage — matches composeSingleSlide output (1200×1500). */}
+                  <div
+                    ref={(el) => { stageRefs.current[s.id] = el; }}
+                    className="relative w-full aspect-[4/5] bg-black overflow-hidden"
                   >
-                    <X className="w-4 h-4" />
-                  </button>
+                    <PanZoomImage
+                      previewUrl={s.previewUrl}
+                      posX={s.posX}
+                      posY={s.posY}
+                      scale={s.scale}
+                      onChange={(patch) => patchSlideTransform(s.id, patch)}
+                      enabled={isActive}
+                    />
 
-                  {/* Overlays */}
-                  {isActive && s.overlays.map((o) => {
-                    const fontPx = Math.max(10, sizePx(o.size, stageW));
-                    const textColor = COLOR_MAP[o.color];
-                    const bgColor = o.bgEnabled
-                      ? (LIGHT_COLORS.has(o.color) ? 'rgba(0,0,0,0.45)' : 'rgba(255,255,255,0.55)')
-                      : 'transparent';
-                    const boxWidthPx = Math.round((o.width ?? 0.7) * stageW);
-                    const isEditing = editingId === o.id;
-                    const isActiveOv = activeOverlayId === o.id;
+                    <button
+                      onClick={() => removeSlide(i)}
+                      aria-label="Remove slide"
+                      className="absolute top-3 right-3 w-8 h-8 rounded-full bg-black/60 text-white flex items-center justify-center z-10"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
 
-                    const onResizeDown = (e: React.PointerEvent) => {
-                      e.stopPropagation();
-                      resizeState.current = {
-                        id: o.id, startX: e.clientX, startY: e.clientY,
-                        startW: o.width ?? 0.7, startH: heights[o.id] ?? 0, stageW,
+                    {/* Overlays */}
+                    {isActive && s.overlays.map((o) => {
+                      const fontPx = Math.max(10, sizePx(o.size, stageW));
+                      const textColor = COLOR_MAP[o.color];
+                      const bgColor = o.bgEnabled
+                        ? (LIGHT_COLORS.has(o.color) ? 'rgba(0,0,0,0.45)' : 'rgba(255,255,255,0.55)')
+                        : 'transparent';
+                      const boxWidthPx = Math.round((o.width ?? 0.7) * stageW);
+                      const isEditing = editingId === o.id;
+                      const isActiveOv = activeOverlayId === o.id;
+
+                      const onResizeDown = (e: React.PointerEvent) => {
+                        e.stopPropagation();
+                        resizeState.current = {
+                          id: o.id, startX: e.clientX, startY: e.clientY,
+                          startW: o.width ?? 0.7, startH: heights[o.id] ?? 0, stageW,
+                        };
+                        (e.target as Element).setPointerCapture?.(e.pointerId);
                       };
-                      (e.target as Element).setPointerCapture?.(e.pointerId);
-                    };
-                    const onResizeMove = (e: React.PointerEvent) => {
-                      const r = resizeState.current;
-                      if (!r || r.id !== o.id) return;
-                      e.stopPropagation();
-                      const dxFrac = ((e.clientX - r.startX) * 2) / r.stageW;
-                      patchOverlay(o.id, { width: Math.max(0.18, Math.min(0.95, r.startW + dxFrac)) });
-                      const newH = Math.max(0, r.startH + (e.clientY - r.startY));
-                      setHeights((h) => ({ ...h, [o.id]: newH }));
-                    };
-                    const onResizeUp = () => { resizeState.current = null; };
+                      const onResizeMove = (e: React.PointerEvent) => {
+                        const r = resizeState.current;
+                        if (!r || r.id !== o.id) return;
+                        e.stopPropagation();
+                        const dxFrac = ((e.clientX - r.startX) * 2) / r.stageW;
+                        patchOverlay(o.id, { width: Math.max(0.18, Math.min(0.95, r.startW + dxFrac)) });
+                        const newH = Math.max(0, r.startH + (e.clientY - r.startY));
+                        setHeights((h) => ({ ...h, [o.id]: newH }));
+                      };
+                      const onResizeUp = () => { resizeState.current = null; };
 
-                    return (
-                      <div
-                        key={o.id}
-                        className="absolute select-none"
-                        style={{
-                          left: `${o.x * 100}%`,
-                          top: `${o.y * 100}%`,
-                          transform: 'translate(-50%, -50%)',
-                          width: 'auto',
-                          maxWidth: `${boxWidthPx}px`,
-                          touchAction: 'none',
-                          zIndex: isActiveOv ? 5 : 4,
-                          pointerEvents: 'none',
-                        }}
-                      >
+                      return (
                         <div
-                          className={`relative ${isActiveOv && !isEditing ? 'ring-2 ring-[#ef4444] rounded-lg' : ''}`}
-                          style={{ pointerEvents: 'auto' }}
+                          key={o.id}
+                          className="absolute select-none"
+                          style={{
+                            left: `${o.x * 100}%`,
+                            top: `${o.y * 100}%`,
+                            transform: 'translate(-50%, -50%)',
+                            width: 'auto',
+                            maxWidth: `${boxWidthPx}px`,
+                            touchAction: 'none',
+                            zIndex: isActiveOv ? 5 : 4,
+                            pointerEvents: 'none',
+                          }}
                         >
-                          {isEditing ? (
-                            <div
-                              className="inline-grid"
-                              style={{
-                                maxWidth: `${boxWidthPx}px`,
-                                minWidth: `${Math.max(fontPx * 3, 64)}px`,
-                              }}
-                            >
-                              <textarea
-                                ref={textInputRef}
-                                value={o.text}
-                                onChange={(e) => patchOverlay(o.id, { text: e.target.value })}
-                                onBlur={() => {
-                                  setEditingId(null);
-                                  if (!o.text.trim()) removeOverlay(o.id);
-                                }}
-                                rows={1}
-                                placeholder="Type…"
-                                className="resize-none bg-transparent outline-none text-center font-semibold px-2 py-1 rounded-md overflow-hidden"
+                          <div
+                            className={`relative ${isActiveOv && !isEditing ? 'ring-2 ring-[#ef4444] rounded-lg' : ''}`}
+                            style={{ pointerEvents: 'auto' }}
+                          >
+                            {isEditing ? (
+                              <div
+                                className="inline-grid"
                                 style={{
-                                  gridArea: '1 / 1 / 2 / 2',
+                                  maxWidth: `${boxWidthPx}px`,
+                                  minWidth: `${Math.max(fontPx * 3, 64)}px`,
+                                }}
+                              >
+                                <textarea
+                                  ref={textInputRef}
+                                  value={o.text}
+                                  onChange={(e) => patchOverlay(o.id, { text: e.target.value })}
+                                  onBlur={() => {
+                                    setEditingId(null);
+                                    if (!o.text.trim()) removeOverlay(o.id);
+                                  }}
+                                  rows={1}
+                                  placeholder="Type…"
+                                  className="resize-none bg-transparent outline-none text-center font-semibold px-2 py-1 rounded-md overflow-hidden"
+                                  style={{
+                                    gridArea: '1 / 1 / 2 / 2',
+                                    color: textColor,
+                                    backgroundColor: bgColor,
+                                    fontSize: `${fontPx}px`,
+                                    lineHeight: 1.25,
+                                    caretColor: textColor,
+                                    width: '100%',
+                                    height: '100%',
+                                  }}
+                                />
+                                <span
+                                  aria-hidden
+                                  className="px-2 py-1 font-semibold text-center invisible whitespace-pre-wrap break-words"
+                                  style={{
+                                    gridArea: '1 / 1 / 2 / 2',
+                                    fontSize: `${fontPx}px`,
+                                    lineHeight: 1.25,
+                                  }}
+                                >
+                                  {(o.text || 'Type…') + '\u200b'}
+                                </span>
+                              </div>
+                            ) : (
+                              <div
+                                onPointerDown={(e) => onPointerDown(e, o.id)}
+                                onPointerMove={onPointerMove}
+                                onPointerUp={(e) => onPointerUp(e, o.id)}
+                                onPointerCancel={(e) => onPointerUp(e, o.id)}
+                                className={`inline-block px-2 py-1 rounded-md font-semibold text-center cursor-move ${o.bgEnabled ? 'backdrop-blur-md' : ''}`}
+                                style={{
                                   color: textColor,
                                   backgroundColor: bgColor,
                                   fontSize: `${fontPx}px`,
                                   lineHeight: 1.25,
-                                  caretColor: textColor,
-                                  width: '100%',
-                                  height: '100%',
-                                }}
-                              />
-                              {/* Invisible sizer mirrors textarea content so the grid cell
-                                  grows in width AND height to fit what the user types. */}
-                              <span
-                                aria-hidden
-                                className="px-2 py-1 font-semibold text-center invisible whitespace-pre-wrap break-words"
-                                style={{
-                                  gridArea: '1 / 1 / 2 / 2',
-                                  fontSize: `${fontPx}px`,
-                                  lineHeight: 1.25,
+                                  whiteSpace: 'pre-wrap',
+                                  wordBreak: 'break-word',
+                                  maxWidth: `${boxWidthPx}px`,
+                                  minHeight: heights[o.id] ? `${heights[o.id]}px` : undefined,
+                                  touchAction: 'none',
+                                  opacity: o.text ? 1 : 0.85,
                                 }}
                               >
-                                {(o.text || 'Type…') + '\u200b'}
-                              </span>
-                            </div>
-                          ) : (
-                            <div
-                              onPointerDown={(e) => onPointerDown(e, o.id)}
-                              onPointerMove={onPointerMove}
-                              onPointerUp={(e) => onPointerUp(e, o.id)}
-                              onPointerCancel={(e) => onPointerUp(e, o.id)}
-                              className={`inline-block px-2 py-1 rounded-md font-semibold text-center cursor-move ${o.bgEnabled ? 'backdrop-blur-md' : ''}`}
-                              style={{
-                                color: textColor,
-                                backgroundColor: bgColor,
-                                fontSize: `${fontPx}px`,
-                                lineHeight: 1.25,
-                                whiteSpace: 'pre-wrap',
-                                wordBreak: 'break-word',
-                                maxWidth: `${boxWidthPx}px`,
-                                minHeight: heights[o.id] ? `${heights[o.id]}px` : undefined,
-                                touchAction: 'none',
-                                opacity: o.text ? 1 : 0.85,
-                              }}
-                            >
-                              {o.text || 'Tap to type'}
-                            </div>
-                          )}
-                          <button
-                            onPointerDown={(e) => { e.stopPropagation(); e.preventDefault(); removeOverlay(o.id); }}
-                            onClick={(e) => { e.stopPropagation(); removeOverlay(o.id); }}
-                            aria-label="Delete text"
-                            className="absolute -top-2 -right-2 w-7 h-7 rounded-full bg-black/90 text-white border border-white/60 flex items-center justify-center shadow-lg"
-                            style={{ touchAction: 'none' }}
-                          >
-                            <X className="w-3.5 h-3.5" />
-                          </button>
-                          {isActiveOv && (
-                            <div
-                              onPointerDown={onResizeDown}
-                              onPointerMove={onResizeMove}
-                              onPointerUp={onResizeUp}
-                              onPointerCancel={onResizeUp}
-                              aria-label="Resize"
-                              className="absolute -bottom-2 -right-2 w-6 h-6 rounded-full bg-white border-2 border-[#ef4444] flex items-center justify-center cursor-se-resize"
+                                {o.text || 'Tap to type'}
+                              </div>
+                            )}
+                            <button
+                              onPointerDown={(e) => { e.stopPropagation(); e.preventDefault(); removeOverlay(o.id); }}
+                              onClick={(e) => { e.stopPropagation(); removeOverlay(o.id); }}
+                              aria-label="Delete text"
+                              className="absolute -top-2 -right-2 w-7 h-7 rounded-full bg-black/90 text-white border border-white/60 flex items-center justify-center shadow-lg"
                               style={{ touchAction: 'none' }}
                             >
-                              <svg width="10" height="10" viewBox="0 0 10 10" className="text-[#ef4444]">
-                                <path d="M9 1 L1 9 M9 5 L5 9" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinecap="round" />
-                              </svg>
-                            </div>
-                          )}
+                              <X className="w-3.5 h-3.5" />
+                            </button>
+                            {isActiveOv && (
+                              <div
+                                onPointerDown={onResizeDown}
+                                onPointerMove={onResizeMove}
+                                onPointerUp={onResizeUp}
+                                onPointerCancel={onResizeUp}
+                                aria-label="Resize"
+                                className="absolute -bottom-2 -right-2 w-6 h-6 rounded-full bg-white border-2 border-[#ef4444] flex items-center justify-center cursor-se-resize"
+                                style={{ touchAction: 'none' }}
+                              >
+                                <svg width="10" height="10" viewBox="0 0 10 10" className="text-[#ef4444]">
+                                  <path d="M9 1 L1 9 M9 5 L5 9" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinecap="round" />
+                                </svg>
+                              </div>
+                            )}
+                          </div>
                         </div>
-                      </div>
-                    );
-                  })}
-
-
-
+                      );
+                    })}
+                  </div>
                 </div>
               );
             })}
@@ -554,3 +554,148 @@ const ToolButton = ({
   </div>
 );
 
+// Drag-to-pan + pinch-to-zoom inside the 4:5 stage. Mirrors the grid's
+// CellPicker so the WYSIWYG framing matches composeSingleSlide → drawCover.
+const PanZoomImage = ({
+  previewUrl,
+  posX,
+  posY,
+  scale,
+  onChange,
+  enabled,
+}: {
+  previewUrl: string;
+  posX: number;
+  posY: number;
+  scale: number;
+  onChange: (patch: { posX?: number; posY?: number; scale?: number }) => void;
+  enabled: boolean;
+}) => {
+  const wrapRef = useRef<HTMLDivElement>(null);
+  const [natRatio, setNatRatio] = useState(1);
+  const [wrap, setWrap] = useState({ w: 1, h: 1 });
+
+  useEffect(() => {
+    if (!wrapRef.current) return;
+    const el = wrapRef.current;
+    const update = () => {
+      const r = el.getBoundingClientRect();
+      setWrap({ w: r.width || 1, h: r.height || 1 });
+    };
+    update();
+    const ro = new ResizeObserver(update);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
+  const wr = wrap.w / wrap.h;
+  let baseW: number, baseH: number;
+  if (natRatio > wr) { baseH = wrap.h; baseW = baseH * natRatio; }
+  else { baseW = wrap.w; baseH = baseW / natRatio; }
+  const dispW = baseW * scale;
+  const dispH = baseH * scale;
+  const panRangeX = Math.max(0, dispW - wrap.w);
+  const panRangeY = Math.max(0, dispH - wrap.h);
+  const tx = (0.5 - posX) * panRangeX;
+  const ty = (0.5 - posY) * panRangeY;
+
+  const pointers = useRef<Map<number, { x: number; y: number }>>(new Map());
+  const gesture = useRef<{
+    mode: 'pan' | 'pinch';
+    startPosX: number; startPosY: number; startScale: number;
+    panRangeX: number; panRangeY: number;
+    startMidX: number; startMidY: number;
+    startDist: number;
+  } | null>(null);
+
+  const currentRanges = (s: number) => {
+    const sc = Math.max(1, s);
+    const dW = baseW * sc;
+    const dH = baseH * sc;
+    return { panRangeX: Math.max(1, dW - wrap.w), panRangeY: Math.max(1, dH - wrap.h) };
+  };
+
+  const beginGesture = () => {
+    if (pointers.current.size === 2) {
+      const pts = Array.from(pointers.current.values());
+      const r = currentRanges(scale);
+      gesture.current = {
+        mode: 'pinch',
+        startPosX: posX, startPosY: posY, startScale: scale,
+        panRangeX: r.panRangeX, panRangeY: r.panRangeY,
+        startMidX: (pts[0].x + pts[1].x) / 2,
+        startMidY: (pts[0].y + pts[1].y) / 2,
+        startDist: Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y) || 1,
+      };
+    } else if (pointers.current.size === 1) {
+      const p = Array.from(pointers.current.values())[0];
+      const r = currentRanges(scale);
+      gesture.current = {
+        mode: 'pan',
+        startPosX: posX, startPosY: posY, startScale: scale,
+        panRangeX: r.panRangeX, panRangeY: r.panRangeY,
+        startMidX: p.x, startMidY: p.y,
+        startDist: 1,
+      };
+    }
+  };
+
+  const onPointerDown = (e: React.PointerEvent) => {
+    if (!enabled) return;
+    pointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    (e.target as Element).setPointerCapture?.(e.pointerId);
+    beginGesture();
+  };
+  const onPointerMove = (e: React.PointerEvent) => {
+    if (!pointers.current.has(e.pointerId)) return;
+    pointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    const g = gesture.current;
+    if (!g) return;
+    if (g.mode === 'pinch' && pointers.current.size >= 2) {
+      const pts = Array.from(pointers.current.values()).slice(0, 2);
+      const dist = Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y) || 1;
+      const nextScale = Math.max(1, Math.min(4, g.startScale * (dist / g.startDist)));
+      onChange({ scale: nextScale });
+    } else if (g.mode === 'pan') {
+      const dx = e.clientX - g.startMidX;
+      const dy = e.clientY - g.startMidY;
+      const nx = Math.max(0, Math.min(1, g.startPosX - dx / g.panRangeX));
+      const ny = Math.max(0, Math.min(1, g.startPosY - dy / g.panRangeY));
+      onChange({ posX: nx, posY: ny });
+    }
+  };
+  const onPointerUp = (e: React.PointerEvent) => {
+    pointers.current.delete(e.pointerId);
+    if (pointers.current.size === 0) gesture.current = null;
+    else beginGesture();
+  };
+
+  return (
+    <div
+      ref={wrapRef}
+      className="absolute inset-0 overflow-hidden select-none"
+      style={{ touchAction: enabled ? 'none' : 'auto' }}
+      onPointerDown={onPointerDown}
+      onPointerMove={onPointerMove}
+      onPointerUp={onPointerUp}
+      onPointerCancel={onPointerUp}
+    >
+      <img
+        src={previewUrl}
+        alt=""
+        draggable={false}
+        onLoad={(e) => {
+          const i = e.currentTarget;
+          if (i.naturalWidth && i.naturalHeight) setNatRatio(i.naturalWidth / i.naturalHeight);
+        }}
+        className="absolute top-1/2 left-1/2 max-w-none pointer-events-none"
+        style={{
+          width: `${baseW}px`,
+          height: `${baseH}px`,
+          transform: `translate(-50%, -50%) translate(${tx}px, ${ty}px) scale(${scale})`,
+          transformOrigin: 'center',
+        }}
+      />
+    </div>
+  );
+};

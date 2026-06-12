@@ -17,7 +17,7 @@ export interface StoredMedia {
 }
 
 type SerializedEditorState =
-  | { kind: 'single'; slides: { id: string; fileBlob: Blob; fileName: string; fileType: string; overlays: any[] }[] }
+  | { kind: 'single'; slides: { id: string; fileBlob: Blob; fileName: string; fileType: string; overlays: any[]; posX?: number; posY?: number; scale?: number }[] }
   | { kind: 'grid'; cells: { fileBlob: Blob; fileName: string; fileType: string; posX: number; posY: number; scale: number }[]; overlays: any[] }
   | { kind: 'cost'; headerL: string; headerR: string; rows: { left: string; right: string }[] };
 
@@ -88,6 +88,9 @@ export const serializeEditorState = (s: LayoutEditorState): SerializedEditorStat
         fileName: sl.file.name,
         fileType: sl.file.type,
         overlays: sl.overlays,
+        posX: sl.posX,
+        posY: sl.posY,
+        scale: sl.scale,
       })),
     };
   }
@@ -119,6 +122,9 @@ export const deserializeEditorState = (s: SerializedEditorState): LayoutEditorSt
         id: sl.id,
         file: new File([sl.fileBlob], sl.fileName || 'photo.jpg', { type: sl.fileType || 'image/jpeg' }),
         overlays: sl.overlays as any,
+        posX: sl.posX ?? 0.5,
+        posY: sl.posY ?? 0.5,
+        scale: sl.scale ?? 1,
       }));
     if (!slides.length) return undefined;
     return { kind: 'single', slides };
