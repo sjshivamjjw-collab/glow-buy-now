@@ -171,6 +171,12 @@ const PostDetailPage = () => {
 
   const { blocked, refresh: refreshBlocks } = useBlockedUsers();
 
+  // Always start at the top of the post when opening it (avoid landing mid-page on comments).
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [id]);
+
+
   // Fetch the post itself (with one retry on empty/error) — this drives the main render.
   useEffect(() => {
     if (!id) return;
