@@ -703,7 +703,7 @@ const PanZoomImage = ({
         style={{
           width: `${baseW}px`,
           height: `${baseH}px`,
-          transform: `translate(-50%, -50%) translate(${tx}px, ${ty}px) scale(${scale})`,
+          transform: `translate(-50%, -50%) translate(${tx}px, ${ty}px) scale(${effScale})`,
           transformOrigin: 'center',
         }}
       />
