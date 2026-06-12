@@ -639,11 +639,32 @@ const CreatePostPage = () => {
     setSubmitting(true);
     let createdPostId: string | null = null;
     try {
+      // Re-validate the session with the auth server before inserting —
+      // a stale/expired refresh token on mobile leaves `userId` populated
+      // in client state while `auth.uid()` is null server-side, which trips
+      // the posts INSERT RLS policy (auth.uid() = user_id).
+      const { data: u, error: uErr } = await supabase.auth.getUser();
+      const authedId = u?.user?.id ?? null;
+      if (uErr || !authedId) {
+        toast({
+          title: 'Please sign in again',
+          description: 'Your session expired. Sign in and try posting again.',
+          variant: 'destructive',
+        });
+        setSubmitting(false);
+        navigate('/auth');
+        return;
+      }
+      if (authedId !== userId) {
+        // Use the server-validated id so RLS will pass.
+        console.warn('Auth id mismatch — using server-validated id for post insert.');
+      }
+
       const musicUrl = music?.previewUrl ?? null;
       const musicLabel = music ? `${music.title} — ${music.artist}` : null;
 
       const { data: post, error: postErr } = await supabase.from('posts' as any).insert({
-        user_id: userId,
+        user_id: authedId,
         category,
         review_subcategory: category === 'review' ? reviewSub : null,
         review_recommendation: category === 'review' ? recommendation : null,
