@@ -488,7 +488,7 @@ const PostDetailPage = () => {
             className="w-9 h-9 rounded-full bg-[#1a1a1a] border border-[#2a2a2a]/60 flex items-center justify-center active:scale-95 transition-transform"
             aria-label="Share"
           >
-            <Share2 className="w-4.5 h-4.5 text-[#fafafa]" />
+            <Share2 className="w-4 h-4 text-[#fafafa]" />
           </button>
 ...
         </div>
