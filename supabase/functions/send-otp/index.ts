@@ -142,24 +142,29 @@ Deno.serve(async (req) => {
 
     const twilioData = await twilioRes.json();
     if (!twilioRes.ok) {
-      console.error("Twilio error:", JSON.stringify(twilioData));
+      console.error("Twilio error:", twilioRes.status, JSON.stringify(twilioData));
 
       // Check if this is a trial account limitation (unverified number)
       const isTrial = twilioData?.code === 21608;
       if (isTrial) {
-        // Fallback: store OTP anyway so user can still log in during development
-        // The OTP was already stored above, so just return success with a dev flag
         console.log(`TRIAL FALLBACK: OTP for ${normalizedPhone} is ${code}. SMS not sent (unverified number on trial account).`);
-        return new Response(JSON.stringify({ 
-          success: true, 
+        return new Response(JSON.stringify({
+          success: true,
           dev_fallback: true,
-          message: "SMS could not be sent (trial account). Check function logs for OTP code." 
+          message: "SMS could not be sent (trial account). Check function logs for OTP code."
         }), {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
 
-      return new Response(JSON.stringify({ error: "Failed to send SMS. Please try again." }), {
+      // Surface the real Twilio error so we (and the user) can see what's wrong.
+      const twMsg = twilioData?.message || "Unknown Twilio error";
+      const twCode = twilioData?.code ? ` (code ${twilioData.code})` : "";
+      return new Response(JSON.stringify({
+        error: `Failed to send SMS${twCode}: ${twMsg}`,
+        twilio_code: twilioData?.code ?? null,
+        twilio_status: twilioRes.status,
+      }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
