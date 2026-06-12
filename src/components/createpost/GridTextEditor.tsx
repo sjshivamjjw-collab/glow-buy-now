@@ -209,7 +209,7 @@ export const GridTextEditor = ({ onDone, onCancel, initialState }: Props) => {
       </div>
 
       <div className="flex-1 flex items-center justify-center px-0 relative" data-dismiss-tool="1">
-        <div ref={surfaceRef} className="relative w-full aspect-square bg-white">
+        <div ref={surfaceRef} className="relative w-full aspect-[4/5] bg-white">
           <div className="absolute inset-0 grid grid-cols-2 grid-rows-2 gap-px bg-white">
             {cells.map((c, i) => (
               <CellPicker
