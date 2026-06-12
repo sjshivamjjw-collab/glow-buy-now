@@ -589,15 +589,25 @@ const PanZoomImage = ({
   }, []);
 
   const wr = wrap.w / wrap.h;
-  let baseW: number, baseH: number;
-  if (natRatio > wr) { baseH = wrap.h; baseW = baseH * natRatio; }
-  else { baseW = wrap.w; baseH = baseW / natRatio; }
-  const dispW = baseW * scale;
-  const dispH = baseH * scale;
+  // Two reference rects:
+  //   contain — entire image fits inside the stage (no crop). Used at scale 1.
+  //   cover   — image fills the stage (may crop). Used once user zooms in.
+  let containW: number, containH: number;
+  if (natRatio > wr) { containW = wrap.w; containH = containW / natRatio; }
+  else { containH = wrap.h; containW = containH * natRatio; }
+  let coverW: number, coverH: number;
+  if (natRatio > wr) { coverH = wrap.h; coverW = coverH * natRatio; }
+  else { coverW = wrap.w; coverH = coverW / natRatio; }
+  const isContain = scale <= 1.0001;
+  const baseW = isContain ? containW : coverW;
+  const baseH = isContain ? containH : coverH;
+  const effScale = isContain ? 1 : scale;
+  const dispW = baseW * effScale;
+  const dispH = baseH * effScale;
   const panRangeX = Math.max(0, dispW - wrap.w);
   const panRangeY = Math.max(0, dispH - wrap.h);
-  const tx = (0.5 - posX) * panRangeX;
-  const ty = (0.5 - posY) * panRangeY;
+  const tx = isContain ? 0 : (0.5 - posX) * panRangeX;
+  const ty = isContain ? 0 : (0.5 - posY) * panRangeY;
 
   const pointers = useRef<Map<number, { x: number; y: number }>>(new Map());
   const gesture = useRef<{
@@ -610,8 +620,9 @@ const PanZoomImage = ({
 
   const currentRanges = (s: number) => {
     const sc = Math.max(1, s);
-    const dW = baseW * sc;
-    const dH = baseH * sc;
+    // Pan only meaningful in cover mode; use cover rect for range math.
+    const dW = coverW * sc;
+    const dH = coverH * sc;
     return { panRangeX: Math.max(1, dW - wrap.w), panRangeY: Math.max(1, dH - wrap.h) };
   };
 
@@ -692,7 +703,7 @@ const PanZoomImage = ({
         style={{
           width: `${baseW}px`,
           height: `${baseH}px`,
-          transform: `translate(-50%, -50%) translate(${tx}px, ${ty}px) scale(${scale})`,
+          transform: `translate(-50%, -50%) translate(${tx}px, ${ty}px) scale(${effScale})`,
           transformOrigin: 'center',
         }}
       />
