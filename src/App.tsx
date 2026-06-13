@@ -4,6 +4,8 @@ import { BrowserRouter, Route, Routes, Navigate } from "react-router-dom";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
+import { AuthGateProvider } from "@/components/AuthGate";
+import { isNative } from "@/lib/platform";
 import AppLayout from "@/components/AppLayout";
 import DiscoverPage from "@/pages/DiscoverPage";
 
@@ -76,7 +78,10 @@ const AppRoutes = () => {
     return <RouteFallback />;
   }
 
-  if (!isAuthenticated) {
+  // On native (iOS / Android) we keep the original gate: unauthenticated users
+  // are routed to /auth. On the web we allow anonymous read-only browsing so
+  // first-time visitors don't hit a sign-in wall.
+  if (!isAuthenticated && isNative()) {
     return (
       <Suspense fallback={<RouteFallback />}>
         <Routes>
@@ -88,7 +93,7 @@ const AppRoutes = () => {
     );
   }
 
-  if (!onboardingCompleted) {
+  if (isAuthenticated && !onboardingCompleted) {
     return (
       <Suspense fallback={<RouteFallback />}>
         <Routes>
@@ -99,6 +104,11 @@ const AppRoutes = () => {
       </Suspense>
     );
   }
+
+  // Routes that require a real account on web — anonymous visitors get bounced
+  // to Discover (the BottomNav opens the sign-in modal instead).
+  const RequireAuth = ({ children }: { children: JSX.Element }) =>
+    isAuthenticated ? children : <Navigate to="/" replace />;
 
   return (
     <Suspense fallback={<RouteFallback />}>
@@ -111,17 +121,17 @@ const AppRoutes = () => {
               <Suspense fallback={<RouteFallback />}>
                 <Routes>
                   <Route path="/" element={<DiscoverPage />} />
-                  <Route path="/auth" element={<Navigate to="/" replace />} />
+                  <Route path="/auth" element={isAuthenticated ? <Navigate to="/" replace /> : <AuthPage />} />
                   <Route path="/onboarding" element={<Navigate to="/" replace />} />
-                  <Route path="/post/new" element={<CreatePostPage />} />
-                  <Route path="/p/:id/edit" element={<EditPostPage />} />
+                  <Route path="/post/new" element={<RequireAuth><CreatePostPage /></RequireAuth>} />
+                  <Route path="/p/:id/edit" element={<RequireAuth><EditPostPage /></RequireAuth>} />
                   <Route path="/p/:id" element={<PostDetailPage />} />
                   <Route path="/u/:userId" element={<UserProfilePage />} />
-                  <Route path="/notifications" element={<NotificationsPage />} />
-                  <Route path="/saved" element={<SavedPostsPage />} />
-                  <Route path="/profile" element={<ProfilePage />} />
-                  <Route path="/settings" element={<SettingsPage />} />
-                  <Route path="/settings/blocked" element={<BlockedAccountsPage />} />
+                  <Route path="/notifications" element={<RequireAuth><NotificationsPage /></RequireAuth>} />
+                  <Route path="/saved" element={<RequireAuth><SavedPostsPage /></RequireAuth>} />
+                  <Route path="/profile" element={<RequireAuth><ProfilePage /></RequireAuth>} />
+                  <Route path="/settings" element={<RequireAuth><SettingsPage /></RequireAuth>} />
+                  <Route path="/settings/blocked" element={<RequireAuth><BlockedAccountsPage /></RequireAuth>} />
                   <Route path="/admin" element={isAdmin ? <AdminPanelPage /> : <Navigate to="/" replace />} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
@@ -140,7 +150,9 @@ const App = () => (
       <Toaster />
       <AuthProvider>
         <BrowserRouter>
-          <AppRoutes />
+          <AuthGateProvider>
+            <AppRoutes />
+          </AuthGateProvider>
         </BrowserRouter>
       </AuthProvider>
     </TooltipProvider>
