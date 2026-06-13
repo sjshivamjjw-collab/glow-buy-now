@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { motion } from 'framer-motion';
-import { User, Check, Sparkles } from 'lucide-react';
+import { Check, Sparkles, Camera } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 const GENDER_OPTIONS = [
@@ -14,16 +14,48 @@ const GENDER_OPTIONS = [
 ];
 
 const OnboardingPage = () => {
+  const [avatarFile, setAvatarFile] = useState<File | null>(null);
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
   const [username, setUsername] = useState('');
   const [gender, setGender] = useState('');
   const [dob, setDob] = useState('');
   const [saving, setSaving] = useState(false);
   const [usernameError, setUsernameError] = useState('');
   const [usernameAvailable, setUsernameAvailable] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const usernameDebounce = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const { userId, completeOnboarding } = useAuth();
+  const { userId, completeOnboarding, updateProfile } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
+
+  const handleAvatarSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) {
+      toast({ title: 'Image too large', description: 'Please select an image under 5MB', variant: 'destructive' });
+      return;
+    }
+    setAvatarFile(file);
+    setAvatarPreview(URL.createObjectURL(file));
+  };
+
+  const uploadAvatar = async (): Promise<string | null> => {
+    if (!avatarFile || !userId) return null;
+    try {
+      const ext = avatarFile.name.split('.').pop() || 'jpg';
+      const path = `${userId}/avatar.${ext}`;
+      const { error } = await supabase.storage
+        .from('avatars')
+        .upload(path, avatarFile, { upsert: true });
+      if (error) throw error;
+      const { data: urlData } = supabase.storage.from('avatars').getPublicUrl(path);
+      return urlData.publicUrl;
+    } catch (err: any) {
+      console.error('Avatar upload error:', err);
+      toast({ title: 'Failed to upload photo', description: err.message, variant: 'destructive' });
+      return null;
+    }
+  };
 
   const checkUsername = async (val: string) => {
     if (val.length < 3) {
@@ -55,6 +87,11 @@ const OnboardingPage = () => {
     if (!userId) return;
     setSaving(true);
     try {
+      let avatarUrl: string | null = null;
+      if (avatarFile) {
+        avatarUrl = await uploadAvatar();
+      }
+
       const { error } = await supabase
         .from('profiles')
         .update({
@@ -62,10 +99,12 @@ const OnboardingPage = () => {
           gender: gender || null,
           date_of_birth: dob || null,
           onboarding_completed: true,
+          ...(avatarUrl ? { avatar_url: avatarUrl } : {}),
         } as any)
         .eq('id', userId);
 
       if (error) throw error;
+      if (avatarUrl) updateProfile({ avatar_url: avatarUrl });
       completeOnboarding();
       toast({ title: 'Welcome to Ripple! 🎉' });
       navigate('/', { replace: true });
@@ -100,13 +139,44 @@ const OnboardingPage = () => {
         animate={{ opacity: 1, y: 0 }}
         className="flex-1 flex flex-col px-6 pt-10 overflow-y-auto"
       >
-        <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center mb-5">
-          <User className="w-7 h-7 text-primary" />
-        </div>
         <h2 className="text-2xl font-extrabold text-foreground mb-1">Set up your profile</h2>
         <p className="text-muted-foreground mb-6">Just a few quick details to get you started</p>
 
         <div className="space-y-5 flex-1 pb-4">
+          {/* Profile photo (optional) */}
+          <div className="flex flex-col items-center mb-2">
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={handleAvatarSelect}
+            />
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              className="relative w-24 h-24 rounded-full overflow-hidden border-4 border-dashed border-border hover:border-primary transition-colors group"
+            >
+              {avatarPreview ? (
+                <img src={avatarPreview} alt="Avatar preview" className="w-full h-full object-cover" />
+              ) : (
+                <div className="w-full h-full bg-secondary flex flex-col items-center justify-center gap-0.5 group-hover:bg-muted transition-colors">
+                  <Camera className="w-6 h-6 text-muted-foreground" />
+                  <span className="text-[10px] text-muted-foreground">Add photo</span>
+                </div>
+              )}
+            </button>
+            {avatarPreview ? (
+              <button
+                onClick={() => { setAvatarFile(null); setAvatarPreview(null); }}
+                className="mt-2 text-xs text-destructive font-medium"
+              >
+                Remove
+              </button>
+            ) : (
+              <p className="mt-2 text-xs text-muted-foreground">Optional</p>
+            )}
+          </div>
+
           {/* Username */}
           <div>
             <label className="text-sm font-medium text-foreground mb-1.5 block">Username</label>
