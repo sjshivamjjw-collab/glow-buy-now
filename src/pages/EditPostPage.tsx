@@ -504,113 +504,141 @@ const EditPostPage = () => {
             Photos & videos ({totalMedia}/{MAX_FILES})
           </label>
           <div className="grid grid-cols-3 gap-2">
-            {existing.map((m, idx) => (
-              <div key={m.id} className="relative aspect-square rounded-xl overflow-hidden bg-[#f5f5f5] border border-[#e5e5e5]">
-                {m.kind === 'video' ? (
-                  <video
-                    src={m.url}
-                    className="w-full h-full object-contain"
-                    muted
-                    playsInline
-                    controls
-                    preload="metadata"
-                    // @ts-ignore
-                    webkit-playsinline="true"
-                  />
-                ) : (
-                  <img src={m.url} alt="" className="w-full h-full object-contain" />
-                )}
-                {idx === 0 && (
-                  <span className="absolute top-1 left-1 px-1.5 py-0.5 rounded bg-black/70 text-white text-[10px] font-semibold">Cover</span>
-                )}
-                {idx === 0 && m.kind === 'image' && (
-                  <button
-                    onClick={async () => {
-                      const f = await urlToFile(m.url);
-                      if (f) setRecropFile(f);
-                    }}
-                    aria-label="Recrop cover"
-                    title="Recrop cover"
-                    className="absolute top-1 right-8 w-6 h-6 rounded-full bg-black/60 text-white flex items-center justify-center"
-                  >
-                    <Crop className="w-3.5 h-3.5" />
-                  </button>
-                )}
-                <button
-                  onClick={() => removeExisting(m)}
-                  aria-label="Remove"
-                  className="absolute top-1 right-1 w-6 h-6 rounded-full bg-black/60 text-white flex items-center justify-center"
-                >
-                  <X className="w-3.5 h-3.5" />
-                </button>
-                <div className="absolute bottom-1 left-1 right-1 flex items-center justify-between gap-1">
-                  <button
-                    onClick={() => moveExisting(idx, -1)}
-                    disabled={idx === 0}
-                    aria-label="Move left"
-                    className="w-6 h-6 rounded-full bg-black/60 text-white flex items-center justify-center disabled:opacity-30"
-                  >
-                    <ChevronLeft className="w-3.5 h-3.5" />
-                  </button>
-                  <button
-                    onClick={() => moveExisting(idx, 1)}
-                    disabled={idx === existing.length - 1}
-                    aria-label="Move right"
-                    className="w-6 h-6 rounded-full bg-black/60 text-white flex items-center justify-center disabled:opacity-30"
-                  >
-                    <ChevronRight className="w-3.5 h-3.5" />
-                  </button>
-                </div>
-              </div>
-            ))}
-            {newMedia.map((m, nIdx) => {
-              const isCoverSlot = existing.length === 0 && nIdx === 0 && m.kind === 'image';
+            {order.map((entry, idx) => {
+              if (entry.k === 'e') {
+                const m = existing.find(x => x.id === entry.key);
+                if (!m) return null;
+                return (
+                  <div key={`e-${m.id}`} className="relative aspect-square rounded-xl overflow-hidden bg-[#f5f5f5] border border-[#e5e5e5]">
+                    {m.kind === 'video' ? (
+                      <video
+                        src={m.url}
+                        className="w-full h-full object-contain"
+                        muted
+                        playsInline
+                        controls
+                        preload="metadata"
+                        // @ts-ignore
+                        webkit-playsinline="true"
+                      />
+                    ) : (
+                      <img src={m.url} alt="" className="w-full h-full object-contain" />
+                    )}
+                    {idx === 0 && (
+                      <span className="absolute top-1 left-1 px-1.5 py-0.5 rounded bg-black/70 text-white text-[10px] font-semibold">Cover</span>
+                    )}
+                    {idx === 0 && m.kind === 'image' && (
+                      <button
+                        onClick={async () => {
+                          const f = await urlToFile(m.url);
+                          if (f) setRecropFile(f);
+                        }}
+                        aria-label="Recrop cover"
+                        title="Recrop cover"
+                        className="absolute top-1 right-8 w-6 h-6 rounded-full bg-black/60 text-white flex items-center justify-center"
+                      >
+                        <Crop className="w-3.5 h-3.5" />
+                      </button>
+                    )}
+                    <button
+                      onClick={() => removeExisting(m)}
+                      aria-label="Remove"
+                      className="absolute top-1 right-1 w-6 h-6 rounded-full bg-black/60 text-white flex items-center justify-center"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                    <div className="absolute bottom-1 left-1 right-1 flex items-center justify-between gap-1">
+                      <button
+                        onClick={() => moveAt(idx, -1)}
+                        disabled={idx === 0}
+                        aria-label="Move left"
+                        className="w-6 h-6 rounded-full bg-black/60 text-white flex items-center justify-center disabled:opacity-30"
+                      >
+                        <ChevronLeft className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        onClick={() => moveAt(idx, 1)}
+                        disabled={idx === order.length - 1}
+                        aria-label="Move right"
+                        className="w-6 h-6 rounded-full bg-black/60 text-white flex items-center justify-center disabled:opacity-30"
+                      >
+                        <ChevronRight className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </div>
+                );
+              }
+              const m = newMedia.find(x => x.tempId === entry.key);
+              if (!m) return null;
+              const isCoverSlot = idx === 0 && m.kind === 'image';
               return (
-              <div key={m.tempId} className="relative aspect-square rounded-xl overflow-hidden bg-[#f5f5f5] border border-[#ef4444]/40">
-                {m.kind === 'video' ? (
-                  <video
-                    src={m.previewUrl}
-                    className="w-full h-full object-contain"
-                    muted
-                    playsInline
-                    controls
-                    preload="metadata"
-                    // @ts-ignore
-                    webkit-playsinline="true"
-                  />
-                ) : (
-                  <img src={m.previewUrl} alt="" className="w-full h-full object-contain" />
-                )}
-                <span className="absolute bottom-1 left-1 px-1.5 py-0.5 rounded bg-[#ef4444] text-white text-[10px] font-semibold">New</span>
-                {isCoverSlot && (
+                <div key={`n-${m.tempId}`} className="relative aspect-square rounded-xl overflow-hidden bg-[#f5f5f5] border border-[#ef4444]/40">
+                  {m.kind === 'video' ? (
+                    <video
+                      src={m.previewUrl}
+                      className="w-full h-full object-contain"
+                      muted
+                      playsInline
+                      controls
+                      preload="metadata"
+                      // @ts-ignore
+                      webkit-playsinline="true"
+                    />
+                  ) : (
+                    <img src={m.previewUrl} alt="" className="w-full h-full object-contain" />
+                  )}
+                  {idx === 0 && (
+                    <span className="absolute top-1 left-1 px-1.5 py-0.5 rounded bg-black/70 text-white text-[10px] font-semibold">Cover</span>
+                  )}
+                  <span className="absolute bottom-1 left-1 px-1.5 py-0.5 rounded bg-[#ef4444] text-white text-[10px] font-semibold">New</span>
+                  {isCoverSlot && (
+                    <button
+                      onClick={() => setRecropFile(m.file)}
+                      aria-label="Recrop cover"
+                      title="Recrop cover"
+                      className="absolute top-1 right-8 w-6 h-6 rounded-full bg-black/60 text-white flex items-center justify-center"
+                    >
+                      <Crop className="w-3.5 h-3.5" />
+                    </button>
+                  )}
+                  {m.editorState && (
+                    <button
+                      onClick={() => startEditNewMedia(m)}
+                      aria-label="Edit layout"
+                      className="absolute bottom-1 right-1 px-2 h-6 rounded-full bg-black/70 text-white text-[10px] font-semibold flex items-center gap-1"
+                    >
+                      <Pencil className="w-3 h-3" /> Edit
+                    </button>
+                  )}
                   <button
-                    onClick={() => setRecropFile(m.file)}
-                    aria-label="Recrop cover"
-                    title="Recrop cover"
-                    className="absolute top-1 right-8 w-6 h-6 rounded-full bg-black/60 text-white flex items-center justify-center"
+                    onClick={() => removeNew(m.tempId)}
+                    aria-label="Remove"
+                    className="absolute top-1 right-1 w-6 h-6 rounded-full bg-black/60 text-white flex items-center justify-center"
                   >
-                    <Crop className="w-3.5 h-3.5" />
+                    <X className="w-3.5 h-3.5" />
                   </button>
-                )}
-                {m.editorState && (
-                  <button
-                    onClick={() => startEditNewMedia(m)}
-                    aria-label="Edit layout"
-                    className="absolute bottom-1 right-1 px-2 h-6 rounded-full bg-black/70 text-white text-[10px] font-semibold flex items-center gap-1"
-                  >
-                    <Pencil className="w-3 h-3" /> Edit
-                  </button>
-                )}
-                <button
-                  onClick={() => removeNew(m.tempId)}
-                  aria-label="Remove"
-                  className="absolute top-1 right-1 w-6 h-6 rounded-full bg-black/60 text-white flex items-center justify-center"
-                >
-                  <X className="w-3.5 h-3.5" />
-                </button>
-              </div>
+                  <div className="absolute bottom-7 left-1 right-1 flex items-center justify-between gap-1 pointer-events-none">
+                    <button
+                      onClick={() => moveAt(idx, -1)}
+                      disabled={idx === 0}
+                      aria-label="Move left"
+                      className="w-6 h-6 rounded-full bg-black/60 text-white flex items-center justify-center disabled:opacity-30 pointer-events-auto"
+                    >
+                      <ChevronLeft className="w-3.5 h-3.5" />
+                    </button>
+                    <button
+                      onClick={() => moveAt(idx, 1)}
+                      disabled={idx === order.length - 1}
+                      aria-label="Move right"
+                      className="w-6 h-6 rounded-full bg-black/60 text-white flex items-center justify-center disabled:opacity-30 pointer-events-auto"
+                    >
+                      <ChevronRight className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                </div>
               );
             })}
+
             {totalMedia < MAX_FILES && (
               <button
                 onClick={() => setLayoutSheetOpen(true)}
