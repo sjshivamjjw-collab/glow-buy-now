@@ -316,19 +316,17 @@ const DiscoverPage = () => {
     setSearching(true);
     const q = debouncedQuery.replace(/^#/, '');
     (async () => {
-      const [postsRes, peopleRes, tagsRes, locsRes] = await Promise.all([
+      const [postsRes, peopleRes] = await Promise.all([
         supabase.rpc('search_posts' as any, { _q: q, _limit: 40, _offset: 0 }),
         supabase.rpc('search_people' as any, { _q: q, _limit: 10 }),
-        supabase.rpc('search_hashtags' as any, { _q: q, _limit: 8 }),
-        supabase.rpc('search_locations' as any, { _q: q, _limit: 8 }),
       ]);
       if (cancelled) return;
       const postList = (postsRes.data as TrendingPost[] | null) ?? [];
       postList.forEach(p => { if (p.is_anonymous) p.user_id = null; });
       setSearchPosts(postList);
       setSearchPeople((peopleRes.data as AuthorInfo[] | null) ?? []);
-      setSearchTags((tagsRes.data as any[] | null) ?? []);
-      setSearchLocs((locsRes.data as any[] | null) ?? []);
+      setSearchTags([]);
+      setSearchLocs([]);
       // Fetch authors for post results
       const ids = Array.from(new Set(postList.map(p => p.user_id).filter((u): u is string => !!u)));
       if (ids.length) {
