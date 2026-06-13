@@ -405,13 +405,12 @@ const DiscoverPage = () => {
       <div className="px-4 pt-3 pb-2">
         <div className="overflow-hidden">
           <div className="flex items-center gap-2.5">
-            {userAvatar ? (
-              <img src={userAvatar} alt={firstName} className="w-9 h-9 rounded-full object-cover ring-1 ring-[#2a2a2a]" />
-            ) : (
-              <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#2a2a2a] to-[#ef4444] flex items-center justify-center text-[#fafafa] text-sm font-bold">
-                {firstName.charAt(0).toUpperCase()}
-              </div>
-            )}
+            <InitialAvatar
+              avatarUrl={userAvatar}
+              name={firstName}
+              size={36}
+              className="ring-1 ring-[#2a2a2a]"
+            />
             <div className="flex flex-col leading-tight">
               <p className="text-[10px] font-semibold tracking-[0.08em] text-[#dc2626]/80">
                 Welcome Back,
@@ -563,13 +562,13 @@ const DiscoverPage = () => {
                       onClick={() => navigate(`/u/${p.id}`)}
                       className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-[#1a1a1a] border-b border-[#2a2a2a]/40 last:border-b-0 text-left"
                     >
-                      {p.avatar_url ? (
-                        <img src={p.avatar_url} alt="" className="w-9 h-9 rounded-full object-cover ring-1 ring-[#2a2a2a]" />
-                      ) : (
-                        <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#2a2a2a] to-[#ef4444] flex items-center justify-center">
-                          <UserIcon className="w-4 h-4 text-white" />
-                        </div>
-                      )}
+                      <InitialAvatar
+                        avatarUrl={p.avatar_url}
+                        name={p.name}
+                        username={p.username}
+                        size={36}
+                        className="ring-1 ring-[#2a2a2a]"
+                      />
                       <div className="min-w-0 flex-1">
                         <div className="text-[13px] font-semibold text-[#fafafa] truncate">{p.name || p.username || 'User'}</div>
                         {p.username && <div className="text-[11px] text-[#a0a0a0] truncate">@{p.username}</div>}
@@ -700,10 +699,14 @@ const DiscoverPage = () => {
                     <div className="flex items-center gap-1.5 min-w-0 flex-1">
                       {isAnon ? (
                         <PenguinAvatar size={22} />
-                      ) : author?.avatar_url ? (
-                        <img src={author.avatar_url} className="w-5 h-5 rounded-full object-cover shrink-0 ring-1 ring-[#2a2a2a]" alt="" />
                       ) : (
-                        <div className="w-5 h-5 rounded-full bg-gradient-to-br from-[#2a2a2a] to-[#ef4444] shrink-0" />
+                        <InitialAvatar
+                          avatarUrl={author?.avatar_url}
+                          name={author?.name}
+                          username={author?.username}
+                          size={20}
+                          className="ring-1 ring-[#2a2a2a]"
+                        />
                       )}
                       <span className="truncate text-[11px] font-semibold text-[#cfcfcf]/70">
                         {isAnon ? (
