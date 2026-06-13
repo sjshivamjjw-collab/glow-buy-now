@@ -10,7 +10,7 @@ import { isNative } from '@/lib/platform';
 
 // Paste your PostHog Project API key here (publishable, safe in client).
 // Leave empty to keep analytics disabled.
-const POSTHOG_KEY = '';
+const POSTHOG_KEY = 'phc_nBvNc9Ejf9FwgqhZHZaqQze5moVhBhWMLvwFvHqWarJb';
 // 'https://us.i.posthog.com' (US cloud) or 'https://eu.i.posthog.com' (EU cloud).
 const POSTHOG_HOST = 'https://us.i.posthog.com';
 
