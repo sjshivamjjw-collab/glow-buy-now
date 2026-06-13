@@ -272,14 +272,14 @@ const EditPostPage = () => {
   };
 
   const removeExisting = (m: ExistingMedia) => {
-    const wasFirst = existing[0]?.id === m.id;
+    const wasFirst = order[0]?.k === 'e' && order[0]?.key === m.id;
     const nextExisting = existing.filter(x => x.id !== m.id);
     setExisting(nextExisting);
+    setOrder(prev => prev.filter(o => !(o.k === 'e' && o.key === m.id)));
     setRemovedIds(prev => [...prev, m.id]);
     const path = extractStoragePath(m.url, 'post-media');
     if (path) setRemovedPaths(prev => [...prev, path]);
     if (wasFirst) {
-      // The slot-#1 image just changed — clear any stale cover and re-crop the new first.
       setCoverFile(null);
       setCoverTempId(null);
       triggerCoverRecrop(nextExisting, newMedia);
@@ -287,7 +287,7 @@ const EditPostPage = () => {
   };
 
   const removeNew = (tempId: string) => {
-    const wasFirstOverall = existing.length === 0 && newMedia[0]?.tempId === tempId;
+    const wasFirstOverall = order[0]?.k === 'n' && order[0]?.key === tempId;
     const target = newMedia.find(x => x.tempId === tempId);
     if (target) URL.revokeObjectURL(target.previewUrl);
     if (tempId === coverTempId) {
@@ -296,6 +296,7 @@ const EditPostPage = () => {
     }
     const nextNew = newMedia.filter(x => x.tempId !== tempId);
     setNewMedia(nextNew);
+    setOrder(prev => prev.filter(o => !(o.k === 'n' && o.key === tempId)));
     if (wasFirstOverall) {
       setCoverFile(null);
       setCoverTempId(null);
@@ -303,31 +304,25 @@ const EditPostPage = () => {
     }
   };
 
-  const moveExisting = (idx: number, dir: -1 | 1) => {
+  // Swap two items in the unified order. When slot #1 changes, re-crop the cover.
+  const moveAt = (idx: number, dir: -1 | 1) => {
     const j = idx + dir;
-    if (j < 0 || j >= existing.length) return;
-    const next = [...existing];
+    if (j < 0 || j >= order.length) return;
+    const next = [...order];
     [next[idx], next[j]] = [next[j], next[idx]];
-    setExisting(next);
+    setOrder(next);
     if (idx === 0 || j === 0) {
-      // Slot #1 changed — recrop the new first image.
       setCoverFile(null);
       setCoverTempId(null);
-      triggerCoverRecrop(next, newMedia);
-    }
-  };
-
-  const moveNew = (idx: number, dir: -1 | 1) => {
-    const j = idx + dir;
-    if (j < 0 || j >= newMedia.length) return;
-    const next = [...newMedia];
-    [next[idx], next[j]] = [next[j], next[idx]];
-    setNewMedia(next);
-    // Only matters for the cover when there are no existing images in front.
-    if (existing.length === 0 && (idx === 0 || j === 0)) {
-      setCoverFile(null);
-      setCoverTempId(null);
-      triggerCoverRecrop(existing, next);
+      // Resolve the new slot-#1 entry to a file/URL for the cropper.
+      const first = next[0];
+      if (first?.k === 'e') {
+        const m = existing.find(x => x.id === first.key);
+        if (m) triggerCoverRecrop([m, ...existing.filter(x => x.id !== m.id)], newMedia);
+      } else if (first?.k === 'n') {
+        const m = newMedia.find(x => x.tempId === first.key);
+        if (m && m.kind === 'image') setRecropFile(m.file);
+      }
     }
   };
 
