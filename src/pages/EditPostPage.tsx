@@ -76,6 +76,9 @@ const EditPostPage = () => {
   const [removedIds, setRemovedIds] = useState<string[]>([]);
   const [removedPaths, setRemovedPaths] = useState<string[]>([]);
   const [newMedia, setNewMedia] = useState<NewMedia[]>([]);
+  // Combined visual order across existing + newly uploaded media.
+  // Lets the user reorder a freshly-added image into slot #1 (the cover).
+  const [order, setOrder] = useState<Array<{ k: 'e' | 'n'; key: string }>>([]);
   const bodyEditorRef = useRef<RichTextEditorHandle>(null);
 
   const [category, setCategory] = useState<CategoryKey | null>(null);
@@ -109,6 +112,7 @@ const EditPostPage = () => {
         id: m.id, url: m.url, kind: m.kind as 'image' | 'video', sort_order: m.sort_order,
       }));
       setExisting(rows);
+      setOrder(rows.map(r => ({ k: 'e' as const, key: r.id })));
       setOriginalFirstUrl(rows[0]?.url ?? null);
       setLoading(false);
     };
@@ -186,6 +190,7 @@ const EditPostPage = () => {
       editorState,
     };
     setNewMedia(prev => [...prev, entry]);
+    setOrder(prev => [...prev, { k: 'n', key: entry.tempId }]);
     return entry.tempId;
   };
 
@@ -267,14 +272,14 @@ const EditPostPage = () => {
   };
 
   const removeExisting = (m: ExistingMedia) => {
-    const wasFirst = existing[0]?.id === m.id;
+    const wasFirst = order[0]?.k === 'e' && order[0]?.key === m.id;
     const nextExisting = existing.filter(x => x.id !== m.id);
     setExisting(nextExisting);
+    setOrder(prev => prev.filter(o => !(o.k === 'e' && o.key === m.id)));
     setRemovedIds(prev => [...prev, m.id]);
     const path = extractStoragePath(m.url, 'post-media');
     if (path) setRemovedPaths(prev => [...prev, path]);
     if (wasFirst) {
-      // The slot-#1 image just changed — clear any stale cover and re-crop the new first.
       setCoverFile(null);
       setCoverTempId(null);
       triggerCoverRecrop(nextExisting, newMedia);
@@ -282,7 +287,7 @@ const EditPostPage = () => {
   };
 
   const removeNew = (tempId: string) => {
-    const wasFirstOverall = existing.length === 0 && newMedia[0]?.tempId === tempId;
+    const wasFirstOverall = order[0]?.k === 'n' && order[0]?.key === tempId;
     const target = newMedia.find(x => x.tempId === tempId);
     if (target) URL.revokeObjectURL(target.previewUrl);
     if (tempId === coverTempId) {
@@ -291,6 +296,7 @@ const EditPostPage = () => {
     }
     const nextNew = newMedia.filter(x => x.tempId !== tempId);
     setNewMedia(nextNew);
+    setOrder(prev => prev.filter(o => !(o.k === 'n' && o.key === tempId)));
     if (wasFirstOverall) {
       setCoverFile(null);
       setCoverTempId(null);
@@ -298,31 +304,25 @@ const EditPostPage = () => {
     }
   };
 
-  const moveExisting = (idx: number, dir: -1 | 1) => {
+  // Swap two items in the unified order. When slot #1 changes, re-crop the cover.
+  const moveAt = (idx: number, dir: -1 | 1) => {
     const j = idx + dir;
-    if (j < 0 || j >= existing.length) return;
-    const next = [...existing];
+    if (j < 0 || j >= order.length) return;
+    const next = [...order];
     [next[idx], next[j]] = [next[j], next[idx]];
-    setExisting(next);
+    setOrder(next);
     if (idx === 0 || j === 0) {
-      // Slot #1 changed — recrop the new first image.
       setCoverFile(null);
       setCoverTempId(null);
-      triggerCoverRecrop(next, newMedia);
-    }
-  };
-
-  const moveNew = (idx: number, dir: -1 | 1) => {
-    const j = idx + dir;
-    if (j < 0 || j >= newMedia.length) return;
-    const next = [...newMedia];
-    [next[idx], next[j]] = [next[j], next[idx]];
-    setNewMedia(next);
-    // Only matters for the cover when there are no existing images in front.
-    if (existing.length === 0 && (idx === 0 || j === 0)) {
-      setCoverFile(null);
-      setCoverTempId(null);
-      triggerCoverRecrop(existing, next);
+      // Resolve the new slot-#1 entry to a file/URL for the cropper.
+      const first = next[0];
+      if (first?.k === 'e') {
+        const m = existing.find(x => x.id === first.key);
+        if (m) triggerCoverRecrop([m, ...existing.filter(x => x.id !== m.id)], newMedia);
+      } else if (first?.k === 'n') {
+        const m = newMedia.find(x => x.tempId === first.key);
+        if (m && m.kind === 'image') setRecropFile(m.file);
+      }
     }
   };
 
@@ -358,51 +358,50 @@ const EditPostPage = () => {
       } else {
         // Any media change (removal, reorder, or new upload) should clear the
         // dedicated cover so the feed falls back to the (new) first post_media row.
-        const reordered = existing.some((m, i) => m.sort_order !== i);
+        const firstEntry = order[0];
+        const firstExistingUrl =
+          firstEntry?.k === 'e' ? existing.find(x => x.id === firstEntry.key)?.url ?? null : null;
+        const reordered = order.some((o, i) =>
+          o.k === 'n' || (o.k === 'e' && existing.find(x => x.id === o.key)?.sort_order !== i),
+        );
         const mediaChanged =
           removedIds.length > 0 ||
           newMedia.length > 0 ||
           reordered ||
-          (existing[0]?.url ?? null) !== originalFirstUrl;
+          firstExistingUrl !== originalFirstUrl;
         if (mediaChanged) {
           coverUpdate = { cover_url: null, cover_kind: null };
         }
       }
 
-      // If the user removed the original first image and uploaded new media,
-      // treat the new media as the replacement first slot so the feed cover
-      // reflects what they actually uploaded.
-      const originalFirstRemoved =
-        originalFirstUrl !== null && !existing.some(m => m.url === originalFirstUrl);
-      const newAtStart = originalFirstRemoved && newMedia.length > 0;
-      const existingStart = newAtStart ? newMedia.length : 0;
-      const newStart = newAtStart ? 0 : existing.length;
-
-      // 2. Reorder remaining existing media
-      for (let i = 0; i < existing.length; i++) {
-        const m = existing[i];
-        const target = existingStart + i;
-        if (m.sort_order !== target) {
-          await supabase.from('post_media' as any).update({ sort_order: target }).eq('id', m.id);
+      // 2 & 3. Walk the unified order and write sort_order to each slot —
+      // existing rows get UPDATEd, new files get uploaded + INSERTed. This is
+      // what makes a newly added image become the cover when moved to slot #1.
+      for (let i = 0; i < order.length; i++) {
+        const entry = order[i];
+        if (entry.k === 'e') {
+          const m = existing.find(x => x.id === entry.key);
+          if (!m) continue;
+          if (m.sort_order !== i) {
+            await supabase.from('post_media' as any).update({ sort_order: i }).eq('id', m.id);
+          }
+        } else {
+          const m = newMedia.find(x => x.tempId === entry.key);
+          if (!m) continue;
+          const ext = m.file.name.split('.').pop() || (m.kind === 'video' ? 'mp4' : 'jpg');
+          const path = `${userId}/${id}/${i}-${Date.now()}.${ext}`;
+          const { error: upErr } = await supabase.storage.from('post-media').upload(path, m.file, {
+            contentType: m.file.type || undefined, upsert: false,
+          });
+          if (upErr) throw upErr;
+          const url = supabase.storage.from('post-media').getPublicUrl(path).data.publicUrl;
+          const { error: mErr } = await supabase.from('post_media' as any).insert({
+            post_id: id, url, kind: m.kind, sort_order: i,
+          });
+          if (mErr) throw mErr;
         }
       }
 
-      // 3. Upload new media
-      for (let i = 0; i < newMedia.length; i++) {
-        const m = newMedia[i];
-        const order = newStart + i;
-        const ext = m.file.name.split('.').pop() || (m.kind === 'video' ? 'mp4' : 'jpg');
-        const path = `${userId}/${id}/${order}-${Date.now()}.${ext}`;
-        const { error: upErr } = await supabase.storage.from('post-media').upload(path, m.file, {
-          contentType: m.file.type || undefined, upsert: false,
-        });
-        if (upErr) throw upErr;
-        const url = supabase.storage.from('post-media').getPublicUrl(path).data.publicUrl;
-        const { error: mErr } = await supabase.from('post_media' as any).insert({
-          post_id: id, url, kind: m.kind, sort_order: order,
-        });
-        if (mErr) throw mErr;
-      }
 
 
       // 4. Update post fields
@@ -505,113 +504,141 @@ const EditPostPage = () => {
             Photos & videos ({totalMedia}/{MAX_FILES})
           </label>
           <div className="grid grid-cols-3 gap-2">
-            {existing.map((m, idx) => (
-              <div key={m.id} className="relative aspect-square rounded-xl overflow-hidden bg-[#f5f5f5] border border-[#e5e5e5]">
-                {m.kind === 'video' ? (
-                  <video
-                    src={m.url}
-                    className="w-full h-full object-contain"
-                    muted
-                    playsInline
-                    controls
-                    preload="metadata"
-                    // @ts-ignore
-                    webkit-playsinline="true"
-                  />
-                ) : (
-                  <img src={m.url} alt="" className="w-full h-full object-contain" />
-                )}
-                {idx === 0 && (
-                  <span className="absolute top-1 left-1 px-1.5 py-0.5 rounded bg-black/70 text-white text-[10px] font-semibold">Cover</span>
-                )}
-                {idx === 0 && m.kind === 'image' && (
-                  <button
-                    onClick={async () => {
-                      const f = await urlToFile(m.url);
-                      if (f) setRecropFile(f);
-                    }}
-                    aria-label="Recrop cover"
-                    title="Recrop cover"
-                    className="absolute top-1 right-8 w-6 h-6 rounded-full bg-black/60 text-white flex items-center justify-center"
-                  >
-                    <Crop className="w-3.5 h-3.5" />
-                  </button>
-                )}
-                <button
-                  onClick={() => removeExisting(m)}
-                  aria-label="Remove"
-                  className="absolute top-1 right-1 w-6 h-6 rounded-full bg-black/60 text-white flex items-center justify-center"
-                >
-                  <X className="w-3.5 h-3.5" />
-                </button>
-                <div className="absolute bottom-1 left-1 right-1 flex items-center justify-between gap-1">
-                  <button
-                    onClick={() => moveExisting(idx, -1)}
-                    disabled={idx === 0}
-                    aria-label="Move left"
-                    className="w-6 h-6 rounded-full bg-black/60 text-white flex items-center justify-center disabled:opacity-30"
-                  >
-                    <ChevronLeft className="w-3.5 h-3.5" />
-                  </button>
-                  <button
-                    onClick={() => moveExisting(idx, 1)}
-                    disabled={idx === existing.length - 1}
-                    aria-label="Move right"
-                    className="w-6 h-6 rounded-full bg-black/60 text-white flex items-center justify-center disabled:opacity-30"
-                  >
-                    <ChevronRight className="w-3.5 h-3.5" />
-                  </button>
-                </div>
-              </div>
-            ))}
-            {newMedia.map((m, nIdx) => {
-              const isCoverSlot = existing.length === 0 && nIdx === 0 && m.kind === 'image';
+            {order.map((entry, idx) => {
+              if (entry.k === 'e') {
+                const m = existing.find(x => x.id === entry.key);
+                if (!m) return null;
+                return (
+                  <div key={`e-${m.id}`} className="relative aspect-square rounded-xl overflow-hidden bg-[#f5f5f5] border border-[#e5e5e5]">
+                    {m.kind === 'video' ? (
+                      <video
+                        src={m.url}
+                        className="w-full h-full object-contain"
+                        muted
+                        playsInline
+                        controls
+                        preload="metadata"
+                        // @ts-ignore
+                        webkit-playsinline="true"
+                      />
+                    ) : (
+                      <img src={m.url} alt="" className="w-full h-full object-contain" />
+                    )}
+                    {idx === 0 && (
+                      <span className="absolute top-1 left-1 px-1.5 py-0.5 rounded bg-black/70 text-white text-[10px] font-semibold">Cover</span>
+                    )}
+                    {idx === 0 && m.kind === 'image' && (
+                      <button
+                        onClick={async () => {
+                          const f = await urlToFile(m.url);
+                          if (f) setRecropFile(f);
+                        }}
+                        aria-label="Recrop cover"
+                        title="Recrop cover"
+                        className="absolute top-1 right-8 w-6 h-6 rounded-full bg-black/60 text-white flex items-center justify-center"
+                      >
+                        <Crop className="w-3.5 h-3.5" />
+                      </button>
+                    )}
+                    <button
+                      onClick={() => removeExisting(m)}
+                      aria-label="Remove"
+                      className="absolute top-1 right-1 w-6 h-6 rounded-full bg-black/60 text-white flex items-center justify-center"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                    <div className="absolute bottom-1 left-1 right-1 flex items-center justify-between gap-1">
+                      <button
+                        onClick={() => moveAt(idx, -1)}
+                        disabled={idx === 0}
+                        aria-label="Move left"
+                        className="w-6 h-6 rounded-full bg-black/60 text-white flex items-center justify-center disabled:opacity-30"
+                      >
+                        <ChevronLeft className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        onClick={() => moveAt(idx, 1)}
+                        disabled={idx === order.length - 1}
+                        aria-label="Move right"
+                        className="w-6 h-6 rounded-full bg-black/60 text-white flex items-center justify-center disabled:opacity-30"
+                      >
+                        <ChevronRight className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </div>
+                );
+              }
+              const m = newMedia.find(x => x.tempId === entry.key);
+              if (!m) return null;
+              const isCoverSlot = idx === 0 && m.kind === 'image';
               return (
-              <div key={m.tempId} className="relative aspect-square rounded-xl overflow-hidden bg-[#f5f5f5] border border-[#ef4444]/40">
-                {m.kind === 'video' ? (
-                  <video
-                    src={m.previewUrl}
-                    className="w-full h-full object-contain"
-                    muted
-                    playsInline
-                    controls
-                    preload="metadata"
-                    // @ts-ignore
-                    webkit-playsinline="true"
-                  />
-                ) : (
-                  <img src={m.previewUrl} alt="" className="w-full h-full object-contain" />
-                )}
-                <span className="absolute bottom-1 left-1 px-1.5 py-0.5 rounded bg-[#ef4444] text-white text-[10px] font-semibold">New</span>
-                {isCoverSlot && (
+                <div key={`n-${m.tempId}`} className="relative aspect-square rounded-xl overflow-hidden bg-[#f5f5f5] border border-[#ef4444]/40">
+                  {m.kind === 'video' ? (
+                    <video
+                      src={m.previewUrl}
+                      className="w-full h-full object-contain"
+                      muted
+                      playsInline
+                      controls
+                      preload="metadata"
+                      // @ts-ignore
+                      webkit-playsinline="true"
+                    />
+                  ) : (
+                    <img src={m.previewUrl} alt="" className="w-full h-full object-contain" />
+                  )}
+                  {idx === 0 && (
+                    <span className="absolute top-1 left-1 px-1.5 py-0.5 rounded bg-black/70 text-white text-[10px] font-semibold">Cover</span>
+                  )}
+                  <span className="absolute bottom-1 left-1 px-1.5 py-0.5 rounded bg-[#ef4444] text-white text-[10px] font-semibold">New</span>
+                  {isCoverSlot && (
+                    <button
+                      onClick={() => setRecropFile(m.file)}
+                      aria-label="Recrop cover"
+                      title="Recrop cover"
+                      className="absolute top-1 right-8 w-6 h-6 rounded-full bg-black/60 text-white flex items-center justify-center"
+                    >
+                      <Crop className="w-3.5 h-3.5" />
+                    </button>
+                  )}
+                  {m.editorState && (
+                    <button
+                      onClick={() => startEditNewMedia(m)}
+                      aria-label="Edit layout"
+                      className="absolute bottom-1 right-1 px-2 h-6 rounded-full bg-black/70 text-white text-[10px] font-semibold flex items-center gap-1"
+                    >
+                      <Pencil className="w-3 h-3" /> Edit
+                    </button>
+                  )}
                   <button
-                    onClick={() => setRecropFile(m.file)}
-                    aria-label="Recrop cover"
-                    title="Recrop cover"
-                    className="absolute top-1 right-8 w-6 h-6 rounded-full bg-black/60 text-white flex items-center justify-center"
+                    onClick={() => removeNew(m.tempId)}
+                    aria-label="Remove"
+                    className="absolute top-1 right-1 w-6 h-6 rounded-full bg-black/60 text-white flex items-center justify-center"
                   >
-                    <Crop className="w-3.5 h-3.5" />
+                    <X className="w-3.5 h-3.5" />
                   </button>
-                )}
-                {m.editorState && (
-                  <button
-                    onClick={() => startEditNewMedia(m)}
-                    aria-label="Edit layout"
-                    className="absolute bottom-1 right-1 px-2 h-6 rounded-full bg-black/70 text-white text-[10px] font-semibold flex items-center gap-1"
-                  >
-                    <Pencil className="w-3 h-3" /> Edit
-                  </button>
-                )}
-                <button
-                  onClick={() => removeNew(m.tempId)}
-                  aria-label="Remove"
-                  className="absolute top-1 right-1 w-6 h-6 rounded-full bg-black/60 text-white flex items-center justify-center"
-                >
-                  <X className="w-3.5 h-3.5" />
-                </button>
-              </div>
+                  <div className="absolute bottom-7 left-1 right-1 flex items-center justify-between gap-1 pointer-events-none">
+                    <button
+                      onClick={() => moveAt(idx, -1)}
+                      disabled={idx === 0}
+                      aria-label="Move left"
+                      className="w-6 h-6 rounded-full bg-black/60 text-white flex items-center justify-center disabled:opacity-30 pointer-events-auto"
+                    >
+                      <ChevronLeft className="w-3.5 h-3.5" />
+                    </button>
+                    <button
+                      onClick={() => moveAt(idx, 1)}
+                      disabled={idx === order.length - 1}
+                      aria-label="Move right"
+                      className="w-6 h-6 rounded-full bg-black/60 text-white flex items-center justify-center disabled:opacity-30 pointer-events-auto"
+                    >
+                      <ChevronRight className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                </div>
               );
             })}
+
             {totalMedia < MAX_FILES && (
               <button
                 onClick={() => setLayoutSheetOpen(true)}
@@ -630,7 +657,7 @@ const EditPostPage = () => {
             className="hidden"
             onChange={e => { handleFiles(e.target.files); e.target.value = ''; }}
           />
-          <p className="mt-1.5 text-[11px] text-[#9b9b9b]">Up to {MAX_FILES} files, {MAX_FILE_MB}MB each. New uploads appear after existing ones.</p>
+          <p className="mt-1.5 text-[11px] text-[#9b9b9b]">Up to {MAX_FILES} files, {MAX_FILE_MB}MB each. Tap the arrows to reorder — the first image becomes the cover.</p>
         </div>
 
         <div>
