@@ -8,6 +8,7 @@ import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { ReportPostDialog } from '@/components/ReportPostDialog';
 import { useBlockedUsers } from '@/hooks/useBlockedUsers';
 import { formatDistanceToNow } from 'date-fns';
+import InitialAvatar from '@/components/InitialAvatar';
 import { useMentionAutocomplete } from '@/hooks/useMentionAutocomplete';
 import { MentionSuggestions } from '@/components/MentionSuggestions';
 import { getCommentPrompt } from '@/lib/commentPrompts';

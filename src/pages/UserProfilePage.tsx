@@ -8,6 +8,7 @@ import { formatCount } from '@/lib/utils';
 import LazyVideoThumbnail from '@/components/LazyVideoThumbnail';
 import { optimizedImageUrl } from '@/lib/storageUrls';
 import TextCoverCard from '@/components/TextCoverCard';
+import InitialAvatar from '@/components/InitialAvatar';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useBlockedUsers } from '@/hooks/useBlockedUsers';
 

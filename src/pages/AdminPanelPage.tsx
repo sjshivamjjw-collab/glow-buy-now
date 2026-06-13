@@ -179,13 +179,12 @@ const AdminPanelPage = () => {
               })
               .map(user => (
                 <div key={user.id} className="flex items-center gap-3 p-4 rounded-2xl bg-card border border-border">
-                  {user.avatar_url ? (
-                    <img src={user.avatar_url} alt="" className="w-10 h-10 rounded-full object-cover shrink-0" loading="lazy" />
-                  ) : (
-                    <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-sm shrink-0">
-                      {(user.name || user.email || '?').split(/[\s@]/).map((n: string) => n[0]).filter(Boolean).join('').slice(0, 2).toUpperCase()}
-                    </div>
-                  )}
+                  <InitialAvatar
+                    avatarUrl={user.avatar_url}
+                    name={user.name}
+                    username={user.email ? user.email.split('@')[0] : null}
+                    size={40}
+                  />
                   <div className="flex-1 min-w-0">
                     <p className="font-bold text-foreground text-sm truncate">{user.name || (user.email ? user.email.split('@')[0] : 'No name')}</p>
                     <p className="text-xs text-muted-foreground truncate">{user.phone || user.email || 'No contact'}</p>

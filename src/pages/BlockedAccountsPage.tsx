@@ -4,6 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { ArrowLeft, Loader2, Ban, ShieldOff } from 'lucide-react';
+import InitialAvatar from '@/components/InitialAvatar';
 
 interface BlockedRow {
   blocked_id: string;

@@ -1,4 +1,5 @@
 import { MentionProfile } from '@/hooks/useMentionAutocomplete';
+import InitialAvatar from '@/components/InitialAvatar';
 
 interface Props {
   items: MentionProfile[];
