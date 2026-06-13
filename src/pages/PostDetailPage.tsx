@@ -552,13 +552,13 @@ const PostDetailPage = () => {
           onClick={() => navigate(isOwn ? '/profile' : `/u/${post.user_id}`)}
           className="flex items-center gap-3 w-full px-4 py-3 text-left"
         >
-          {author?.avatar_url ? (
-            <img src={author.avatar_url} alt="" className="w-10 h-10 rounded-full object-cover ring-1 ring-[#2a2a2a]" />
-          ) : (
-            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#2a2a2a] to-[#ef4444]/40 flex items-center justify-center font-bold text-[#fafafa]">
-              {(author?.name || author?.username || '?')[0]?.toUpperCase()}
-            </div>
-          )}
+          <InitialAvatar
+            avatarUrl={author?.avatar_url}
+            name={author?.name}
+            username={author?.username}
+            size={40}
+            className="ring-1 ring-[#2a2a2a]"
+          />
           <div className="flex-1 min-w-0">
             <p className="font-[Outfit] font-bold text-[#fafafa] text-sm truncate">{author?.name || author?.username || 'User'}</p>
             <p className="text-xs text-[#a0a0a0]">{formatDistanceToNow(new Date(post.created_at), { addSuffix: true })}</p>
@@ -672,12 +672,14 @@ const PostDetailPage = () => {
                   >
                     {cAnon ? (
                       <PenguinAvatar size={32} />
-                    ) : a?.avatar_url ? (
-                      <img src={a.avatar_url} className="w-8 h-8 rounded-full object-cover shrink-0 ring-1 ring-[#2a2a2a]" alt="" />
                     ) : (
-                      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#2a2a2a] to-[#ef4444]/40 shrink-0 flex items-center justify-center text-xs font-bold text-[#fafafa]">
-                        {(a?.name || a?.username || '?')[0]?.toUpperCase()}
-                      </div>
+                      <InitialAvatar
+                        avatarUrl={a?.avatar_url}
+                        name={a?.name}
+                        username={a?.username}
+                        size={32}
+                        className="ring-1 ring-[#2a2a2a]"
+                      />
                     )}
                     <div className="flex-1 min-w-0">
                       <p className="text-xs font-bold text-[#fafafa]">

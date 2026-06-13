@@ -30,15 +30,12 @@ export const MentionSuggestions = ({ items, active, onPick, onHover, variant = '
               : ''
           }`}
         >
-          {p.avatar_url ? (
-            <img src={p.avatar_url} alt="" className="w-8 h-8 rounded-full object-cover shrink-0" />
-          ) : (
-            <div className={`w-8 h-8 rounded-full shrink-0 flex items-center justify-center text-xs font-bold ${
-              isDark ? 'bg-[#2a2a2a] text-[#fafafa]' : 'bg-[#f5f5f5] text-[#0a0a0a]'
-            }`}>
-              {(p.name || p.username || '?').charAt(0).toUpperCase()}
-            </div>
-          )}
+          <InitialAvatar
+            avatarUrl={p.avatar_url}
+            name={p.name}
+            username={p.username}
+            size={32}
+          />
           <div className="min-w-0 flex-1">
             <p className={`text-sm font-semibold truncate ${isDark ? 'text-[#fafafa]' : 'text-[#0a0a0a]'}`}>
               {p.name || p.username}

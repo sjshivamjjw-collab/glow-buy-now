@@ -7,6 +7,7 @@ import { formatCount } from '@/lib/utils';
 import LazyVideoThumbnail from '@/components/LazyVideoThumbnail';
 import { PenguinAvatar, RIPPLER_NAME } from '@/components/RipplerIdentity';
 import TextCoverCard from '@/components/TextCoverCard';
+import InitialAvatar from '@/components/InitialAvatar';
 import { scoreInterestMatch } from '@/lib/interests';
 import {
   getTrendingCache,

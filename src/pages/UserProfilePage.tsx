@@ -142,11 +142,12 @@ const UserProfileBody = ({ profile, posts, postCount, followers, following, isFo
       </div>
 
       <div className="flex items-center gap-5 mb-5">
-        {profile.avatar_url ? (
-          <img src={profile.avatar_url} alt={name} className="w-20 h-20 rounded-full object-cover" />
-        ) : (
-          <div className="w-20 h-20 rounded-full bg-secondary flex items-center justify-center text-3xl font-bold text-muted-foreground">{name[0]?.toUpperCase()}</div>
-        )}
+        <InitialAvatar
+          avatarUrl={profile.avatar_url}
+          name={name}
+          username={profile.username}
+          size={80}
+        />
         <div className="flex-1 grid grid-cols-3 gap-2 text-center">
           <div><p className="font-bold text-foreground">{formatCount(postCount)}</p><p className="text-[11px] text-muted-foreground">Posts</p></div>
           <div><p className="font-bold text-foreground">{formatCount(followers)}</p><p className="text-[11px] text-muted-foreground">Followers</p></div>
