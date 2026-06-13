@@ -1,15 +1,29 @@
 ## Goal
-Per Apple feedback, remove the "Popular conversations near you" nudge panel from the Discover page so it's no longer visible to any user. Keep the code intact (commented out) so we can re-enable it later without rebuilding.
 
-## Change
-**File:** `src/pages/DiscoverPage.tsx` (lines ~496–525)
+Replace the plain red/gradient circle that shows when a user has no profile picture with a clean circular avatar that displays the first letter of their name (falling back to their username).
 
-Wrap the entire "Curiosity nudge rows" block (the red-tinted card containing the "Popular conversations near you" label and the `NUDGE_PROMPTS` chips) so it does not render. Approach: comment out the JSX block with a clear `{/* Hidden per Apple review feedback — keep for future re-enable */}` marker.
+## What to build
 
-No other changes:
-- `NUDGE_PROMPTS` constant stays in the file (unused but preserved for easy revert).
-- Backend, data fetching, and all other Discover sections (search, feed, filters, location chip) are untouched.
-- No styling/layout changes elsewhere — the panel sits inside the collapsible header area, so removing it just tightens that section vertically.
+1. **New reusable component `src/components/InitialAvatar.tsx`**
+   - Props: `name?: string | null`, `username?: string | null`, `avatarUrl?: string | null`, `size?: number` (px), `className?: string`.
+   - Behavior:
+     - If `avatarUrl` is set, render an `<img>` (round, object-cover) — so callers can use this single component everywhere.
+     - Otherwise render a round div with the first letter of `name` (trimmed). If no name, use the first letter of `username` (stripping any leading `@`). If neither exists, fall back to `?`.
+     - Letter is uppercased, centered, bold, font-size scales with `size` (~45% of size).
+   - Background: a deterministic color picked from a small palette (5–6 muted tones that fit the dark Ripple theme — slate, indigo, emerald, amber, rose, violet) based on a simple hash of `username || name`. This way the same user always gets the same color and feeds don't look monotone. Text color is white.
+   - Border/ring: optional via `className` so existing ring styles (e.g. `ring-1 ring-[#2a2a2a]`) can still be applied by callers.
 
-## Verification
-Open `/` (Discover) in preview and confirm the red "Popular conversations near you" strip with chips like "+ Restaurant review" no longer appears, while the rest of the header (search, location, filters) and feed render normally.
+2. **Replace the five existing fallback spots** to render `InitialAvatar` (keeping the same size + ring classes):
+   - `src/pages/DiscoverPage.tsx` line ~706 (5×5 in feed card — the one the user selected)
+   - `src/pages/DiscoverPage.tsx` line ~566 (9×9 in search/people result)
+   - `src/pages/DiscoverPage.tsx` line ~411 (9×9, already has a letter — switch for consistency)
+   - `src/pages/PostDetailPage.tsx` line ~558 (10×10 post header)
+   - `src/pages/PostDetailPage.tsx` line ~678 (8×8 comment author)
+   - Also sweep `UserProfilePage.tsx`, `AdminPanelPage.tsx`, `BlockedAccountsPage.tsx`, `MentionSuggestions.tsx` and apply the same component to their `avatar_url ? <img/> : <fallback/>` blocks so the experience is consistent everywhere.
+
+3. **No DB or schema changes.** Purely a presentation tweak.
+
+## Out of scope
+
+- Anonymous (Rippler) avatars keep using `PenguinAvatar`.
+- No changes to the actual profile photo upload flow.

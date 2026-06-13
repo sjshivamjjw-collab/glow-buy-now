@@ -4,6 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { ArrowLeft, Loader2, Ban, ShieldOff } from 'lucide-react';
+import InitialAvatar from '@/components/InitialAvatar';
 
 interface BlockedRow {
   blocked_id: string;
@@ -65,11 +66,12 @@ const BlockedAccountsPage = () => {
             return (
               <li key={r.blocked_id} className="flex items-center gap-3 px-4 py-3">
                 <button onClick={() => navigate(`/u/${r.blocked_id}`)} className="flex items-center gap-3 flex-1 min-w-0 text-left">
-                  {r.avatar_url ? (
-                    <img src={r.avatar_url} alt={display} className="w-10 h-10 rounded-full object-cover" />
-                  ) : (
-                    <div className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center text-sm font-bold text-muted-foreground">{display[0]?.toUpperCase()}</div>
-                  )}
+                  <InitialAvatar
+                    avatarUrl={r.avatar_url}
+                    name={r.name}
+                    username={r.username}
+                    size={40}
+                  />
                   <div className="min-w-0">
                     <p className="font-semibold text-foreground truncate text-sm">{display}</p>
                     {r.username && r.name && <p className="text-xs text-muted-foreground truncate">@{r.username}</p>}
