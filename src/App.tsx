@@ -73,7 +73,16 @@ const publicLegalRoutes = (
   </>
 );
 
+const RouteChangeTracker = () => {
+  const location = useLocation();
+  useEffect(() => {
+    trackPageview(window.location.origin + location.pathname + location.search);
+  }, [location.pathname, location.search]);
+  return null;
+};
+
 const AppRoutes = () => {
+
   const { isAuthenticated, isAdmin, loading, onboardingCompleted } = useAuth();
 
   if (loading) {
