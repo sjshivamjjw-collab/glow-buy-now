@@ -162,8 +162,10 @@ const App = () => (
       <AuthProvider>
         <BrowserRouter>
           <AuthGateProvider>
+            <RouteChangeTracker />
             <AppRoutes />
           </AuthGateProvider>
+
         </BrowserRouter>
       </AuthProvider>
     </TooltipProvider>
