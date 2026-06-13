@@ -493,36 +493,36 @@ const DiscoverPage = () => {
           </div>
         </div>
 
-        {/* Curiosity nudge rows */}
-        <div
-          className={`overflow-hidden transition-all duration-300 ease-out ${
-            collapsed ? 'max-h-0 opacity-0 mt-0' : 'max-h-32 opacity-100 mt-3'
-          }`}
-        >
-          <div className="relative rounded-2xl p-3 border border-[#ef4444]/20 bg-[linear-gradient(135deg,#1a0d12_0%,#16161c_55%,#1a0d12_100%)] shadow-[0_4px_20px_-8px_rgba(239,68,68,0.25)] overflow-hidden">
-            {/* subtle glow */}
-            <div className="pointer-events-none absolute -top-10 -right-10 w-32 h-32 rounded-full bg-[#ef4444]/10 blur-2xl" />
-            <div className="relative flex items-center gap-1.5 mb-2">
-              <Sparkles className="w-3 h-3 text-[#ef4444]" />
-              <p className="text-[10px] font-semibold uppercase tracking-[0.1em] text-[#dc2626]">
-                Popular conversations near you
-              </p>
-
-            </div>
-            <div className="relative flex gap-1.5 overflow-x-auto scrollbar-hide -mx-1 px-1">
-              {NUDGE_PROMPTS.map(p => (
-                <button
-                  key={p.label}
-                  onClick={() => navigate(`/post/new?category=${p.category}${p.category === 'review' ? '&sub=restaurant' : ''}`)}
-                  className="group/chip shrink-0 flex items-center gap-1 px-2.5 py-1.5 rounded-full bg-[#fafafa]/[0.04] backdrop-blur-sm border border-[#fafafa]/10 text-[#fafafa] text-[11px] font-medium whitespace-nowrap hover:bg-[#ef4444]/15 hover:border-[#ef4444]/50 hover:text-white transition-all"
-                >
-                  <span className="text-[#ef4444]">+</span>
-                  {p.label}
-                </button>
-              ))}
+        {/* Curiosity nudge rows — Hidden per Apple review feedback (too crowded). Keep for future re-enable. */}
+        {false && (
+          <div
+            className={`overflow-hidden transition-all duration-300 ease-out ${
+              collapsed ? 'max-h-0 opacity-0 mt-0' : 'max-h-32 opacity-100 mt-3'
+            }`}
+          >
+            <div className="relative rounded-2xl p-3 border border-[#ef4444]/20 bg-[linear-gradient(135deg,#1a0d12_0%,#16161c_55%,#1a0d12_100%)] shadow-[0_4px_20px_-8px_rgba(239,68,68,0.25)] overflow-hidden">
+              <div className="pointer-events-none absolute -top-10 -right-10 w-32 h-32 rounded-full bg-[#ef4444]/10 blur-2xl" />
+              <div className="relative flex items-center gap-1.5 mb-2">
+                <Sparkles className="w-3 h-3 text-[#ef4444]" />
+                <p className="text-[10px] font-semibold uppercase tracking-[0.1em] text-[#dc2626]">
+                  Popular conversations near you
+                </p>
+              </div>
+              <div className="relative flex gap-1.5 overflow-x-auto scrollbar-hide -mx-1 px-1">
+                {NUDGE_PROMPTS.map(p => (
+                  <button
+                    key={p.label}
+                    onClick={() => navigate(`/post/new?category=${p.category}${p.category === 'review' ? '&sub=restaurant' : ''}`)}
+                    className="group/chip shrink-0 flex items-center gap-1 px-2.5 py-1.5 rounded-full bg-[#fafafa]/[0.04] backdrop-blur-sm border border-[#fafafa]/10 text-[#fafafa] text-[11px] font-medium whitespace-nowrap hover:bg-[#ef4444]/15 hover:border-[#ef4444]/50 hover:text-white transition-all"
+                  >
+                    <span className="text-[#ef4444]">+</span>
+                    {p.label}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
-        </div>
+        )}
       </div>
 
       <div className="px-3 pt-4">
