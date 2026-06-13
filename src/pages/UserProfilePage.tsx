@@ -12,6 +12,8 @@ import TextCoverCard from '@/components/TextCoverCard';
 import InitialAvatar from '@/components/InitialAvatar';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useBlockedUsers } from '@/hooks/useBlockedUsers';
+import { track } from '@/lib/analytics';
+
 
 interface Profile { id: string; name: string | null; username: string | null; avatar_url: string | null; }
 interface PostThumb { id: string; cover_url: string | null; cover_kind: string | null; like_count: number; is_anonymous?: boolean; title?: string | null; }
@@ -77,13 +79,15 @@ const UserProfilePage = () => {
       await supabase.from('user_follows' as any).delete().eq('follower_id', meId).eq('following_id', pageUserId);
       setIsFollowing(false);
       setFollowers(c => Math.max(0, c - 1));
+      track('user_unfollowed', { target_user_id: pageUserId });
     } else {
       const { error } = await supabase.from('user_follows' as any).insert({ follower_id: meId, following_id: pageUserId });
       if (error) toast({ title: 'Could not follow', description: error.message, variant: 'destructive' });
-      else { setIsFollowing(true); setFollowers(c => c + 1); }
+      else { setIsFollowing(true); setFollowers(c => c + 1); track('user_followed', { target_user_id: pageUserId }); }
     }
     setBusy(false);
   };
+
 
   if (loading) return <div className="min-h-screen flex items-center justify-center"><Loader2 className="w-6 h-6 animate-spin text-muted-foreground" /></div>;
   if (!profile) return <div className="min-h-screen flex items-center justify-center text-muted-foreground">User not found</div>;

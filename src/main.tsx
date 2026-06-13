@@ -2,6 +2,10 @@ import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
 import "./index.css";
 import { isNative } from "./lib/platform";
+import { initAnalytics } from "./lib/analytics";
+
+initAnalytics();
+
 
 // Native-only bootstrap (no-op on web)
 if (isNative()) {

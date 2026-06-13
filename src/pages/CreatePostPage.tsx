@@ -4,6 +4,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { invalidateTrending } from '@/lib/feedCache';
+import { track } from '@/lib/analytics';
+
 import {
   ArrowLeft, ImagePlus, X, Loader2, MapPin, Hash, Music, Sparkles,
   Palette, Star, MessageSquareQuote, Gem, ChevronRight, Crop, Pencil,
@@ -706,8 +708,10 @@ const CreatePostPage = () => {
       clearDraft();
       toast({ title: 'Posted!' });
       invalidateTrending();
+      track('post_created', { post_id: postId, category: category || null, media_count: media.length });
       navigate(`/p/${postId}`);
     } catch (e: any) {
+
       console.error(e);
       // Best-effort cleanup of an orphan post if media uploads failed mid-way.
       if (createdPostId) {

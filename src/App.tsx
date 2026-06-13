@@ -1,6 +1,8 @@
-import React, { lazy, Suspense } from "react";
+import React, { lazy, Suspense, useEffect } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Route, Routes, Navigate } from "react-router-dom";
+import { BrowserRouter, Route, Routes, Navigate, useLocation } from "react-router-dom";
+import { trackPageview } from "@/lib/analytics";
+
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
@@ -71,7 +73,16 @@ const publicLegalRoutes = (
   </>
 );
 
+const RouteChangeTracker = () => {
+  const location = useLocation();
+  useEffect(() => {
+    trackPageview(window.location.origin + location.pathname + location.search);
+  }, [location.pathname, location.search]);
+  return null;
+};
+
 const AppRoutes = () => {
+
   const { isAuthenticated, isAdmin, loading, onboardingCompleted } = useAuth();
 
   if (loading) {
@@ -151,8 +162,10 @@ const App = () => (
       <AuthProvider>
         <BrowserRouter>
           <AuthGateProvider>
+            <RouteChangeTracker />
             <AppRoutes />
           </AuthGateProvider>
+
         </BrowserRouter>
       </AuthProvider>
     </TooltipProvider>
