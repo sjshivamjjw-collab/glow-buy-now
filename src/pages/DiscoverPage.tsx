@@ -572,49 +572,53 @@ const DiscoverPage = () => {
               </section>
             )}
 
-            {/* Hashtags */}
-            {searchTags.length > 0 && (
-              <section>
-                <h3 className="text-[10px] font-bold uppercase tracking-[0.1em] text-[#dc2626] mb-1.5 px-1">Hashtags</h3>
-                <div className="flex flex-wrap gap-1.5">
-                  {searchTags.map(t => (
-                    <button
-                      key={t.tag}
-                      onClick={() => setQuery(`#${t.tag}`)}
-                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#161616] border border-[#2a2a2a]/60 hover:border-[#ef4444] text-[12px] text-[#fafafa] font-semibold"
-                    >
-                      <Hash className="w-3 h-3 text-[#ef4444]" />
-                      {t.tag}
-                      <span className="text-[10px] text-[#a0a0a0] font-medium">{formatCount(Number(t.post_count))}</span>
-                    </button>
-                  ))}
-                </div>
-              </section>
+            {/* Hashtags & Locations sections hidden per product feedback — search should jump straight to posts. Kept in code for future re-enable. */}
+            {false && (
+              <>
+                {searchTags.length > 0 && (
+                  <section>
+                    <h3 className="text-[10px] font-bold uppercase tracking-[0.1em] text-[#dc2626] mb-1.5 px-1">Hashtags</h3>
+                    <div className="flex flex-wrap gap-1.5">
+                      {searchTags.map(t => (
+                        <button
+                          key={t.tag}
+                          onClick={() => setQuery(`#${t.tag}`)}
+                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#161616] border border-[#2a2a2a]/60 hover:border-[#ef4444] text-[12px] text-[#fafafa] font-semibold"
+                        >
+                          <Hash className="w-3 h-3 text-[#ef4444]" />
+                          {t.tag}
+                          <span className="text-[10px] text-[#a0a0a0] font-medium">{formatCount(Number(t.post_count))}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </section>
+                )}
+
+                {searchLocs.length > 0 && (
+                  <section>
+                    <h3 className="text-[10px] font-bold uppercase tracking-[0.1em] text-[#dc2626] mb-1.5 px-1">Locations</h3>
+                    <div className="flex flex-wrap gap-1.5">
+                      {searchLocs.map(l => (
+                        <button
+                          key={l.location}
+                          onClick={() => setLocationFilter(l.location)}
+                          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-[12px] font-semibold ${
+                            locationFilter === l.location
+                              ? 'bg-[#ef4444]/15 border-[#ef4444] text-[#fafafa]'
+                              : 'bg-[#161616] border-[#2a2a2a]/60 hover:border-[#ef4444] text-[#fafafa]'
+                          }`}
+                        >
+                          <MapPin className="w-3 h-3 text-[#ef4444]" />
+                          <span className="truncate max-w-[140px]">{l.location}</span>
+                          <span className="text-[10px] text-[#a0a0a0] font-medium">{formatCount(Number(l.post_count))}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </section>
+                )}
+              </>
             )}
 
-            {/* Locations */}
-            {searchLocs.length > 0 && (
-              <section>
-                <h3 className="text-[10px] font-bold uppercase tracking-[0.1em] text-[#dc2626] mb-1.5 px-1">Locations</h3>
-                <div className="flex flex-wrap gap-1.5">
-                  {searchLocs.map(l => (
-                    <button
-                      key={l.location}
-                      onClick={() => setLocationFilter(l.location)}
-                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-[12px] font-semibold ${
-                        locationFilter === l.location
-                          ? 'bg-[#ef4444]/15 border-[#ef4444] text-[#fafafa]'
-                          : 'bg-[#161616] border-[#2a2a2a]/60 hover:border-[#ef4444] text-[#fafafa]'
-                      }`}
-                    >
-                      <MapPin className="w-3 h-3 text-[#ef4444]" />
-                      <span className="truncate max-w-[140px]">{l.location}</span>
-                      <span className="text-[10px] text-[#a0a0a0] font-medium">{formatCount(Number(l.post_count))}</span>
-                    </button>
-                  ))}
-                </div>
-              </section>
-            )}
 
             {(searchPeople.length > 0 || searchTags.length > 0 || searchLocs.length > 0) && displayedPosts.length > 0 && (
               <h3 className="text-[10px] font-bold uppercase tracking-[0.1em] text-[#dc2626] mt-1 px-1">Posts</h3>
