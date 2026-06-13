@@ -13,6 +13,8 @@ import {
   setTrendingCache,
   isTrendingStale,
   setTrendingScrollY,
+  getDiscoverState,
+  setDiscoverState,
 } from '@/lib/feedCache';
 import { useBlockedUsers } from '@/hooks/useBlockedUsers';
 import { optimizedImageUrl } from '@/lib/storageUrls';
@@ -81,10 +83,11 @@ const DiscoverPage = () => {
   const [loadingMore, setLoadingMore] = useState(false);
   const loadingMoreRef = useRef(false);
   const sentinelRef = useRef<HTMLDivElement>(null);
-  const [query, setQuery] = useState('');
-  const [activeChip, setActiveChip] = useState<string>('For you');
+  const cachedDiscover = getDiscoverState();
+  const [query, setQuery] = useState(cachedDiscover?.query ?? '');
+  const [activeChip, setActiveChip] = useState<string>(cachedDiscover?.activeChip ?? 'For you');
   const [categoryOpen, setCategoryOpen] = useState(false);
-  const [activeCategory, setActiveCategory] = useState<string | null>(null);
+  const [activeCategory, setActiveCategory] = useState<string | null>(cachedDiscover?.activeCategory ?? null);
   const [interests, setInterests] = useState<string[]>([]);
   const categoryRef = useRef<HTMLDivElement>(null);
   const [collapsed, setCollapsed] = useState(false);
@@ -295,7 +298,12 @@ const DiscoverPage = () => {
   const [searchPeople, setSearchPeople] = useState<AuthorInfo[]>([]);
   const [searchTags, setSearchTags] = useState<{ tag: string; post_count: number }[]>([]);
   const [searchLocs, setSearchLocs] = useState<{ location: string; post_count: number }[]>([]);
-  const [locationFilter, setLocationFilter] = useState<string | null>(null);
+  const [locationFilter, setLocationFilter] = useState<string | null>(cachedDiscover?.locationFilter ?? null);
+
+  // Persist search/filter state so back-nav from a post restores the same view.
+  useEffect(() => {
+    setDiscoverState({ query, activeChip, activeCategory, locationFilter });
+  }, [query, activeChip, activeCategory, locationFilter]);
 
   const isSearching = debouncedQuery.length >= 2;
 
