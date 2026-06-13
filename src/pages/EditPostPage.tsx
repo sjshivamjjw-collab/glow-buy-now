@@ -358,51 +358,50 @@ const EditPostPage = () => {
       } else {
         // Any media change (removal, reorder, or new upload) should clear the
         // dedicated cover so the feed falls back to the (new) first post_media row.
-        const reordered = existing.some((m, i) => m.sort_order !== i);
+        const firstEntry = order[0];
+        const firstExistingUrl =
+          firstEntry?.k === 'e' ? existing.find(x => x.id === firstEntry.key)?.url ?? null : null;
+        const reordered = order.some((o, i) =>
+          o.k === 'n' || (o.k === 'e' && existing.find(x => x.id === o.key)?.sort_order !== i),
+        );
         const mediaChanged =
           removedIds.length > 0 ||
           newMedia.length > 0 ||
           reordered ||
-          (existing[0]?.url ?? null) !== originalFirstUrl;
+          firstExistingUrl !== originalFirstUrl;
         if (mediaChanged) {
           coverUpdate = { cover_url: null, cover_kind: null };
         }
       }
 
-      // If the user removed the original first image and uploaded new media,
-      // treat the new media as the replacement first slot so the feed cover
-      // reflects what they actually uploaded.
-      const originalFirstRemoved =
-        originalFirstUrl !== null && !existing.some(m => m.url === originalFirstUrl);
-      const newAtStart = originalFirstRemoved && newMedia.length > 0;
-      const existingStart = newAtStart ? newMedia.length : 0;
-      const newStart = newAtStart ? 0 : existing.length;
-
-      // 2. Reorder remaining existing media
-      for (let i = 0; i < existing.length; i++) {
-        const m = existing[i];
-        const target = existingStart + i;
-        if (m.sort_order !== target) {
-          await supabase.from('post_media' as any).update({ sort_order: target }).eq('id', m.id);
+      // 2 & 3. Walk the unified order and write sort_order to each slot —
+      // existing rows get UPDATEd, new files get uploaded + INSERTed. This is
+      // what makes a newly added image become the cover when moved to slot #1.
+      for (let i = 0; i < order.length; i++) {
+        const entry = order[i];
+        if (entry.k === 'e') {
+          const m = existing.find(x => x.id === entry.key);
+          if (!m) continue;
+          if (m.sort_order !== i) {
+            await supabase.from('post_media' as any).update({ sort_order: i }).eq('id', m.id);
+          }
+        } else {
+          const m = newMedia.find(x => x.tempId === entry.key);
+          if (!m) continue;
+          const ext = m.file.name.split('.').pop() || (m.kind === 'video' ? 'mp4' : 'jpg');
+          const path = `${userId}/${id}/${i}-${Date.now()}.${ext}`;
+          const { error: upErr } = await supabase.storage.from('post-media').upload(path, m.file, {
+            contentType: m.file.type || undefined, upsert: false,
+          });
+          if (upErr) throw upErr;
+          const url = supabase.storage.from('post-media').getPublicUrl(path).data.publicUrl;
+          const { error: mErr } = await supabase.from('post_media' as any).insert({
+            post_id: id, url, kind: m.kind, sort_order: i,
+          });
+          if (mErr) throw mErr;
         }
       }
 
-      // 3. Upload new media
-      for (let i = 0; i < newMedia.length; i++) {
-        const m = newMedia[i];
-        const order = newStart + i;
-        const ext = m.file.name.split('.').pop() || (m.kind === 'video' ? 'mp4' : 'jpg');
-        const path = `${userId}/${id}/${order}-${Date.now()}.${ext}`;
-        const { error: upErr } = await supabase.storage.from('post-media').upload(path, m.file, {
-          contentType: m.file.type || undefined, upsert: false,
-        });
-        if (upErr) throw upErr;
-        const url = supabase.storage.from('post-media').getPublicUrl(path).data.publicUrl;
-        const { error: mErr } = await supabase.from('post_media' as any).insert({
-          post_id: id, url, kind: m.kind, sort_order: order,
-        });
-        if (mErr) throw mErr;
-      }
 
 
       // 4. Update post fields
