@@ -312,6 +312,7 @@ export type Database = {
           is_hidden: boolean
           like_count: number
           location: string | null
+          location_norm: string | null
           music_title: string | null
           music_url: string | null
           review_recommendation: string | null
@@ -334,6 +335,7 @@ export type Database = {
           is_hidden?: boolean
           like_count?: number
           location?: string | null
+          location_norm?: string | null
           music_title?: string | null
           music_url?: string | null
           review_recommendation?: string | null
@@ -356,6 +358,7 @@ export type Database = {
           is_hidden?: boolean
           like_count?: number
           location?: string | null
+          location_norm?: string | null
           music_title?: string | null
           music_url?: string | null
           review_recommendation?: string | null
@@ -687,6 +690,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      normalize_location: { Args: { _loc: string }; Returns: string }
       search_hashtags: {
         Args: { _limit?: number; _q: string }
         Returns: {
