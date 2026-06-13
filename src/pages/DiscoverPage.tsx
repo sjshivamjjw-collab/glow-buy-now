@@ -13,6 +13,8 @@ import {
   setTrendingCache,
   isTrendingStale,
   setTrendingScrollY,
+  getDiscoverState,
+  setDiscoverState,
 } from '@/lib/feedCache';
 import { useBlockedUsers } from '@/hooks/useBlockedUsers';
 import { optimizedImageUrl } from '@/lib/storageUrls';
