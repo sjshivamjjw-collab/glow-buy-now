@@ -1,25 +1,18 @@
-Your PostHog project token and region are visible — US Cloud, key `phc_nBvNc9Ejf9FwgqhZHZaqQze5moVhBhWMLvwFvHqWarJb`.
+## Problem
+When a signed-out visitor lands on Discover, the header reads "Welcome Back, there" because `firstName` falls back to the placeholder `'there'`.
 
 ## Change
+Edit `src/pages/DiscoverPage.tsx` only (greeting block at lines ~405–425).
 
-Edit `src/lib/analytics.ts` (lines ~13–15):
+For anonymous users (`!isAuthenticated`), render a different greeting:
+- Keep the same avatar slot (uses `InitialAvatar` with name="R" so it shows the Ripple initial).
+- Small label: `Welcome to`
+- Title: `Ripple`
+- Inline `Sign in` button (text/link styled in red `#dc2626`) that calls `requireAuth()` from `useAuthGate()` — same modal used elsewhere for gated actions.
 
-```ts
-const POSTHOG_KEY = 'phc_nBvNc9Ejf9FwgqhZHZaqQze5moVhBhWMLvwFvHqWarJb';
-const POSTHOG_HOST = 'https://us.i.posthog.com';
-```
+For signed-in users, behavior is unchanged ("Welcome Back, {firstName}").
 
-That's the only code change. Host stays as US since your region is US Cloud.
-
-## After it ships
-
-1. Preview auto-reloads, PostHog initializes immediately.
-2. Open the preview, click around a few pages.
-3. In PostHog → **Activity** (left nav), you should see `$pageview` events within ~30 seconds, tagged `platform: web`, `app: ripple`.
-4. Sign in once to confirm `signin_completed` fires and the user gets identified by their auth UID.
-
-## Note on the key in source
-
-The PostHog project token is a publishable client key (PostHog explicitly says "Safe to use in public apps" in your screenshot), so committing it to the bundle is the intended setup — no secrets tool needed.
-
-Approve and I'll make the edit.
+## Technical notes
+- Pull `isAuthenticated` from `useAuth()` (already imported in this file).
+- Import `useAuthGate` and call `requireAuth('sign in')` on click.
+- No other files touched; no business-logic, routing, or backend changes.
