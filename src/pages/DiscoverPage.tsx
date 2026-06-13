@@ -298,7 +298,12 @@ const DiscoverPage = () => {
   const [searchPeople, setSearchPeople] = useState<AuthorInfo[]>([]);
   const [searchTags, setSearchTags] = useState<{ tag: string; post_count: number }[]>([]);
   const [searchLocs, setSearchLocs] = useState<{ location: string; post_count: number }[]>([]);
-  const [locationFilter, setLocationFilter] = useState<string | null>(null);
+  const [locationFilter, setLocationFilter] = useState<string | null>(cachedDiscover?.locationFilter ?? null);
+
+  // Persist search/filter state so back-nav from a post restores the same view.
+  useEffect(() => {
+    setDiscoverState({ query, activeChip, activeCategory, locationFilter });
+  }, [query, activeChip, activeCategory, locationFilter]);
 
   const isSearching = debouncedQuery.length >= 2;
 
