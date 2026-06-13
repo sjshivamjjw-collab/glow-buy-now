@@ -1,80 +1,82 @@
-# Public Web Browsing (Web only, Native stays gated)
+# Analytics setup for Ripple
 
-Anonymous visitors on the web can browse the full app read-only. Native app (iOS / Android) continues to require sign-in exactly as today. Any write action (like, comment, follow, post, save, RSVP, chat, etc.) opens an inline "Sign in to continue" modal — closing it leaves the user where they were.
+Two complementary tools, both free, both privacy-respecting enough to ship without a cookie banner (PostHog in "no-cookie" mode + GSC which doesn't track users at all).
 
-## Approach
+## What you'll get
 
-Detect the runtime with `Capacitor.isNativePlatform()` (already wired via `src/lib/platform.ts`). One flag, `allowAnonymousBrowse = !isNative()`, controls every gate.
+**PostHog dashboard answers:**
+- Total visitors / unique visitors / pageviews (daily, weekly, monthly)
+- Top pages (which posts get the most views)
+- Where visitors come from (Google, direct, social)
+- Device / country / browser breakdown
+- **Funnel: anonymous visitor → opened sign-in modal → signed up → created first post** (the key Ripple metric)
+- Retention: how many users come back after day 1, 7, 30
+- Works on both web AND inside the iOS/Android app (same dashboard)
 
-**Build & store-submission risk: none.** No new native plugins, no Capacitor config changes, no Xcode changes. Same `npm run build` → `npx cap sync` flow. The native binary keeps requiring sign-in so Apple/Google reviewers see no behavior change. Also OTA-safe via Capgo.
+**Google Search Console answers:**
+- Which Google searches show Ripple in results
+- Click-through rate per query
+- Indexing status (which pages Google has crawled)
+- Mobile usability issues
 
-## Frontend changes
+## Setup steps
 
-1. **`src/App.tsx` routing** — when `!isAuthenticated`:
-   - On native → current behavior (redirect to `/auth`).
-   - On web → render the full `AppLayout` tree, but treat the user as a "guest". Guests get Discover, post detail, user profile, communities, search — everything that's currently a read view. `/onboarding`, `/post/new`, `/p/:id/edit`, `/notifications`, `/saved`, `/profile`, `/settings`, `/admin` redirect to `/` with a sign-in prompt.
+### 1. PostHog account (you do this, 2 min)
+- Sign up at posthog.com (free tier = 1M events/mo, way more than you'll use)
+- Copy the Project API Key (starts with `phc_...`)
+- Paste it when I ask via the secrets tool
 
-2. **New `useAuthGate()` hook + `<AuthPromptDialog />`** — global context (mounted once in `App.tsx`).
-   - `requireAuth(action?: string)` returns `true` if signed in; otherwise opens the modal with copy like "Sign in to like posts" and returns `false`.
-   - Modal CTAs: "Continue with Google", "Continue with Apple", "Use phone number" — same options as `/auth`. Cancel just closes it.
+### 2. PostHog integration (I build this)
+- Add `posthog-js` package
+- New file `src/lib/analytics.ts` — initializes PostHog, exposes `track(event, props)` helper
+- Initialize in `src/main.tsx` with no-cookie config (uses localStorage, no GDPR banner needed)
+- Add route-change tracking in `App.tsx` so every page navigation = a pageview
+- Identify signed-in users by their `auth.uid()` in `AuthContext.tsx` (anonymous visitors stay anonymous until they sign in — PostHog auto-merges the two sessions)
+- Track key events at their call sites:
+  - `signin_modal_opened` (in `AuthGate.tsx` — fires when guest taps a gated action)
+  - `signin_completed` (in `AuthContext.tsx`)
+  - `post_created` (in `CreatePostPage.tsx`)
+  - `post_liked`, `post_saved`, `user_followed` (in `PostDetailPage.tsx`, `UserProfilePage.tsx`)
+  - `post_viewed` (in `PostDetailPage.tsx`)
+- Native: PostHog's web SDK works inside Capacitor's webview, so no extra plugin needed. Events from the app show up under the same project with `$device_type: Mobile`.
 
-3. **Gate every write call site** with `if (!requireAuth('like')) return;` before mutating. Audit list:
-   - `DiscoverPage.tsx` — like, save, follow, comment submit
-   - `PostDetailPage.tsx` — like, save, comment, comment-like, report
-   - `UserProfilePage.tsx` — follow, block, report
-   - `BottomNav.tsx` + `AppLayout.tsx` — Create / Notifications / Saved / Profile tabs trigger the modal instead of navigating
-   - `CreatePostPage.tsx` — guarded at route level (redirect)
-   - `NotificationsPage`, `SavedPostsPage`, `ProfilePage`, `SettingsPage` — route-level redirect
-   - Community room (chat send, RSVP, resource open) — gate the actions
+### 3. Google Search Console (I do this via connector)
+- Use the `google_search_console` connector you already have linked
+- Generate a meta-tag verification token for `https://myripple.co.in/`
+- Add the `<meta name="google-site-verification" ...>` tag to `index.html`
+- Call the verify endpoint
+- Add the verified site to your Search Console property list
+- After this, Google starts collecting data automatically (first results appear in ~48 hrs)
 
-4. **`AuthContext`** — add `isGuest: boolean` derived as `!isAuthenticated && !isNative()`. `loading` already handled. No storage changes.
+### 4. Submit sitemap (bonus, helps SEO)
+- Generate `public/sitemap.xml` with your static legal pages + a dynamic note that posts are crawlable
+- Submit it to GSC
 
-5. **Top bar / nav affordance** — when guest, replace the profile avatar with a small "Sign in" button so the value prop is visible without forcing redirect.
+## What you'll need to do after I ship
 
-## Backend changes (RLS + GRANTs)
+1. Create PostHog account → paste API key when prompted
+2. Wait 24-48 hrs for first data
+3. In PostHog: create a "Sign-up funnel" insight using the events listed above (I'll include the exact event names in a `docs/ANALYTICS.md` cheat-sheet)
+4. In GSC: nothing — data starts flowing automatically
 
-Today every policy is scoped to `authenticated`. To let anon read the same content without weakening security, add `anon` policies mirroring existing read policies and grant SELECT/EXECUTE to anon on read-only surfaces. No schema changes.
+## What I am NOT adding (and why)
 
-Tables that get an `anon` SELECT policy + `GRANT SELECT TO anon`:
-- `posts` — same `is_hidden = false AND is_anonymous masking` rule as the authenticated read policy (anon never sees the masked user_id of anonymous posts; already handled by the existing `CASE WHEN is_anonymous` logic in `get_post_public`/`get_trending_posts`, but mirrored here for direct selects).
-- `post_media` — read all (already `true` for authenticated).
-- `post_comments` — same masking rule (`is_anonymous = false`).
-- `profiles` — anon can read `id, username, name, avatar_url, bio` (the columns shown publicly). Implemented as a policy + a column-level grant, or simpler: keep table grant + rely on the existing `get_public_profiles` RPC.
-- `user_follows` — read all (for follower counts).
-- `communities`, `community_tiers`, `community_channels` (only `required_tier_level = 0` ones), `community_events`, `community_resources` (with URL hidden for anon via the existing `TierLockOverlay` mechanism) — anon can list & view metadata, gated content stays hidden.
+- **Google Analytics 4** — would force a cookie consent banner in EU and the data overlaps with PostHog. Skip unless you specifically need Google Ads attribution later.
+- **Server-side analytics on edge functions** — not needed for visitor counting; PostHog client-side is enough.
+- **Session replay** — PostHog supports it but it's heavier and raises privacy questions for a social app with DMs. Can be turned on later from the PostHog dashboard with one click.
 
-Security-definer RPCs that anon needs EXECUTE on (most already do the right CASE-masking):
-- `get_trending_posts`, `get_post_public`, `get_post_comments_public`, `search_posts`, `search_locations`, `search_hashtags`, `get_public_profiles`, `get_chat_author_names`.
+## Files I'll touch
 
-RPCs that must stay authenticated-only (they reference `auth.uid()`):
-- `search_people` — already guarded with `auth.uid() IS NOT NULL`; leave as-is. Anon search results will return 0 rows — UI shows "Sign in to search people".
-- `search_profiles_for_mention` — same, only used inside the comment composer (already gated).
-- `get_comment_like_state`, `get_user_post_saves_count`, `has_role`, `get_blocked_user_ids` — authenticated-only.
+- new: `src/lib/analytics.ts`
+- new: `docs/ANALYTICS.md` (event reference + how to read the PostHog dashboard)
+- new: `public/sitemap.xml`
+- edited: `index.html` (GSC meta tag)
+- edited: `src/main.tsx` (init PostHog)
+- edited: `src/App.tsx` (route-change pageview tracker)
+- edited: `src/contexts/AuthContext.tsx` (identify user on sign-in, reset on sign-out)
+- edited: `src/components/AuthGate.tsx` (track sign-in modal opens)
+- edited: `src/pages/CreatePostPage.tsx`, `PostDetailPage.tsx`, `UserProfilePage.tsx` (track key events)
+- edited: `package.json` (`posthog-js`)
+- edited: `mem://index.md` + new `mem://features/analytics`
 
-Write privileges remain unchanged — every INSERT/UPDATE/DELETE policy stays scoped to `authenticated` + `auth.uid() = user_id`. Anon literally cannot mutate even if they bypass the UI gate.
-
-## Files touched
-
-- `src/App.tsx` — guest routing branch
-- `src/contexts/AuthContext.tsx` — `isGuest` flag
-- `src/hooks/useAuthGate.ts` (new) — `requireAuth()` hook
-- `src/components/AuthPromptDialog.tsx` (new) — modal
-- `src/components/AppLayout.tsx` — mount modal + Sign-in button for guests
-- `src/components/BottomNav.tsx` — gate tab navigation
-- `src/pages/DiscoverPage.tsx`, `PostDetailPage.tsx`, `UserProfilePage.tsx` — wrap write handlers
-- `src/pages/CreatePostPage.tsx`, `NotificationsPage.tsx`, `SavedPostsPage.tsx`, `ProfilePage.tsx`, `SettingsPage.tsx` — route-level guest redirect
-- Community pages — wrap write handlers
-- 1 migration: anon SELECT policies + GRANTs + RPC EXECUTE grants
-
-## Out of scope
-
-- Anon write actions (none).
-- Server-side rendering / SEO meta per post (separate task if you want crawlable post pages).
-- Changing the OAuth/OTP flow itself.
-
-## Reliability notes
-
-- The web/native split lives in one constant; flipping it back is one line if anything goes wrong.
-- Native users never hit the new code path — `isNative()` short-circuits before guest logic runs.
-- RLS for writes is unchanged, so even a bug in the UI gate cannot let anon mutate data.
-- Migration is additive (new policies, new grants). Reversible by dropping the new policies.
+Approve and I'll ship it. After approval I'll ask for the PostHog API key via the secrets tool.
