@@ -72,7 +72,8 @@ const PAGE_SIZE = 30;
 
 const DiscoverPage = () => {
   const navigate = useNavigate();
-  const { userName, userAvatar, userId } = useAuth() as any;
+  const { userName, userAvatar, userId, isAuthenticated } = useAuth() as any;
+  const { openSignIn } = useAuthGate();
   const { blocked } = useBlockedUsers();
   const firstName = (userName || '').trim().split(' ')[0] || 'there';
   // Hydrate from in-memory cache so navigating back from a post is instant.
