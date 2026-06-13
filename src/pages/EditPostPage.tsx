@@ -76,6 +76,9 @@ const EditPostPage = () => {
   const [removedIds, setRemovedIds] = useState<string[]>([]);
   const [removedPaths, setRemovedPaths] = useState<string[]>([]);
   const [newMedia, setNewMedia] = useState<NewMedia[]>([]);
+  // Combined visual order across existing + newly uploaded media.
+  // Lets the user reorder a freshly-added image into slot #1 (the cover).
+  const [order, setOrder] = useState<Array<{ k: 'e' | 'n'; key: string }>>([]);
   const bodyEditorRef = useRef<RichTextEditorHandle>(null);
 
   const [category, setCategory] = useState<CategoryKey | null>(null);
