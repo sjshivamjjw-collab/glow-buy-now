@@ -423,18 +423,9 @@ const DiscoverPage = () => {
                   {firstName}
                 </h1>
               ) : (
-                <div className="flex items-baseline gap-2">
-                  <h1 className="font-[Outfit] text-base font-bold tracking-tight text-[#fafafa]">
-                    Ripple
-                  </h1>
-                  <button
-                    type="button"
-                    onClick={() => openSignIn('sign in')}
-                    className="text-[11px] font-semibold text-[#dc2626] hover:text-[#ef4444] underline-offset-2 hover:underline"
-                  >
-                    Sign in
-                  </button>
-                </div>
+                <h1 className="font-[Outfit] text-base font-bold tracking-tight text-[#fafafa]">
+                  Ripple
+                </h1>
               )}
             </div>
           </div>
