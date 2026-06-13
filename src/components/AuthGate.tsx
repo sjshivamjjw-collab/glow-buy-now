@@ -38,7 +38,9 @@ export const AuthGateProvider = ({ children }: { children: ReactNode }) => {
   const openSignIn = useCallback((action?: string) => {
     setTitle((action && ACTION_LABELS[action]) || 'Sign in to continue');
     setOpen(true);
+    track('signin_modal_opened', { action: action || 'generic' });
   }, []);
+
 
   const requireAuth = useCallback(
     (action?: string) => {
