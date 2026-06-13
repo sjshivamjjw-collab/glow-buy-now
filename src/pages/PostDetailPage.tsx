@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { useAuthGate } from '@/components/AuthGate';
 import { useToast } from '@/hooks/use-toast';
 import { ArrowLeft, Heart, MessageCircle, MapPin, Loader2, Send, Trash2, ChevronLeft, ChevronRight, Bookmark, Share2, Reply, X, Music, Play, Pause, Pencil, EyeOff, Eye, MoreHorizontal, Flag, Ban } from 'lucide-react';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
@@ -115,6 +116,7 @@ const PostDetailPage = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { userId, isAdmin } = useAuth();
+  const { requireAuth } = useAuthGate();
   const { toast } = useToast();
 
   // Hydrate from cache for instant render when re-opening a post.
@@ -335,7 +337,8 @@ const PostDetailPage = () => {
   }, [currentMedia?.id, currentMedia?.kind]);
 
   const handleLike = async () => {
-    if (!userId || !post) { navigate('/auth'); return; }
+    if (!requireAuth('like')) return;
+    if (!userId || !post) return;
     const newLiked = !liked;
     setLiked(newLiked);
     setPost(p => p ? { ...p, like_count: Math.max(0, p.like_count + (newLiked ? 1 : -1)) } : p);
@@ -347,7 +350,8 @@ const PostDetailPage = () => {
   };
 
   const handleSave = async () => {
-    if (!userId || !post) { navigate('/auth'); return; }
+    if (!requireAuth('save')) return;
+    if (!userId || !post) return;
     const newSaved = !saved;
     setSaved(newSaved);
     if (newSaved) {
@@ -359,7 +363,8 @@ const PostDetailPage = () => {
 
 
   const handleComment = async () => {
-    if (!userId || !post) { navigate('/auth'); return; }
+    if (!requireAuth('comment')) return;
+    if (!userId || !post) return;
     const body = draft.trim();
     if (!body) return;
     const anon = !!post.is_anonymous && commentAnonymously;
@@ -386,7 +391,8 @@ const PostDetailPage = () => {
   };
 
   const handleLikeComment = async (c: CommentRow) => {
-    if (!userId) { navigate('/auth'); return; }
+    if (!requireAuth('like')) return;
+    if (!userId) return;
     const isLiked = likedComments.has(c.id);
     setLikedComments(prev => {
       const n = new Set(prev);

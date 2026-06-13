@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { useAuthGate } from '@/components/AuthGate';
 import { useToast } from '@/hooks/use-toast';
 import { ArrowLeft, Loader2, UserPlus, UserCheck, Eye, MoreHorizontal, Flag, Ban, ShieldOff } from 'lucide-react';
 import { formatCount } from '@/lib/utils';
@@ -19,6 +20,7 @@ const UserProfilePage = () => {
   const { userId: pageUserId } = useParams<{ userId: string }>();
   const navigate = useNavigate();
   const { userId: meId } = useAuth();
+  const { requireAuth } = useAuthGate();
   const { toast } = useToast();
 
   const [profile, setProfile] = useState<Profile | null>(null);
@@ -68,7 +70,8 @@ const UserProfilePage = () => {
   }, [pageUserId, meId, navigate]);
 
   const handleFollow = async () => {
-    if (!meId || !pageUserId) { navigate('/auth'); return; }
+    if (!requireAuth('follow')) return;
+    if (!meId || !pageUserId) return;
     setBusy(true);
     if (isFollowing) {
       await supabase.from('user_follows' as any).delete().eq('follower_id', meId).eq('following_id', pageUserId);
@@ -92,13 +95,15 @@ const UserProfilePage = () => {
 
 const UserProfileBody = ({ profile, posts, postCount, followers, following, isFollowing, busy, handleFollow, navigate, pageUserId }: any) => {
   const { userId: meId } = useAuth();
+  const { requireAuth } = useAuthGate();
   const { toast } = useToast();
   const { blocked, refresh: refreshBlocks } = useBlockedUsers();
   const name = profile.name || profile.username || 'User';
   const isBlocked = blocked.has(pageUserId);
 
   const handleBlock = async () => {
-    if (!meId) { navigate('/auth'); return; }
+    if (!requireAuth('block')) return;
+    if (!meId) return;
     if (!window.confirm('Block this user? You will no longer see their posts or comments.')) return;
     const { error } = await supabase.from('user_blocks' as any).insert({ blocker_id: meId, blocked_id: pageUserId });
     if (error && !/duplicate/i.test(error.message)) { toast({ title: 'Could not block', description: error.message, variant: 'destructive' }); return; }
