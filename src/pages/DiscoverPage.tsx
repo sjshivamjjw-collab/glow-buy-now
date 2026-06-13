@@ -2,6 +2,7 @@ import { useEffect, useState, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { useAuthGate } from '@/components/AuthGate';
 import { Search, Sparkles, Heart, MessageCircle, Loader2, Play, Images, MapPin, TrendingUp, ChevronDown, Check, Hash, User as UserIcon } from 'lucide-react';
 import { formatCount } from '@/lib/utils';
 import LazyVideoThumbnail from '@/components/LazyVideoThumbnail';
@@ -72,7 +73,8 @@ const PAGE_SIZE = 30;
 
 const DiscoverPage = () => {
   const navigate = useNavigate();
-  const { userName, userAvatar, userId } = useAuth() as any;
+  const { userName, userAvatar, userId, isAuthenticated } = useAuth() as any;
+  const { openSignIn } = useAuthGate();
   const { blocked } = useBlockedUsers();
   const firstName = (userName || '').trim().split(' ')[0] || 'there';
   // Hydrate from in-memory cache so navigating back from a post is instant.
@@ -414,11 +416,26 @@ const DiscoverPage = () => {
             />
             <div className="flex flex-col leading-tight">
               <p className="text-[10px] font-semibold tracking-[0.08em] text-[#dc2626]/80">
-                Welcome Back,
+                {isAuthenticated ? 'Welcome Back,' : 'Welcome to'}
               </p>
-              <h1 className="font-[Outfit] text-base font-bold tracking-tight text-[#fafafa]">
-                {firstName}
-              </h1>
+              {isAuthenticated ? (
+                <h1 className="font-[Outfit] text-base font-bold tracking-tight text-[#fafafa]">
+                  {firstName}
+                </h1>
+              ) : (
+                <div className="flex items-baseline gap-2">
+                  <h1 className="font-[Outfit] text-base font-bold tracking-tight text-[#fafafa]">
+                    Ripple
+                  </h1>
+                  <button
+                    type="button"
+                    onClick={() => openSignIn('sign in')}
+                    className="text-[11px] font-semibold text-[#dc2626] hover:text-[#ef4444] underline-offset-2 hover:underline"
+                  >
+                    Sign in
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         </div>
