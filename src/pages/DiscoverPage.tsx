@@ -409,8 +409,8 @@ const DiscoverPage = () => {
         <div className="overflow-hidden">
           <div className="flex items-center gap-2.5">
             <InitialAvatar
-              avatarUrl={userAvatar}
-              name={firstName}
+              avatarUrl={isAuthenticated ? userAvatar : null}
+              name={isAuthenticated ? firstName : 'Ripple'}
               size={36}
               className="ring-1 ring-[#2a2a2a]"
             />
