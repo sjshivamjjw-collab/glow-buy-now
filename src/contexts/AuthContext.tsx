@@ -1,6 +1,8 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { UserRole } from '@/types';
+import { identifyUser, resetUser, track } from '@/lib/analytics';
+
 
 interface AuthState {
   isAuthenticated: boolean;
@@ -93,8 +95,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         onboardingCompleted: isDemoPhone || profile?.onboarding_completed === true || parsed?.onboardingCompleted === true,
       };
       localStorage.setItem(STORAGE_KEY, JSON.stringify(refreshed));
+      identifyUser(userId, { is_admin: isAdmin, is_creator: isCreator });
       if (mounted) setState(refreshed);
     };
+
 
     const restoreSession = async () => {
       try {
@@ -114,13 +118,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     const { data: sub } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === 'SIGNED_IN' && session?.user?.id) {
+        track('signin_completed', { provider: session.user.app_metadata?.provider || 'phone' });
         setTimeout(() => {
           bootstrapFromSession(session, localStorage.getItem(STORAGE_KEY));
         }, 0);
       } else if (event === 'SIGNED_OUT') {
+        resetUser();
         localStorage.removeItem(STORAGE_KEY);
       }
     });
+
 
     restoreSession();
     return () => { mounted = false; sub.subscription.unsubscribe(); };

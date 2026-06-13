@@ -5,6 +5,8 @@ import { Button } from '@/components/ui/button';
 import { Phone, Sparkles } from 'lucide-react';
 import { lovable } from '@/integrations/lovable';
 import { useAuth } from '@/contexts/AuthContext';
+import { track } from '@/lib/analytics';
+
 
 type GateContext = {
   /** Returns true if signed in; otherwise opens the sign-in modal and returns false. */
