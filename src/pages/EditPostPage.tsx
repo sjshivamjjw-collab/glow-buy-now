@@ -190,6 +190,7 @@ const EditPostPage = () => {
       editorState,
     };
     setNewMedia(prev => [...prev, entry]);
+    setOrder(prev => [...prev, { k: 'n', key: entry.tempId }]);
     return entry.tempId;
   };
 
