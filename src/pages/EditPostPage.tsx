@@ -657,7 +657,7 @@ const EditPostPage = () => {
             className="hidden"
             onChange={e => { handleFiles(e.target.files); e.target.value = ''; }}
           />
-          <p className="mt-1.5 text-[11px] text-[#9b9b9b]">Up to {MAX_FILES} files, {MAX_FILE_MB}MB each. New uploads appear after existing ones.</p>
+          <p className="mt-1.5 text-[11px] text-[#9b9b9b]">Up to {MAX_FILES} files, {MAX_FILE_MB}MB each. Tap the arrows to reorder — the first image becomes the cover.</p>
         </div>
 
         <div>
