@@ -43,14 +43,12 @@ const InitialAvatar: React.FC<InitialAvatarProps> = ({
   }
 
   const initial = getInitial(name, username);
-  const key = (username || name || "?").toLowerCase();
-  const bg = COLORS[hashString(key) % COLORS.length];
 
   return (
     <div
-      style={{ width: size, height: size, backgroundColor: bg, fontSize: Math.max(10, Math.round(size * 0.45)) }}
+      style={{ width: size, height: size, backgroundColor: BG_COLOR, color: TEXT_COLOR, fontSize: Math.max(10, Math.round(size * 0.45)) }}
       className={cn(
-        "rounded-full shrink-0 flex items-center justify-center font-bold text-white select-none",
+        "rounded-full shrink-0 flex items-center justify-center font-bold select-none",
         className,
       )}
       aria-label={alt ?? name ?? username ?? "avatar"}
