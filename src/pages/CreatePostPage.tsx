@@ -708,7 +708,7 @@ const CreatePostPage = () => {
       clearDraft();
       toast({ title: 'Posted!' });
       invalidateTrending();
-      track('post_created', { post_id: postId, category: category || null, media_count: mediaItems.length });
+      track('post_created', { post_id: postId, category: category || null, media_count: media.length });
       navigate(`/p/${postId}`);
     } catch (e: any) {
 
