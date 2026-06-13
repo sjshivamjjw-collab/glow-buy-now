@@ -112,6 +112,7 @@ const EditPostPage = () => {
         id: m.id, url: m.url, kind: m.kind as 'image' | 'video', sort_order: m.sort_order,
       }));
       setExisting(rows);
+      setOrder(rows.map(r => ({ k: 'e' as const, key: r.id })));
       setOriginalFirstUrl(rows[0]?.url ?? null);
       setLoading(false);
     };
