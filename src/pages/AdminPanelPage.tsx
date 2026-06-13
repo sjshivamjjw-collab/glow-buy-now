@@ -8,6 +8,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import LazyVideoThumbnail from '@/components/LazyVideoThumbnail';
+import InitialAvatar from '@/components/InitialAvatar';
 import { optimizedImageUrl } from '@/lib/storageUrls';
 
 const AdminPanelPage = () => {
