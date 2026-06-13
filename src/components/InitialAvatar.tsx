@@ -10,26 +10,9 @@ interface InitialAvatarProps {
   alt?: string;
 }
 
-// Muted, dark-theme-friendly palette
-const COLORS = [
-  "#475569", // slate
-  "#4f46e5", // indigo
-  "#059669", // emerald
-  "#d97706", // amber
-  "#dc2626", // rose/red
-  "#7c3aed", // violet
-  "#0891b2", // cyan
-  "#db2777", // pink
-];
-
-function hashString(s: string): number {
-  let h = 0;
-  for (let i = 0; i < s.length; i++) {
-    h = (h << 5) - h + s.charCodeAt(i);
-    h |= 0;
-  }
-  return Math.abs(h);
-}
+// Single standard color for all initial avatars — keeps the UI consistent.
+const BG_COLOR = "#2a2a2a";
+const TEXT_COLOR = "#fafafa";
 
 function getInitial(name?: string | null, username?: string | null): string {
   const n = (name || "").trim();
