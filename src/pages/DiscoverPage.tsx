@@ -455,7 +455,8 @@ const DiscoverPage = () => {
             );
           })}
 
-          {/* Category dropdown tab */}
+          {/* Category dropdown tab — hidden per product feedback. Kept in code for future re-enable. */}
+          {false && (
           <div className="relative" ref={categoryRef}>
             <button
               onClick={() => { setActiveChip('Category'); setCategoryOpen(o => !o); }}
@@ -491,6 +492,7 @@ const DiscoverPage = () => {
               </div>
             )}
           </div>
+          )}
         </div>
 
         {/* Curiosity nudge rows — Hidden per Apple review feedback (too crowded). Keep for future re-enable. */}
