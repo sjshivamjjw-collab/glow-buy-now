@@ -1,30 +1,44 @@
 import { Compass, Bell, User, Plus, Bookmark } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useNotifications } from '@/hooks/useNotifications';
+import { useAuth } from '@/contexts/AuthContext';
+import { useAuthGate } from '@/components/AuthGate';
 
 const BottomNav = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { unreadCount } = useNotifications();
+  const { isAuthenticated } = useAuth();
+  const { openSignIn } = useAuthGate();
 
+  // Map tab → gate key. Discover stays open for everyone; everything else
+  // requires sign-in on the web (and is unreachable for unauth on native).
   const tabs = [
-    { icon: Compass, label: 'Discover', path: '/' },
-    { icon: Bookmark, label: 'Saved', path: '/saved' },
-    { icon: Plus, label: 'Post', path: '/post/new', accent: true },
-    { icon: Bell, label: 'Activity', path: '/notifications', badge: unreadCount },
-    { icon: User, label: 'Profile', path: '/profile' },
+    { icon: Compass, label: 'Discover', path: '/', gate: null as string | null },
+    { icon: Bookmark, label: 'Saved', path: '/saved', gate: 'saved' },
+    { icon: Plus, label: 'Post', path: '/post/new', accent: true, gate: 'post' },
+    { icon: Bell, label: 'Activity', path: '/notifications', badge: unreadCount, gate: 'notifications' },
+    { icon: User, label: 'Profile', path: '/profile', gate: 'profile' },
   ];
+
+  const handleNav = (path: string, gate: string | null) => {
+    if (gate && !isAuthenticated) {
+      openSignIn(gate);
+      return;
+    }
+    navigate(path);
+  };
 
   return (
     <nav className="fixed bottom-0 inset-x-0 z-50 mx-auto w-full max-w-lg bg-[#0a0a0a]/95 backdrop-blur-xl border-t border-[#2a2a2a]/60 safe-bottom">
       <div className="flex items-center justify-around px-2 pt-2 pb-1">
-        {tabs.map(({ icon: Icon, label, path, accent, badge }) => {
+        {tabs.map(({ icon: Icon, label, path, accent, badge, gate }) => {
           const isActive = location.pathname === path;
           if (accent) {
             return (
               <button
                 key={path}
-                onClick={() => navigate(path)}
+                onClick={() => handleNav(path, gate)}
                 className="relative -mt-6 w-12 h-12 rounded-2xl bg-gradient-to-br from-[#ef4444] to-[#dc2626] text-white flex items-center justify-center shadow-[0_8px_24px_-6px_rgba(239,68,68,0.6)] ring-4 ring-[#0a0a0a] active:scale-95 transition-transform"
                 aria-label={label}
               >
@@ -35,7 +49,7 @@ const BottomNav = () => {
           return (
             <button
               key={path}
-              onClick={() => navigate(path)}
+              onClick={() => handleNav(path, gate)}
               className={`relative flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-xl transition-colors ${
                 isActive ? 'text-[#ef4444]' : 'text-[#a0a0a0]'
               }`}
