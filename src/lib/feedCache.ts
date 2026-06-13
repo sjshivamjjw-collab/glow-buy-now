@@ -60,6 +60,18 @@ export const setTrendingScrollY = (y: number) => {
   trending.scrollY = y;
 };
 
+// ----- Discover search/filter state (preserved across back-nav from a post) -----
+interface DiscoverState {
+  query: string;
+  activeChip: string;
+  activeCategory: string | null;
+  locationFilter: string | null;
+}
+let discoverState: DiscoverState | null = null;
+export const getDiscoverState = (): DiscoverState | null => discoverState;
+export const setDiscoverState = (s: DiscoverState) => { discoverState = s; };
+export const clearDiscoverState = () => { discoverState = null; };
+
 export const TRENDING_STALE_MS = 60_000; // background-refresh after 60s
 
 export const isTrendingStale = (): boolean => {
