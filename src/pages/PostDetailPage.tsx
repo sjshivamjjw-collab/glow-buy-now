@@ -23,7 +23,9 @@ import {
   invalidateTrending,
 } from '@/lib/feedCache';
 import { optimizedImageUrl } from '@/lib/storageUrls';
+import { track } from '@/lib/analytics';
 import useEmblaCarousel from 'embla-carousel-react';
+
 
 
 const CATEGORY_META: Record<string, { label: string }> = {
@@ -342,6 +344,7 @@ const PostDetailPage = () => {
     const newLiked = !liked;
     setLiked(newLiked);
     setPost(p => p ? { ...p, like_count: Math.max(0, p.like_count + (newLiked ? 1 : -1)) } : p);
+    track(newLiked ? 'post_liked' : 'post_unliked', { post_id: post.id });
     if (newLiked) {
       await supabase.from('post_likes' as any).insert({ post_id: post.id, user_id: userId });
     } else {
@@ -349,17 +352,20 @@ const PostDetailPage = () => {
     }
   };
 
+
   const handleSave = async () => {
     if (!requireAuth('save')) return;
     if (!userId || !post) return;
     const newSaved = !saved;
     setSaved(newSaved);
+    track(newSaved ? 'post_saved' : 'post_unsaved', { post_id: post.id });
     if (newSaved) {
       await supabase.from('post_saves' as any).insert({ post_id: post.id, user_id: userId });
     } else {
       await supabase.from('post_saves' as any).delete().eq('post_id', post.id).eq('user_id', userId);
     }
   };
+
 
 
   const handleComment = async () => {
@@ -382,6 +388,8 @@ const PostDetailPage = () => {
     setComments(prev => [...prev, inserted]);
     setOwnComments(prev => { const n = new Set(prev); n.add(inserted.id); return n; });
     setPost(p => p ? { ...p, comment_count: p.comment_count + 1 } : p);
+    track('post_commented', { post_id: post.id, is_reply: !!replyTo });
+
     setDraft('');
     setReplyTo(null);
     if (!anon && !authors[userId]) {
