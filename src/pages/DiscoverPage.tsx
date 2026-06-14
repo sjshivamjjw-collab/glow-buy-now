@@ -20,6 +20,7 @@ import {
 } from '@/lib/feedCache';
 import { useBlockedUsers } from '@/hooks/useBlockedUsers';
 import { optimizedImageUrl } from '@/lib/storageUrls';
+import { track } from '@/lib/analytics';
 
 
 interface TrendingPost {
