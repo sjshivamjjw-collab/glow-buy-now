@@ -20,6 +20,7 @@ import {
 } from '@/lib/feedCache';
 import { useBlockedUsers } from '@/hooks/useBlockedUsers';
 import { optimizedImageUrl } from '@/lib/storageUrls';
+import { track } from '@/lib/analytics';
 
 
 interface TrendingPost {
@@ -327,9 +328,14 @@ const DiscoverPage = () => {
       const postList = (postsRes.data as TrendingPost[] | null) ?? [];
       postList.forEach(p => { if (p.is_anonymous) p.user_id = null; });
       setSearchPosts(postList);
-      setSearchPeople((peopleRes.data as AuthorInfo[] | null) ?? []);
+      const peopleList = (peopleRes.data as AuthorInfo[] | null) ?? [];
+      setSearchPeople(peopleList);
       setSearchTags([]);
       setSearchLocs([]);
+      track('search_performed', {
+        search_query: q,
+        results_count: postList.length + peopleList.length,
+      });
       // Fetch authors for post results
       const ids = Array.from(new Set(postList.map(p => p.user_id).filter((u): u is string => !!u)));
       if (ids.length) {

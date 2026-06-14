@@ -39,6 +39,7 @@ export const AuthGateProvider = ({ children }: { children: ReactNode }) => {
     setTitle((action && ACTION_LABELS[action]) || 'Sign in to continue');
     setOpen(true);
     track('signin_modal_opened', { action: action || 'generic' });
+    track('signup_modal_shown', { trigger_action: action || 'generic' });
   }, []);
 
 
