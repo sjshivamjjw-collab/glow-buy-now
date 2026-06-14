@@ -119,6 +119,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const { data: sub } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === 'SIGNED_IN' && session?.user?.id) {
         track('signin_completed', { provider: session.user.app_metadata?.provider || 'phone' });
+        const u = session.user;
+        const createdAt = u.created_at ? new Date(u.created_at).getTime() : 0;
+        const lastSignIn = (u as any).last_sign_in_at ? new Date((u as any).last_sign_in_at).getTime() : 0;
+        const isNewUser = createdAt > 0 && Math.abs(lastSignIn - createdAt) < 60_000;
+        if (isNewUser) {
+          track('signup_completed', { provider: u.app_metadata?.provider || 'phone' });
+        }
         setTimeout(() => {
           bootstrapFromSession(session, localStorage.getItem(STORAGE_KEY));
         }, 0);
