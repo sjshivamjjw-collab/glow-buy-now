@@ -643,6 +643,19 @@ const PostDetailPage = () => {
           <MessageCircle className="w-6 h-6 text-[#fafafa]" />
           <span className="text-sm font-semibold text-[#fafafa]">{post.comment_count}</span>
         </div>
+        <button
+          onClick={async () => {
+            try {
+              const result = await sharePostLink({ postId: post.id, title: post.title });
+              if (result === 'copied') toast({ title: 'Link copied' });
+            } catch {}
+          }}
+          aria-label="Share"
+          className="flex items-center gap-1.5 active:scale-95 transition-transform"
+        >
+          <Share2 className="w-6 h-6 text-[#fafafa]" />
+          <span className="text-sm font-semibold text-[#fafafa]">Share</span>
+        </button>
         <button onClick={handleSave} aria-label="Save" className="ml-auto flex items-center gap-1.5 active:scale-95 transition-transform">
           <Bookmark className={`w-6 h-6 ${saved ? 'fill-[#ef4444] text-[#ef4444]' : 'text-[#fafafa]'}`} />
           <span className="text-sm font-semibold text-[#fafafa]">{saved ? 'Saved' : 'Save'}</span>
