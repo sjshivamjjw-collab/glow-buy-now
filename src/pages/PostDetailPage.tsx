@@ -181,6 +181,16 @@ const PostDetailPage = () => {
     window.scrollTo(0, 0);
   }, [id]);
 
+  // Analytics: fire once per post when the post data is loaded.
+  useEffect(() => {
+    if (!post?.id) return;
+    track('post_opened', {
+      post_id: post.id,
+      post_title: post.title ?? null,
+      post_category: post.category ?? null,
+    });
+  }, [post?.id]);
+
 
   // Fetch the post itself (with one retry on empty/error) — this drives the main render.
   useEffect(() => {
