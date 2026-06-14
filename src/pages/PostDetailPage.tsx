@@ -459,7 +459,7 @@ const PostDetailPage = () => {
 
   return (
     <div className="min-h-screen max-w-lg mx-auto pb-32 font-[Figtree] bg-[linear-gradient(180deg,#0a0a0a_0%,#111111_40%,#000000_100%)]">
-      <div className="sticky top-0 z-10 bg-[#0a0a0a]/80 backdrop-blur-xl px-4 py-3 flex items-center justify-between border-b border-[#2a2a2a]/40">
+      <div className={`sticky top-0 z-10 bg-[#0a0a0a]/80 backdrop-blur-xl py-3 flex items-center justify-between border-b border-[#2a2a2a]/40 pl-4 ${!userId ? 'pr-24' : 'pr-4'}`}>
         <button onClick={() => navigate(-1)} className="w-10 h-10 rounded-full bg-[#1a1a1a] border border-[#2a2a2a]/60 flex items-center justify-center active:scale-95 transition-transform">
           <ArrowLeft className="w-5 h-5 text-[#fafafa]" />
         </button>
