@@ -414,12 +414,20 @@ const DiscoverPage = () => {
       <div className="px-4 pt-3 pb-2">
         <div className="overflow-hidden">
           <div className="flex items-center gap-2.5">
-            <InitialAvatar
-              avatarUrl={isAuthenticated ? userAvatar : null}
-              name={isAuthenticated ? firstName : 'Ripple'}
-              size={36}
-              className="ring-1 ring-[#2a2a2a]"
-            />
+            {isAuthenticated ? (
+              <InitialAvatar
+                avatarUrl={userAvatar}
+                name={firstName}
+                size={36}
+                className="ring-1 ring-[#2a2a2a]"
+              />
+            ) : (
+              <img
+                src="/ripple-logo.png"
+                alt="Ripple"
+                className="w-9 h-9 rounded-full object-cover ring-1 ring-[#2a2a2a]"
+              />
+            )}
             <div className="flex flex-col leading-tight">
               <p className="text-[10px] font-semibold tracking-[0.08em] text-[#dc2626]/80">
                 {isAuthenticated ? 'Welcome Back,' : 'Welcome to'}
