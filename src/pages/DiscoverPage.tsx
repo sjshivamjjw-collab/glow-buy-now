@@ -21,6 +21,7 @@ import {
 import { useBlockedUsers } from '@/hooks/useBlockedUsers';
 import { optimizedImageUrl } from '@/lib/storageUrls';
 import { track } from '@/lib/analytics';
+import SEO from '@/components/SEO';
 
 
 interface TrendingPost {
@@ -410,6 +411,12 @@ const DiscoverPage = () => {
 
   return (
     <div className="min-h-screen max-w-lg mx-auto pb-24 font-[Figtree] bg-[linear-gradient(180deg,#0a0a0a_0%,#111111_40%,#000000_100%)]">
+      <SEO
+        title="Ripple — Everyday things worth sharing"
+        description="A feed of genuine recommendations, reviews, travel diaries, food spots and little moments from real people across India."
+        path="/"
+      />
+      <h1 className="sr-only">Ripple — discover everyday recommendations, reviews and stories</h1>
       {/* Welcome (scrolls away) */}
       <div className="px-4 pt-3 pb-2">
         <div className="overflow-hidden">
