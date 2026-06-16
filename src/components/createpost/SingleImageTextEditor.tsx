@@ -16,6 +16,7 @@ interface Slide {
 interface Props {
   onDone: (files: File[], states: LayoutEditorState[]) => void;
   onCancel: () => void;
+  onVideoFiles?: (files: File[]) => void;
   initialState?: Extract<LayoutEditorState, { kind: 'single' }>;
 }
 
@@ -38,7 +39,7 @@ const LIGHT_COLORS = new Set<OverlayColor>(['white', 'cream', 'yellow']);
 
 type Tool = 'size' | 'color' | null;
 
-export const SingleImageTextEditor = ({ onDone, onCancel, initialState }: Props) => {
+export const SingleImageTextEditor = ({ onDone, onCancel, onVideoFiles, initialState }: Props) => {
   const { toast } = useToast();
   const [slides, setSlides] = useState<Slide[]>(() =>
     initialState
@@ -77,13 +78,23 @@ export const SingleImageTextEditor = ({ onDone, onCancel, initialState }: Props)
   const addFiles = (fl: FileList | null) => {
     if (!fl) return;
     const next: Slide[] = [];
+    const videos: File[] = [];
     for (const f of Array.from(fl)) {
       const looksImage = f.type.startsWith('image/') || /\.(jpe?g|png|gif|webp|heic|heif|bmp)$/i.test(f.name);
-      if (!looksImage) continue;
-      const id = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-      next.push({ id, file: f, previewUrl: URL.createObjectURL(f), overlays: [], posX: 0.5, posY: 0.5, scale: 1 });
+      const looksVideo = f.type.startsWith('video/') || /\.(mp4|mov|m4v|webm|avi|mkv|3gp|hevc)$/i.test(f.name);
+      if (looksImage) {
+        const id = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+        next.push({ id, file: f, previewUrl: URL.createObjectURL(f), overlays: [], posX: 0.5, posY: 0.5, scale: 1 });
+      } else if (looksVideo) {
+        videos.push(f);
+      }
     }
-    if (!next.length) return;
+    if (videos.length && onVideoFiles) onVideoFiles(videos);
+    if (!next.length) {
+      // If user picked only videos and editor has no slides yet, close back to the post page.
+      if (videos.length && slides.length === 0) onCancel();
+      return;
+    }
     setSlides((prev) => {
       setActive(prev.length);
       return [...prev, ...next];
@@ -245,7 +256,7 @@ export const SingleImageTextEditor = ({ onDone, onCancel, initialState }: Props)
             className="absolute inset-0 m-6 rounded-2xl border-2 border-dashed border-white/40 flex flex-col items-center justify-center text-white/80 gap-2"
           >
             <ImagePlus className="w-8 h-8" />
-            <span className="text-sm font-semibold">Add images from gallery</span>
+            <span className="text-sm font-semibold">Add photos or videos</span>
             <span className="text-xs opacity-70">Each slide gets its own caption</span>
           </button>
         ) : (
@@ -510,7 +521,7 @@ export const SingleImageTextEditor = ({ onDone, onCancel, initialState }: Props)
       <input
         ref={fileRef}
         type="file"
-        accept="image/*,image/heic,image/heif,.heic,.heif"
+        accept="image/*,video/*,image/heic,image/heif,.heic,.heif,.mp4,.mov,.m4v,.webm"
         multiple
         className="hidden"
         onChange={(e) => { addFiles(e.target.files); e.target.value = ''; }}

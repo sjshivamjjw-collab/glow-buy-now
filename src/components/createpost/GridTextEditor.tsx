@@ -8,6 +8,7 @@ interface Cell { file: File | null; previewUrl: string | null; posX: number; pos
 interface Props {
   onDone: (files: File[], states: LayoutEditorState[]) => void;
   onCancel: () => void;
+  onVideoFiles?: (files: File[]) => void;
   initialState?: Extract<LayoutEditorState, { kind: 'grid' }>;
 }
 
@@ -22,7 +23,7 @@ const newOverlay = (id: string): TextOverlay => ({
   id, text: '', x: 0.5, y: 0.5, size: 'md', color: 'white', bgEnabled: true, width: 0.7,
 });
 
-export const GridTextEditor = ({ onDone, onCancel, initialState }: Props) => {
+export const GridTextEditor = ({ onDone, onCancel, onVideoFiles, initialState }: Props) => {
   const { toast } = useToast();
   // Default scale 1.15 gives both axes some pan room even for images that
   // share the cell's aspect ratio. Users can pinch to zoom further.
@@ -63,7 +64,12 @@ export const GridTextEditor = ({ onDone, onCancel, initialState }: Props) => {
   // the user pick all four at once.
   const setFiles = (startIdx: number, fl: FileList | null) => {
     if (!fl || !fl.length) return;
-    const arr = Array.from(fl).filter((f) => {
+    const all = Array.from(fl);
+    const videos = all.filter((f) =>
+      f.type.startsWith('video/') || /\.(mp4|mov|m4v|webm|avi|mkv|3gp|hevc)$/i.test(f.name)
+    );
+    if (videos.length && onVideoFiles) onVideoFiles(videos);
+    const arr = all.filter((f) => {
       const looksImage = f.type.startsWith('image/') || /\.(jpe?g|png|gif|webp|heic|heif|bmp)$/i.test(f.name);
       return looksImage;
     });
@@ -603,7 +609,7 @@ const CellPicker = ({
       <input
         ref={inputRef}
         type="file"
-        accept="image/*,image/heic,image/heif,.heic,.heif"
+        accept="image/*,video/*,image/heic,image/heif,.heic,.heif,.mp4,.mov,.m4v,.webm"
         multiple
         className="hidden"
         onChange={(e) => { onPick(e.target.files); e.target.value = ''; }}
