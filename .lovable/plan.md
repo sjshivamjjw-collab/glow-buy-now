@@ -1,24 +1,41 @@
-Pick the **"Add HTML tag"** option in Pinterest — it's the simplest for a Lovable site (TXT record would require DNS changes; HTML file upload isn't supported on Lovable hosting).
+# Fix: Can't add video / HEIC from file picker
 
-## What I'll do
+## Root cause
 
-Add the Pinterest verification `<meta>` tag to the `<head>` of `index.html`, right next to the existing Google Search Console placeholder:
+When "Add media" is tapped on the Create Post page, it opens `LayoutPickerSheet` which only offers three **image-only** layouts: Single Image, 2×2 Grid, Cost Breakdown. Each layout's editor (`SingleImageTextEditor`, `GridTextEditor`) uses a hidden file input with:
 
-```html
-<meta name="p:domain_verify" content="564713676f2cc920805bdf0bd3dd9e2e" />
+```
+accept="image/*,image/heic,image/heif"
 ```
 
-That's the only code change.
+So there is literally no UI path to upload a video, and HEIC files don't always appear in the system picker on Android/desktop because only MIME types (not `.heic`/`.heif` extensions) are listed.
 
-## What you'll do after I push it
+`handleFiles` in `CreatePostPage.tsx` already supports videos (it splits images vs videos and adds them straight to the media list) — it's just never wired to any UI.
 
-1. Approve the plan so I make the edit.
-2. Click **Publish → Update** in Lovable so the new tag goes live on `myripple.co.in`.
-3. Back in the Pinterest dialog, click **Continue** — Pinterest will fetch your homepage, find the tag, and verify the domain.
+## Changes
 
-## Notes
+1. **`src/components/createpost/LayoutPickerSheet.tsx`**
+   - Add a 4th option `video` with a Film/Video icon, title "Video", subtitle "Upload a video clip".
+   - Extend the `LayoutChoice` type union to include `'video'`.
 
-- Safe to leave the tag in permanently; Pinterest re-checks it periodically.
-- If Pinterest says "couldn't find tag", wait ~1 min after publish and retry (CDN cache).
+2. **`src/pages/CreatePostPage.tsx`**
+   - Add a hidden `<input type="file" accept="video/*" multiple>` with a ref.
+   - When `LayoutPickerSheet` returns `'video'`, close the sheet and trigger that file input.
+   - On change, call existing `handleFiles(e.target.files)` (already routes videos via `addMediaFile`) and reset the input value.
+   - Update `onPick` handler so `'video'` does **not** set `activeLayout`.
 
-Shall I go ahead and add it?
+3. **`src/components/createpost/SingleImageTextEditor.tsx`** and **`src/components/createpost/GridTextEditor.tsx`**
+   - Broaden image `accept` to also include extensions for better Android/desktop coverage:
+     `accept="image/*,image/heic,image/heif,.heic,.heif"`
+
+## Out of scope (not changed)
+
+- Auth, OTP, posting flow, upload pipeline, video transcoding.
+- No new dependencies.
+- EditPostPage already uses `image/*,video/*` so it's fine.
+
+## Verification
+
+- Open Create Post → tap "Add media" → see new "Video" option → picker shows videos.
+- Picked video appears as a tile in the media grid (uses existing `LazyVideoThumbnail` rendering).
+- On Android/desktop file picker, `.heic` files are no longer greyed out.
