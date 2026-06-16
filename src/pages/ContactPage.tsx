@@ -5,7 +5,11 @@ const SUPPORT_EMAIL = 'shivam@ripple-shop.com';
 const ADDRESS_LINE = 'Mumbai, Maharashtra, India';
 
 const ContactPage = () => (
-  <LegalPageLayout title="Contact Us">
+  <LegalPageLayout
+    title="Contact Us"
+    seoTitle="Contact Ripple — support, partnerships and feedback"
+    seoDescription="Reach the Ripple team for support, partnerships, creator onboarding, or any feedback. We respond within one business day."
+  >
     <p>
       We're a small team and we read every message. Reach out for order help,
       seller onboarding, partnerships, or anything else.
