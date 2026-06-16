@@ -510,7 +510,7 @@ export const SingleImageTextEditor = ({ onDone, onCancel, initialState }: Props)
       <input
         ref={fileRef}
         type="file"
-        accept="image/*,image/heic,image/heif"
+        accept="image/*,image/heic,image/heif,.heic,.heif"
         multiple
         className="hidden"
         onChange={(e) => { addFiles(e.target.files); e.target.value = ''; }}
