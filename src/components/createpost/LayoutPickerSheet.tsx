@@ -1,7 +1,7 @@
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
-import { Image as ImageIcon, LayoutGrid, Table, Film } from 'lucide-react';
+import { Image as ImageIcon, LayoutGrid, Table } from 'lucide-react';
 
-export type LayoutChoice = 'single' | 'grid' | 'cost' | 'video';
+export type LayoutChoice = 'single' | 'grid' | 'cost';
 
 interface Props {
   open: boolean;
@@ -10,10 +10,9 @@ interface Props {
 }
 
 const OPTIONS: { key: LayoutChoice; title: string; subtitle: string; Icon: typeof ImageIcon }[] = [
-  { key: 'single', title: 'Single Image', subtitle: 'Swipeable carousel', Icon: ImageIcon },
+  { key: 'single', title: 'Single Image', subtitle: 'Swipeable carousel (photos or videos)', Icon: ImageIcon },
   { key: 'grid', title: '2×2 Grid Layout', subtitle: 'Four photos in one square card', Icon: LayoutGrid },
   { key: 'cost', title: 'Cost Breakdown', subtitle: 'Used for cost breakdowns, itineraries etc', Icon: Table },
-  { key: 'video', title: 'Video', subtitle: 'Upload a video clip', Icon: Film },
 ];
 
 export const LayoutPickerSheet = ({ open, onOpenChange, onPick }: Props) => {

@@ -200,7 +200,7 @@ const CreatePostPage = () => {
   const { userId } = useAuth();
   const { toast } = useToast();
   const fileRef = useRef<HTMLInputElement>(null);
-  const videoInputRef = useRef<HTMLInputElement>(null);
+  
   const bodyEditorRef = useRef<RichTextEditorHandle>(null);
 
   // Hydrate once from localStorage so users return to exactly where they left off.
@@ -906,26 +906,19 @@ const CreatePostPage = () => {
         onOpenChange={setLayoutSheetOpen}
         onPick={(c) => {
           setLayoutSheetOpen(false);
-          if (c === 'video') {
-            videoInputRef.current?.click();
-          } else {
-            setActiveLayout(c);
-          }
+          setActiveLayout(c);
         }}
-      />
-      <input
-        ref={videoInputRef}
-        type="file"
-        accept="video/*"
-        multiple
-        className="hidden"
-        onChange={(e) => { handleFiles(e.target.files); e.target.value = ''; }}
       />
 
       {activeLayout === 'single' && (
         <SingleImageTextEditor
           onDone={handleLayoutDone}
           onCancel={() => { setActiveLayout(null); setEditingMediaId(null); }}
+          onVideoFiles={(files) => {
+            const dt = new DataTransfer();
+            files.forEach(f => dt.items.add(f));
+            handleFiles(dt.files);
+          }}
           initialState={(() => {
             const m = media.find(x => x.id === editingMediaId);
             return m?.editorState?.kind === 'single' ? m.editorState : undefined;
@@ -936,6 +929,11 @@ const CreatePostPage = () => {
         <GridTextEditor
           onDone={handleLayoutDone}
           onCancel={() => { setActiveLayout(null); setEditingMediaId(null); }}
+          onVideoFiles={(files) => {
+            const dt = new DataTransfer();
+            files.forEach(f => dt.items.add(f));
+            handleFiles(dt.files);
+          }}
           initialState={(() => {
             const m = media.find(x => x.id === editingMediaId);
             return m?.editorState?.kind === 'grid' ? m.editorState : undefined;
