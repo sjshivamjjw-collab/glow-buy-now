@@ -903,8 +903,24 @@ const CreatePostPage = () => {
       <LayoutPickerSheet
         open={layoutSheetOpen}
         onOpenChange={setLayoutSheetOpen}
-        onPick={(c) => { setLayoutSheetOpen(false); setActiveLayout(c); }}
+        onPick={(c) => {
+          setLayoutSheetOpen(false);
+          if (c === 'video') {
+            videoInputRef.current?.click();
+          } else {
+            setActiveLayout(c);
+          }
+        }}
       />
+      <input
+        ref={videoInputRef}
+        type="file"
+        accept="video/*"
+        multiple
+        className="hidden"
+        onChange={(e) => { handleFiles(e.target.files); e.target.value = ''; }}
+      />
+
       {activeLayout === 'single' && (
         <SingleImageTextEditor
           onDone={handleLayoutDone}
