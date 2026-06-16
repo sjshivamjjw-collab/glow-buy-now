@@ -44,10 +44,10 @@ async function fetchDynamic(): Promise<SitemapEntry[]> {
       .limit(5000);
     if (postsErr) console.warn('sitemap: posts query failed', postsErr.message);
 
-    // Public profiles (anyone with at least one public post).
+    // Public profiles (anyone with a row in profiles).
     const { data: profiles, error: profErr } = await supabase
       .from('profiles')
-      .select('id, updated_at')
+      .select('id')
       .limit(5000);
     if (profErr) console.warn('sitemap: profiles query failed', profErr.message);
 
@@ -60,7 +60,6 @@ async function fetchDynamic(): Promise<SitemapEntry[]> {
 
     const profileEntries: SitemapEntry[] = (profiles || []).map((u: any) => ({
       path: `/u/${u.id}`,
-      lastmod: u.updated_at ? new Date(u.updated_at).toISOString().slice(0, 10) : undefined,
       changefreq: 'weekly',
       priority: '0.6',
     }));
