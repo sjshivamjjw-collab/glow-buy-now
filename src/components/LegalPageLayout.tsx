@@ -2,22 +2,30 @@ import { ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import Footer from './Footer';
+import SEO from './SEO';
 
 interface LegalPageLayoutProps {
   title: string;
   lastUpdated?: string;
+  /** Custom page title for <title> + og:title. Defaults to `${title} · Ripple`. */
+  seoTitle?: string;
+  /** Custom meta description for this page. */
+  seoDescription?: string;
   children: ReactNode;
 }
 
 const LegalPageLayout = ({
   title,
   lastUpdated = 'May 2, 2026',
+  seoTitle,
+  seoDescription,
   children,
 }: LegalPageLayoutProps) => {
   const navigate = useNavigate();
 
   return (
     <div className="min-h-screen bg-background max-w-lg mx-auto flex flex-col">
+      <SEO title={seoTitle ?? `${title} · Ripple`} description={seoDescription} />
       <header className="sticky top-0 z-10 bg-background/95 backdrop-blur border-b border-border px-4 py-3 flex items-center gap-3">
         <button
           onClick={() => (window.history.length > 1 ? navigate(-1) : navigate('/'))}
