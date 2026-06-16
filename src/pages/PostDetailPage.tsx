@@ -25,6 +25,7 @@ import {
 import { optimizedImageUrl } from '@/lib/storageUrls';
 import { track } from '@/lib/analytics';
 import useEmblaCarousel from 'embla-carousel-react';
+import SEO from '@/components/SEO';
 
 
 
@@ -467,8 +468,44 @@ const PostDetailPage = () => {
   const isAnon = !!post.is_anonymous;
   const author = !isAnon && post.user_id ? authors[post.user_id] : undefined;
 
+  const firstImageMedia = media.find(m => m.kind === 'image');
+  const ogImage = firstImageMedia ? optimizedImageUrl(firstImageMedia.url, { width: 1200, quality: 80, resize: 'cover' }) || undefined : undefined;
+  const plainBody = (post.body || '').replace(/[#@]\w+/g, '').replace(/\s+/g, ' ').trim();
+  const seoTitle = post.title
+    ? `${post.title} · Ripple`
+    : plainBody
+      ? `${plainBody.slice(0, 60)}${plainBody.length > 60 ? '…' : ''} · Ripple`
+      : 'Post on Ripple';
+  const seoDesc = (plainBody || post.title || 'A post on Ripple').slice(0, 160);
+  const authorName = !isAnon && post.user_id && authors[post.user_id]
+    ? (authors[post.user_id].name || authors[post.user_id].username || 'Ripple user')
+    : 'Anonymous Rippler';
+  const postJsonLd: Record<string, any> = {
+    '@context': 'https://schema.org',
+    '@type': 'SocialMediaPosting',
+    headline: post.title || plainBody.slice(0, 110) || 'Post on Ripple',
+    articleBody: plainBody || undefined,
+    datePublished: post.created_at,
+    author: { '@type': 'Person', name: authorName },
+    url: `https://myripple.co.in/p/${post.id}`,
+    image: ogImage ? [ogImage] : undefined,
+    interactionStatistic: [
+      { '@type': 'InteractionCounter', interactionType: 'https://schema.org/LikeAction', userInteractionCount: post.like_count },
+      { '@type': 'InteractionCounter', interactionType: 'https://schema.org/CommentAction', userInteractionCount: post.comment_count },
+    ],
+  };
+
   return (
     <div className="min-h-screen max-w-lg mx-auto pb-32 font-[Figtree] bg-[linear-gradient(180deg,#0a0a0a_0%,#111111_40%,#000000_100%)]">
+      <SEO
+        title={seoTitle}
+        description={seoDesc}
+        path={`/p/${post.id}`}
+        image={ogImage}
+        type="article"
+        jsonLd={postJsonLd}
+      />
+      <h1 className="sr-only">{post.title || plainBody.slice(0, 100) || 'Post on Ripple'}</h1>
       <div className={`sticky top-0 z-10 bg-[#0a0a0a]/80 backdrop-blur-xl py-3 flex items-center justify-between border-b border-[#2a2a2a]/40 pl-4 ${!userId ? 'pr-24' : 'pr-4'}`}>
         <button onClick={() => navigate(-1)} className="w-10 h-10 rounded-full bg-[#1a1a1a] border border-[#2a2a2a]/60 flex items-center justify-center active:scale-95 transition-transform">
           <ArrowLeft className="w-5 h-5 text-[#fafafa]" />
