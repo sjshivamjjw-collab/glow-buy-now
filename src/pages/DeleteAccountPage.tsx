@@ -36,7 +36,11 @@ const DeleteAccountPage = () => {
   };
 
   return (
-    <LegalPageLayout title="Delete Your Account">
+    <LegalPageLayout
+      title="Delete Your Account"
+      seoTitle="Delete your Ripple account & data"
+      seoDescription="Request permanent deletion of your Ripple account and associated data. Self-serve from inside the app or via this page."
+    >
       <p>
         You can permanently delete your Ripple account and the personal data
         associated with it at any time. This page explains exactly what gets

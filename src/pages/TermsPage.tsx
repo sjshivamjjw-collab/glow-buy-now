@@ -1,7 +1,11 @@
 import LegalPageLayout from '@/components/LegalPageLayout';
 
 const TermsPage = () => (
-  <LegalPageLayout title="Terms of Service">
+  <LegalPageLayout
+    title="Terms of Service"
+    seoTitle="Terms of Service · Ripple"
+    seoDescription="The rules for using Ripple — eligibility, content ownership, prohibited conduct, moderation, copyright takedowns, and governing law."
+  >
     <p>
       Welcome to Ripple ("we", "us", "our"). By creating an account or using
       the Ripple application and website (the "Service"), you agree to these

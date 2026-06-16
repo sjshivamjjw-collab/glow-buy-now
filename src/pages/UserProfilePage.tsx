@@ -13,6 +13,7 @@ import InitialAvatar from '@/components/InitialAvatar';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useBlockedUsers } from '@/hooks/useBlockedUsers';
 import { track } from '@/lib/analytics';
+import SEO from '@/components/SEO';
 
 
 interface Profile { id: string; name: string | null; username: string | null; avatar_url: string | null; }
@@ -122,8 +123,30 @@ const UserProfileBody = ({ profile, posts, postCount, followers, following, isFo
     await refreshBlocks();
   };
 
+  const seoTitle = `${name}${profile.username ? ` (@${profile.username})` : ''} on Ripple`;
+  const seoDesc = `Follow ${name} on Ripple — ${formatCount(postCount)} posts, ${formatCount(followers)} followers. Real recommendations, reviews and everyday moments.`;
+  const profileJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'ProfilePage',
+    mainEntity: {
+      '@type': 'Person',
+      name,
+      alternateName: profile.username || undefined,
+      image: profile.avatar_url || undefined,
+      url: `https://myripple.co.in/u/${pageUserId}`,
+    },
+  };
+
   return (
     <div className="min-h-screen bg-background max-w-lg mx-auto px-4 pt-4 pb-24">
+      <SEO
+        title={seoTitle}
+        description={seoDesc}
+        path={`/u/${pageUserId}`}
+        image={profile.avatar_url || undefined}
+        type="profile"
+        jsonLd={profileJsonLd}
+      />
       <div className="flex items-center gap-3 mb-6">
         <button onClick={() => navigate(-1)} className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center">
           <ArrowLeft className="w-5 h-5 text-foreground" />

@@ -83,7 +83,11 @@ const FAQS: { q: string; a: string }[] = [
 ];
 
 const SupportPage = () => (
-  <LegalPageLayout title="Support">
+  <LegalPageLayout
+    title="Support"
+    seoTitle="Ripple Support — help, FAQs and reporting issues"
+    seoDescription="Get help with your Ripple account, posts, communities, payments, content reports and more. Replies within one business day."
+  >
     <p>Need help with Ripple? We're here.</p>
 
     <div className="not-prose grid gap-3 my-4">

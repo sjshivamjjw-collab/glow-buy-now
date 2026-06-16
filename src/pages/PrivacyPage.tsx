@@ -1,7 +1,11 @@
 import LegalPageLayout from '@/components/LegalPageLayout';
 
 const PrivacyPage = () => (
-  <LegalPageLayout title="Privacy Policy">
+  <LegalPageLayout
+    title="Privacy Policy"
+    seoTitle="Privacy Policy · Ripple"
+    seoDescription="How Ripple collects, uses, stores and protects your data, plus your rights under India's IT Rules and DPDP Act."
+  >
     <p>
       This Privacy Policy explains what information Ripple ("we", "us", "our")
       collects, how we use it, who we share it with, and the choices you have.

@@ -1,7 +1,11 @@
 import LegalPageLayout from '@/components/LegalPageLayout';
 
 const AboutPage = () => (
-  <LegalPageLayout title="About Ripple">
+  <LegalPageLayout
+    title="About Ripple"
+    seoTitle="About Ripple — a social app for real, everyday moments"
+    seoDescription="Ripple is a mobile-first community built in India for sharing genuine recommendations, reviews, travel diaries and the little moments of everyday life."
+  >
     <p>
       Ripple is a mobile-first community where people share the everyday
       things worth sharing — genuine recommendations, honest reviews, travel
