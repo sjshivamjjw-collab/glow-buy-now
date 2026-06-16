@@ -603,7 +603,7 @@ const CellPicker = ({
       <input
         ref={inputRef}
         type="file"
-        accept="image/*,image/heic,image/heif"
+        accept="image/*,image/heic,image/heif,.heic,.heif"
         multiple
         className="hidden"
         onChange={(e) => { onPick(e.target.files); e.target.value = ''; }}
