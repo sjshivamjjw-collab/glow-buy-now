@@ -9,6 +9,7 @@ import { isNative } from '@/lib/platform';
 import rippleLogo from '@/assets/ripple-logo.png';
 import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp';
 import { useToast } from '@/hooks/use-toast';
+import SEO from '@/components/SEO';
 
 
 
@@ -88,6 +89,11 @@ const AuthPage = () => {
 
   return (
     <div className="min-h-screen bg-background flex flex-col max-w-lg mx-auto">
+      <SEO
+        title="Sign in to Ripple — for the little moments of everyday life"
+        description="Join Ripple to share genuine recommendations, reviews and the everyday moments worth sharing. Phone sign-in, no spam."
+        path="/auth"
+      />
       <AnimatePresence mode="wait">
         {step === 'welcome' && (
           <motion.div
