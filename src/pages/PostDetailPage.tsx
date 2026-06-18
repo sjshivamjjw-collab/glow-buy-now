@@ -835,7 +835,7 @@ const PostDetailPage = () => {
               active={mention.active}
               onPick={mention.applyItem}
               onHover={mention.setActive}
-              variant="dark"
+              variant="light"
             />
           </div>
         )}
