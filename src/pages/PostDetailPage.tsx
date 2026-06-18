@@ -635,7 +635,7 @@ const PostDetailPage = () => {
 
       {/* Media carousel */}
       {currentMedia && (
-        <div className="relative w-screen left-1/2 -translate-x-1/2 bg-white overflow-hidden">
+        <div className="relative w-screen left-1/2 -translate-x-1/2 bg-[#fafafa] overflow-hidden">
           <div ref={emblaRef} className="w-full overflow-hidden">
             <div className="flex touch-pan-y items-center">
               {media.map((m, i) => (
