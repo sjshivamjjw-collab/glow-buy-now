@@ -668,7 +668,7 @@ const PostDetailPage = () => {
 
           {media.length > 1 && (
             <>
-              <div className="absolute bottom-2 left-1/2 -translate-x-1/2 px-2.5 py-0.5 rounded-full bg-[#0a0a0a]/85 backdrop-blur-sm text-[#fafafa] text-[10px] font-semibold z-10">
+              <div className="absolute bottom-2 left-1/2 -translate-x-1/2 px-2.5 py-0.5 rounded-full bg-black/70 backdrop-blur-sm text-white text-[10px] font-semibold z-10 overlay-keep">
                 {mediaIdx + 1} / {media.length}
               </div>
             </>
