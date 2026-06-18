@@ -102,11 +102,11 @@ const PostMusicPlayer = ({ url, title }: { url: string; title: string | null }) 
   };
 
   return (
-    <div className="inline-flex items-center gap-1.5 max-w-full px-2 py-0.5 rounded-full bg-[#1a1a1a]/80 border border-[#2a2a2a]/60">
+    <div className="inline-flex items-center gap-1.5 max-w-full px-2 py-0.5 rounded-full bg-[#f5f5f5] border border-[#e5e5e5]">
       <Music className={`w-3 h-3 text-[#ef4444] shrink-0 ${playing ? 'animate-pulse' : ''}`} />
       <button
         onClick={toggle}
-        className="text-[10px] font-medium text-[#fafafa]/90 truncate max-w-[200px] hover:text-[#ef4444]"
+        className="text-[10px] font-medium text-[#0a0a0a]/90 truncate max-w-[200px] hover:text-[#ef4444]"
         aria-label={playing ? 'Pause music' : 'Play music'}
       >
         {title || 'Music'}
@@ -450,11 +450,11 @@ const PostDetailPage = () => {
     toast({ title: next ? 'Post hidden' : 'Post unhidden' });
   };
 
-  if (loading && !post) return <div className="min-h-screen flex items-center justify-center bg-[#0a0a0a]"><Loader2 className="w-6 h-6 animate-spin text-[#ef4444]" /></div>;
+  if (loading && !post) return <div className="min-h-screen flex items-center justify-center bg-white"><Loader2 className="w-6 h-6 animate-spin text-[#ef4444]" /></div>;
   if (!post) {
     if (notFound) {
       return (
-        <div className="min-h-screen flex flex-col items-center justify-center bg-[#0a0a0a] text-[#a0a0a0] gap-4 px-6 text-center">
+        <div className="min-h-screen flex flex-col items-center justify-center bg-white text-[#737373] gap-4 px-6 text-center">
           <p>This post is no longer available.</p>
           <button onClick={() => navigate('/')} className="px-4 py-2 rounded-full bg-[#ef4444]/10 border border-[#ef4444]/30 text-[#ef4444] text-sm font-semibold">
             Back to feed
@@ -462,7 +462,7 @@ const PostDetailPage = () => {
         </div>
       );
     }
-    return <div className="min-h-screen flex items-center justify-center bg-[#0a0a0a]"><Loader2 className="w-6 h-6 animate-spin text-[#ef4444]" /></div>;
+    return <div className="min-h-screen flex items-center justify-center bg-white"><Loader2 className="w-6 h-6 animate-spin text-[#ef4444]" /></div>;
   }
 
   const isAnon = !!post.is_anonymous;
@@ -496,7 +496,7 @@ const PostDetailPage = () => {
   };
 
   return (
-    <div className="min-h-screen max-w-lg mx-auto pb-32 font-[Figtree] bg-[linear-gradient(180deg,#0a0a0a_0%,#111111_40%,#000000_100%)]">
+    <div className="min-h-screen max-w-lg mx-auto pb-32 font-[Figtree] bg-white">
       <SEO
         title={seoTitle}
         description={seoDesc}
@@ -506,9 +506,9 @@ const PostDetailPage = () => {
         jsonLd={postJsonLd}
       />
       <h1 className="sr-only">{post.title || plainBody.slice(0, 100) || 'Post on Ripple'}</h1>
-      <div className={`sticky top-0 z-10 bg-[#0a0a0a]/80 backdrop-blur-xl py-3 flex items-center justify-between border-b border-[#2a2a2a]/40 pl-4 ${!userId ? 'pr-24' : 'pr-4'}`}>
-        <button onClick={() => navigate(-1)} className="w-10 h-10 rounded-full bg-[#1a1a1a] border border-[#2a2a2a]/60 flex items-center justify-center active:scale-95 transition-transform">
-          <ArrowLeft className="w-5 h-5 text-[#fafafa]" />
+      <div className={`sticky top-0 z-10 bg-white/85 backdrop-blur-xl py-3 flex items-center justify-between border-b border-[#e5e5e5] pl-4 ${!userId ? 'pr-24' : 'pr-4'}`}>
+        <button onClick={() => navigate(-1)} className="w-10 h-10 rounded-full bg-[#f5f5f5] border border-[#e5e5e5] flex items-center justify-center active:scale-95 transition-transform">
+          <ArrowLeft className="w-5 h-5 text-[#0a0a0a]" />
         </button>
         <div className="flex items-center gap-2">
           <button
@@ -518,18 +518,18 @@ const PostDetailPage = () => {
                 if (result === 'copied') toast({ title: 'Link copied' });
               } catch {}
             }}
-            className="w-10 h-10 rounded-full bg-[#1a1a1a] border border-[#2a2a2a]/60 flex items-center justify-center active:scale-95 transition-transform"
+            className="w-10 h-10 rounded-full bg-[#f5f5f5] border border-[#e5e5e5] flex items-center justify-center active:scale-95 transition-transform"
             aria-label="Share"
           >
-            <Share2 className="w-5 h-5 text-[#fafafa]" />
+            <Share2 className="w-5 h-5 text-[#0a0a0a]" />
           </button>
           {(isOwn || isAdmin) && (
             <>
-              <button onClick={() => navigate(`/p/${post.id}/edit`)} className="px-3 py-2 rounded-full bg-[#1a1a1a] border border-[#2a2a2a]/60 text-[#fafafa] text-xs font-semibold flex items-center gap-1" aria-label="Edit post">
+              <button onClick={() => navigate(`/p/${post.id}/edit`)} className="px-3 py-2 rounded-full bg-[#f5f5f5] border border-[#e5e5e5] text-[#0a0a0a] text-xs font-semibold flex items-center gap-1" aria-label="Edit post">
                 <Pencil className="w-3.5 h-3.5" /> Edit
               </button>
               {isAdmin && (
-                <button onClick={handleToggleHide} className="px-3 py-2 rounded-full bg-[#1a1a1a] border border-[#2a2a2a]/60 text-[#fafafa] text-xs font-semibold flex items-center gap-1" aria-label={post.is_hidden ? 'Unhide post' : 'Hide post'}>
+                <button onClick={handleToggleHide} className="px-3 py-2 rounded-full bg-[#f5f5f5] border border-[#e5e5e5] text-[#0a0a0a] text-xs font-semibold flex items-center gap-1" aria-label={post.is_hidden ? 'Unhide post' : 'Hide post'}>
                   {post.is_hidden ? <><Eye className="w-3.5 h-3.5" /> Unhide</> : <><EyeOff className="w-3.5 h-3.5" /> Hide</>}
                 </button>
               )}
@@ -545,10 +545,10 @@ const PostDetailPage = () => {
               <SheetTrigger asChild>
                 <button
                   type="button"
-                  className="w-10 h-10 rounded-full bg-[#1a1a1a] border border-[#2a2a2a]/60 flex items-center justify-center"
+                  className="w-10 h-10 rounded-full bg-[#f5f5f5] border border-[#e5e5e5] flex items-center justify-center"
                   aria-label="More options"
                 >
-                  <MoreHorizontal className="w-5 h-5 text-[#fafafa]" />
+                  <MoreHorizontal className="w-5 h-5 text-[#0a0a0a]" />
                 </button>
               </SheetTrigger>
               <SheetContent side="bottom" className="rounded-t-2xl pb-8">
@@ -600,8 +600,8 @@ const PostDetailPage = () => {
         <div className="flex items-center gap-3 w-full px-4 py-3">
           <PenguinAvatar size={40} />
           <div className="flex-1 min-w-0">
-            <p className="font-[Outfit] font-bold text-[#fafafa] text-sm truncate">{RIPPLER_NAME}</p>
-            <p className="text-xs text-[#a0a0a0]">{formatDistanceToNow(new Date(post.created_at), { addSuffix: true })} · Anonymous</p>
+            <p className="font-[Outfit] font-bold text-[#0a0a0a] text-sm truncate">{RIPPLER_NAME}</p>
+            <p className="text-xs text-[#737373]">{formatDistanceToNow(new Date(post.created_at), { addSuffix: true })} · Anonymous</p>
             {post.music_url && (
               <div className="mt-1.5">
                 <PostMusicPlayer url={post.music_url} title={post.music_title} />
@@ -619,11 +619,11 @@ const PostDetailPage = () => {
             name={author?.name}
             username={author?.username}
             size={40}
-            className="ring-1 ring-[#2a2a2a]"
+            className="ring-1 ring-[#e5e5e5]"
           />
           <div className="flex-1 min-w-0">
-            <p className="font-[Outfit] font-bold text-[#fafafa] text-sm truncate">{author?.name || author?.username || 'User'}</p>
-            <p className="text-xs text-[#a0a0a0]">{formatDistanceToNow(new Date(post.created_at), { addSuffix: true })}</p>
+            <p className="font-[Outfit] font-bold text-[#0a0a0a] text-sm truncate">{author?.name || author?.username || 'User'}</p>
+            <p className="text-xs text-[#737373]">{formatDistanceToNow(new Date(post.created_at), { addSuffix: true })}</p>
             {post.music_url && (
               <div className="mt-1.5" onClick={(e) => e.stopPropagation()}>
                 <PostMusicPlayer url={post.music_url} title={post.music_title} />
@@ -635,7 +635,7 @@ const PostDetailPage = () => {
 
       {/* Media carousel */}
       {currentMedia && (
-        <div className="relative w-screen left-1/2 -translate-x-1/2 bg-[#0a0a0a] overflow-hidden">
+        <div className="relative w-screen left-1/2 -translate-x-1/2 bg-[#fafafa] overflow-hidden">
           <div ref={emblaRef} className="w-full overflow-hidden">
             <div className="flex touch-pan-y items-center">
               {media.map((m, i) => (
@@ -668,7 +668,7 @@ const PostDetailPage = () => {
 
           {media.length > 1 && (
             <>
-              <div className="absolute bottom-2 left-1/2 -translate-x-1/2 px-2.5 py-0.5 rounded-full bg-[#0a0a0a]/85 backdrop-blur-sm text-[#fafafa] text-[10px] font-semibold z-10">
+              <div className="absolute bottom-2 left-1/2 -translate-x-1/2 px-2.5 py-0.5 rounded-full bg-black/70 backdrop-blur-sm text-white text-[10px] font-semibold z-10">
                 {mediaIdx + 1} / {media.length}
               </div>
             </>
@@ -683,12 +683,12 @@ const PostDetailPage = () => {
 
       <div className="flex items-center gap-4 px-4 pt-4">
         <button onClick={handleLike} className="flex items-center gap-1.5 active:scale-95 transition-transform">
-          <Heart className={`w-6 h-6 ${liked ? 'fill-[#ef4444] text-[#ef4444]' : 'text-[#fafafa]'}`} />
-          <span className="text-sm font-semibold text-[#fafafa]">{post.like_count}</span>
+          <Heart className={`w-6 h-6 ${liked ? 'fill-[#ef4444] text-[#ef4444]' : 'text-[#0a0a0a]'}`} />
+          <span className="text-sm font-semibold text-[#0a0a0a]">{post.like_count}</span>
         </button>
         <div className="flex items-center gap-1.5">
-          <MessageCircle className="w-6 h-6 text-[#fafafa]" />
-          <span className="text-sm font-semibold text-[#fafafa]">{post.comment_count}</span>
+          <MessageCircle className="w-6 h-6 text-[#0a0a0a]" />
+          <span className="text-sm font-semibold text-[#0a0a0a]">{post.comment_count}</span>
         </div>
         <button
           onClick={async () => {
@@ -700,19 +700,19 @@ const PostDetailPage = () => {
           aria-label="Share"
           className="flex items-center gap-1.5 active:scale-95 transition-transform"
         >
-          <Share2 className="w-6 h-6 text-[#fafafa]" />
-          <span className="text-sm font-semibold text-[#fafafa]">Share</span>
+          <Share2 className="w-6 h-6 text-[#0a0a0a]" />
+          <span className="text-sm font-semibold text-[#0a0a0a]">Share</span>
         </button>
         <button onClick={handleSave} aria-label="Save" className="ml-auto flex items-center gap-1.5 active:scale-95 transition-transform">
-          <Bookmark className={`w-6 h-6 ${saved ? 'fill-[#ef4444] text-[#ef4444]' : 'text-[#fafafa]'}`} />
-          <span className="text-sm font-semibold text-[#fafafa]">{saved ? 'Saved' : 'Save'}</span>
+          <Bookmark className={`w-6 h-6 ${saved ? 'fill-[#ef4444] text-[#ef4444]' : 'text-[#0a0a0a]'}`} />
+          <span className="text-sm font-semibold text-[#0a0a0a]">{saved ? 'Saved' : 'Save'}</span>
         </button>
       </div>
 
       {/* Body */}
       <div className="px-4 pt-3">
-        {post.title && <h2 className="font-[Outfit] text-lg font-bold text-[#fafafa] mb-3 break-words">{post.title}</h2>}
-        {post.body && <div className="text-sm text-[#e5e5e5] whitespace-pre-wrap break-words [overflow-wrap:anywhere] mb-5 leading-relaxed">{renderRichText(post.body)}</div>}
+        {post.title && <h2 className="font-[Outfit] text-lg font-bold text-[#0a0a0a] mb-3 break-words">{post.title}</h2>}
+        {post.body && <div className="text-sm text-[#262626] whitespace-pre-wrap break-words [overflow-wrap:anywhere] mb-5 leading-relaxed">{renderRichText(post.body)}</div>}
         {post.location && (
           <p className="text-xs text-[#ef4444] font-medium flex items-center gap-1 mb-3"><MapPin className="w-3 h-3" />{post.location}</p>
         )}
@@ -727,9 +727,9 @@ const PostDetailPage = () => {
 
       {/* Comments */}
       <div ref={commentsSectionRef} className="px-4 mt-6">
-        <h3 className="font-[Outfit] text-sm font-bold text-[#a0a0a0] mb-3">Thoughts</h3>
+        <h3 className="font-[Outfit] text-sm font-bold text-[#737373] mb-3">Thoughts</h3>
         {comments.length === 0 ? (
-          <p className="text-sm text-[#a0a0a0] text-center py-6">Be the first to add thoughts</p>
+          <p className="text-sm text-[#737373] text-center py-6">Be the first to add thoughts</p>
         ) : (
           <ul className="space-y-1">
             {comments.filter(c => !c.parent_id && !(c.user_id && blocked.has(c.user_id))).map(top => {
@@ -753,24 +753,24 @@ const PostDetailPage = () => {
                         name={a?.name}
                         username={a?.username}
                         size={32}
-                        className="ring-1 ring-[#2a2a2a]"
+                        className="ring-1 ring-[#e5e5e5]"
                       />
                     )}
                     <div className="flex-1 min-w-0">
-                      <p className="text-xs font-bold text-[#fafafa]">
+                      <p className="text-xs font-bold text-[#0a0a0a]">
                         {cAnon ? (
                           <>
                             {RIPPLER_NAME}
-                            <span className="ml-1 text-[10px] font-medium text-[#a0a0a0]">(anonymous)</span>
+                            <span className="ml-1 text-[10px] font-medium text-[#737373]">(anonymous)</span>
                           </>
                         ) : (a?.name || a?.username || 'User')}
-                        <span className="ml-2 text-[#a0a0a0] font-normal">{formatDistanceToNow(new Date(c.created_at), { addSuffix: true })}</span>
+                        <span className="ml-2 text-[#737373] font-normal">{formatDistanceToNow(new Date(c.created_at), { addSuffix: true })}</span>
                       </p>
-                      <p className="text-sm text-[#e5e5e5] whitespace-pre-wrap">{c.body}</p>
+                      <p className="text-sm text-[#262626] whitespace-pre-wrap">{c.body}</p>
                       <div className="flex items-center gap-4 mt-1.5">
                         <button
                           onClick={() => handleLikeComment(c)}
-                          className="flex items-center gap-1 text-[11px] text-[#a0a0a0] hover:text-[#ef4444] active:scale-95 transition-transform"
+                          className="flex items-center gap-1 text-[11px] text-[#737373] hover:text-[#ef4444] active:scale-95 transition-transform"
                         >
                           <Heart className={`w-3.5 h-3.5 ${cLiked ? 'fill-[#ef4444] text-[#ef4444]' : ''}`} />
                           {c.like_count > 0 && <span className="font-semibold">{c.like_count}</span>}
@@ -778,7 +778,7 @@ const PostDetailPage = () => {
                         {!isReply && (
                           <button
                             onClick={() => { setReplyTo(c); }}
-                            className="flex items-center gap-1 text-[11px] text-[#a0a0a0] hover:text-[#fafafa] font-semibold"
+                            className="flex items-center gap-1 text-[11px] text-[#737373] hover:text-[#0a0a0a] font-semibold"
                           >
                             <Reply className="w-3.5 h-3.5" /> Reply
                           </button>
@@ -786,7 +786,7 @@ const PostDetailPage = () => {
                       </div>
                     </div>
                     {(mine || isOwn) && (
-                      <button onClick={() => handleDeleteComment(c.id)} aria-label="Delete" className="text-[#a0a0a0] hover:text-[#ef4444] p-1">
+                      <button onClick={() => handleDeleteComment(c.id)} aria-label="Delete" className="text-[#737373] hover:text-[#ef4444] p-1">
                         <Trash2 className="w-3.5 h-3.5" />
                       </button>
                     )}
@@ -799,24 +799,24 @@ const PostDetailPage = () => {
       </div>
 
       {/* Comment box */}
-      <div className="mt-4 mx-3 rounded-2xl bg-[#0a0a0a]/95 border border-[#2a2a2a]/40">
+      <div className="mt-4 mx-3 rounded-2xl bg-white border border-[#e5e5e5]">
         {replyTo && (
-          <div className="px-3 pt-2 pb-1 flex items-center justify-between text-xs text-[#a0a0a0]">
+          <div className="px-3 pt-2 pb-1 flex items-center justify-between text-xs text-[#737373]">
             <span>
               Replying to{' '}
-              <span className="text-[#fafafa] font-semibold">
+              <span className="text-[#0a0a0a] font-semibold">
                 {replyTo.is_anonymous
                   ? RIPPLER_NAME
                   : (replyTo.user_id && (authors[replyTo.user_id]?.name || authors[replyTo.user_id]?.username)) || 'User'}
               </span>
             </span>
-            <button onClick={() => setReplyTo(null)} aria-label="Cancel reply" className="p-1 hover:text-[#fafafa]">
+            <button onClick={() => setReplyTo(null)} aria-label="Cancel reply" className="p-1 hover:text-[#0a0a0a]">
               <X className="w-3.5 h-3.5" />
             </button>
           </div>
         )}
         {post.is_anonymous && (
-          <label className="px-3 pt-2 flex items-center gap-2 text-[11px] text-[#a0a0a0] cursor-pointer select-none">
+          <label className="px-3 pt-2 flex items-center gap-2 text-[11px] text-[#737373] cursor-pointer select-none">
             <input
               type="checkbox"
               checked={commentAnonymously}
@@ -824,7 +824,7 @@ const PostDetailPage = () => {
               className="w-3.5 h-3.5 accent-[#ef4444]"
             />
             <span>
-              Comment as <span className="text-[#fafafa] font-semibold">🐧 {RIPPLER_NAME}</span> (anonymous)
+              Comment as <span className="text-[#0a0a0a] font-semibold">🐧 {RIPPLER_NAME}</span> (anonymous)
             </span>
           </label>
         )}
@@ -835,11 +835,11 @@ const PostDetailPage = () => {
               active={mention.active}
               onPick={mention.applyItem}
               onHover={mention.setActive}
-              variant="dark"
+              variant="light"
             />
           </div>
         )}
-        <div className="px-3 py-2 flex items-center gap-2 border-t border-[#2a2a2a]/40">
+        <div className="px-3 py-2 flex items-center gap-2 border-t border-[#e5e5e5]">
           <input
             ref={draftInputRef}
             value={draft}
@@ -851,7 +851,7 @@ const PostDetailPage = () => {
               if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleComment(); }
             }}
             placeholder={getCommentPrompt(post.category, post.review_subcategory, !!replyTo)}
-            className="flex-1 px-4 py-2.5 rounded-full bg-[#1a1a1a]/80 border border-[#2a2a2a]/60 text-[#fafafa] placeholder:text-[#ef4444]/60 focus:outline-none focus:ring-2 focus:ring-[#ef4444]/40 text-sm font-medium"
+            className="flex-1 px-4 py-2.5 rounded-full bg-[#f5f5f5] border border-[#e5e5e5] text-[#0a0a0a] placeholder:text-[#ef4444]/60 focus:outline-none focus:ring-2 focus:ring-[#ef4444]/40 text-sm font-medium"
           />
           <button
             onClick={handleComment}
