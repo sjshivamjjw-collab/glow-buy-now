@@ -21,6 +21,9 @@ import {
   saveDraftMedia, loadDraftMedia, clearDraftMedia,
   serializeEditorState, deserializeEditorState,
 } from '@/lib/draftMediaStore';
+import {
+  loadRemoteDraft, saveRemoteDraft, clearRemoteDraft, primeSyncCache, resetSyncCache,
+} from '@/lib/draftSync';
 
 import { useMentionAutocomplete } from '@/hooks/useMentionAutocomplete';
 import { MentionSuggestions } from '@/components/MentionSuggestions';
@@ -279,6 +282,7 @@ const CreatePostPage = () => {
   // Skip the first auto-save right after we hydrate from IDB so an empty
   // initial `media` state can't wipe the saved draft before load completes.
   const mediaHydratedRef = useRef(false);
+  const remoteHydratedRef = useRef(false);
   useEffect(() => {
     (async () => {
       const saved = await loadDraftMedia();
@@ -299,6 +303,82 @@ const CreatePostPage = () => {
       mediaHydratedRef.current = true;
     })();
   }, []);
+
+  // ─── Remote (cross-device) draft sync ──────────────────────────────────────
+  // After local hydration, fetch the cloud draft. If it's newer than what this
+  // device has, replace local state with it so the user can continue where
+  // they left off on their other device.
+  useEffect(() => {
+    if (!userId) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const remote = await loadRemoteDraft(userId);
+        if (cancelled || !remote) { remoteHydratedRef.current = true; return; }
+
+        const localText = textDraftRef.current;
+        const localHasContent = !!(localText && (localText.category || localText.title || localText.body || localText.location || localText.hashtags.length || localText.music));
+        const localMediaCount = mediaRef.current.length;
+
+        // Local LS doesn't carry a timestamp; assume remote wins unless local
+        // has content the remote doesn't (i.e. user typed something offline).
+        let localUpdatedAt = 0;
+        try {
+          const raw = localStorage.getItem('createPostDraft:v1:ts');
+          if (raw) localUpdatedAt = parseInt(raw, 10) || 0;
+        } catch {}
+        const remoteUpdatedAt = new Date(remote.updated_at).getTime();
+
+        const remoteIsNewer = remoteUpdatedAt > localUpdatedAt || (!localHasContent && localMediaCount === 0);
+
+        if (remoteIsNewer) {
+          const p = remote.payload || {};
+          if (p.category !== undefined) setCategory(p.category ?? null);
+          if (p.reviewSub !== undefined) setReviewSub(p.reviewSub ?? null);
+          if (p.recommendation !== undefined) setRecommendation(p.recommendation ?? null);
+          setTitle(p.title ?? '');
+          setBody((() => {
+            const raw = p.body ?? '';
+            if (!raw) return '';
+            if (/<(strong|b|em|i|u|br|div|p|span)\b/i.test(raw)) return raw;
+            return markdownToHtml(raw);
+          })());
+          setLocation(p.location ?? '');
+          setHashtags(Array.isArray(p.hashtags) ? p.hashtags : []);
+          setMusic(p.music ?? null);
+          setPostAnonymously(!!p.postAnonymously);
+
+          // Replace media with the downloaded blobs.
+          setMedia(prev => {
+            prev.forEach(m => URL.revokeObjectURL(m.previewUrl));
+            return remote.media.map(s => ({
+              id: s.id,
+              file: new File([s.fileBlob], s.fileName || (s.kind === 'video' ? 'video.mp4' : 'photo.jpg'), { type: s.fileType || (s.kind === 'video' ? 'video/mp4' : 'image/jpeg') }),
+              previewUrl: URL.createObjectURL(s.fileBlob),
+              kind: s.kind,
+              editorState: s.editorState ? deserializeEditorState(s.editorState) : undefined,
+            }));
+          });
+          // Prime upload cache so we don't re-upload what we just downloaded.
+          primeSyncCache(remote.media.map(m => ({
+            id: m.id, kind: m.kind, storage_path: `${userId}/${m.id}.${(m.fileName.split('.').pop() || (m.kind === 'video' ? 'mp4' : 'jpg')).toLowerCase()}`,
+            file_name: m.fileName, file_type: m.fileType, editor_state: m.editorState,
+          })));
+          setDraftRestored(true);
+          if (remote.device_label && remote.device_label !== 'laptop' && remote.device_label !== 'mobile web' && remote.device_label !== 'ios' && remote.device_label !== 'android') {
+            // unknown label, skip
+          } else if (remote.device_label) {
+            toast({ title: `Picked up from your ${remote.device_label}` });
+          }
+        }
+      } catch (e) {
+        console.warn('Remote draft load failed', e);
+      } finally {
+        remoteHydratedRef.current = true;
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [userId]);
 
   const mediaRef = useRef<PendingMedia[]>([]);
   mediaRef.current = media;
@@ -322,6 +402,27 @@ const CreatePostPage = () => {
     return () => clearTimeout(t);
   }, [media]);
 
+  // Debounced push to cloud — covers both text + media changes. Waits until
+  // remote hydration has completed so we don't immediately overwrite the
+  // remote draft with an empty local state on first load.
+  useEffect(() => {
+    if (!userId || !remoteHydratedRef.current || !mediaHydratedRef.current) return;
+    const t = setTimeout(() => {
+      try { localStorage.setItem('createPostDraft:v1:ts', String(Date.now())); } catch {}
+      const payload = textDraftRef.current;
+      const mediaItems = mediaRef.current.map(x => ({
+        id: x.id,
+        kind: x.kind,
+        fileBlob: x.file,
+        fileName: x.file.name,
+        fileType: x.file.type,
+        editorState: x.editorState ? serializeEditorState(x.editorState) : undefined,
+      }));
+      saveRemoteDraft(userId, { payload, media: mediaItems }).catch(err => console.warn('Remote draft save failed', err));
+    }, 1500);
+    return () => clearTimeout(t);
+  }, [userId, category, reviewSub, recommendation, title, body, location, hashtags, music, postAnonymously, media]);
+
   // Flush drafts immediately when the tab is hidden or the page is unloaded
   // so a connection drop / refresh in the middle of typing never loses work.
   useEffect(() => {
@@ -339,7 +440,10 @@ const CreatePostPage = () => {
 
   const clearDraft = () => {
     try { localStorage.removeItem(DRAFT_KEY); } catch {}
+    try { localStorage.removeItem('createPostDraft:v1:ts'); } catch {}
     clearDraftMedia();
+    resetSyncCache();
+    if (userId) clearRemoteDraft(userId).catch(() => {});
   };
 
   const discardDraft = () => {
