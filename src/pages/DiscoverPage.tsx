@@ -369,15 +369,19 @@ const DiscoverPage = () => {
 
   const filtered = useMemo(() => {
     let list = posts;
-    if (activeChip === 'Trending') {
-      list = [...list].sort((a, b) => (b.like_count + b.comment_count) - (a.like_count + a.comment_count));
-    } else if (activeChip === 'Category' && activeCategory) {
+    if (activeChip === 'Category' && activeCategory) {
       list = list.filter(p => p.category === activeCategory);
       return list;
     } else if (activeChip === 'For you' && interests.length > 0) {
       list = [...list]
         .map(p => ({ p, s: scoreInterestMatch(interests, p) }))
         .sort((a, b) => b.s - a.s)
+        .map(x => x.p);
+    } else if (TOPIC_KEYWORDS[activeChip]) {
+      // Re-rank (don't filter): topic-matching posts float to top, others retain order below.
+      list = [...list]
+        .map((p, i) => ({ p, s: scoreTopic(p, activeChip), i }))
+        .sort((a, b) => b.s - a.s || a.i - b.i)
         .map(x => x.p);
     }
 
