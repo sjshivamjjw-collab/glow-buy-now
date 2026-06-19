@@ -288,7 +288,21 @@ const DiscoverPage = () => {
 
 
 
-  const baseChips = useMemo(() => ['For you', 'Trending'], []);
+  const baseChips = useMemo(() => ['For you', 'Vietnam', 'Weekend Getaway', 'Europe'], []);
+  const TOPIC_KEYWORDS: Record<string, string[]> = {
+    'Vietnam': ['vietnam', 'hanoi', 'saigon', 'ho chi minh', 'da nang', 'hoi an', 'halong', 'sapa', 'phu quoc', 'nha trang'],
+    'Europe': ['europe', 'european', 'paris', 'france', 'french', 'london', 'uk', 'england', 'britain', 'italy', 'italian', 'rome', 'venice', 'florence', 'milan', 'spain', 'spanish', 'barcelona', 'madrid', 'portugal', 'lisbon', 'germany', 'german', 'berlin', 'munich', 'amsterdam', 'netherlands', 'switzerland', 'swiss', 'zurich', 'vienna', 'austria', 'greece', 'greek', 'santorini', 'athens', 'prague', 'budapest', 'iceland', 'norway', 'sweden', 'denmark', 'copenhagen', 'belgium', 'brussels', 'dublin', 'ireland', 'scotland', 'edinburgh'],
+    'Weekend Getaway': ['weekend', 'weekend getaway', 'getaway', 'short trip', 'quick trip', '2 day', '3 day', 'two day', 'three day', 'nearby', 'roadtrip', 'road trip', 'staycation', 'india', 'goa', 'lonavala', 'mahabaleshwar', 'coorg', 'ooty', 'munnar', 'rishikesh', 'manali', 'shimla', 'jaipur', 'udaipur', 'pondicherry', 'alibaug', 'matheran', 'igatpuri', 'karjat', 'kasol', 'mussoorie', 'nainital'],
+  };
+  const scoreTopic = (p: TrendingPost, topic: string): number => {
+    const kws = TOPIC_KEYWORDS[topic];
+    if (!kws) return 0;
+    const hay = [p.title || '', p.body || '', p.location || '', (p.hashtags || []).join(' ')].join(' ').toLowerCase();
+    let s = 0;
+    for (const kw of kws) if (hay.includes(kw)) s += kw.includes(' ') ? 3 : 2;
+    if (p.category === 'trip') s += 1;
+    return s;
+  };
   const labelToKey = useMemo(() => Object.fromEntries(CATEGORY_FILTERS.map(c => [c.label, c.key])), []);
 
   // ===== Server-side search =====
