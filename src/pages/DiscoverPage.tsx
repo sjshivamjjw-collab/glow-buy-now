@@ -389,32 +389,6 @@ const DiscoverPage = () => {
         .map(x => x.p);
     }
 
-    // Surface a couple of fresh Work Diaries near the top (not a flood), then the rest of the personalized feed.
-    // If the user explicitly picked work_career as an interest, the normal interest-sort already boosts them — skip extra surfacing.
-    const userPickedWork = interests.includes('work_career');
-    if (!userPickedWork) {
-      const workPosts = list.filter(p => p.category === 'hidden_gems');
-      const rest = list.filter(p => p.category !== 'hidden_gems');
-      const topWork = [...workPosts]
-        .sort((a, b) => (b.like_count + b.comment_count) - (a.like_count + a.comment_count))
-        .slice(0, 2);
-      const remainingWork = workPosts.filter(p => !topWork.includes(p));
-      // Slot the two work posts at positions 2 and 5 so they feel woven in, not stacked.
-      const woven = [...rest];
-      topWork.forEach((wp, i) => {
-        const idx = Math.min(woven.length, 2 + i * 3);
-        woven.splice(idx, 0, wp);
-      });
-      list = [...woven, ...remainingWork];
-    }
-
-    // Pin a specific featured post to the very top of the feed.
-    const PINNED_POST_ID = 'b981870f-a407-4770-b267-3c361ee14777';
-    const pinnedIdx = list.findIndex(p => p.id === PINNED_POST_ID);
-    if (pinnedIdx > 0) {
-      const [pinned] = list.splice(pinnedIdx, 1);
-      list = [pinned, ...list];
-    }
     return list;
   }, [posts, activeChip, activeCategory, interests]);
 
