@@ -1,67 +1,56 @@
-## Honest SEO health check
+## Goal
+A user editing a New Post on laptop should be able to open the same draft on their phone (and vice versa), instead of only seeing it on the device that created it.
 
-Ripple has the basics in place — sitemap, robots.txt, canonical URL, OG image, favicon, theme color, and a custom domain (myripple.co.in). But the last SEO scan flagged real gaps that hurt Google rankings. Here's where we stand and what I'd fix.
+## Current behavior
+- Text fields persisted to `localStorage` (`createPostDraft:v1`).
+- Media (files, overlays, layout) persisted to **IndexedDB** via `src/lib/draftMediaStore.ts`.
+- Both stores are per-device, so the other device sees nothing.
 
-### What's already good
-- `public/robots.txt` — crawlers explicitly allowed (Google, Bing, social)
-- `public/sitemap.xml` — public legal/landing routes listed
-- Custom domain configured, HTTPS, mobile viewport, favicon, OG image
-- PostHog analytics + Google Search Console scaffolding in place
+## Approach
+Move drafts to the backend. One draft per user (matches today's single-draft model). Text syncs continuously; media files are uploaded to a private storage bucket as they're added.
 
-### What's broken (from the latest SEO review)
+### 1. Database — `post_drafts` table
+One row per user (`user_id` PK, FK to `auth.users`).
+Columns:
+- `payload jsonb` — the full text draft (category, reviewSub, recommendation, title, body, location, hashtags, music, postAnonymously)
+- `media jsonb` — ordered array of `{ id, kind, storage_path, file_name, file_type, editor_state }`
+- `updated_at timestamptz`, `device_label text` (last device that wrote, for the "restored from your laptop" hint)
 
-1. **Identical metadata on every page** (high severity). Every route serves the same `<title>` and `<meta description>` from `index.html`. Google sees /, /p/:id, /u/:userId, /about, /terms all as "Ripple — Everyday things worth sharing". This is the single biggest ranking blocker.
+RLS: owner-only select/insert/update/delete (`auth.uid() = user_id`).
+GRANTs: `authenticated` full CRUD; `service_role` all.
 
-2. **No per-page social previews**. Sharing a post link on WhatsApp/Twitter shows the generic Ripple card instead of the post's title and image. `og:url` is also missing.
+### 2. Storage — `post-drafts` bucket (private)
+Path: `{user_id}/{draft_media_id}.{ext}`.
+RLS on `storage.objects` so a user can only read/write/delete files under their own folder.
+Files are deleted when the draft is published or discarded.
 
-3. **No structured data on content pages**. No JSON-LD for posts (Article/SocialMediaPosting) or profiles (ProfilePage/Person). This blocks rich results in Google.
+### 3. Client sync layer (replaces `draftMediaStore.ts` usage)
+New `src/lib/draftSync.ts`:
+- `loadRemoteDraft()` — fetches row + downloads each media file as a Blob → returns the same `PersistedDraft` + `StoredMedia[]` shape the page already consumes.
+- `saveRemoteDraft(payload, media)` — debounced upsert of the text row + uploads any new media files (idempotent by `id`), removes storage objects no longer in the list.
+- `clearRemoteDraft()` — deletes the row + all media objects.
 
-4. **Missing/weak H1s**. PostDetailPage, OnboardingPage have no H1. Home H1 is just the user's name. Auth page H1 lacks a descriptor.
+### 4. `CreatePostPage.tsx` wiring
+- On mount: load **local** draft (instant, offline-friendly) AND fire `loadRemoteDraft()`. If remote `updated_at` is newer than local, swap in remote content and show "Picked up from your other device" toast (replaces existing "Picked up where you left off"). If local is newer, push it up.
+- Debounced effect that already calls `flushTextDraft` / `flushMediaDraft` also calls `saveRemoteDraft` (longer debounce for media, e.g. 1.5s, to coalesce uploads).
+- `clearDraft()` / `discardDraft()` / successful publish path also call `clearRemoteDraft()`.
+- Local IndexedDB + localStorage stay as the fast cache; remote is the source of truth across devices.
 
-5. **Icon-only buttons missing aria-labels** (PostDetailPage back/like/carousel, UserProfilePage, NotificationsPage). Hurts accessibility score, which Lighthouse rolls into SEO signals.
+### 5. Conflict handling
+Last-write-wins by `updated_at`. If two devices edit simultaneously, the most recent save replaces the earlier one (acceptable for a single-user drafting flow; matches user expectation of "continue where I left off").
 
-6. **No `<main>` landmark**. Screen readers and crawlers can't identify the primary content region.
+### 6. Cleanup
+- On successful post publish (existing `clearDraft()` in submit handler around line 709) → also `clearRemoteDraft()`.
+- A simple SQL scheduled task is **not** added now; orphan cleanup can be revisited if storage grows.
 
-7. **LCP / image sizing**. Images lack explicit width/height, causing layout shift and a slow Largest Contentful Paint on the home feed.
+## Files changed
+- new migration: `post_drafts` table + RLS + GRANTs
+- new storage bucket `post-drafts` (private) + RLS policies on `storage.objects`
+- new `src/lib/draftSync.ts`
+- edit `src/pages/CreatePostPage.tsx` — hydrate from remote, push to remote, clear on publish/discard
+- `draftMediaStore.ts` kept as local cache; no breaking changes
 
-8. **Sitemap is incomplete**. Only legal pages listed — no profiles, no posts. Google has nothing to crawl beyond the footer pages.
-
-9. **GSC verification token still a placeholder** in `index.html` (commented out). Until verified, you can't track impressions or submit the sitemap.
-
-## Proposed fix plan (one focused pass)
-
-### A. Per-page metadata (biggest win)
-- Install `react-helmet-async` and wrap the app with `HelmetProvider`.
-- Add a small `<SEO>` component (title, description, canonical, og:title/og:url/og:image, og:type).
-- Apply it to: `DiscoverPage`, `PostDetailPage` (post.title + first media as og:image, type=article), `UserProfilePage` (username + bio), `AboutPage`, `ContactPage`, `TermsPage`, `PrivacyPage`, `SupportPage`, `DeleteAccountPage`, `AuthPage`.
-- Remove static canonical from `index.html` (each route owns its own); keep sitewide og:* as fallback for non-JS crawlers.
-
-### B. Structured data (JSON-LD)
-- Sitewide `Organization` + `WebSite` (with SearchAction) in `index.html`.
-- Per-post `SocialMediaPosting` schema (headline, author, datePublished, image) in `PostDetailPage`.
-- Per-profile `ProfilePage` schema in `UserProfilePage`.
-
-### C. Content & semantics
-- Add a proper H1 to `PostDetailPage` (post title), `OnboardingPage` ("Set up your profile"), rewrite home H1 to describe the feed, expand Auth H1.
-- Wrap routed content in a single `<main>` inside `AppLayout`.
-- Add `aria-label` to all icon-only buttons (back, like, carousel nav, notifications).
-
-### D. Sitemap upgrade
-- Replace the hand-edited `public/sitemap.xml` with a `scripts/generate-sitemap.ts` generator wired into `predev`/`prebuild`.
-- Static routes: keep current list.
-- Dynamic: query Supabase at build time for all public posts (`/p/:id`) and all profiles (`/u/:userId`) — same filters as the page loaders.
-
-### E. Performance
-- Add explicit `width`/`height` (or `aspect-*` wrapper) on feed/post images.
-- `fetchpriority="high"` and remove `loading="lazy"` on the first above-the-fold image of the home feed.
-
-### F. Google Search Console
-- Use the connector flow to programmatically verify `https://myripple.co.in/` via meta tag, then add the property and submit the new sitemap.
-
-## Out of scope (intentional)
-- **Server-side rendering**. Lovable is client-rendered. Googlebot executes JS so per-page titles/JSON-LD work for Search. WhatsApp/Slack/LinkedIn crawlers do NOT execute JS — they'll keep showing the sitewide preview no matter what we do here. I'll be honest about this rather than promise per-post social cards.
-- Backlinks, content strategy, keyword research — those are ongoing work, not a code change.
-
-## Questions before I build
-1. Do you want all of A–F in one pass, or start with A+B+D (the metadata + sitemap + structured-data trio that moves the ranking needle) and do C/E/F next?
-2. For per-post social previews on WhatsApp/Twitter (the JS-crawler limitation above) — is that important enough that we should later build a small edge function that pre-renders OG tags for `/p/:id` URLs?
+## Out of scope
+- Multiple concurrent drafts per user (still one)
+- Real-time co-editing
+- Edit-post drafts (only the New Post flow)
