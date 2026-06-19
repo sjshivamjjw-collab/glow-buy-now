@@ -478,24 +478,21 @@ const DiscoverPage = () => {
           />
         </div>
 
-        {/* Filter tabs */}
-        <div className="flex gap-2 mt-2 items-center">
+        {/* Filter tabs — horizontally scrollable to allow adding more topics */}
+        <div className="flex gap-2 mt-2 items-center overflow-x-auto scrollbar-hide -mx-4 px-4">
           {baseChips.map(chip => {
             const active = chip === activeChip;
             return (
               <button
                 key={chip}
                 onClick={() => { setActiveChip(chip); setCategoryOpen(false); }}
-                className={`px-3.5 py-1 rounded-full text-xs font-semibold transition-all ${
-
+                className={`shrink-0 px-3.5 py-1 rounded-full text-xs font-semibold transition-all whitespace-nowrap ${
                   active
                     ? 'bg-[#fafafa] text-[#1a1a1a] shadow-sm'
                     : 'bg-[#1a1a1a]/70 text-[#a0a0a0] border border-[#2a2a2a]/60 hover:border-[#ef4444]'
                 }`}
               >
-                {chip === 'Trending' ? (
-                  <span className="flex items-center gap-1"><TrendingUp className="w-3 h-3" />{chip}</span>
-                ) : chip}
+                {chip}
               </button>
             );
           })}
