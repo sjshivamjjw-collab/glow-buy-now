@@ -90,7 +90,11 @@ const DiscoverPage = () => {
   const sentinelRef = useRef<HTMLDivElement>(null);
   const cachedDiscover = getDiscoverState();
   const [query, setQuery] = useState(cachedDiscover?.query ?? '');
-  const [activeChip, setActiveChip] = useState<string>(cachedDiscover?.activeChip ?? 'For you');
+  const [activeChip, setActiveChip] = useState<string>(
+    cachedDiscover?.activeChip && cachedDiscover.activeChip !== 'Trending'
+      ? cachedDiscover.activeChip
+      : 'For you'
+  );
   const [categoryOpen, setCategoryOpen] = useState(false);
   const [activeCategory, setActiveCategory] = useState<string | null>(cachedDiscover?.activeCategory ?? null);
   const [interests, setInterests] = useState<string[]>([]);
@@ -288,7 +292,21 @@ const DiscoverPage = () => {
 
 
 
-  const baseChips = useMemo(() => ['For you', 'Trending'], []);
+  const baseChips = useMemo(() => ['For you', 'Vietnam', 'Weekend Getaway', 'Europe'], []);
+  const TOPIC_KEYWORDS: Record<string, string[]> = {
+    'Vietnam': ['vietnam', 'hanoi', 'saigon', 'ho chi minh', 'da nang', 'hoi an', 'halong', 'sapa', 'phu quoc', 'nha trang'],
+    'Europe': ['europe', 'european', 'paris', 'france', 'french', 'london', 'uk', 'england', 'britain', 'italy', 'italian', 'rome', 'venice', 'florence', 'milan', 'spain', 'spanish', 'barcelona', 'madrid', 'portugal', 'lisbon', 'germany', 'german', 'berlin', 'munich', 'amsterdam', 'netherlands', 'switzerland', 'swiss', 'zurich', 'vienna', 'austria', 'greece', 'greek', 'santorini', 'athens', 'prague', 'budapest', 'iceland', 'norway', 'sweden', 'denmark', 'copenhagen', 'belgium', 'brussels', 'dublin', 'ireland', 'scotland', 'edinburgh'],
+    'Weekend Getaway': ['weekend', 'weekend getaway', 'getaway', 'short trip', 'quick trip', '2 day', '3 day', 'two day', 'three day', 'nearby', 'roadtrip', 'road trip', 'staycation', 'india', 'goa', 'lonavala', 'mahabaleshwar', 'coorg', 'ooty', 'munnar', 'rishikesh', 'manali', 'shimla', 'jaipur', 'udaipur', 'pondicherry', 'alibaug', 'matheran', 'igatpuri', 'karjat', 'kasol', 'mussoorie', 'nainital'],
+  };
+  const scoreTopic = (p: TrendingPost, topic: string): number => {
+    const kws = TOPIC_KEYWORDS[topic];
+    if (!kws) return 0;
+    const hay = [p.title || '', p.body || '', p.location || '', (p.hashtags || []).join(' ')].join(' ').toLowerCase();
+    let s = 0;
+    for (const kw of kws) if (hay.includes(kw)) s += kw.includes(' ') ? 3 : 2;
+    if (p.category === 'trip') s += 1;
+    return s;
+  };
   const labelToKey = useMemo(() => Object.fromEntries(CATEGORY_FILTERS.map(c => [c.label, c.key])), []);
 
   // ===== Server-side search =====
@@ -355,15 +373,19 @@ const DiscoverPage = () => {
 
   const filtered = useMemo(() => {
     let list = posts;
-    if (activeChip === 'Trending') {
-      list = [...list].sort((a, b) => (b.like_count + b.comment_count) - (a.like_count + a.comment_count));
-    } else if (activeChip === 'Category' && activeCategory) {
+    if (activeChip === 'Category' && activeCategory) {
       list = list.filter(p => p.category === activeCategory);
       return list;
     } else if (activeChip === 'For you' && interests.length > 0) {
       list = [...list]
         .map(p => ({ p, s: scoreInterestMatch(interests, p) }))
         .sort((a, b) => b.s - a.s)
+        .map(x => x.p);
+    } else if (TOPIC_KEYWORDS[activeChip]) {
+      // Re-rank (don't filter): topic-matching posts float to top, others retain order below.
+      list = [...list]
+        .map((p, i) => ({ p, s: scoreTopic(p, activeChip), i }))
+        .sort((a, b) => b.s - a.s || a.i - b.i)
         .map(x => x.p);
     }
 
@@ -460,24 +482,21 @@ const DiscoverPage = () => {
           />
         </div>
 
-        {/* Filter tabs */}
-        <div className="flex gap-2 mt-2 items-center">
+        {/* Filter tabs — horizontally scrollable to allow adding more topics */}
+        <div className="flex gap-2 mt-2 items-center overflow-x-auto scrollbar-hide -mx-4 px-4">
           {baseChips.map(chip => {
             const active = chip === activeChip;
             return (
               <button
                 key={chip}
                 onClick={() => { setActiveChip(chip); setCategoryOpen(false); }}
-                className={`px-3.5 py-1 rounded-full text-xs font-semibold transition-all ${
-
+                className={`shrink-0 px-3.5 py-1 rounded-full text-xs font-semibold transition-all whitespace-nowrap ${
                   active
                     ? 'bg-[#fafafa] text-[#1a1a1a] shadow-sm'
                     : 'bg-[#1a1a1a]/70 text-[#a0a0a0] border border-[#2a2a2a]/60 hover:border-[#ef4444]'
                 }`}
               >
-                {chip === 'Trending' ? (
-                  <span className="flex items-center gap-1"><TrendingUp className="w-3 h-3" />{chip}</span>
-                ) : chip}
+                {chip}
               </button>
             );
           })}
