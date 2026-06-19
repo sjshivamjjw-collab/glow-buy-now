@@ -463,7 +463,17 @@ const DiscoverPage = () => {
             return (
               <button
                 key={chip}
-                onClick={() => { setActiveChip(chip); setCategoryOpen(false); }}
+                onClick={() => {
+                  setActiveChip(chip);
+                  setCategoryOpen(false);
+                  // Topic pills behave like a search for that term so results match the
+                  // server-side search index (more accurate than client-side re-rank).
+                  if (chip === 'For you') {
+                    setQuery('');
+                  } else if (TOPIC_KEYWORDS[chip]) {
+                    setQuery(chip);
+                  }
+                }}
                 className={`shrink-0 px-3.5 py-1 rounded-full text-xs font-semibold transition-all whitespace-nowrap ${
                   active
                     ? 'bg-[#fafafa] text-[#1a1a1a] shadow-sm'
