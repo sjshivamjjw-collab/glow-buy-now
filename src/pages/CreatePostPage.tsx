@@ -21,6 +21,9 @@ import {
   saveDraftMedia, loadDraftMedia, clearDraftMedia,
   serializeEditorState, deserializeEditorState,
 } from '@/lib/draftMediaStore';
+import {
+  loadRemoteDraft, saveRemoteDraft, clearRemoteDraft, primeSyncCache, resetSyncCache,
+} from '@/lib/draftSync';
 
 import { useMentionAutocomplete } from '@/hooks/useMentionAutocomplete';
 import { MentionSuggestions } from '@/components/MentionSuggestions';
