@@ -90,7 +90,11 @@ const DiscoverPage = () => {
   const sentinelRef = useRef<HTMLDivElement>(null);
   const cachedDiscover = getDiscoverState();
   const [query, setQuery] = useState(cachedDiscover?.query ?? '');
-  const [activeChip, setActiveChip] = useState<string>(cachedDiscover?.activeChip ?? 'For you');
+  const [activeChip, setActiveChip] = useState<string>(
+    cachedDiscover?.activeChip && cachedDiscover.activeChip !== 'Trending'
+      ? cachedDiscover.activeChip
+      : 'For you'
+  );
   const [categoryOpen, setCategoryOpen] = useState(false);
   const [activeCategory, setActiveCategory] = useState<string | null>(cachedDiscover?.activeCategory ?? null);
   const [interests, setInterests] = useState<string[]>([]);
