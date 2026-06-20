@@ -711,7 +711,7 @@ const PostDetailPage = () => {
 
       {/* Body — journal reading surface (warm, flush, premium) */}
       {(post.title || post.body || post.location || post.hashtags.length > 0) && (
-        <div className="bg-[#EAE4D8] rounded-t-[24px] px-5 pt-6 pb-7 mt-2">
+        <div className="bg-[#EAE4D8] px-5 pt-6 pb-7">
           {post.title && (
             <h2 className="font-[Outfit] text-xl font-bold text-[#1F1F1F] mb-3 break-words leading-snug">
               {post.title}
