@@ -133,10 +133,24 @@ const RichTextEditor = forwardRef<RichTextEditorHandle, Props>(function RichText
   };
 
   const handlePaste = (e: React.ClipboardEvent) => {
-    // Force plain-text paste so we don't inherit foreign styles/markup.
     e.preventDefault();
+    const html = e.clipboardData.getData('text/html');
     const text = e.clipboardData.getData('text/plain');
-    document.execCommand('insertText', false, text);
+    if (html && html.trim()) {
+      const cleaned = sanitizePastedHtml(html);
+      if (cleaned) {
+        document.execCommand('insertHTML', false, cleaned);
+        return;
+      }
+    }
+    // Fallback: preserve line breaks from plain text.
+    const safe = (text || '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/\r\n?/g, '\n')
+      .replace(/\n/g, '<br>');
+    document.execCommand('insertHTML', false, safe);
   };
 
   useImperativeHandle(ref, () => ({
