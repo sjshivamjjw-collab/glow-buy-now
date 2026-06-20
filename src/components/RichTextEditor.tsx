@@ -6,156 +6,6 @@ import { Bold, Italic, Underline } from 'lucide-react';
 // React state catches up shortly after.
 const ONCHANGE_DEBOUNCE_MS = 200;
 
-const escapeHtml = (s: string) =>
-  s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-
-function renderPastedInline(node: Node): string {
-  if (node.nodeType === 3) return escapeHtml(node.textContent || '');
-  if (node.nodeType !== 1) return '';
-  const el = node as HTMLElement;
-  const tag = el.tagName.toLowerCase();
-  if (tag === 'br') return '<br>';
-  const inner = Array.from(el.childNodes).map(renderPastedInline).join('');
-  if (tag === 'b' || tag === 'strong') return `<strong>${inner}</strong>`;
-  if (tag === 'i' || tag === 'em') return `<em>${inner}</em>`;
-  if (tag === 'u' || tag === 'ins') return `<u>${inner}</u>`;
-  if (tag === 'a') return inner;
-  const style = el.getAttribute('style') || '';
-  let out = inner;
-  if (/font-weight:\s*(bold|[6-9]00)/i.test(style) || /mso-bidi-font-weight:\s*bold/i.test(style)) out = `<strong>${out}</strong>`;
-  if (/font-style:\s*italic/i.test(style)) out = `<em>${out}</em>`;
-  if (/text-decoration:[^;]*underline/i.test(style)) out = `<u>${out}</u>`;
-  return out;
-}
-
-const BLOCK_TAGS = new Set(['p', 'div', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'section', 'article', 'blockquote']);
-
-function convertPastedHtml(rawHtml: string): string {
-  const doc = new DOMParser().parseFromString(rawHtml, 'text/html');
-  doc.querySelectorAll('script,style,meta,link,head').forEach(n => n.remove());
-  // Strip MS Word namespaced tags (o:p, w:*, m:*) — querySelectorAll can't
-  // match namespaced selectors, so walk all elements and check tagName.
-  Array.from(doc.querySelectorAll('*')).forEach(n => {
-    const t = n.tagName;
-    if (t && (t.includes(':') || /^(O|W|M):/i.test(t))) n.remove();
-  });
-
-  const blocks: string[] = [];
-
-  const isWordListItem = (el: HTMLElement) => {
-    const cls = el.getAttribute('class') || '';
-    const style = el.getAttribute('style') || '';
-    return /MsoListParagraph/i.test(cls) || /mso-list:/i.test(style);
-  };
-
-  const processBlock = (node: Node): void => {
-    if (node.nodeType === 3) {
-      const t = (node.textContent || '').replace(/\s+/g, ' ');
-      if (t.trim()) blocks.push(escapeHtml(t.trim()));
-      return;
-    }
-    if (node.nodeType !== 1) return;
-    const el = node as HTMLElement;
-    const tag = el.tagName.toLowerCase();
-
-    if (tag === 'ul' || tag === 'ol') {
-      let i = 0;
-      Array.from(el.children).forEach(child => {
-        if (child.tagName.toLowerCase() !== 'li') return;
-        i += 1;
-        const prefix = tag === 'ol' ? `${i}. ` : '• ';
-        // Inline content of li, ignoring nested lists for now
-        const inlineParts: string[] = [];
-        const nested: HTMLElement[] = [];
-        Array.from(child.childNodes).forEach(c => {
-          if (c.nodeType === 1 && /^(ul|ol)$/i.test((c as HTMLElement).tagName)) {
-            nested.push(c as HTMLElement);
-          } else {
-            inlineParts.push(renderPastedInline(c));
-          }
-        });
-        const inner = inlineParts.join('').trim();
-        if (inner) blocks.push(prefix + inner);
-        nested.forEach(processBlock);
-      });
-      return;
-    }
-
-    if (BLOCK_TAGS.has(tag)) {
-      const hasBlockChild = Array.from(el.children).some(c =>
-        BLOCK_TAGS.has(c.tagName.toLowerCase()) || /^(ul|ol)$/i.test(c.tagName)
-      );
-      if (hasBlockChild) {
-        Array.from(el.childNodes).forEach(processBlock);
-      } else {
-        const inner = Array.from(el.childNodes).map(renderPastedInline).join('').trim();
-        if (!inner) return;
-        if (isWordListItem(el)) {
-          // Word exports list items as <p class="MsoListParagraph"> with a leading bullet glyph.
-          const cleaned = inner.replace(/^([•·\u2022\u25CF\-\*o]\s*|&middot;\s*)+/, '').trim();
-          blocks.push('• ' + cleaned);
-        } else {
-          blocks.push(inner);
-        }
-      }
-      return;
-    }
-
-    if (tag === 'br') {
-      blocks.push('');
-      return;
-    }
-
-    // Inline element at root level → treat as inline addition to last block
-    const inline = renderPastedInline(el);
-    if (inline.trim()) blocks.push(inline);
-  };
-
-  Array.from(doc.body.childNodes).forEach(processBlock);
-
-  // Join blocks with paragraph breaks, but keep consecutive bullets tight.
-  const out: string[] = [];
-  for (let i = 0; i < blocks.length; i++) {
-    const cur = blocks[i];
-    out.push(cur);
-    const next = blocks[i + 1];
-    if (next == null) break;
-    const curBullet = /^(•|\d+\.)\s/.test(cur);
-    const nextBullet = /^(•|\d+\.)\s/.test(next);
-    if (curBullet && nextBullet) out.push('<br>');
-    else out.push('<br><br>');
-  }
-  return out.join('');
-}
-
-function convertPastedText(text: string): string {
-  const lines = text.replace(/\r\n?/g, '\n').split('\n');
-  const parts: string[] = [];
-  lines.forEach(line => {
-    const t = line.replace(/\s+$/, '');
-    if (!t.trim()) { parts.push(''); return; }
-    const bullet = t.match(/^\s*[•\u2022\-\*]\s+(.*)$/);
-    if (bullet) { parts.push('• ' + escapeHtml(bullet[1])); return; }
-    const num = t.match(/^\s*(\d+)[\.\)]\s+(.*)$/);
-    if (num) { parts.push(`${num[1]}. ` + escapeHtml(num[2])); return; }
-    parts.push(escapeHtml(t.trim()));
-  });
-  // Collapse runs of empty lines into a single paragraph break
-  const html: string[] = [];
-  let prevEmpty = false;
-  for (const p of parts) {
-    if (!p) {
-      if (!prevEmpty && html.length) html.push('<br>');
-      prevEmpty = true;
-    } else {
-      if (html.length && !prevEmpty) html.push('<br>');
-      html.push(p);
-      prevEmpty = false;
-    }
-  }
-  return html.join('');
-}
-
 interface Props {
   value: string;            // HTML string
   onChange: (html: string) => void;
@@ -283,14 +133,10 @@ const RichTextEditor = forwardRef<RichTextEditorHandle, Props>(function RichText
   };
 
   const handlePaste = (e: React.ClipboardEvent) => {
-    // Convert pasted content into our allowed HTML subset so bullets,
-    // paragraphs and line breaks from Word/Docs/etc. are preserved without
-    // dragging in foreign fonts, colors, or huge inline styles.
+    // Force plain-text paste so we don't inherit foreign styles/markup.
     e.preventDefault();
-    const html = e.clipboardData.getData('text/html');
     const text = e.clipboardData.getData('text/plain');
-    const insert = html ? convertPastedHtml(html) : convertPastedText(text);
-    if (insert) document.execCommand('insertHTML', false, insert);
+    document.execCommand('insertText', false, text);
   };
 
   useImperativeHandle(ref, () => ({
