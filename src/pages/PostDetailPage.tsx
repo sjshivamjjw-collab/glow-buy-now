@@ -709,35 +709,33 @@ const PostDetailPage = () => {
         </button>
       </div>
 
-      {/* Body — reading card (light, premium magazine feel) */}
+      {/* Body — journal reading surface (warm, flush, premium) */}
       {(post.title || post.body || post.location || post.hashtags.length > 0) && (
-        <div className="mx-3 mt-4">
-          <article
-            className="rounded-[22px] bg-[#FAFAF7] border border-black/5 shadow-[0_8px_24px_-12px_rgba(0,0,0,0.6)] p-5"
-          >
-            {post.title && (
-              <h2 className="font-[Outfit] text-xl font-bold text-[#1F1F1F] mb-3 break-words leading-snug">
-                {post.title}
-              </h2>
-            )}
-            {post.body && (
-              <div className="text-[15px] text-[#1F1F1F] whitespace-pre-wrap break-words [overflow-wrap:anywhere] leading-[1.7] [&_p]:mb-4 [&_p:last-child]:mb-0 mb-4">
-                {renderRichText(post.body)}
-              </div>
-            )}
-            {post.location && (
-              <p className="text-xs text-[#555555] font-medium flex items-center gap-1 mb-3">
-                <MapPin className="w-3 h-3" />{post.location}
-              </p>
-            )}
-            {post.hashtags.length > 0 && (
-              <div className="flex flex-wrap gap-1.5">
-                {post.hashtags.map(h => (
-                  <span key={h} className="text-xs text-[#dc2626] font-semibold">#{h}</span>
-                ))}
-              </div>
-            )}
-          </article>
+        <div className="bg-[#EAE4D8] rounded-t-[24px] px-5 pt-6 pb-7 mt-2">
+          {post.title && (
+            <h2 className="font-[Outfit] text-xl font-bold text-[#1F1F1F] mb-3 break-words leading-snug">
+              {post.title}
+            </h2>
+          )}
+          {post.body && (
+            <div className="text-[15px] text-[#1F1F1F] whitespace-pre-wrap break-words [overflow-wrap:anywhere] leading-[1.7] [&_p]:mb-4 [&_p:last-child]:mb-0 mb-4">
+              {renderRichText(post.body)}
+            </div>
+          )}
+          {post.location && (
+            <p className="text-xs text-[#555555] font-medium flex items-center gap-1 mb-3">
+              <MapPin className="w-3 h-3" />{post.location}
+            </p>
+          )}
+          {post.hashtags.length > 0 && (
+            <div className="flex flex-wrap gap-1.5">
+              {post.hashtags.map(h => (
+                <span key={h} className="text-xs text-[#b1471f] font-semibold">#{h}</span>
+              ))}
+            </div>
+          )}
+        </div>
+
         </div>
       )}
 
