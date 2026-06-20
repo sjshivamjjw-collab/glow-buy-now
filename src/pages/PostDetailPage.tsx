@@ -735,9 +735,8 @@ const PostDetailPage = () => {
             </div>
           )}
         </div>
-
-        </div>
       )}
+
 
       {/* Comments */}
       <div ref={commentsSectionRef} className="px-4 mt-6">
