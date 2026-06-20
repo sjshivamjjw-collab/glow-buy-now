@@ -33,8 +33,12 @@ const BLOCK_TAGS = new Set(['p', 'div', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'sec
 function convertPastedHtml(rawHtml: string): string {
   const doc = new DOMParser().parseFromString(rawHtml, 'text/html');
   doc.querySelectorAll('script,style,meta,link,head').forEach(n => n.remove());
-  // Strip MS Word conditional comments / o:p tags
-  doc.querySelectorAll('o\\:p, w\\:*, m\\:*').forEach(n => n.remove());
+  // Strip MS Word namespaced tags (o:p, w:*, m:*) — querySelectorAll can't
+  // match namespaced selectors, so walk all elements and check tagName.
+  Array.from(doc.querySelectorAll('*')).forEach(n => {
+    const t = n.tagName;
+    if (t && (t.includes(':') || /^(O|W|M):/i.test(t))) n.remove();
+  });
 
   const blocks: string[] = [];
 
