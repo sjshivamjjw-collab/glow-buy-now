@@ -133,10 +133,14 @@ const RichTextEditor = forwardRef<RichTextEditorHandle, Props>(function RichText
   };
 
   const handlePaste = (e: React.ClipboardEvent) => {
-    // Force plain-text paste so we don't inherit foreign styles/markup.
+    // Convert pasted content into our allowed HTML subset so bullets,
+    // paragraphs and line breaks from Word/Docs/etc. are preserved without
+    // dragging in foreign fonts, colors, or huge inline styles.
     e.preventDefault();
+    const html = e.clipboardData.getData('text/html');
     const text = e.clipboardData.getData('text/plain');
-    document.execCommand('insertText', false, text);
+    const insert = html ? convertPastedHtml(html) : convertPastedText(text);
+    if (insert) document.execCommand('insertHTML', false, insert);
   };
 
   useImperativeHandle(ref, () => ({
