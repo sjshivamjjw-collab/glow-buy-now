@@ -6,6 +6,67 @@ import { Bold, Italic, Underline } from 'lucide-react';
 // React state catches up shortly after.
 const ONCHANGE_DEBOUNCE_MS = 200;
 
+/**
+ * Sanitize HTML pasted from external sources (Word, Google Docs, web pages).
+ * Keeps semantic formatting we support: bold / italic / underline and line
+ * breaks. Lists become "• " prefixed lines. Headings become bold lines.
+ * Everything else (colors, fonts, classes, images, tables...) is dropped.
+ */
+function sanitizePastedHtml(rawHtml: string): string {
+  let html = rawHtml;
+  // Strip Word's <!--StartFragment-->/<!--EndFragment--> wrappers + comments.
+  html = html.replace(/<!--[\s\S]*?-->/g, '');
+  // Strip <style>, <script>, <meta>, <link>, <o:p> etc.
+  html = html.replace(/<(style|script|meta|link|title|head)[\s\S]*?<\/\1>/gi, '');
+  html = html.replace(/<\/?(o:p|xml|w:[^>]+)[^>]*>/gi, '');
+
+  const doc = new DOMParser().parseFromString(`<div>${html}</div>`, 'text/html');
+  const root = doc.body.firstElementChild;
+  if (!root) return '';
+
+  const BOLD = new Set(['B', 'STRONG']);
+  const ITALIC = new Set(['I', 'EM']);
+  const UNDERLINE = new Set(['U', 'INS']);
+  const BLOCK = new Set(['P', 'DIV', 'BLOCKQUOTE', 'SECTION', 'ARTICLE', 'PRE']);
+  const HEADING = new Set(['H1', 'H2', 'H3', 'H4', 'H5', 'H6']);
+
+  const walk = (node: Node): string => {
+    if (node.nodeType === Node.TEXT_NODE) {
+      const t = (node.textContent || '').replace(/\u00a0/g, ' ');
+      return t
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+    }
+    if (node.nodeType !== Node.ELEMENT_NODE) return '';
+    const el = node as HTMLElement;
+    const tag = el.tagName;
+    if (tag === 'BR') return '<br>';
+    if (tag === 'LI') {
+      const inner = Array.from(el.childNodes).map(walk).join('').trim();
+      return inner ? `• ${inner}<br>` : '';
+    }
+    const style = (el.getAttribute('style') || '').toLowerCase();
+    const fw = style.match(/font-weight:\s*([^;]+)/)?.[1] ?? '';
+    const isBoldStyle = /bold|[6789]00/.test(fw);
+    const isItalicStyle = /italic|oblique/.test(style);
+    const isUnderlineStyle = /text-decoration:[^;]*underline/.test(style);
+
+    const inner = Array.from(el.childNodes).map(walk).join('');
+    let out = inner;
+    if (BOLD.has(tag) || isBoldStyle || HEADING.has(tag)) out = `<strong>${out}</strong>`;
+    if (ITALIC.has(tag) || isItalicStyle) out = `<em>${out}</em>`;
+    if (UNDERLINE.has(tag) || isUnderlineStyle) out = `<u>${out}</u>`;
+    if (HEADING.has(tag) || BLOCK.has(tag)) out = out ? `${out}<br>` : '';
+    return out;
+  };
+
+  let result = Array.from(root.childNodes).map(walk).join('');
+  // Collapse 3+ <br> in a row, trim leading/trailing breaks.
+  result = result.replace(/(<br>\s*){3,}/gi, '<br><br>').replace(/^(<br>\s*)+|(<br>\s*)+$/gi, '');
+  return result;
+}
+
 interface Props {
   value: string;            // HTML string
   onChange: (html: string) => void;
@@ -133,10 +194,24 @@ const RichTextEditor = forwardRef<RichTextEditorHandle, Props>(function RichText
   };
 
   const handlePaste = (e: React.ClipboardEvent) => {
-    // Force plain-text paste so we don't inherit foreign styles/markup.
     e.preventDefault();
+    const html = e.clipboardData.getData('text/html');
     const text = e.clipboardData.getData('text/plain');
-    document.execCommand('insertText', false, text);
+    if (html && html.trim()) {
+      const cleaned = sanitizePastedHtml(html);
+      if (cleaned) {
+        document.execCommand('insertHTML', false, cleaned);
+        return;
+      }
+    }
+    // Fallback: preserve line breaks from plain text.
+    const safe = (text || '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/\r\n?/g, '\n')
+      .replace(/\n/g, '<br>');
+    document.execCommand('insertHTML', false, safe);
   };
 
   useImperativeHandle(ref, () => ({
