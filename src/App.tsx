@@ -81,17 +81,6 @@ const RouteChangeTracker = () => {
   return null;
 };
 
-// Defined at module scope so its component identity is stable across
-// re-renders of AppRoutes. If this were declared inline inside AppRoutes,
-// every auth-state update (e.g. Supabase token auto-refresh when the tab
-// becomes visible again) would mint a new component type and cause React
-// to unmount/remount the whole route subtree — wiping in-progress local
-// state on pages like CreatePost (selected template, editor progress, etc.).
-const RequireAuth = ({ children }: { children: JSX.Element }) => {
-  const { isAuthenticated } = useAuth();
-  return isAuthenticated ? children : <Navigate to="/" replace />;
-};
-
 const AppRoutes = () => {
 
   const { isAuthenticated, isAdmin, loading, onboardingCompleted } = useAuth();
@@ -127,7 +116,10 @@ const AppRoutes = () => {
     );
   }
 
-
+  // Routes that require a real account on web — anonymous visitors get bounced
+  // to Discover (the BottomNav opens the sign-in modal instead).
+  const RequireAuth = ({ children }: { children: JSX.Element }) =>
+    isAuthenticated ? children : <Navigate to="/" replace />;
 
   return (
     <Suspense fallback={<RouteFallback />}>
