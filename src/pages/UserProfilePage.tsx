@@ -224,11 +224,11 @@ export const PostsGrid = ({ posts, onOpen, isOwner = false }: { posts: PostThumb
   return (
     <div className="grid grid-cols-2 gap-2">
       {posts.map(p => (
-        <button key={p.id} onClick={() => onOpen(p.id)} className="relative aspect-square bg-secondary rounded-xl overflow-hidden">
+        <button key={p.id} onClick={() => onOpen(p.id)} className={`relative w-full bg-[#1a1a1a] rounded-xl overflow-hidden ${p.cover_url ? 'aspect-[4/5]' : 'aspect-square'}`}>
           {p.cover_url ? (
             p.cover_kind === 'video'
               ? <LazyVideoThumbnail src={p.cover_url} className="w-full h-full" />
-              : <img src={optimizedImageUrl(p.cover_url, { width: 500, quality: 70, resize: 'cover' })!} alt="" className="w-full h-full object-cover" loading="lazy" decoding="async" />
+              : <img src={optimizedImageUrl(p.cover_url, { width: 600, quality: 70, resize: 'contain' })!} alt="" className="w-full h-full object-contain" loading="lazy" decoding="async" />
           ) : (
             <TextCoverCard title={p.title} textClassName="text-[15px]" />
           )}
