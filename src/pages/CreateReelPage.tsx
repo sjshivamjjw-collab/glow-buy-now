@@ -588,7 +588,7 @@ const SuccessScreen = ({ onDone }: { onDone: () => void }) => (
     </div>
     <h1 className="text-2xl font-bold text-[#fafafa] mb-3">We've got your trip! 🎬</h1>
     <p className="text-sm text-[#a0a0a0] leading-relaxed max-w-xs mb-8">
-      Our editors will craft your travel reel within <strong className="text-[#fafafa]">3-5 days</strong> and reach out to you.
+      Our editors will craft your travel reel within <strong className="text-[#fafafa]">48 hours</strong> and reach out to you.
     </p>
     <button
       onClick={onDone}
