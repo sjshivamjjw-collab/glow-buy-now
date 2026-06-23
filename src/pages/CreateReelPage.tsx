@@ -91,14 +91,44 @@ const stepIcons: Record<StepName, any> = {
   Basics: MapPin, Media: ImagePlus, Insights: Sparkles, Itinerary: ListChecks, Notes: MessageSquare,
 };
 
+const DRAFT_KEY = 'reel-submission-draft-v1';
+
+// Persisted draft excludes media (File objects can't be serialized)
+type DraftState = Omit<State, 'media'>;
+
+const loadDraft = (): DraftState | null => {
+  try {
+    const raw = localStorage.getItem(DRAFT_KEY);
+    if (!raw) return null;
+    return JSON.parse(raw) as DraftState;
+  } catch { return null; }
+};
+
 const CreateReelPage = () => {
-  const [state, dispatch] = useReducer(reducer, initialState);
+  const [state, dispatch] = useReducer(reducer, initialState, (init) => {
+    const draft = loadDraft();
+    return draft ? { ...init, ...draft, media: [] } : init;
+  });
   const [stepIdx, setStepIdx] = useState(0);
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState(false);
   const navigate = useNavigate();
   const { userId } = useAuth();
   const { toast } = useToast();
+
+  // Persist draft (excluding media) whenever state changes
+  useEffect(() => {
+    if (done) return;
+    try {
+      const { media, ...rest } = state;
+      localStorage.setItem(DRAFT_KEY, JSON.stringify(rest));
+    } catch { /* ignore quota errors */ }
+  }, [state, done]);
+
+  const handleTopBack = () => {
+    if (stepIdx > 0) setStepIdx(stepIdx - 1);
+    else navigate(-1);
+  };
 
   const step = STEPS[stepIdx];
 
