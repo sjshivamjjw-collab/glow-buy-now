@@ -445,7 +445,7 @@ const StepMedia = ({ state, dispatch }: { state: State; dispatch: React.Dispatch
 
 // Step 3 — Cost + Insights (combined)
 const INSIGHT_FIELDS: { key: keyof Insights; emoji: string; label: string; placeholder: string }[] = [
-  { key: 'best_memory', emoji: '⭐', label: 'Best Memories', placeholder: 'That one moment you won\'t forget…' },
+  { key: 'best_memory', emoji: '⭐', label: 'Best Memories', placeholder: 'Moments you won\'t forget...' },
   { key: 'hidden_gem', emoji: '💎', label: 'Hidden Gems', placeholder: 'A spot most people miss' },
   
   { key: 'recommendation', emoji: '✅', label: 'Trip Recommendation', placeholder: 'Must-do for anyone visiting' },
