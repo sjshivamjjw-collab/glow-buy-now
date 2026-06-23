@@ -1,7 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, ChevronDown, ChevronUp, Film, MapPin, Calendar, Wallet, Sparkles, ListChecks, MessageSquare } from 'lucide-react';
+import { Loader2, ChevronDown, ChevronUp, Film, MapPin, Calendar, Wallet, Sparkles, ListChecks, MessageSquare, Upload, Download, CheckCircle2, Trash2 } from 'lucide-react';
 import LazyVideoThumbnail from '@/components/LazyVideoThumbnail';
 
 type Submission = {
@@ -19,6 +19,9 @@ type Submission = {
   editor_notes: string | null;
   status: 'pending' | 'in_progress' | 'delivered' | 'cancelled';
   created_at: string;
+  delivered_file_path: string | null;
+  delivered_file_name: string | null;
+  delivered_at: string | null;
 };
 
 type MediaRow = { id: string; submission_id: string; storage_path: string; kind: 'image' | 'video'; caption: string | null; sort_order: number };
@@ -68,10 +71,14 @@ const AdminReelsTab = () => {
     load();
   }, [toast]);
 
+  const patchSubmission = (id: string, patch: Partial<Submission>) => {
+    setSubs(prev => prev.map(s => s.id === id ? { ...s, ...patch } : s));
+  };
+
   const updateStatus = async (id: string, status: Submission['status']) => {
     const { error } = await supabase.from('reel_submissions' as any).update({ status }).eq('id', id);
     if (error) { toast({ title: 'Failed to update', description: error.message, variant: 'destructive' }); return; }
-    setSubs(prev => prev.map(s => s.id === id ? { ...s, status } : s));
+    patchSubmission(id, { status });
     toast({ title: `Marked as ${status.replace('_', ' ')}` });
   };
 
@@ -86,6 +93,7 @@ const AdminReelsTab = () => {
           submission={s}
           author={authors[s.user_id]}
           onStatusChange={(st) => updateStatus(s.id, st)}
+          onPatch={(patch) => patchSubmission(s.id, patch)}
         />
       ))}
     </div>
@@ -94,12 +102,16 @@ const AdminReelsTab = () => {
 
 export default AdminReelsTab;
 
-const SubmissionCard = ({ submission: s, author, onStatusChange }: {
-  submission: Submission; author: any; onStatusChange: (st: Submission['status']) => void;
+const SubmissionCard = ({ submission: s, author, onStatusChange, onPatch }: {
+  submission: Submission; author: any; onStatusChange: (st: Submission['status']) => void; onPatch: (p: Partial<Submission>) => void;
 }) => {
   const [open, setOpen] = useState(false);
   const [media, setMedia] = useState<(MediaRow & { signedUrl?: string })[]>([]);
   const [loadingMedia, setLoadingMedia] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [deletingDelivery, setDeletingDelivery] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const { toast } = useToast();
 
   const toggle = async () => {
     const willOpen = !open;
@@ -124,6 +136,61 @@ const SubmissionCard = ({ submission: s, author, onStatusChange }: {
 
   const insightEntries = Object.entries(s.insights || {}).filter(([, v]) => v && String(v).trim());
   const itinerary = s.itinerary_enabled ? (s.itinerary || []).filter(i => i.label || i.notes) : [];
+
+  const handleUploadDelivery = async (file: File) => {
+    setUploading(true);
+    try {
+      const ext = file.name.includes('.') ? file.name.split('.').pop() : 'mp4';
+      const path = `${s.user_id}/deliveries/${s.id}/${Date.now()}.${ext}`;
+      const { error: upErr } = await supabase.storage
+        .from('reel-submissions')
+        .upload(path, file, { upsert: false, contentType: file.type || 'video/mp4' });
+      if (upErr) throw upErr;
+      const { error: updErr } = await supabase
+        .from('reel_submissions' as any)
+        .update({
+          delivered_file_path: path,
+          delivered_file_name: file.name,
+          delivered_at: new Date().toISOString(),
+          status: 'delivered',
+        })
+        .eq('id', s.id);
+      if (updErr) throw updErr;
+      onPatch({
+        delivered_file_path: path,
+        delivered_file_name: file.name,
+        delivered_at: new Date().toISOString(),
+        status: 'delivered',
+      });
+      toast({ title: 'Reel delivered', description: 'The user can now download it from My Reels.' });
+    } catch (e: any) {
+      toast({ title: 'Upload failed', description: e?.message || 'Try again', variant: 'destructive' });
+    } finally {
+      setUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
+
+  const handleRemoveDelivery = async () => {
+    if (!s.delivered_file_path) return;
+    if (!confirm('Remove the delivered reel file?')) return;
+    setDeletingDelivery(true);
+    try {
+      await supabase.storage.from('reel-submissions').remove([s.delivered_file_path]);
+      const { error } = await supabase
+        .from('reel_submissions' as any)
+        .update({ delivered_file_path: null, delivered_file_name: null, delivered_at: null })
+        .eq('id', s.id);
+      if (error) throw error;
+      onPatch({ delivered_file_path: null, delivered_file_name: null, delivered_at: null });
+      toast({ title: 'Delivery removed' });
+    } catch (e: any) {
+      toast({ title: 'Failed to remove', description: e?.message, variant: 'destructive' });
+    } finally {
+      setDeletingDelivery(false);
+    }
+  };
+
 
   return (
     <div className="rounded-2xl bg-card border border-border overflow-hidden">
@@ -159,6 +226,61 @@ const SubmissionCard = ({ submission: s, author, onStatusChange }: {
                 }`}
               >{st.replace('_', ' ')}</button>
             ))}
+          </div>
+
+          {/* Delivered reel file */}
+          <div className="rounded-xl bg-background border border-border p-3 space-y-2">
+            <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-wide flex items-center gap-1">
+              <Film className="w-3 h-3" /> Delivered reel file
+            </p>
+            {s.delivered_file_path ? (
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 text-xs text-emerald-400">
+                  <CheckCircle2 className="w-3.5 h-3.5" />
+                  <span className="font-semibold truncate">{s.delivered_file_name || 'Reel file'}</span>
+                </div>
+                {s.delivered_at && (
+                  <p className="text-[10px] text-muted-foreground">Delivered {new Date(s.delivered_at).toLocaleString()}</p>
+                )}
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={uploading}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-card border border-border text-[11px] font-semibold text-foreground disabled:opacity-50"
+                  >
+                    {uploading ? <Loader2 className="w-3 h-3 animate-spin" /> : <Upload className="w-3 h-3" />}
+                    Replace file
+                  </button>
+                  <button
+                    onClick={handleRemoveDelivery}
+                    disabled={deletingDelivery}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-500/10 border border-red-500/30 text-[11px] font-semibold text-red-400 disabled:opacity-50"
+                  >
+                    {deletingDelivery ? <Loader2 className="w-3 h-3 animate-spin" /> : <Trash2 className="w-3 h-3" />}
+                    Remove
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                disabled={uploading}
+                className="w-full inline-flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg bg-gradient-to-br from-[#ef4444] to-[#dc2626] text-white text-xs font-bold disabled:opacity-60"
+              >
+                {uploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
+                {uploading ? 'Uploading…' : 'Upload reel & mark delivered'}
+              </button>
+            )}
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="video/*"
+              className="hidden"
+              onChange={(e) => {
+                const f = e.target.files?.[0];
+                if (f) handleUploadDelivery(f);
+              }}
+            />
           </div>
 
           <DetailRow icon={MapPin} label="Destination" value={s.destination} />

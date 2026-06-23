@@ -487,6 +487,9 @@ export type Database = {
         Row: {
           cost_text: string | null
           created_at: string
+          delivered_at: string | null
+          delivered_file_name: string | null
+          delivered_file_path: string | null
           destination: string
           duration_days: number | null
           duration_label: string
@@ -504,6 +507,9 @@ export type Database = {
         Insert: {
           cost_text?: string | null
           created_at?: string
+          delivered_at?: string | null
+          delivered_file_name?: string | null
+          delivered_file_path?: string | null
           destination: string
           duration_days?: number | null
           duration_label: string
@@ -521,6 +527,9 @@ export type Database = {
         Update: {
           cost_text?: string | null
           created_at?: string
+          delivered_at?: string | null
+          delivered_file_name?: string | null
+          delivered_file_path?: string | null
           destination?: string
           duration_days?: number | null
           duration_label?: string

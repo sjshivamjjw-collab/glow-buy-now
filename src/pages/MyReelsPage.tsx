@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Film, Plus, Clock, Loader2, CheckCircle2, XCircle, Sparkles } from 'lucide-react';
+import { ArrowLeft, Film, Plus, Clock, Loader2, CheckCircle2, XCircle, Sparkles, Download } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { useToast } from '@/hooks/use-toast';
 
 type Submission = {
   id: string;
@@ -11,6 +12,9 @@ type Submission = {
   duration_label: string;
   status: 'pending' | 'in_progress' | 'delivered' | 'cancelled';
   created_at: string;
+  delivered_file_path: string | null;
+  delivered_file_name: string | null;
+  delivered_at: string | null;
 };
 
 const STATUS_META: Record<Submission['status'], { label: string; color: string; bg: string; Icon: any }> = {
@@ -28,8 +32,10 @@ const formatDate = (iso: string) => {
 const MyReelsPage = () => {
   const navigate = useNavigate();
   const { userId } = useAuth();
+  const { toast } = useToast();
   const [loading, setLoading] = useState(true);
   const [rows, setRows] = useState<Submission[]>([]);
+  const [downloadingId, setDownloadingId] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -37,7 +43,7 @@ const MyReelsPage = () => {
       if (!userId) return;
       const { data } = await supabase
         .from('reel_submissions' as any)
-        .select('id, destination, trip_title, duration_label, status, created_at')
+        .select('id, destination, trip_title, duration_label, status, created_at, delivered_file_path, delivered_file_name, delivered_at')
         .eq('user_id', userId)
         .order('created_at', { ascending: false });
       if (!cancelled) {
@@ -47,6 +53,23 @@ const MyReelsPage = () => {
     })();
     return () => { cancelled = true; };
   }, [userId]);
+
+  const handleDownload = async (r: Submission) => {
+    if (!r.delivered_file_path) return;
+    setDownloadingId(r.id);
+    try {
+      const { data, error } = await supabase.storage
+        .from('reel-submissions')
+        .createSignedUrl(r.delivered_file_path, 60 * 60, { download: r.delivered_file_name || true });
+      if (error || !data?.signedUrl) throw error || new Error('No URL');
+      window.open(data.signedUrl, '_blank');
+    } catch (e: any) {
+      toast({ title: 'Could not download', description: e?.message || 'Try again', variant: 'destructive' });
+    } finally {
+      setDownloadingId(null);
+    }
+  };
+
 
   return (
     <div className="min-h-screen bg-[#0a0a0a] max-w-lg mx-auto pb-24">
@@ -109,6 +132,16 @@ const MyReelsPage = () => {
                     {r.destination} · {r.duration_label}
                   </p>
                   <p className="text-[10px] text-[#6b6b6b] mt-1.5">Requested {formatDate(r.created_at)}</p>
+                  {r.delivered_file_path && (
+                    <button
+                      onClick={() => handleDownload(r)}
+                      disabled={downloadingId === r.id}
+                      className="mt-3 w-full inline-flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl bg-gradient-to-br from-[#22c55e] to-[#16a34a] text-white text-xs font-bold disabled:opacity-60"
+                    >
+                      {downloadingId === r.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
+                      Download your reel
+                    </button>
+                  )}
                 </li>
               );
             })}
