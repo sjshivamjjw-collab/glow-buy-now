@@ -323,7 +323,7 @@ const Textarea = (props: React.TextareaHTMLAttributes<HTMLTextAreaElement>) => (
 );
 
 // Step 1 — Basics
-const DURATION_PRESETS = ['Weekend', '3 Days', '5 Days', '7 Days', '10 Days', '14 Days+'];
+const DURATION_PRESETS = ['Weekend', '3 Days', '5 Days', '7 Days'];
 
 const StepBasics = ({ state, dispatch }: { state: State; dispatch: React.Dispatch<Action> }) => (
   <div className="space-y-5">
