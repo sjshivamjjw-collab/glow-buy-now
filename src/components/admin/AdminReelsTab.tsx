@@ -22,6 +22,7 @@ type Submission = {
   delivered_file_path: string | null;
   delivered_file_name: string | null;
   delivered_at: string | null;
+  publish_on_ripple: boolean | null;
 };
 
 type MediaRow = { id: string; submission_id: string; storage_path: string; kind: 'image' | 'video'; caption: string | null; sort_order: number };
