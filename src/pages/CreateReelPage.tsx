@@ -1,4 +1,4 @@
-import { useReducer, useRef, useState } from 'react';
+import { useEffect, useReducer, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   ArrowLeft, ArrowRight, Film, Upload, X, ImagePlus, Plus, Loader2, Check,
