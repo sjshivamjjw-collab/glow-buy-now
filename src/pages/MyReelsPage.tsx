@@ -32,8 +32,10 @@ const formatDate = (iso: string) => {
 const MyReelsPage = () => {
   const navigate = useNavigate();
   const { userId } = useAuth();
+  const { toast } = useToast();
   const [loading, setLoading] = useState(true);
   const [rows, setRows] = useState<Submission[]>([]);
+  const [downloadingId, setDownloadingId] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -41,7 +43,7 @@ const MyReelsPage = () => {
       if (!userId) return;
       const { data } = await supabase
         .from('reel_submissions' as any)
-        .select('id, destination, trip_title, duration_label, status, created_at')
+        .select('id, destination, trip_title, duration_label, status, created_at, delivered_file_path, delivered_file_name, delivered_at')
         .eq('user_id', userId)
         .order('created_at', { ascending: false });
       if (!cancelled) {
@@ -51,6 +53,23 @@ const MyReelsPage = () => {
     })();
     return () => { cancelled = true; };
   }, [userId]);
+
+  const handleDownload = async (r: Submission) => {
+    if (!r.delivered_file_path) return;
+    setDownloadingId(r.id);
+    try {
+      const { data, error } = await supabase.storage
+        .from('reel-submissions')
+        .createSignedUrl(r.delivered_file_path, 60 * 60, { download: r.delivered_file_name || true });
+      if (error || !data?.signedUrl) throw error || new Error('No URL');
+      window.open(data.signedUrl, '_blank');
+    } catch (e: any) {
+      toast({ title: 'Could not download', description: e?.message || 'Try again', variant: 'destructive' });
+    } finally {
+      setDownloadingId(null);
+    }
+  };
+
 
   return (
     <div className="min-h-screen bg-[#0a0a0a] max-w-lg mx-auto pb-24">
