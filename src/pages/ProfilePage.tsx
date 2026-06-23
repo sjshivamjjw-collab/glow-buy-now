@@ -255,6 +255,13 @@ const ProfilePage = () => {
         <Plus className="w-4 h-4" /> New post
       </button>
 
+      <button onClick={() => navigate('/saved')}
+        className="w-full flex items-center gap-3 px-5 py-4 rounded-2xl bg-[#161616] border border-[#2a2a2a]/60 mb-3">
+        <Bookmark className="w-5 h-5 text-[#ef4444]" />
+        <span className="flex-1 text-[#fafafa] font-semibold text-sm text-left">Saved posts</span>
+        <ChevronRight className="w-4 h-4 text-[#a0a0a0]" />
+      </button>
+
       {isAdmin && (
         <button onClick={() => navigate('/admin')}
           className="w-full flex items-center gap-3 px-5 py-4 rounded-2xl bg-[#161616] border border-[#2a2a2a]/60 mb-6">
