@@ -303,7 +303,7 @@ const StepBasics = ({ state, dispatch }: { state: State; dispatch: React.Dispatc
     <Intro icon={MapPin} title="Trip basics" subtitle="Where did you go, and what should we call this reel?" />
     <div>
       <Label required>Destination</Label>
-      <Input placeholder="Vietnam, Japan, Bali…" value={state.destination} onChange={e => dispatch({ type: 'set', key: 'destination', value: e.target.value })} />
+      <Input placeholder="Goa, Japan, Vietnam…" value={state.destination} onChange={e => dispatch({ type: 'set', key: 'destination', value: e.target.value })} />
     </div>
     <div>
       <Label required>Trip title</Label>
