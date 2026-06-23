@@ -143,6 +143,7 @@ const AppRoutes = () => {
                   <Route path="/notifications" element={<RequireAuth><NotificationsPage /></RequireAuth>} />
                   <Route path="/saved" element={<RequireAuth><SavedPostsPage /></RequireAuth>} />
                   <Route path="/reel/new" element={<RequireAuth><CreateReelPage /></RequireAuth>} />
+                  <Route path="/reels/mine" element={<RequireAuth><MyReelsPage /></RequireAuth>} />
                   <Route path="/profile" element={<RequireAuth><ProfilePage /></RequireAuth>} />
                   <Route path="/settings" element={<RequireAuth><SettingsPage /></RequireAuth>} />
                   <Route path="/settings/blocked" element={<RequireAuth><BlockedAccountsPage /></RequireAuth>} />
