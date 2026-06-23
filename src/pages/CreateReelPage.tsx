@@ -229,6 +229,13 @@ const CreateReelPage = () => {
             </div>
             <p className="text-[11px] text-[#a0a0a0]">Step {stepIdx + 1} of {STEPS.length} · {step}</p>
           </div>
+          <button
+            onClick={() => navigate('/reels/mine')}
+            aria-label="My reel requests"
+            className="p-2 -mr-1 rounded-xl bg-[#161616] border border-[#2a2a2a] text-[#fafafa]"
+          >
+            <LayoutGrid className="w-4 h-4" />
+          </button>
         </div>
         {/* Progress dots */}
         <div className="flex gap-1.5">
