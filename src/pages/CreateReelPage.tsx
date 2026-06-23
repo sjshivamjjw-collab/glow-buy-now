@@ -2,7 +2,7 @@ import { useEffect, useReducer, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   ArrowLeft, ArrowRight, Film, Upload, X, ImagePlus, Plus, Loader2, Check,
-  Calendar, MapPin, Sparkles, Wallet, ListChecks, MessageSquare, ChevronDown, ChevronUp,
+  Calendar, MapPin, Sparkles, Wallet, ListChecks, MessageSquare, ChevronDown, ChevronUp, LayoutGrid,
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
