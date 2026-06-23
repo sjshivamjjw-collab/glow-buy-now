@@ -84,11 +84,11 @@ function reducer(state: State, action: Action): State {
 
 // ───────────────────────── Page ─────────────────────────
 
-const STEPS = ['Basics', 'Media', 'Cost', 'Insights', 'Itinerary', 'Notes'] as const;
+const STEPS = ['Basics', 'Media', 'Insights', 'Itinerary', 'Notes'] as const;
 type StepName = typeof STEPS[number];
 
 const stepIcons: Record<StepName, any> = {
-  Basics: MapPin, Media: ImagePlus, Cost: Wallet, Insights: Sparkles, Itinerary: ListChecks, Notes: MessageSquare,
+  Basics: MapPin, Media: ImagePlus, Insights: Sparkles, Itinerary: ListChecks, Notes: MessageSquare,
 };
 
 const CreateReelPage = () => {
