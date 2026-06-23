@@ -465,7 +465,7 @@ const StepInsights = ({ state, dispatch }: { state: State; dispatch: React.Dispa
           <input
             value={state.costText}
             onChange={e => dispatch({ type: 'set', key: 'costText', value: e.target.value })}
-            placeholder="65,000"
+            placeholder=""
             className="w-full pl-8 pr-4 py-3 rounded-xl bg-[#161616] border border-[#2a2a2a]/80 text-[#fafafa] placeholder:text-[#6b6b6b] focus:outline-none focus:ring-2 focus:ring-[#ef4444]/40 text-sm"
           />
         </div>
