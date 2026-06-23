@@ -203,6 +203,7 @@ const CreateReelPage = () => {
         if (mErr) throw mErr;
       }
 
+      try { localStorage.removeItem(DRAFT_KEY); } catch { /* ignore */ }
       setDone(true);
     } catch (e: any) {
       toast({ title: 'Could not submit', description: e?.message || 'Please try again.', variant: 'destructive' });
@@ -218,7 +219,7 @@ const CreateReelPage = () => {
       {/* Header */}
       <div className="sticky top-0 z-20 bg-[#0a0a0a]/95 backdrop-blur border-b border-[#2a2a2a] px-4 pt-3 pb-3">
         <div className="flex items-center gap-3 mb-3">
-          <button onClick={() => navigate(-1)} className="p-2 -ml-2 rounded-xl text-[#fafafa]">
+          <button onClick={handleTopBack} aria-label={stepIdx > 0 ? 'Previous step' : 'Go back'} className="p-2 -ml-2 rounded-xl text-[#fafafa]">
             <ArrowLeft className="w-5 h-5" />
           </button>
           <div className="flex-1">
