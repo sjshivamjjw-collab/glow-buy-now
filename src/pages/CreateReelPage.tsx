@@ -232,9 +232,12 @@ const CreateReelPage = () => {
           <button
             onClick={() => navigate('/reels/mine')}
             aria-label="My reel requests"
-            className="p-2 -mr-1 rounded-xl bg-[#161616] border border-[#2a2a2a] text-[#fafafa]"
+            className="flex flex-col items-center gap-0.5 -mr-1 text-[#fafafa]"
           >
-            <LayoutGrid className="w-4 h-4" />
+            <span className="p-2 rounded-xl bg-[#161616] border border-[#2a2a2a]">
+              <LayoutGrid className="w-4 h-4" />
+            </span>
+            <span className="text-[10px] text-[#a0a0a0] leading-none">My Reels</span>
           </button>
         </div>
         {/* Progress dots */}
