@@ -389,7 +389,7 @@ const StepMedia = ({ state, dispatch }: { state: State; dispatch: React.Dispatch
 // Step 3 — Cost
 const StepCost = ({ state, dispatch }: { state: State; dispatch: React.Dispatch<Action> }) => (
   <div className="space-y-5">
-    <Intro icon={Wallet} title="Approximate trip cost" subtitle="Optional. Helps viewers know what to budget." />
+    <Intro icon={Wallet} title="Approximate trip cost (optional)" subtitle="Helps your viewers know what to budget." />
     <div>
       <Label>Total cost</Label>
       <div className="relative">
