@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   ArrowLeft, Users, Search, Loader2,
-  FileText, Trash2, Heart, MessageCircle, EyeOff, Eye,
+  FileText, Trash2, Heart, MessageCircle, EyeOff, Eye, Film, ChevronDown, ChevronUp,
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -10,6 +10,7 @@ import { useToast } from '@/hooks/use-toast';
 import LazyVideoThumbnail from '@/components/LazyVideoThumbnail';
 import InitialAvatar from '@/components/InitialAvatar';
 import { optimizedImageUrl } from '@/lib/storageUrls';
+import AdminReelsTab from '@/components/admin/AdminReelsTab';
 
 const AdminPanelPage = () => {
   const navigate = useNavigate();
