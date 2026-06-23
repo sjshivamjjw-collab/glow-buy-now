@@ -381,7 +381,7 @@ const StepMedia = ({ state, dispatch }: { state: State; dispatch: React.Dispatch
       >
         <Upload className="w-5 h-5 text-[#ef4444]" />
         Tap to add photos & videos
-        <span className="text-[11px] text-[#6b6b6b] font-normal">You can pick multiple at once</span>
+        
       </button>
 
       <div className="flex items-center gap-2 text-xs">
