@@ -2,7 +2,7 @@ import { useEffect, useReducer, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   ArrowLeft, ArrowRight, Film, Upload, X, ImagePlus, Plus, Loader2, Check,
-  Calendar, MapPin, Sparkles, Wallet, ListChecks, MessageSquare, ChevronDown, ChevronUp,
+  Calendar, MapPin, Sparkles, Wallet, ListChecks, MessageSquare, ChevronDown, ChevronUp, LayoutGrid,
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -212,7 +212,7 @@ const CreateReelPage = () => {
     }
   };
 
-  if (done) return <SuccessScreen onDone={() => navigate('/')} />;
+  if (done) return <SuccessScreen onDone={() => navigate('/reels/mine')} />;
 
   return (
     <div className="min-h-screen bg-[#0a0a0a] max-w-lg mx-auto pb-48">
@@ -229,6 +229,13 @@ const CreateReelPage = () => {
             </div>
             <p className="text-[11px] text-[#a0a0a0]">Step {stepIdx + 1} of {STEPS.length} · {step}</p>
           </div>
+          <button
+            onClick={() => navigate('/reels/mine')}
+            aria-label="My reel requests"
+            className="p-2 -mr-1 rounded-xl bg-[#161616] border border-[#2a2a2a] text-[#fafafa]"
+          >
+            <LayoutGrid className="w-4 h-4" />
+          </button>
         </div>
         {/* Progress dots */}
         <div className="flex gap-1.5">
@@ -594,7 +601,7 @@ const SuccessScreen = ({ onDone }: { onDone: () => void }) => (
       onClick={onDone}
       className="px-6 py-3 rounded-xl bg-gradient-to-br from-[#ef4444] to-[#dc2626] text-white text-sm font-bold shadow-[0_8px_24px_-8px_rgba(239,68,68,0.5)]"
     >
-      Back to Discover
+      View my reel requests
     </button>
   </div>
 );
