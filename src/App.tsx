@@ -43,6 +43,7 @@ const ProfilePage = lazyWithRetry(() => import("@/pages/ProfilePage"));
 const NotificationsPage = lazyWithRetry(() => import("@/pages/NotificationsPage"));
 const SavedPostsPage = lazyWithRetry(() => import("@/pages/SavedPostsPage"));
 const CreateReelPage = lazyWithRetry(() => import("@/pages/CreateReelPage"));
+const MyReelsPage = lazyWithRetry(() => import("@/pages/MyReelsPage"));
 const AdminPanelPage = lazyWithRetry(() => import("@/pages/AdminPanelPage"));
 const SettingsPage = lazyWithRetry(() => import("@/pages/SettingsPage"));
 const BlockedAccountsPage = lazyWithRetry(() => import("@/pages/BlockedAccountsPage"));
