@@ -1,0 +1,1 @@
+ALTER TABLE public.reel_submissions ADD COLUMN publish_on_ripple boolean NOT NULL DEFAULT true;

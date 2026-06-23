@@ -42,6 +42,7 @@ type State = {
   itineraryKind: 'day' | 'place';
   itinerary: ItineraryItem[];
   editorNotes: string;
+  publishOnRipple: boolean;
 };
 
 const initialState: State = {
@@ -56,6 +57,7 @@ const initialState: State = {
   itineraryKind: 'day',
   itinerary: [{ label: 'Day 1', notes: '' }],
   editorNotes: '',
+  publishOnRipple: true,
 };
 
 type Action =
@@ -183,6 +185,7 @@ const CreateReelPage = () => {
           itinerary_kind: state.itineraryEnabled ? state.itineraryKind : null,
           itinerary: state.itineraryEnabled ? state.itinerary.filter(i => i.label.trim() || i.notes.trim()) : [],
           editor_notes: state.editorNotes.trim() || null,
+          publish_on_ripple: state.publishOnRipple,
         })
         .select('id')
         .single();
@@ -577,6 +580,18 @@ const StepNotes = ({ state, dispatch }: { state: State; dispatch: React.Dispatch
       value={state.editorNotes}
       onChange={e => dispatch({ type: 'set', key: 'editorNotes', value: e.target.value })}
     />
+    <label className="flex items-start gap-3 rounded-2xl bg-[#161616] border border-[#2a2a2a] p-4 cursor-pointer">
+      <input
+        type="checkbox"
+        checked={state.publishOnRipple}
+        onChange={e => dispatch({ type: 'set', key: 'publishOnRipple', value: e.target.checked })}
+        className="mt-0.5 w-4 h-4 rounded accent-[#ef4444] shrink-0"
+      />
+      <div>
+        <p className="text-sm font-semibold text-[#fafafa]">Publish this trip on Ripple</p>
+        <p className="text-[12px] text-[#a0a0a0] mt-0.5 leading-relaxed">Help other travelers discover authentic experiences.</p>
+      </div>
+    </label>
     <div className="rounded-2xl bg-[#ef4444]/5 border border-[#ef4444]/20 p-4">
       <p className="text-xs font-bold text-[#ef4444] mb-1">Almost there!</p>
       <p className="text-[12px] text-[#a0a0a0] leading-relaxed">

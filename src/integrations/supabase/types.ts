@@ -499,6 +499,7 @@ export type Database = {
           itinerary: Json
           itinerary_enabled: boolean
           itinerary_kind: string | null
+          publish_on_ripple: boolean
           status: string
           trip_title: string
           updated_at: string
@@ -519,6 +520,7 @@ export type Database = {
           itinerary?: Json
           itinerary_enabled?: boolean
           itinerary_kind?: string | null
+          publish_on_ripple?: boolean
           status?: string
           trip_title: string
           updated_at?: string
@@ -539,6 +541,7 @@ export type Database = {
           itinerary?: Json
           itinerary_enabled?: boolean
           itinerary_kind?: string | null
+          publish_on_ripple?: boolean
           status?: string
           trip_title?: string
           updated_at?: string
