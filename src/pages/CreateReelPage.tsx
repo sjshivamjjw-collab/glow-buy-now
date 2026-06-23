@@ -212,7 +212,7 @@ const CreateReelPage = () => {
     }
   };
 
-  if (done) return <SuccessScreen onDone={() => navigate('/')} />;
+  if (done) return <SuccessScreen onDone={() => navigate('/reels/mine')} />;
 
   return (
     <div className="min-h-screen bg-[#0a0a0a] max-w-lg mx-auto pb-48">
