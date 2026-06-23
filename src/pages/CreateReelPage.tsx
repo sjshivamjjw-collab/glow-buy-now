@@ -84,11 +84,11 @@ function reducer(state: State, action: Action): State {
 
 // ───────────────────────── Page ─────────────────────────
 
-const STEPS = ['Basics', 'Media', 'Cost', 'Insights', 'Itinerary', 'Notes'] as const;
+const STEPS = ['Basics', 'Media', 'Insights', 'Itinerary', 'Notes'] as const;
 type StepName = typeof STEPS[number];
 
 const stepIcons: Record<StepName, any> = {
-  Basics: MapPin, Media: ImagePlus, Cost: Wallet, Insights: Sparkles, Itinerary: ListChecks, Notes: MessageSquare,
+  Basics: MapPin, Media: ImagePlus, Insights: Sparkles, Itinerary: ListChecks, Notes: MessageSquare,
 };
 
 const CreateReelPage = () => {
@@ -210,7 +210,6 @@ const CreateReelPage = () => {
       <div className="px-4 pt-5">
         {step === 'Basics' && <StepBasics state={state} dispatch={dispatch} />}
         {step === 'Media' && <StepMedia state={state} dispatch={dispatch} />}
-        {step === 'Cost' && <StepCost state={state} dispatch={dispatch} />}
         {step === 'Insights' && <StepInsights state={state} dispatch={dispatch} />}
         {step === 'Itinerary' && <StepItinerary state={state} dispatch={dispatch} />}
         {step === 'Notes' && <StepNotes state={state} dispatch={dispatch} />}
@@ -386,27 +385,7 @@ const StepMedia = ({ state, dispatch }: { state: State; dispatch: React.Dispatch
   );
 };
 
-// Step 3 — Cost
-const StepCost = ({ state, dispatch }: { state: State; dispatch: React.Dispatch<Action> }) => (
-  <div className="space-y-5">
-    <Intro icon={Wallet} title="Approximate trip cost (optional)" subtitle="Helps your viewers know what to budget." />
-    <div>
-      <Label>Total cost</Label>
-      <div className="relative">
-        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[#a0a0a0] font-semibold text-sm">₹</span>
-        <input
-          value={state.costText}
-          onChange={e => dispatch({ type: 'set', key: 'costText', value: e.target.value })}
-          placeholder="65,000"
-          className="w-full pl-8 pr-4 py-3 rounded-xl bg-[#161616] border border-[#2a2a2a]/80 text-[#fafafa] placeholder:text-[#6b6b6b] focus:outline-none focus:ring-2 focus:ring-[#ef4444]/40 text-sm"
-        />
-      </div>
-      <p className="text-[11px] text-[#6b6b6b] mt-1.5">You can include a note like "for 2 people" — free text.</p>
-    </div>
-  </div>
-);
-
-// Step 4 — Insights
+// Step 3 — Cost + Insights (combined)
 const INSIGHT_FIELDS: { key: keyof Insights; emoji: string; label: string; placeholder: string }[] = [
   { key: 'best_memory', emoji: '⭐', label: 'Best Memories', placeholder: 'That one moment you won\'t forget…' },
   { key: 'hidden_gem', emoji: '💎', label: 'Hidden Gems', placeholder: 'A spot most people miss' },
@@ -417,23 +396,47 @@ const INSIGHT_FIELDS: { key: keyof Insights; emoji: string; label: string; place
 ];
 
 const StepInsights = ({ state, dispatch }: { state: State; dispatch: React.Dispatch<Action> }) => (
-  <div className="space-y-5">
-    <Intro icon={Sparkles} title="Travel insights" subtitle="All optional. Share the bits that make your reel real." />
-    <div className="space-y-3">
-      {INSIGHT_FIELDS.map(f => (
-        <div key={f.key} className="rounded-2xl bg-[#161616] border border-[#2a2a2a]/80 p-3">
-          <div className="flex items-center gap-2 mb-2">
-            <span className="text-base">{f.emoji}</span>
-            <span className="text-sm font-bold text-[#fafafa]">{f.label}</span>
-          </div>
-          <Textarea
-            rows={2}
-            placeholder={f.placeholder}
-            value={state.insights[f.key]}
-            onChange={e => dispatch({ type: 'setInsight', key: f.key, value: e.target.value })}
+  <div className="space-y-6">
+    {/* Cost block */}
+    <div className="space-y-5">
+      <Intro icon={Wallet} title="Approximate trip cost (optional)" subtitle="Helps your viewers know what to budget." />
+      <div>
+        <Label>Total cost</Label>
+        <div className="relative">
+          <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[#a0a0a0] font-semibold text-sm">₹</span>
+          <input
+            value={state.costText}
+            onChange={e => dispatch({ type: 'set', key: 'costText', value: e.target.value })}
+            placeholder="65,000"
+            className="w-full pl-8 pr-4 py-3 rounded-xl bg-[#161616] border border-[#2a2a2a]/80 text-[#fafafa] placeholder:text-[#6b6b6b] focus:outline-none focus:ring-2 focus:ring-[#ef4444]/40 text-sm"
           />
         </div>
-      ))}
+        <p className="text-[11px] text-[#6b6b6b] mt-1.5">You can include a note like "for 2 people" — free text.</p>
+      </div>
+    </div>
+
+    {/* Divider */}
+    <div className="h-px bg-[#2a2a2a]" />
+
+    {/* Insights block */}
+    <div className="space-y-5">
+      <Intro icon={Sparkles} title="Travel insights" subtitle="All optional. Share the bits that make your reel real." />
+      <div className="space-y-3">
+        {INSIGHT_FIELDS.map(f => (
+          <div key={f.key} className="rounded-2xl bg-[#161616] border border-[#2a2a2a]/80 p-3">
+            <div className="flex items-center gap-2 mb-2">
+              <span className="text-base">{f.emoji}</span>
+              <span className="text-sm font-bold text-[#fafafa]">{f.label}</span>
+            </div>
+            <Textarea
+              rows={2}
+              placeholder={f.placeholder}
+              value={state.insights[f.key]}
+              onChange={e => dispatch({ type: 'setInsight', key: f.key, value: e.target.value })}
+            />
+          </div>
+        ))}
+      </div>
     </div>
   </div>
 );
