@@ -127,6 +127,11 @@ const CreateReelPage = () => {
     } catch { /* ignore quota errors */ }
   }, [state, done]);
 
+  // Scroll to top whenever the step changes
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0 });
+  }, [stepIdx]);
+
   const handleTopBack = () => {
     if (stepIdx > 0) setStepIdx(stepIdx - 1);
     else navigate(-1);
