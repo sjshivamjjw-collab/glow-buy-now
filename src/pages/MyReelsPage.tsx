@@ -27,18 +27,18 @@ const formatDate = (iso: string) => {
 
 const MyReelsPage = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { userId } = useAuth();
   const [loading, setLoading] = useState(true);
   const [rows, setRows] = useState<Submission[]>([]);
 
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      if (!user) return;
+      if (!userId) return;
       const { data } = await supabase
         .from('reel_submissions' as any)
         .select('id, destination, trip_title, duration_label, status, created_at')
-        .eq('user_id', user.id)
+        .eq('user_id', userId)
         .order('created_at', { ascending: false });
       if (!cancelled) {
         setRows((data as any) || []);
@@ -46,7 +46,7 @@ const MyReelsPage = () => {
       }
     })();
     return () => { cancelled = true; };
-  }, [user]);
+  }, [userId]);
 
   return (
     <div className="min-h-screen bg-[#0a0a0a] max-w-lg mx-auto pb-24">
