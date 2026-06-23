@@ -194,7 +194,7 @@ const CreateReelPage = () => {
       for (let i = 0; i < state.media.length; i++) {
         const m = state.media[i];
         const ext = m.file.name.split('.').pop() || (m.kind === 'video' ? 'mp4' : 'jpg');
-        const path = `${userId}/${submissionId}/${i}-${Date.now()}.${ext}`;
+        const path = `${authUid}/${submissionId}/${i}-${Date.now()}.${ext}`;
         const { error: upErr } = await supabase.storage.from('reel-submissions').upload(path, m.file, {
           contentType: m.file.type, upsert: false,
         });
