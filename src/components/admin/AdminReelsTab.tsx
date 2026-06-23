@@ -293,17 +293,63 @@ const SubmissionCard = ({ submission: s, author, onStatusChange, onPatch }: {
 
           {/* Media */}
           <div>
-            <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-wide mb-2">Media</p>
+            <div className="flex items-center justify-between mb-2">
+              <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-wide">Media ({media.length})</p>
+              {media.length > 0 && (
+                <button
+                  onClick={async () => {
+                    for (const m of media) {
+                      const filename = m.storage_path.split('/').pop() || `media-${m.id}`;
+                      const { data: sig } = await supabase.storage
+                        .from('reel-submissions')
+                        .createSignedUrl(m.storage_path, 60 * 60, { download: filename });
+                      if (sig?.signedUrl) {
+                        const a = document.createElement('a');
+                        a.href = sig.signedUrl;
+                        a.download = filename;
+                        document.body.appendChild(a);
+                        a.click();
+                        a.remove();
+                        await new Promise(r => setTimeout(r, 300));
+                      }
+                    }
+                  }}
+                  className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-card border border-border text-[10px] font-semibold text-foreground"
+                >
+                  <Download className="w-3 h-3" /> Download all
+                </button>
+              )}
+            </div>
             {loadingMedia ? <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" /> : (
               <div className="grid grid-cols-3 gap-2">
                 {media.map(m => (
                   <div key={m.id} className="space-y-1">
-                    <div className="aspect-square rounded-lg overflow-hidden bg-[#1a1a1a]">
+                    <div className="relative aspect-square rounded-lg overflow-hidden bg-[#1a1a1a] group">
                       {m.signedUrl ? (
                         m.kind === 'video'
                           ? <LazyVideoThumbnail src={m.signedUrl} className="w-full h-full object-cover" />
                           : <img src={m.signedUrl} alt="" className="w-full h-full object-cover" loading="lazy" />
                       ) : null}
+                      <button
+                        onClick={async () => {
+                          const filename = m.storage_path.split('/').pop() || `media-${m.id}`;
+                          const { data: sig } = await supabase.storage
+                            .from('reel-submissions')
+                            .createSignedUrl(m.storage_path, 60 * 60, { download: filename });
+                          if (sig?.signedUrl) {
+                            const a = document.createElement('a');
+                            a.href = sig.signedUrl;
+                            a.download = filename;
+                            document.body.appendChild(a);
+                            a.click();
+                            a.remove();
+                          }
+                        }}
+                        className="absolute bottom-1 right-1 p-1.5 rounded-md bg-black/70 text-white opacity-90 hover:opacity-100"
+                        title="Download original"
+                      >
+                        <Download className="w-3 h-3" />
+                      </button>
                     </div>
                     {m.caption && <p className="text-[10px] text-muted-foreground leading-tight line-clamp-2">{m.caption}</p>}
                   </div>
