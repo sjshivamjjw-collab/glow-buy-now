@@ -307,7 +307,7 @@ const StepBasics = ({ state, dispatch }: { state: State; dispatch: React.Dispatc
     </div>
     <div>
       <Label required>Trip title</Label>
-      <Input placeholder="Vietnam Under ₹65k" value={state.tripTitle} onChange={e => dispatch({ type: 'set', key: 'tripTitle', value: e.target.value })} />
+      <Input placeholder="How I travelled Vietnam solo under 50K" value={state.tripTitle} onChange={e => dispatch({ type: 'set', key: 'tripTitle', value: e.target.value })} />
       <p className="text-[11px] text-[#6b6b6b] mt-1.5">Make it catchy — this becomes the reel headline.</p>
     </div>
     <div>
