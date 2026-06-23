@@ -228,6 +228,61 @@ const SubmissionCard = ({ submission: s, author, onStatusChange, onPatch }: {
             ))}
           </div>
 
+          {/* Delivered reel file */}
+          <div className="rounded-xl bg-background border border-border p-3 space-y-2">
+            <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-wide flex items-center gap-1">
+              <Film className="w-3 h-3" /> Delivered reel file
+            </p>
+            {s.delivered_file_path ? (
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 text-xs text-emerald-400">
+                  <CheckCircle2 className="w-3.5 h-3.5" />
+                  <span className="font-semibold truncate">{s.delivered_file_name || 'Reel file'}</span>
+                </div>
+                {s.delivered_at && (
+                  <p className="text-[10px] text-muted-foreground">Delivered {new Date(s.delivered_at).toLocaleString()}</p>
+                )}
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={uploading}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-card border border-border text-[11px] font-semibold text-foreground disabled:opacity-50"
+                  >
+                    {uploading ? <Loader2 className="w-3 h-3 animate-spin" /> : <Upload className="w-3 h-3" />}
+                    Replace file
+                  </button>
+                  <button
+                    onClick={handleRemoveDelivery}
+                    disabled={deletingDelivery}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-500/10 border border-red-500/30 text-[11px] font-semibold text-red-400 disabled:opacity-50"
+                  >
+                    {deletingDelivery ? <Loader2 className="w-3 h-3 animate-spin" /> : <Trash2 className="w-3 h-3" />}
+                    Remove
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                disabled={uploading}
+                className="w-full inline-flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg bg-gradient-to-br from-[#ef4444] to-[#dc2626] text-white text-xs font-bold disabled:opacity-60"
+              >
+                {uploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
+                {uploading ? 'Uploading…' : 'Upload reel & mark delivered'}
+              </button>
+            )}
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="video/*"
+              className="hidden"
+              onChange={(e) => {
+                const f = e.target.files?.[0];
+                if (f) handleUploadDelivery(f);
+              }}
+            />
+          </div>
+
           <DetailRow icon={MapPin} label="Destination" value={s.destination} />
           <DetailRow icon={Calendar} label="Duration" value={`${s.duration_label}${s.duration_days ? ` (${s.duration_days} days)` : ''}`} />
           {s.cost_text && <DetailRow icon={Wallet} label="Cost" value={s.cost_text} />}
