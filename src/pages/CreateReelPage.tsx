@@ -458,7 +458,7 @@ const StepItinerary = ({ state, dispatch }: { state: State; dispatch: React.Disp
 
   return (
     <div className="space-y-5">
-      <Intro icon={ListChecks} title="Detailed itinerary" subtitle="Optional. Helps the editor add a structured breakdown." />
+      <Intro icon={ListChecks} title="Detailed itinerary (optional)" subtitle="Helps the team add a structured breakdown." />
       <button
         onClick={() => dispatch({ type: 'set', key: 'itineraryEnabled', value: !state.itineraryEnabled })}
         className={`w-full flex items-center justify-between px-4 py-3.5 rounded-xl border transition-colors ${
