@@ -360,7 +360,7 @@ const StepMedia = ({ state, dispatch }: { state: State; dispatch: React.Dispatch
 
   return (
     <div className="space-y-5">
-      <Intro icon={ImagePlus} title="Upload your trip media" subtitle="Add at least 5 photos. Videos are optional but make the reel pop." />
+      <Intro icon={ImagePlus} title="Upload your trip media" subtitle="Add at least 5 photos." />
 
       <input ref={inputRef} type="file" accept="image/*,video/*" multiple className="hidden"
         onChange={e => { handleFiles(e.target.files); if (inputRef.current) inputRef.current.value = ''; }} />
