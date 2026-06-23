@@ -132,6 +132,16 @@ const MyReelsPage = () => {
                     {r.destination} · {r.duration_label}
                   </p>
                   <p className="text-[10px] text-[#6b6b6b] mt-1.5">Requested {formatDate(r.created_at)}</p>
+                  {r.delivered_file_path && (
+                    <button
+                      onClick={() => handleDownload(r)}
+                      disabled={downloadingId === r.id}
+                      className="mt-3 w-full inline-flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl bg-gradient-to-br from-[#22c55e] to-[#16a34a] text-white text-xs font-bold disabled:opacity-60"
+                    >
+                      {downloadingId === r.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
+                      Download your reel
+                    </button>
+                  )}
                 </li>
               );
             })}
