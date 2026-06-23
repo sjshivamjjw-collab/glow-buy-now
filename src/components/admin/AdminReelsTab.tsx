@@ -204,9 +204,12 @@ const SubmissionCard = ({ submission: s, author, onStatusChange, onPatch }: {
           <p className="text-xs text-muted-foreground truncate">
             {author?.name || author?.phone || 'Unknown'} · {s.destination} · {s.duration_label}
           </p>
-          <div className="flex items-center gap-2 mt-1.5">
+          <div className="flex items-center gap-2 mt-1.5 flex-wrap">
             <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${STATUS_STYLE[s.status]}`}>
               {s.status.replace('_', ' ').toUpperCase()}
+            </span>
+            <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${s.publish_on_ripple ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30' : 'bg-zinc-500/15 text-zinc-400 border-zinc-500/30'}`}>
+              {s.publish_on_ripple ? 'PUBLISH ON RIPPLE' : 'PRIVATE'}
             </span>
             <span className="text-[10px] text-muted-foreground">{new Date(s.created_at).toLocaleDateString()}</span>
           </div>
