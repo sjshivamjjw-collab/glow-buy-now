@@ -215,7 +215,7 @@ const CreateReelPage = () => {
   if (done) return <SuccessScreen onDone={() => navigate('/')} />;
 
   return (
-    <div className="min-h-screen bg-[#0a0a0a] max-w-lg mx-auto pb-32">
+    <div className="min-h-screen bg-[#0a0a0a] max-w-lg mx-auto pb-48">
       {/* Header */}
       <div className="sticky top-0 z-20 bg-[#0a0a0a]/95 backdrop-blur border-b border-[#2a2a2a] px-4 pt-3 pb-3">
         <div className="flex items-center gap-3 mb-3">
@@ -247,7 +247,7 @@ const CreateReelPage = () => {
       </div>
 
       {/* Footer nav */}
-      <div className="fixed bottom-0 inset-x-0 z-30 mx-auto w-full max-w-lg bg-[#0a0a0a]/95 backdrop-blur border-t border-[#2a2a2a] px-4 pt-3 pb-5 flex gap-2">
+      <div className="fixed bottom-[64px] inset-x-0 z-40 mx-auto w-full max-w-lg bg-[#0a0a0a]/95 backdrop-blur border-t border-[#2a2a2a] px-4 pt-3 pb-3 flex gap-2">
         {stepIdx > 0 && (
           <button
             onClick={back}
