@@ -601,7 +601,7 @@ const SuccessScreen = ({ onDone }: { onDone: () => void }) => (
       onClick={onDone}
       className="px-6 py-3 rounded-xl bg-gradient-to-br from-[#ef4444] to-[#dc2626] text-white text-sm font-bold shadow-[0_8px_24px_-8px_rgba(239,68,68,0.5)]"
     >
-      Back to Discover
+      View my reel requests
     </button>
   </div>
 );
