@@ -137,6 +137,61 @@ const SubmissionCard = ({ submission: s, author, onStatusChange, onPatch }: {
   const insightEntries = Object.entries(s.insights || {}).filter(([, v]) => v && String(v).trim());
   const itinerary = s.itinerary_enabled ? (s.itinerary || []).filter(i => i.label || i.notes) : [];
 
+  const handleUploadDelivery = async (file: File) => {
+    setUploading(true);
+    try {
+      const ext = file.name.includes('.') ? file.name.split('.').pop() : 'mp4';
+      const path = `${s.user_id}/deliveries/${s.id}/${Date.now()}.${ext}`;
+      const { error: upErr } = await supabase.storage
+        .from('reel-submissions')
+        .upload(path, file, { upsert: false, contentType: file.type || 'video/mp4' });
+      if (upErr) throw upErr;
+      const { error: updErr } = await supabase
+        .from('reel_submissions' as any)
+        .update({
+          delivered_file_path: path,
+          delivered_file_name: file.name,
+          delivered_at: new Date().toISOString(),
+          status: 'delivered',
+        })
+        .eq('id', s.id);
+      if (updErr) throw updErr;
+      onPatch({
+        delivered_file_path: path,
+        delivered_file_name: file.name,
+        delivered_at: new Date().toISOString(),
+        status: 'delivered',
+      });
+      toast({ title: 'Reel delivered', description: 'The user can now download it from My Reels.' });
+    } catch (e: any) {
+      toast({ title: 'Upload failed', description: e?.message || 'Try again', variant: 'destructive' });
+    } finally {
+      setUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
+
+  const handleRemoveDelivery = async () => {
+    if (!s.delivered_file_path) return;
+    if (!confirm('Remove the delivered reel file?')) return;
+    setDeletingDelivery(true);
+    try {
+      await supabase.storage.from('reel-submissions').remove([s.delivered_file_path]);
+      const { error } = await supabase
+        .from('reel_submissions' as any)
+        .update({ delivered_file_path: null, delivered_file_name: null, delivered_at: null })
+        .eq('id', s.id);
+      if (error) throw error;
+      onPatch({ delivered_file_path: null, delivered_file_name: null, delivered_at: null });
+      toast({ title: 'Delivery removed' });
+    } catch (e: any) {
+      toast({ title: 'Failed to remove', description: e?.message, variant: 'destructive' });
+    } finally {
+      setDeletingDelivery(false);
+    }
+  };
+
+
   return (
     <div className="rounded-2xl bg-card border border-border overflow-hidden">
       <button onClick={toggle} className="w-full flex items-start gap-3 p-3 text-left">
