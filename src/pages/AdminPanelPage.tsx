@@ -102,9 +102,10 @@ const AdminPanelPage = () => {
       </div>
 
       <Tabs defaultValue="posts" className="w-full">
-        <TabsList className="w-full grid grid-cols-2 mb-4">
+        <TabsList className="w-full grid grid-cols-3 mb-4">
           <TabsTrigger value="posts" className="text-xs">Posts</TabsTrigger>
           <TabsTrigger value="users" className="text-xs">Users</TabsTrigger>
+          <TabsTrigger value="reels" className="text-xs">Reels</TabsTrigger>
         </TabsList>
 
         <TabsContent value="posts">
