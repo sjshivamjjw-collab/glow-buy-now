@@ -404,7 +404,7 @@ const StepMedia = ({ state, dispatch }: { state: State; dispatch: React.Dispatch
                 <input
                   value={m.caption}
                   onChange={e => dispatch({ type: 'setCaption', id: m.id, caption: e.target.value })}
-                  placeholder="e.g. Hoi An lanterns"
+                  placeholder="Sunset Point from Goa Beach"
                   className="w-full px-2.5 py-1.5 rounded-lg bg-[#161616] border border-[#2a2a2a] text-[#fafafa] placeholder:text-[#6b6b6b] focus:outline-none focus:ring-1 focus:ring-[#ef4444]/40 text-[11px]"
                 />
               </div>
