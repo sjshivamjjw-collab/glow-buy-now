@@ -210,7 +210,6 @@ const CreateReelPage = () => {
       <div className="px-4 pt-5">
         {step === 'Basics' && <StepBasics state={state} dispatch={dispatch} />}
         {step === 'Media' && <StepMedia state={state} dispatch={dispatch} />}
-        {step === 'Cost' && <StepCost state={state} dispatch={dispatch} />}
         {step === 'Insights' && <StepInsights state={state} dispatch={dispatch} />}
         {step === 'Itinerary' && <StepItinerary state={state} dispatch={dispatch} />}
         {step === 'Notes' && <StepNotes state={state} dispatch={dispatch} />}
