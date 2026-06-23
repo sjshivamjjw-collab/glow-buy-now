@@ -561,7 +561,7 @@ const StepItinerary = ({ state, dispatch }: { state: State; dispatch: React.Disp
 // Step 6 — Notes
 const StepNotes = ({ state, dispatch }: { state: State; dispatch: React.Dispatch<Action> }) => (
   <div className="space-y-5">
-    <Intro icon={MessageSquare} title="Notes for the reel editor" subtitle="Anything you'd like them to know? Vibe, music style, what to highlight…" />
+    <Intro icon={MessageSquare} title="Notes for Ripple Team" subtitle="Anything you'd like them to know? Vibe, music style, what to highlight…" />
     <Textarea
       rows={6}
       placeholder="e.g. Please use chill lofi music, highlight the beach shots, and don't include the airport photos."
