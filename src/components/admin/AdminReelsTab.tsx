@@ -1,7 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, ChevronDown, ChevronUp, Film, MapPin, Calendar, Wallet, Sparkles, ListChecks, MessageSquare } from 'lucide-react';
+import { Loader2, ChevronDown, ChevronUp, Film, MapPin, Calendar, Wallet, Sparkles, ListChecks, MessageSquare, Upload, Download, CheckCircle2, Trash2 } from 'lucide-react';
 import LazyVideoThumbnail from '@/components/LazyVideoThumbnail';
 
 type Submission = {
@@ -19,6 +19,9 @@ type Submission = {
   editor_notes: string | null;
   status: 'pending' | 'in_progress' | 'delivered' | 'cancelled';
   created_at: string;
+  delivered_file_path: string | null;
+  delivered_file_name: string | null;
+  delivered_at: string | null;
 };
 
 type MediaRow = { id: string; submission_id: string; storage_path: string; kind: 'image' | 'video'; caption: string | null; sort_order: number };
