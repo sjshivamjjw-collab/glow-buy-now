@@ -420,7 +420,7 @@ const StepInsights = ({ state, dispatch }: { state: State; dispatch: React.Dispa
 
     {/* Insights block */}
     <div className="space-y-5">
-      <Intro icon={Sparkles} title="Travel insights" subtitle="All optional. Share the bits that make your reel real." />
+      <Intro icon={Sparkles} title="Travel insights (Optional but recommended)" subtitle="Share the bits that make your reel real." />
       <div className="space-y-3">
         {INSIGHT_FIELDS.map(f => (
           <div key={f.key} className="rounded-2xl bg-[#161616] border border-[#2a2a2a]/80 p-3">
