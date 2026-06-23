@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   ArrowLeft, Users, Search, Loader2,
-  FileText, Trash2, Heart, MessageCircle, EyeOff, Eye, Film, ChevronDown, ChevronUp,
+  FileText, Trash2, Heart, MessageCircle, EyeOff, Eye,
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
