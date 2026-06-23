@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Film, Plus, Clock, Loader2, CheckCircle2, XCircle, Sparkles } from 'lucide-react';
+import { ArrowLeft, Film, Plus, Clock, Loader2, CheckCircle2, XCircle, Sparkles, Download } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { useToast } from '@/hooks/use-toast';
 
 type Submission = {
   id: string;
@@ -11,6 +12,9 @@ type Submission = {
   duration_label: string;
   status: 'pending' | 'in_progress' | 'delivered' | 'cancelled';
   created_at: string;
+  delivered_file_path: string | null;
+  delivered_file_name: string | null;
+  delivered_at: string | null;
 };
 
 const STATUS_META: Record<Submission['status'], { label: string; color: string; bg: string; Icon: any }> = {
