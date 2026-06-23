@@ -197,6 +197,9 @@ const AdminPanelPage = () => {
               ))}
           </div>
         </TabsContent>
+        <TabsContent value="reels">
+          <AdminReelsTab />
+        </TabsContent>
       </Tabs>
     </div>
   );
