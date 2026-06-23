@@ -71,10 +71,14 @@ const AdminReelsTab = () => {
     load();
   }, [toast]);
 
+  const patchSubmission = (id: string, patch: Partial<Submission>) => {
+    setSubs(prev => prev.map(s => s.id === id ? { ...s, ...patch } : s));
+  };
+
   const updateStatus = async (id: string, status: Submission['status']) => {
     const { error } = await supabase.from('reel_submissions' as any).update({ status }).eq('id', id);
     if (error) { toast({ title: 'Failed to update', description: error.message, variant: 'destructive' }); return; }
-    setSubs(prev => prev.map(s => s.id === id ? { ...s, status } : s));
+    patchSubmission(id, { status });
     toast({ title: `Marked as ${status.replace('_', ' ')}` });
   };
 
@@ -89,6 +93,7 @@ const AdminReelsTab = () => {
           submission={s}
           author={authors[s.user_id]}
           onStatusChange={(st) => updateStatus(s.id, st)}
+          onPatch={(patch) => patchSubmission(s.id, patch)}
         />
       ))}
     </div>
@@ -97,12 +102,16 @@ const AdminReelsTab = () => {
 
 export default AdminReelsTab;
 
-const SubmissionCard = ({ submission: s, author, onStatusChange }: {
-  submission: Submission; author: any; onStatusChange: (st: Submission['status']) => void;
+const SubmissionCard = ({ submission: s, author, onStatusChange, onPatch }: {
+  submission: Submission; author: any; onStatusChange: (st: Submission['status']) => void; onPatch: (p: Partial<Submission>) => void;
 }) => {
   const [open, setOpen] = useState(false);
   const [media, setMedia] = useState<(MediaRow & { signedUrl?: string })[]>([]);
   const [loadingMedia, setLoadingMedia] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [deletingDelivery, setDeletingDelivery] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const { toast } = useToast();
 
   const toggle = async () => {
     const willOpen = !open;
