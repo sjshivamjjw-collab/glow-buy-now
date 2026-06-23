@@ -561,7 +561,7 @@ const StepNotes = ({ state, dispatch }: { state: State; dispatch: React.Dispatch
     <div className="rounded-2xl bg-[#ef4444]/5 border border-[#ef4444]/20 p-4">
       <p className="text-xs font-bold text-[#ef4444] mb-1">Almost there!</p>
       <p className="text-[12px] text-[#a0a0a0] leading-relaxed">
-        Tap <strong className="text-[#fafafa]">Send my reel request</strong> below and our editors will craft your reel within&nbsp;48 hours
+        Tap <strong className="text-[#fafafa]">Send my reel request</strong> below and our team will update you within 24 hours
       </p>
     </div>
   </div>
