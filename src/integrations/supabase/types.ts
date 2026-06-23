@@ -445,6 +445,98 @@ export type Database = {
         }
         Relationships: []
       }
+      reel_submission_media: {
+        Row: {
+          caption: string | null
+          created_at: string
+          id: string
+          kind: string
+          sort_order: number
+          storage_path: string
+          submission_id: string
+        }
+        Insert: {
+          caption?: string | null
+          created_at?: string
+          id?: string
+          kind: string
+          sort_order?: number
+          storage_path: string
+          submission_id: string
+        }
+        Update: {
+          caption?: string | null
+          created_at?: string
+          id?: string
+          kind?: string
+          sort_order?: number
+          storage_path?: string
+          submission_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reel_submission_media_submission_id_fkey"
+            columns: ["submission_id"]
+            isOneToOne: false
+            referencedRelation: "reel_submissions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      reel_submissions: {
+        Row: {
+          cost_text: string | null
+          created_at: string
+          destination: string
+          duration_days: number | null
+          duration_label: string
+          editor_notes: string | null
+          id: string
+          insights: Json
+          itinerary: Json
+          itinerary_enabled: boolean
+          itinerary_kind: string | null
+          status: string
+          trip_title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          cost_text?: string | null
+          created_at?: string
+          destination: string
+          duration_days?: number | null
+          duration_label: string
+          editor_notes?: string | null
+          id?: string
+          insights?: Json
+          itinerary?: Json
+          itinerary_enabled?: boolean
+          itinerary_kind?: string | null
+          status?: string
+          trip_title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          cost_text?: string | null
+          created_at?: string
+          destination?: string
+          duration_days?: number | null
+          duration_label?: string
+          editor_notes?: string | null
+          id?: string
+          insights?: Json
+          itinerary?: Json
+          itinerary_enabled?: boolean
+          itinerary_kind?: string | null
+          status?: string
+          trip_title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_blocks: {
         Row: {
           blocked_id: string

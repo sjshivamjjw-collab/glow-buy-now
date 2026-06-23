@@ -1,4 +1,4 @@
-import { Compass, Bell, User, Plus, Bookmark } from 'lucide-react';
+import { Compass, Bell, User, Plus, Film } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useNotifications } from '@/hooks/useNotifications';
 import { useAuth } from '@/contexts/AuthContext';
@@ -15,11 +15,12 @@ const BottomNav = () => {
   // requires sign-in on the web (and is unreachable for unauth on native).
   const tabs = [
     { icon: Compass, label: 'Discover', path: '/', gate: null as string | null },
-    { icon: Bookmark, label: 'Saved', path: '/saved', gate: 'saved' },
+    { icon: Film, label: 'Reel', path: '/reel/new', gate: 'reel' },
     { icon: Plus, label: 'Post', path: '/post/new', accent: true, gate: 'post' },
     { icon: Bell, label: 'Activity', path: '/notifications', badge: unreadCount, gate: 'notifications' },
     { icon: User, label: 'Profile', path: '/profile', gate: 'profile' },
   ];
+
 
   const handleNav = (path: string, gate: string | null) => {
     if (gate && !isAuthenticated) {

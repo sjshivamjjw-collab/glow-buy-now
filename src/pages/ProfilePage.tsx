@@ -3,7 +3,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { Settings, LogOut, ChevronRight, Bell, HelpCircle, ShieldCheck, Check, X, Camera, Plus, Share2, Trash2 } from 'lucide-react';
+import { Settings, LogOut, ChevronRight, Bell, HelpCircle, ShieldCheck, Check, X, Camera, Plus, Share2, Trash2, Bookmark } from 'lucide-react';
 
 import { PostsGrid } from '@/pages/UserProfilePage';
 import { formatCount } from '@/lib/utils';
@@ -253,6 +253,13 @@ const ProfilePage = () => {
       <button onClick={() => navigate('/post/new')}
         className="w-full mb-6 py-2.5 rounded-xl bg-gradient-to-br from-[#ef4444] to-[#dc2626] text-white font-semibold text-sm flex items-center justify-center gap-2 shadow-[0_8px_24px_-8px_rgba(239,68,68,0.5)]">
         <Plus className="w-4 h-4" /> New post
+      </button>
+
+      <button onClick={() => navigate('/saved')}
+        className="w-full flex items-center gap-3 px-5 py-4 rounded-2xl bg-[#161616] border border-[#2a2a2a]/60 mb-3">
+        <Bookmark className="w-5 h-5 text-[#ef4444]" />
+        <span className="flex-1 text-[#fafafa] font-semibold text-sm text-left">Saved posts</span>
+        <ChevronRight className="w-4 h-4 text-[#a0a0a0]" />
       </button>
 
       {isAdmin && (

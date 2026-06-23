@@ -10,6 +10,7 @@ import { useToast } from '@/hooks/use-toast';
 import LazyVideoThumbnail from '@/components/LazyVideoThumbnail';
 import InitialAvatar from '@/components/InitialAvatar';
 import { optimizedImageUrl } from '@/lib/storageUrls';
+import AdminReelsTab from '@/components/admin/AdminReelsTab';
 
 const AdminPanelPage = () => {
   const navigate = useNavigate();
@@ -101,9 +102,10 @@ const AdminPanelPage = () => {
       </div>
 
       <Tabs defaultValue="posts" className="w-full">
-        <TabsList className="w-full grid grid-cols-2 mb-4">
+        <TabsList className="w-full grid grid-cols-3 mb-4">
           <TabsTrigger value="posts" className="text-xs">Posts</TabsTrigger>
           <TabsTrigger value="users" className="text-xs">Users</TabsTrigger>
+          <TabsTrigger value="reels" className="text-xs">Reels</TabsTrigger>
         </TabsList>
 
         <TabsContent value="posts">
@@ -194,6 +196,9 @@ const AdminPanelPage = () => {
                 </div>
               ))}
           </div>
+        </TabsContent>
+        <TabsContent value="reels">
+          <AdminReelsTab />
         </TabsContent>
       </Tabs>
     </div>
