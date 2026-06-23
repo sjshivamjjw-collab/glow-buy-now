@@ -215,7 +215,7 @@ const CreateReelPage = () => {
   if (done) return <SuccessScreen onDone={() => navigate('/')} />;
 
   return (
-    <div className="min-h-screen bg-[#0a0a0a] max-w-lg mx-auto pb-32">
+    <div className="min-h-screen bg-[#0a0a0a] max-w-lg mx-auto pb-48">
       {/* Header */}
       <div className="sticky top-0 z-20 bg-[#0a0a0a]/95 backdrop-blur border-b border-[#2a2a2a] px-4 pt-3 pb-3">
         <div className="flex items-center gap-3 mb-3">
