@@ -178,6 +178,15 @@ const CreateReelPage = () => {
       else toast({ title: 'Please fill the required fields', variant: 'destructive' });
       return;
     }
+    // Anonymous users can browse Step 1 (Basics) but must sign in to continue.
+    // Their answers are preserved in localStorage and stepIdx, so they resume on Step 2 after sign-in.
+    if (!isAuthenticated) {
+      try { sessionStorage.setItem('post_auth_redirect', '/reel/new'); } catch { /* ignore */ }
+      // Advance so that after sign-in they land on the next step, not back on Basics.
+      if (stepIdx < STEPS.length - 1) setStepIdx(stepIdx + 1);
+      requireAuth('post');
+      return;
+    }
     if (stepIdx < STEPS.length - 1) setStepIdx(stepIdx + 1);
     else handleSubmit();
   };
