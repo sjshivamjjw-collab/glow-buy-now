@@ -82,6 +82,13 @@ export const AuthGateProvider = ({ children }: { children: ReactNode }) => {
           </DialogHeader>
           <div className="flex flex-col gap-2 pt-2">
             <Button
+              onClick={goToPhone}
+              className="w-full bg-white text-black hover:bg-white/90"
+            >
+              <Phone className="w-4 h-4 mr-2" />
+              Use phone number
+            </Button>
+            <Button
               onClick={() => signInWith('google')}
               className="w-full bg-white text-black hover:bg-white/90"
             >
@@ -89,19 +96,12 @@ export const AuthGateProvider = ({ children }: { children: ReactNode }) => {
             </Button>
             <Button
               onClick={() => signInWith('apple')}
-              className="w-full bg-black text-white border border-[#2a2a2a] hover:bg-[#1a1a1a]"
+              className="w-full bg-white text-black hover:bg-white/90"
             >
               Continue with Apple
             </Button>
-            <Button
-              onClick={goToPhone}
-              variant="outline"
-              className="w-full bg-transparent border-[#2a2a2a] text-white hover:bg-[#1a1a1a]"
-            >
-              <Phone className="w-4 h-4 mr-2" />
-              Use phone number
-            </Button>
           </div>
+
         </DialogContent>
       </Dialog>
     </Ctx.Provider>
