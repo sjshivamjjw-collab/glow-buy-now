@@ -95,6 +95,7 @@ const stepIcons: Record<StepName, any> = {
 };
 
 const DRAFT_KEY = 'reel-submission-draft-v1';
+const STEP_KEY = 'reel-submission-step-v1';
 
 // Persisted draft excludes media (File objects can't be serialized)
 type DraftState = Omit<State, 'media'>;
@@ -107,16 +108,30 @@ const loadDraft = (): DraftState | null => {
   } catch { return null; }
 };
 
+const loadStep = (): number => {
+  try {
+    const raw = localStorage.getItem(STEP_KEY);
+    if (!raw) return 0;
+    const n = parseInt(raw, 10);
+    return Number.isFinite(n) && n >= 0 && n < STEPS.length ? n : 0;
+  } catch { return 0; }
+};
+
 const CreateReelPage = () => {
   const [state, dispatch] = useReducer(reducer, initialState, (init) => {
     const draft = loadDraft();
     return draft ? { ...init, ...draft, media: [] } : init;
   });
-  const [stepIdx, setStepIdx] = useState(0);
+  const [stepIdx, setStepIdx] = useState<number>(() => {
+    // Media can't be persisted; if we resume past the Media step without media, snap back to Media.
+    const s = loadStep();
+    return s;
+  });
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState(false);
   const navigate = useNavigate();
-  const { userId } = useAuth();
+  const { userId, isAuthenticated } = useAuth();
+  const { requireAuth } = useAuthGate();
   const { toast } = useToast();
 
   // Persist draft (excluding media) whenever state changes
@@ -127,6 +142,12 @@ const CreateReelPage = () => {
       localStorage.setItem(DRAFT_KEY, JSON.stringify(rest));
     } catch { /* ignore quota errors */ }
   }, [state, done]);
+
+  // Persist current step so a sign-in round-trip resumes the user where they left off
+  useEffect(() => {
+    if (done) return;
+    try { localStorage.setItem(STEP_KEY, String(stepIdx)); } catch { /* ignore */ }
+  }, [stepIdx, done]);
 
   // Scroll to top whenever the step changes
   useEffect(() => {
