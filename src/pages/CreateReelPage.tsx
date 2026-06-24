@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { useAuthGate } from '@/components/AuthGate';
 import { useToast } from '@/hooks/use-toast';
 import LazyVideoThumbnail from '@/components/LazyVideoThumbnail';
 
@@ -94,6 +95,7 @@ const stepIcons: Record<StepName, any> = {
 };
 
 const DRAFT_KEY = 'reel-submission-draft-v1';
+const STEP_KEY = 'reel-submission-step-v1';
 
 // Persisted draft excludes media (File objects can't be serialized)
 type DraftState = Omit<State, 'media'>;
@@ -106,16 +108,30 @@ const loadDraft = (): DraftState | null => {
   } catch { return null; }
 };
 
+const loadStep = (): number => {
+  try {
+    const raw = localStorage.getItem(STEP_KEY);
+    if (!raw) return 0;
+    const n = parseInt(raw, 10);
+    return Number.isFinite(n) && n >= 0 && n < STEPS.length ? n : 0;
+  } catch { return 0; }
+};
+
 const CreateReelPage = () => {
   const [state, dispatch] = useReducer(reducer, initialState, (init) => {
     const draft = loadDraft();
     return draft ? { ...init, ...draft, media: [] } : init;
   });
-  const [stepIdx, setStepIdx] = useState(0);
+  const [stepIdx, setStepIdx] = useState<number>(() => {
+    // Media can't be persisted; if we resume past the Media step without media, snap back to Media.
+    const s = loadStep();
+    return s;
+  });
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState(false);
   const navigate = useNavigate();
-  const { userId } = useAuth();
+  const { userId, isAuthenticated } = useAuth();
+  const { requireAuth } = useAuthGate();
   const { toast } = useToast();
 
   // Persist draft (excluding media) whenever state changes
@@ -126,6 +142,12 @@ const CreateReelPage = () => {
       localStorage.setItem(DRAFT_KEY, JSON.stringify(rest));
     } catch { /* ignore quota errors */ }
   }, [state, done]);
+
+  // Persist current step so a sign-in round-trip resumes the user where they left off
+  useEffect(() => {
+    if (done) return;
+    try { localStorage.setItem(STEP_KEY, String(stepIdx)); } catch { /* ignore */ }
+  }, [stepIdx, done]);
 
   // Scroll to top whenever the step changes
   useEffect(() => {
@@ -154,6 +176,15 @@ const CreateReelPage = () => {
     if (!canContinue()) {
       if (step === 'Media') toast({ title: 'Add at least 5 photos', description: 'Videos are optional but you need at least 5 images.', variant: 'destructive' });
       else toast({ title: 'Please fill the required fields', variant: 'destructive' });
+      return;
+    }
+    // Anonymous users can browse Step 1 (Basics) but must sign in to continue.
+    // Their answers are preserved in localStorage and stepIdx, so they resume on Step 2 after sign-in.
+    if (!isAuthenticated) {
+      try { sessionStorage.setItem('post_auth_redirect', '/reel/new'); } catch { /* ignore */ }
+      // Advance so that after sign-in they land on the next step, not back on Basics.
+      if (stepIdx < STEPS.length - 1) setStepIdx(stepIdx + 1);
+      requireAuth('post');
       return;
     }
     if (stepIdx < STEPS.length - 1) setStepIdx(stepIdx + 1);
@@ -220,7 +251,7 @@ const CreateReelPage = () => {
         if (mErr) throw mErr;
       }
 
-      try { localStorage.removeItem(DRAFT_KEY); } catch { /* ignore */ }
+      try { localStorage.removeItem(DRAFT_KEY); localStorage.removeItem(STEP_KEY); } catch { /* ignore */ }
       setDone(true);
     } catch (e: any) {
       toast({ title: 'Could not submit', description: e?.message || 'Please try again.', variant: 'destructive' });

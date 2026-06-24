@@ -1,6 +1,6 @@
 import React, { lazy, Suspense, useEffect } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Route, Routes, Navigate, useLocation } from "react-router-dom";
+import { BrowserRouter, Route, Routes, Navigate, useLocation, useNavigate } from "react-router-dom";
 import { trackPageview } from "@/lib/analytics";
 
 import { Toaster } from "@/components/ui/toaster";
@@ -83,6 +83,23 @@ const RouteChangeTracker = () => {
   return null;
 };
 
+// After sign-in (any provider), if a flow stored a redirect target, send the user there.
+const PostAuthRedirect = () => {
+  const { isAuthenticated, onboardingCompleted, loading } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
+  useEffect(() => {
+    if (loading) return;
+    if (!isAuthenticated || !onboardingCompleted) return;
+    let target: string | null = null;
+    try { target = sessionStorage.getItem('post_auth_redirect'); } catch { /* ignore */ }
+    if (!target) return;
+    try { sessionStorage.removeItem('post_auth_redirect'); } catch { /* ignore */ }
+    if (location.pathname !== target) navigate(target, { replace: true });
+  }, [isAuthenticated, onboardingCompleted, loading, navigate, location.pathname]);
+  return null;
+};
+
 const AppRoutes = () => {
 
   const { isAuthenticated, isAdmin, loading, onboardingCompleted } = useAuth();
@@ -142,7 +159,7 @@ const AppRoutes = () => {
                   <Route path="/u/:userId" element={<UserProfilePage />} />
                   <Route path="/notifications" element={<RequireAuth><NotificationsPage /></RequireAuth>} />
                   <Route path="/saved" element={<RequireAuth><SavedPostsPage /></RequireAuth>} />
-                  <Route path="/reel/new" element={<RequireAuth><CreateReelPage /></RequireAuth>} />
+                  <Route path="/reel/new" element={<CreateReelPage />} />
                   <Route path="/reels/mine" element={<RequireAuth><MyReelsPage /></RequireAuth>} />
                   <Route path="/profile" element={<RequireAuth><ProfilePage /></RequireAuth>} />
                   <Route path="/settings" element={<RequireAuth><SettingsPage /></RequireAuth>} />
@@ -167,6 +184,7 @@ const App = () => (
         <BrowserRouter>
           <AuthGateProvider>
             <RouteChangeTracker />
+            <PostAuthRedirect />
             <AppRoutes />
           </AuthGateProvider>
 
