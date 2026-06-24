@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { useAuthGate } from '@/components/AuthGate';
 import { useToast } from '@/hooks/use-toast';
 import LazyVideoThumbnail from '@/components/LazyVideoThumbnail';
 
