@@ -224,27 +224,40 @@ export const PostsGrid = ({ posts, onOpen, isOwner = false }: { posts: PostThumb
   return (
     <div className="grid grid-cols-2 gap-2">
       {posts.map(p => (
-        <button key={p.id} onClick={() => onOpen(p.id)} className={`relative w-full bg-[#1a1a1a] rounded-xl overflow-hidden ${p.cover_url ? 'aspect-[4/5]' : 'aspect-square'}`}>
-          {p.cover_url ? (
-            p.cover_kind === 'video'
-              ? <LazyVideoThumbnail src={p.cover_url} className="w-full h-full" />
-              : <img src={optimizedImageUrl(p.cover_url, { width: 600, quality: 70, resize: 'contain' })!} alt="" className="w-full h-full object-contain" loading="lazy" decoding="async" />
-          ) : (
-            <TextCoverCard title={p.title} textClassName="text-[15px]" />
-          )}
-          {p.is_anonymous && (
-            <>
-              <span className="absolute top-1.5 left-1.5 inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-[#fef3c7] ring-1 ring-[#fcd34d] text-[10px] font-semibold text-[#1a1a1a]">
-                <img src="https://cdn.jsdelivr.net/npm/openmoji@latest/color/svg/1F427.svg" alt="" className="w-3 h-3" />
-                Rippler
-              </span>
-              {isOwner && (
-                <span className="absolute bottom-1.5 left-1.5 right-1.5 inline-flex items-center justify-center gap-1 px-1.5 py-0.5 rounded-full bg-black/65 backdrop-blur-sm text-[9px] font-semibold text-white">
-                  <Eye className="w-2.5 h-2.5" />
-                  Only Visible on your profile to you
+        <button
+          key={p.id}
+          onClick={() => onOpen(p.id)}
+          className="group w-full text-left rounded-2xl overflow-hidden bg-[#161616] border border-[#2a2a2a]/50 hover:border-[#ef4444] hover:shadow-lg hover:shadow-[#dc2626]/10 transition-all duration-300"
+        >
+          <div className={`relative w-full bg-[#1a1a1a] overflow-hidden ${p.cover_url ? 'aspect-[4/5]' : 'aspect-square'}`}>
+            {p.cover_url ? (
+              p.cover_kind === 'video'
+                ? <LazyVideoThumbnail src={p.cover_url} className="w-full h-full" />
+                : <img src={optimizedImageUrl(p.cover_url, { width: 600, quality: 70, resize: 'contain' })!} alt={p.title || ''} className="w-full h-full object-contain" loading="lazy" decoding="async" />
+            ) : (
+              <TextCoverCard title={p.title} textClassName="text-[15px]" />
+            )}
+            {p.is_anonymous && (
+              <>
+                <span className="absolute top-1.5 left-1.5 inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-[#fef3c7] ring-1 ring-[#fcd34d] text-[10px] font-semibold text-[#1a1a1a]">
+                  <img src="https://cdn.jsdelivr.net/npm/openmoji@latest/color/svg/1F427.svg" alt="" className="w-3 h-3" />
+                  Rippler
                 </span>
-              )}
-            </>
+                {isOwner && (
+                  <span className="absolute bottom-1.5 left-1.5 right-1.5 inline-flex items-center justify-center gap-1 px-1.5 py-0.5 rounded-full bg-black/65 backdrop-blur-sm text-[9px] font-semibold text-white">
+                    <Eye className="w-2.5 h-2.5" />
+                    Only Visible on your profile to you
+                  </span>
+                )}
+              </>
+            )}
+          </div>
+          {p.title && p.cover_url && (
+            <div className="px-2.5 pt-2 pb-2.5">
+              <p className="font-[Outfit] font-medium text-[#fafafa] text-[12px] leading-[1.3] line-clamp-2">
+                {p.title}
+              </p>
+            </div>
           )}
         </button>
       ))}
