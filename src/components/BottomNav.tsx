@@ -37,14 +37,15 @@ const BottomNav = () => {
           const isActive = location.pathname === path;
           if (accent) {
             return (
-              <button
-                key={path}
-                onClick={() => handleNav(path, gate)}
-                className="relative -mt-6 w-12 h-12 rounded-2xl bg-gradient-to-br from-[#ef4444] to-[#dc2626] text-white flex items-center justify-center shadow-[0_8px_24px_-6px_rgba(239,68,68,0.6)] ring-4 ring-[#0a0a0a] active:scale-95 transition-transform"
-                aria-label={label}
-              >
-                <Icon className="w-6 h-6" strokeWidth={2.5} />
-              </button>
+              <div key={path} className="flex justify-center">
+                <button
+                  onClick={() => handleNav(path, gate)}
+                  className="relative -mt-6 w-12 h-12 rounded-2xl bg-gradient-to-br from-[#ef4444] to-[#dc2626] text-white flex items-center justify-center shadow-[0_8px_24px_-6px_rgba(239,68,68,0.6)] ring-4 ring-[#0a0a0a] active:scale-95 transition-transform"
+                  aria-label={label}
+                >
+                  <Icon className="w-6 h-6" strokeWidth={2.5} />
+                </button>
+              </div>
             );
           }
           return (
