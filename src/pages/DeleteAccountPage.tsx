@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import LegalPageLayout from '@/components/LegalPageLayout';
-import { Mail, Smartphone, Clock, Trash2 } from 'lucide-react';
+import { Clock, Trash2, Smartphone } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
@@ -17,7 +17,7 @@ const DeleteAccountPage = () => {
 
   const handleDelete = async () => {
     if (!userId) {
-      navigate('/auth');
+      navigate('/auth?redirect=/delete-account');
       return;
     }
     setDeleting(true);
@@ -28,25 +28,47 @@ const DeleteAccountPage = () => {
     setDeleting(false);
     setConfirmOpen(false);
     if (error) {
-      toast({ title: 'Could not delete account', description: 'Please email support.', variant: 'destructive' });
+      toast({ title: 'Could not delete account', description: 'Please try again in a moment.', variant: 'destructive' });
       return;
     }
     toast({ title: 'Account deleted', description: 'Your account and data have been removed.' });
     setTimeout(() => { logout(); navigate('/auth'); }, 800);
   };
 
+  const onDeleteClick = () => {
+    if (!userId) {
+      navigate('/auth?redirect=/delete-account');
+      return;
+    }
+    setConfirmOpen(true);
+  };
+
   return (
     <LegalPageLayout
       title="Delete Your Account"
       seoTitle="Delete your Ripple account & data"
-      seoDescription="Request permanent deletion of your Ripple account and associated data. Self-serve from inside the app or via this page."
+      seoDescription="Permanently delete your Ripple account and associated data directly from inside the app — no email required."
     >
       <p>
         You can permanently delete your Ripple account and the personal data
-        associated with it at any time. This page explains exactly what gets
-        removed, what (if anything) is retained, and the two ways to start
-        the process.
+        associated with it at any time, directly from inside the app. No email,
+        phone call, or extra account is required.
       </p>
+
+      <div className="not-prose my-5">
+        <button
+          onClick={onDeleteClick}
+          className="w-full py-4 rounded-2xl bg-live text-live-foreground font-bold text-base flex items-center justify-center gap-2 shadow-lg"
+        >
+          <Trash2 className="w-5 h-5" />
+          Permanently delete my account
+        </button>
+        <p className="text-xs text-muted-foreground text-center mt-2">
+          {userId
+            ? 'You will be signed out immediately after confirming.'
+            : 'You will be asked to sign in to verify your account, then returned here.'}
+        </p>
+      </div>
 
       <div className="not-prose grid gap-3 my-4">
         <div className="flex items-start gap-3 p-4 rounded-2xl bg-card border border-border">
@@ -54,27 +76,12 @@ const DeleteAccountPage = () => {
             <Smartphone className="w-5 h-5 text-primary" />
           </div>
           <div>
-            <p className="text-sm font-semibold text-foreground">Option 1 — In the Ripple app</p>
+            <p className="text-sm font-semibold text-foreground">Delete in the app</p>
             <p className="text-xs text-muted-foreground mt-1">
-              Tap the <strong>red "Permanently delete my account" button</strong> at the bottom of this page and confirm.
+              Tap the <strong>red "Permanently delete my account" button</strong> above and confirm. Deletion happens immediately — no extra steps.
             </p>
           </div>
         </div>
-
-        <a
-          href={`mailto:${SUPPORT_EMAIL}?subject=Delete%20my%20Ripple%20account`}
-          className="flex items-start gap-3 p-4 rounded-2xl bg-card border border-border hover:border-primary transition-colors"
-        >
-          <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
-            <Mail className="w-5 h-5 text-primary" />
-          </div>
-          <div>
-            <p className="text-sm font-semibold text-foreground">Option 2 — Email request</p>
-            <p className="text-xs text-muted-foreground mt-1">
-              Email <strong>{SUPPORT_EMAIL}</strong> from the address or phone number on your account with the subject <em>"Delete my Ripple account"</em>. We action verified requests within 7 days.
-            </p>
-          </div>
-        </a>
 
         <div className="flex items-start gap-3 p-4 rounded-2xl bg-card border border-border">
           <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
@@ -83,7 +90,7 @@ const DeleteAccountPage = () => {
           <div>
             <p className="text-sm font-semibold text-foreground">Timeline</p>
             <p className="text-xs text-muted-foreground mt-1">
-              Personal data is removed within <strong>30 days</strong> of your request.
+              Your account is signed out and profile data cleared instantly. Full removal of posts, comments and related content completes within <strong>30 days</strong>.
             </p>
           </div>
         </div>
@@ -115,24 +122,9 @@ const DeleteAccountPage = () => {
       <div className="not-prose flex items-start gap-3 p-4 rounded-2xl bg-secondary/40 border border-border my-4">
         <Trash2 className="w-5 h-5 text-muted-foreground shrink-0 mt-0.5" />
         <p className="text-xs text-muted-foreground">
-          Need help, or didn't receive a confirmation? Email <a href={`mailto:${SUPPORT_EMAIL}`} className="text-primary underline">{SUPPORT_EMAIL}</a> and we'll respond within 24 hours.
+          Need help with something else? Email <a href={`mailto:${SUPPORT_EMAIL}`} className="text-primary underline">{SUPPORT_EMAIL}</a> and we'll respond within 24 hours. Account deletion itself does not require email — use the button above.
         </p>
       </div>
-
-      {userId && (
-        <div className="not-prose my-6">
-          <button
-            onClick={() => setConfirmOpen(true)}
-            className="w-full py-4 rounded-2xl bg-live text-live-foreground font-bold text-base flex items-center justify-center gap-2 shadow-lg"
-          >
-            <Trash2 className="w-5 h-5" />
-            Permanently delete my account
-          </button>
-          <p className="text-xs text-muted-foreground text-center mt-2">
-            You will be signed out immediately after confirming.
-          </p>
-        </div>
-      )}
 
       <h2>Related</h2>
       <ul>
