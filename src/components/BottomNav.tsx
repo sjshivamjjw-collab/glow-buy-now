@@ -15,7 +15,7 @@ const BottomNav = () => {
   // requires sign-in on the web (and is unreachable for unauth on native).
   const tabs = [
     { icon: Compass, label: 'Discover', path: '/', gate: null as string | null },
-    { icon: Film, label: 'Create Reel', path: '/reel/new', gate: 'reel' },
+    { icon: Film, label: 'Create Reel', path: '/reel/new', gate: null as string | null },
     { icon: Plus, label: 'Post', path: '/post/new', accent: true, gate: 'post' },
     { icon: Bell, label: 'Activity', path: '/notifications', badge: unreadCount, gate: 'notifications' },
     { icon: User, label: 'Profile', path: '/profile', gate: 'profile' },
