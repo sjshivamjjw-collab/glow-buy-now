@@ -83,24 +83,28 @@ export const AuthGateProvider = ({ children }: { children: ReactNode }) => {
           <div className="flex flex-col gap-2 pt-2">
             <Button
               onClick={goToPhone}
-              className="w-full bg-white text-black hover:bg-white/90"
+              variant="outline"
+              className="w-full bg-transparent border-[#2a2a2a] text-white hover:bg-[#1a1a1a]"
             >
               <Phone className="w-4 h-4 mr-2" />
               Use phone number
             </Button>
             <Button
               onClick={() => signInWith('google')}
-              className="w-full bg-white text-black hover:bg-white/90"
+              variant="outline"
+              className="w-full bg-transparent border-[#2a2a2a] text-white hover:bg-[#1a1a1a]"
             >
               Continue with Google
             </Button>
             <Button
               onClick={() => signInWith('apple')}
-              className="w-full bg-white text-black hover:bg-white/90"
+              variant="outline"
+              className="w-full bg-transparent border-[#2a2a2a] text-white hover:bg-[#1a1a1a]"
             >
               Continue with Apple
             </Button>
           </div>
+
 
         </DialogContent>
       </Dialog>
