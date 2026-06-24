@@ -32,26 +32,27 @@ const BottomNav = () => {
 
   return (
     <nav className="fixed bottom-0 inset-x-0 z-50 mx-auto w-full max-w-lg bg-[#0a0a0a] border-t border-[#2a2a2a] safe-bottom">
-      <div className="flex items-center justify-around px-2 pt-2 pb-1">
+      <div className="grid grid-cols-5 items-center px-2 pt-2 pb-1">
         {tabs.map(({ icon: Icon, label, path, accent, badge, gate }) => {
           const isActive = location.pathname === path;
           if (accent) {
             return (
-              <button
-                key={path}
-                onClick={() => handleNav(path, gate)}
-                className="relative -mt-6 w-12 h-12 rounded-2xl bg-gradient-to-br from-[#ef4444] to-[#dc2626] text-white flex items-center justify-center shadow-[0_8px_24px_-6px_rgba(239,68,68,0.6)] ring-4 ring-[#0a0a0a] active:scale-95 transition-transform"
-                aria-label={label}
-              >
-                <Icon className="w-6 h-6" strokeWidth={2.5} />
-              </button>
+              <div key={path} className="flex justify-center">
+                <button
+                  onClick={() => handleNav(path, gate)}
+                  className="relative -mt-6 w-12 h-12 rounded-2xl bg-gradient-to-br from-[#ef4444] to-[#dc2626] text-white flex items-center justify-center shadow-[0_8px_24px_-6px_rgba(239,68,68,0.6)] ring-4 ring-[#0a0a0a] active:scale-95 transition-transform"
+                  aria-label={label}
+                >
+                  <Icon className="w-6 h-6" strokeWidth={2.5} />
+                </button>
+              </div>
             );
           }
           return (
             <button
               key={path}
               onClick={() => handleNav(path, gate)}
-              className={`relative flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-xl transition-colors ${
+              className={`relative flex flex-col items-center justify-center gap-0.5 px-1 py-1.5 rounded-xl transition-colors ${
                 isActive ? 'text-[#ef4444]' : 'text-[#a0a0a0]'
               }`}
             >
