@@ -414,7 +414,7 @@ const DiscoverPage = () => {
       />
       <h1 className="sr-only">Ripple — discover everyday recommendations, reviews and stories</h1>
       {/* Welcome (scrolls away) */}
-      <div className="px-4 pt-3 pb-2">
+      <div className="px-4 pb-2" style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 12px)' }}>
         <div className="overflow-hidden">
           <div className="flex items-center gap-2.5">
             <InitialAvatar
