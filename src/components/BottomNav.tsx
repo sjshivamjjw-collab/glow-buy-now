@@ -32,7 +32,7 @@ const BottomNav = () => {
 
   return (
     <nav className="fixed bottom-0 inset-x-0 z-50 mx-auto w-full max-w-lg bg-[#0a0a0a] border-t border-[#2a2a2a] safe-bottom">
-      <div className="flex items-center justify-around px-2 pt-2 pb-1">
+      <div className="grid grid-cols-5 items-center px-2 pt-2 pb-1">
         {tabs.map(({ icon: Icon, label, path, accent, badge, gate }) => {
           const isActive = location.pathname === path;
           if (accent) {
