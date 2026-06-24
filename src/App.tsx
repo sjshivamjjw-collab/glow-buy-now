@@ -83,6 +83,23 @@ const RouteChangeTracker = () => {
   return null;
 };
 
+// After sign-in (any provider), if a flow stored a redirect target, send the user there.
+const PostAuthRedirect = () => {
+  const { isAuthenticated, onboardingCompleted, loading } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
+  useEffect(() => {
+    if (loading) return;
+    if (!isAuthenticated || !onboardingCompleted) return;
+    let target: string | null = null;
+    try { target = sessionStorage.getItem('post_auth_redirect'); } catch { /* ignore */ }
+    if (!target) return;
+    try { sessionStorage.removeItem('post_auth_redirect'); } catch { /* ignore */ }
+    if (location.pathname !== target) navigate(target, { replace: true });
+  }, [isAuthenticated, onboardingCompleted, loading, navigate, location.pathname]);
+  return null;
+};
+
 const AppRoutes = () => {
 
   const { isAuthenticated, isAdmin, loading, onboardingCompleted } = useAuth();
