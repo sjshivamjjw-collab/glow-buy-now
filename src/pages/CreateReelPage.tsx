@@ -251,7 +251,7 @@ const CreateReelPage = () => {
         if (mErr) throw mErr;
       }
 
-      try { localStorage.removeItem(DRAFT_KEY); } catch { /* ignore */ }
+      try { localStorage.removeItem(DRAFT_KEY); localStorage.removeItem(STEP_KEY); } catch { /* ignore */ }
       setDone(true);
     } catch (e: any) {
       toast({ title: 'Could not submit', description: e?.message || 'Please try again.', variant: 'destructive' });
