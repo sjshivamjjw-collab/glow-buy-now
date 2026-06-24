@@ -144,6 +144,48 @@ const CreateReelPage = () => {
     } catch { /* ignore quota errors */ }
   }, [state, done]);
 
+  // Hydrate media from IndexedDB on mount (survives navigating away & back)
+  const hydratedRef = useRef(false);
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const stored = await loadReelDraftMedia();
+      if (cancelled || !stored.length) { hydratedRef.current = true; return; }
+      const items: MediaItem[] = stored.map(s => {
+        const file = new File([s.fileBlob], s.fileName || 'upload', { type: s.fileType || (s.kind === 'video' ? 'video/mp4' : 'image/jpeg') });
+        return {
+          id: s.id,
+          file,
+          previewUrl: URL.createObjectURL(file),
+          kind: s.kind,
+          caption: s.caption || '',
+        };
+      });
+      dispatch({ type: 'addMedia', items });
+      hydratedRef.current = true;
+    })();
+    return () => { cancelled = true; };
+  }, []);
+
+  // Persist media to IndexedDB whenever it changes (after initial hydration)
+  useEffect(() => {
+    if (done) return;
+    if (!hydratedRef.current) return;
+    const items: StoredReelMedia[] = state.media.map(m => ({
+      id: m.id,
+      kind: m.kind,
+      fileBlob: m.file,
+      fileName: m.file.name,
+      fileType: m.file.type,
+      caption: m.caption,
+    }));
+    if (items.length === 0) {
+      clearReelDraftMedia();
+    } else {
+      saveReelDraftMedia(items);
+    }
+  }, [state.media, done]);
+
   // Persist current step so a sign-in round-trip resumes the user where they left off
   useEffect(() => {
     if (done) return;
