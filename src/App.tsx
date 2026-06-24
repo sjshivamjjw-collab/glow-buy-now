@@ -184,6 +184,7 @@ const App = () => (
         <BrowserRouter>
           <AuthGateProvider>
             <RouteChangeTracker />
+            <PostAuthRedirect />
             <AppRoutes />
           </AuthGateProvider>
 
