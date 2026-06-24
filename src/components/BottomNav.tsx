@@ -52,7 +52,7 @@ const BottomNav = () => {
             <button
               key={path}
               onClick={() => handleNav(path, gate)}
-              className={`relative flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-xl transition-colors ${
+              className={`relative flex flex-col items-center justify-center gap-0.5 px-1 py-1.5 rounded-xl transition-colors ${
                 isActive ? 'text-[#ef4444]' : 'text-[#a0a0a0]'
               }`}
             >
