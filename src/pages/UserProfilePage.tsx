@@ -10,7 +10,7 @@ import LazyVideoThumbnail from '@/components/LazyVideoThumbnail';
 import { optimizedImageUrl } from '@/lib/storageUrls';
 import TextCoverCard from '@/components/TextCoverCard';
 import InitialAvatar from '@/components/InitialAvatar';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { useBlockedUsers } from '@/hooks/useBlockedUsers';
 import { track } from '@/lib/analytics';
 import SEO from '@/components/SEO';
