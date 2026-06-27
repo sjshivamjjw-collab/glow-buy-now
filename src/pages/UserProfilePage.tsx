@@ -153,26 +153,43 @@ const UserProfileBody = ({ profile, posts, postCount, followers, following, isFo
         </button>
         <h1 className="text-xl font-bold text-foreground truncate flex-1">{name}</h1>
         {meId && (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <button className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center" aria-label="More">
+          <Sheet open={moreOpen} onOpenChange={setMoreOpen}>
+            <SheetTrigger asChild>
+              <button
+                type="button"
+                className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center"
+                aria-label="More options"
+              >
                 <MoreHorizontal className="w-5 h-5 text-foreground" />
               </button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-52">
-              {isBlocked ? (
-                <DropdownMenuItem onClick={handleUnblock} className="cursor-pointer">
-                  <ShieldOff className="w-4 h-4 mr-2" /> Unblock user
-                </DropdownMenuItem>
-              ) : (
-                <DropdownMenuItem onClick={handleBlock} className="cursor-pointer text-destructive focus:text-destructive">
-                  <Ban className="w-4 h-4 mr-2" /> Block user
-                </DropdownMenuItem>
-              )}
-            </DropdownMenuContent>
-          </DropdownMenu>
+            </SheetTrigger>
+            <SheetContent side="bottom" className="rounded-t-2xl pb-8">
+              <div className="flex flex-col gap-1 pt-4">
+                {isBlocked ? (
+                  <button
+                    type="button"
+                    onClick={() => { setMoreOpen(false); handleUnblock(); }}
+                    className="flex items-center gap-3 px-4 py-4 rounded-xl hover:bg-muted text-left"
+                  >
+                    <ShieldOff className="w-5 h-5" />
+                    <span className="font-medium">Unblock user</span>
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => { setMoreOpen(false); handleBlock(); }}
+                    className="flex items-center gap-3 px-4 py-4 rounded-xl hover:bg-destructive/10 text-destructive text-left"
+                  >
+                    <Ban className="w-5 h-5" />
+                    <span className="font-medium">Block user</span>
+                  </button>
+                )}
+              </div>
+            </SheetContent>
+          </Sheet>
         )}
       </div>
+
 
       <div className="flex items-center gap-5 mb-5">
         <InitialAvatar
