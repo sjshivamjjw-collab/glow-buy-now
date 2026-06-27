@@ -106,6 +106,7 @@ const UserProfileBody = ({ profile, posts, postCount, followers, following, isFo
   const { blocked, refresh: refreshBlocks } = useBlockedUsers();
   const name = profile.name || profile.username || 'User';
   const isBlocked = blocked.has(pageUserId);
+  const [moreOpen, setMoreOpen] = useState(false);
 
   const handleBlock = async () => {
     if (!requireAuth('block')) return;
@@ -139,7 +140,7 @@ const UserProfileBody = ({ profile, posts, postCount, followers, following, isFo
   };
 
   return (
-    <div className="min-h-screen bg-background max-w-lg mx-auto px-4 pt-4 pb-24">
+    <div className="min-h-screen bg-[linear-gradient(180deg,#0a0a0a_0%,#111111_40%,#000000_100%)] max-w-lg mx-auto px-4 pt-4 pb-24">
       <SEO
         title={seoTitle}
         description={seoDesc}
@@ -149,19 +150,19 @@ const UserProfileBody = ({ profile, posts, postCount, followers, following, isFo
         jsonLd={profileJsonLd}
       />
       <div className="flex items-center gap-3 mb-6">
-        <button onClick={() => navigate(-1)} className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center">
-          <ArrowLeft className="w-5 h-5 text-foreground" />
+        <button onClick={() => navigate(-1)} className="w-10 h-10 rounded-xl bg-[#161616] border border-[#2a2a2a]/60 flex items-center justify-center">
+          <ArrowLeft className="w-5 h-5 text-[#fafafa]" />
         </button>
-        <h1 className="text-xl font-bold text-foreground truncate flex-1">{name}</h1>
+        <h1 className="text-xl font-bold text-[#fafafa] truncate flex-1">{name}</h1>
         {meId && (
           <Sheet open={moreOpen} onOpenChange={setMoreOpen}>
             <SheetTrigger asChild>
               <button
                 type="button"
-                className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center"
+                className="w-10 h-10 rounded-xl bg-[#161616] border border-[#2a2a2a]/60 flex items-center justify-center"
                 aria-label="More options"
               >
-                <MoreHorizontal className="w-5 h-5 text-foreground" />
+                <MoreHorizontal className="w-5 h-5 text-[#fafafa]" />
               </button>
             </SheetTrigger>
             <SheetContent side="bottom" className="rounded-t-2xl pb-8">
@@ -200,24 +201,25 @@ const UserProfileBody = ({ profile, posts, postCount, followers, following, isFo
           size={80}
         />
         <div className="flex-1 grid grid-cols-3 gap-2 text-center">
-          <div><p className="font-bold text-foreground">{formatCount(postCount)}</p><p className="text-[11px] text-muted-foreground">Posts</p></div>
-          <div><p className="font-bold text-foreground">{formatCount(followers)}</p><p className="text-[11px] text-muted-foreground">Followers</p></div>
-          <div><p className="font-bold text-foreground">{formatCount(following)}</p><p className="text-[11px] text-muted-foreground">Following</p></div>
+          <div><p className="font-bold text-[#fafafa]">{formatCount(postCount)}</p><p className="text-[11px] text-[#9a9a9a]">Posts</p></div>
+          <div><p className="font-bold text-[#fafafa]">{formatCount(followers)}</p><p className="text-[11px] text-[#9a9a9a]">Followers</p></div>
+          <div><p className="font-bold text-[#fafafa]">{formatCount(following)}</p><p className="text-[11px] text-[#9a9a9a]">Following</p></div>
         </div>
       </div>
 
       <div className="mb-5">
-        <p className="font-bold text-foreground">{profile.name || profile.username}</p>
-        {profile.username && profile.name && <p className="text-muted-foreground text-sm">@{profile.username}</p>}
+        <p className="font-bold text-[#fafafa]">{profile.name || profile.username}</p>
+        {profile.username && profile.name && <p className="text-[#9a9a9a] text-sm">@{profile.username}</p>}
       </div>
 
       {isBlocked ? (
         <div className="text-center py-10 px-4">
-          <Ban className="w-10 h-10 mx-auto text-muted-foreground mb-3" />
-          <p className="text-foreground font-semibold mb-1">You blocked this user</p>
-          <p className="text-sm text-muted-foreground mb-5">Their posts and comments are hidden from you.</p>
-          <button onClick={handleUnblock} className="px-5 py-2 rounded-xl bg-secondary text-foreground font-semibold text-sm">Unblock</button>
+          <Ban className="w-10 h-10 mx-auto text-[#9a9a9a] mb-3" />
+          <p className="text-[#fafafa] font-semibold mb-1">You blocked this user</p>
+          <p className="text-sm text-[#9a9a9a] mb-5">Their posts and comments are hidden from you.</p>
+          <button onClick={handleUnblock} className="px-5 py-2 rounded-xl bg-[#161616] border border-[#2a2a2a]/60 text-[#fafafa] font-semibold text-sm">Unblock</button>
         </div>
+
       ) : (
         <>
           <button
