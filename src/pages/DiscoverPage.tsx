@@ -442,7 +442,7 @@ const DiscoverPage = () => {
       </div>
 
       {/* Header — sticky search + filters */}
-      <div className="sticky top-0 z-20 backdrop-blur-xl bg-[#0a0a0a]/70 border-b border-[#2a2a2a]/40 px-4 pt-2 pb-2">
+      <div className="sticky top-0 z-20 backdrop-blur-xl bg-[#0a0a0a]/70 border-b border-[#2a2a2a]/40 px-4 pb-2" style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 8px)' }}>
 
 
 
