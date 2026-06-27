@@ -106,6 +106,7 @@ const UserProfileBody = ({ profile, posts, postCount, followers, following, isFo
   const { blocked, refresh: refreshBlocks } = useBlockedUsers();
   const name = profile.name || profile.username || 'User';
   const isBlocked = blocked.has(pageUserId);
+  const [moreOpen, setMoreOpen] = useState(false);
 
   const handleBlock = async () => {
     if (!requireAuth('block')) return;
