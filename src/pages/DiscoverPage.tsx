@@ -441,8 +441,11 @@ const DiscoverPage = () => {
         </div>
       </div>
 
-      {/* Header — sticky search + filters */}
-      <div className="sticky top-0 z-20 backdrop-blur-xl bg-[#0a0a0a]/70 border-b border-[#2a2a2a]/40 px-4 pb-2" style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 8px)' }}>
+      {/* Header — sticky search + filters. When at top of page the welcome
+          block above already reserves the safe-area inset, so we only add it
+          back once the header is actually stuck (collapsed = scrolled). */}
+      <div className="sticky top-0 z-20 backdrop-blur-xl bg-[#0a0a0a]/70 border-b border-[#2a2a2a]/40 px-4 pb-2" style={{ paddingTop: collapsed ? 'calc(env(safe-area-inset-top, 0px) + 8px)' : '8px' }}>
+
 
 
 
