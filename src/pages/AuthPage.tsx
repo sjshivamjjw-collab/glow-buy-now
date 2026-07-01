@@ -145,11 +145,19 @@ const AuthPage = () => {
                 onClick={async () => {
                   try {
                     if (isNative()) {
-                      // Native iOS/Android: use system Google Sign-In sheet
-                      const { GoogleAuth } = await import('@codetrix-studio/capacitor-google-auth');
-                      try { await GoogleAuth.initialize({ scopes: ['profile', 'email'], grantOfflineAccess: false }); } catch {}
-                      const res: any = await GoogleAuth.signIn();
-                      const idToken = res?.authentication?.idToken;
+                      // Native iOS/Android: use system Google Sign-In sheet via SPM-compatible plugin
+                      const { SocialLogin } = await import('@capgo/capacitor-social-login');
+                      const iOSClientId = '255333974573-22g4cg9dv0qi9p7o3vudq4vvrg6mt5m2.apps.googleusercontent.com';
+                      try {
+                        await SocialLogin.initialize({
+                          google: { iOSClientId, mode: 'online' },
+                        });
+                      } catch {}
+                      const res: any = await SocialLogin.login({
+                        provider: 'google',
+                        options: { scopes: ['email', 'profile'] },
+                      });
+                      const idToken = res?.result?.idToken;
                       if (!idToken) {
                         toast({ title: 'Google sign-in failed', description: 'No identity token returned', variant: 'destructive' });
                         return;
