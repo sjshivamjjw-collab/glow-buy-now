@@ -152,11 +152,15 @@ const CreateReelPage = () => {
       const stored = await loadReelDraftMedia();
       if (cancelled || !stored.length) { hydratedRef.current = true; return; }
       const items: MediaItem[] = stored.map(s => {
-        const file = new File([s.fileBlob], s.fileName || 'upload', { type: s.fileType || (s.kind === 'video' ? 'video/mp4' : 'image/jpeg') });
+        const blob = s.fileBlob;
+        const fileType = s.fileType || (s.kind === 'video' ? 'video/mp4' : 'image/jpeg');
+        // Use blob directly (not wrapped in a new File) — iOS WebView object URLs
+        // are more reliable when created from the original Blob retrieved from IDB.
+        const file = blob instanceof File ? blob : new File([blob], s.fileName || 'upload', { type: fileType });
         return {
           id: s.id,
           file,
-          previewUrl: URL.createObjectURL(file),
+          previewUrl: URL.createObjectURL(blob),
           kind: s.kind,
           caption: s.caption || '',
         };
