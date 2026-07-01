@@ -349,7 +349,10 @@ const CreateReelPage = () => {
       </div>
 
       {/* Footer nav */}
-      <div className="fixed bottom-[64px] inset-x-0 z-40 mx-auto w-full max-w-lg bg-[#0a0a0a]/95 backdrop-blur border-t border-[#2a2a2a] px-4 pt-3 pb-3 flex gap-2">
+      <div
+        className="fixed inset-x-0 z-40 mx-auto w-full max-w-lg bg-[#0a0a0a]/95 backdrop-blur border-t border-[#2a2a2a] px-4 pt-3 pb-3 flex gap-2"
+        style={{ bottom: 'calc(80px + env(safe-area-inset-bottom, 0px))' }}
+      >
         {stepIdx > 0 && (
           <button
             onClick={back}
