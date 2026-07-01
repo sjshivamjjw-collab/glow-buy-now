@@ -154,12 +154,23 @@ const AuthPage = () => {
                       const iOSServerClientId = '255333974573-rf1rdu620dknli64gu6qqolt8vgpu6qm.apps.googleusercontent.com';
                       try {
                         await SocialLogin.initialize({
-                          google: { iOSClientId, iOSServerClientId, mode: 'online' },
+                          google: {
+                            iOSClientId,
+                            iOSServerClientId,
+                            webClientId: iOSServerClientId,
+                            mode: 'online',
+                          },
                         });
+                      } catch {}
+                      // Clear any previously cached iOS Google session so the SDK does not reuse
+                      // an older id_token whose audience is the iOS client ID instead of the web
+                      // client ID that Supabase accepts.
+                      try {
+                        await SocialLogin.logout({ provider: 'google' });
                       } catch {}
                       const res: any = await SocialLogin.login({
                         provider: 'google',
-                        options: { scopes: ['email', 'profile'] },
+                        options: { scopes: ['email', 'profile'], forcePrompt: true },
                       });
                       const idToken = res?.result?.idToken;
                       if (!idToken) {
