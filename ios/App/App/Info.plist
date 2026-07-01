@@ -58,13 +58,13 @@
 	<key>NSMicrophoneUsageDescription</key>
 	<string>Ripple uses your microphone when you record a video with sound for a post.</string>
 	<key>GIDClientID</key>
-	<string><!-- REPLACE_WITH_IOS_GOOGLE_CLIENT_ID e.g. 1234567890-abcdef.apps.googleusercontent.com --></string>
+	<string>255333974573-22g4cg9dv0qi9p7o3vudq4vvrg6mt5m2.apps.googleusercontent.com</string>
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>
 			<key>CFBundleURLSchemes</key>
 			<array>
-				<string><!-- REPLACE_WITH_REVERSED_IOS_GOOGLE_CLIENT_ID e.g. com.googleusercontent.apps.1234567890-abcdef --></string>
+				<string>com.googleusercontent.apps.255333974573-22g4cg9dv0qi9p7o3vudq4vvrg6mt5m2</string>
 			</array>
 		</dict>
 	</array>
