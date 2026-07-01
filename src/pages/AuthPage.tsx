@@ -144,6 +144,24 @@ const AuthPage = () => {
               <button
                 onClick={async () => {
                   try {
+                    if (isNative()) {
+                      // Native iOS/Android: use system Google Sign-In sheet
+                      const { GoogleAuth } = await import('@codetrix-studio/capacitor-google-auth');
+                      try { await GoogleAuth.initialize({ scopes: ['profile', 'email'], grantOfflineAccess: false }); } catch {}
+                      const res: any = await GoogleAuth.signIn();
+                      const idToken = res?.authentication?.idToken;
+                      if (!idToken) {
+                        toast({ title: 'Google sign-in failed', description: 'No identity token returned', variant: 'destructive' });
+                        return;
+                      }
+                      const { error } = await supabase.auth.signInWithIdToken({ provider: 'google', token: idToken });
+                      if (error) {
+                        toast({ title: 'Google sign-in failed', description: error.message, variant: 'destructive' });
+                        return;
+                      }
+                      navigate('/', { replace: true });
+                      return;
+                    }
                     const result = await lovable.auth.signInWithOAuth('google', {
                       redirect_uri: window.location.origin,
                     });
@@ -154,7 +172,9 @@ const AuthPage = () => {
                     if (result.redirected) return;
                     navigate('/', { replace: true });
                   } catch (err: any) {
-                    toast({ title: 'Google sign-in failed', description: err?.message || 'Please try again', variant: 'destructive' });
+                    const msg = err?.message || String(err);
+                    if (/cancel/i.test(msg)) return;
+                    toast({ title: 'Google sign-in failed', description: msg || 'Please try again', variant: 'destructive' });
                   }
                 }}
                 className="w-full py-4 rounded-2xl bg-card border-2 border-border text-foreground font-semibold text-lg flex items-center justify-center gap-3 active:scale-[0.98] transition-transform"
