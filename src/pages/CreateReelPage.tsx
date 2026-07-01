@@ -152,11 +152,15 @@ const CreateReelPage = () => {
       const stored = await loadReelDraftMedia();
       if (cancelled || !stored.length) { hydratedRef.current = true; return; }
       const items: MediaItem[] = stored.map(s => {
-        const file = new File([s.fileBlob], s.fileName || 'upload', { type: s.fileType || (s.kind === 'video' ? 'video/mp4' : 'image/jpeg') });
+        const blob = s.fileBlob;
+        const fileType = s.fileType || (s.kind === 'video' ? 'video/mp4' : 'image/jpeg');
+        // Use blob directly (not wrapped in a new File) — iOS WebView object URLs
+        // are more reliable when created from the original Blob retrieved from IDB.
+        const file = blob instanceof File ? blob : new File([blob], s.fileName || 'upload', { type: fileType });
         return {
           id: s.id,
           file,
-          previewUrl: URL.createObjectURL(file),
+          previewUrl: URL.createObjectURL(blob),
           kind: s.kind,
           caption: s.caption || '',
         };
@@ -309,7 +313,10 @@ const CreateReelPage = () => {
   return (
     <div className="min-h-screen bg-[#0a0a0a] max-w-lg mx-auto pb-48">
       {/* Header */}
-      <div className="sticky top-0 z-20 bg-[#0a0a0a]/95 backdrop-blur border-b border-[#2a2a2a] px-4 pt-3 pb-3">
+      <div
+        className="sticky top-0 z-20 bg-[#0a0a0a]/95 backdrop-blur border-b border-[#2a2a2a] px-4 pb-3"
+        style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 12px)' }}
+      >
         <div className="flex items-center gap-3 mb-3">
           <button onClick={handleTopBack} aria-label={stepIdx > 0 ? 'Previous step' : 'Go back'} className="p-2 -ml-2 rounded-xl text-[#fafafa]">
             <ArrowLeft className="w-5 h-5" />
