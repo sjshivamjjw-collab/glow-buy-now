@@ -49,5 +49,24 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<true/>
+	<key>NSCameraUsageDescription</key>
+	<string>Ripple uses your camera so you can take a photo or video for your profile picture and posts.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Ripple accesses your photo library so you can choose photos and videos to share in posts and as your profile picture.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>Ripple saves photos and videos you export back to your library.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Ripple uses your microphone when you record a video with sound for a post.</string>
+	<key>GIDClientID</key>
+	<string><!-- REPLACE_WITH_IOS_GOOGLE_CLIENT_ID e.g. 1234567890-abcdef.apps.googleusercontent.com --></string>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string><!-- REPLACE_WITH_REVERSED_IOS_GOOGLE_CLIENT_ID e.g. com.googleusercontent.apps.1234567890-abcdef --></string>
+			</array>
+		</dict>
+	</array>
 </dict>
 </plist>
