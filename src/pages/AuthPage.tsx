@@ -147,10 +147,14 @@ const AuthPage = () => {
                     if (isNative()) {
                       // Native iOS/Android: use system Google Sign-In sheet via SPM-compatible plugin
                       const { SocialLogin } = await import('@capgo/capacitor-social-login');
+                      // iOS OAuth client (native app identity, used for the URL scheme callback)
                       const iOSClientId = '255333974573-22g4cg9dv0qi9p7o3vudq4vvrg6mt5m2.apps.googleusercontent.com';
+                      // Web OAuth client (registered with Supabase). Google will set this as the id_token audience
+                      // so Supabase accepts it via signInWithIdToken.
+                      const iOSServerClientId = '255333974573-rf1rdu620dknli64gu6qqolt8vgpu6qm.apps.googleusercontent.com';
                       try {
                         await SocialLogin.initialize({
-                          google: { iOSClientId, mode: 'online' },
+                          google: { iOSClientId, iOSServerClientId, mode: 'online' },
                         });
                       } catch {}
                       const res: any = await SocialLogin.login({
