@@ -168,16 +168,21 @@ const AuthPage = () => {
                       try {
                         await SocialLogin.logout({ provider: 'google' });
                       } catch {}
+                      const nonceBytes = new Uint8Array(32);
+                      crypto.getRandomValues(nonceBytes);
+                      const rawNonce = Array.from(nonceBytes).map(b => b.toString(16).padStart(2, '0')).join('');
+                      const nonceHashBuffer = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(rawNonce));
+                      const nonceDigest = Array.from(new Uint8Array(nonceHashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
                       const res: any = await SocialLogin.login({
                         provider: 'google',
-                        options: { scopes: ['email', 'profile'], forcePrompt: true },
+                        options: { scopes: ['email', 'profile'], forcePrompt: true, nonce: nonceDigest },
                       });
                       const idToken = res?.result?.idToken;
                       if (!idToken) {
                         toast({ title: 'Google sign-in failed', description: 'No identity token returned', variant: 'destructive' });
                         return;
                       }
-                      const { error } = await supabase.auth.signInWithIdToken({ provider: 'google', token: idToken });
+                      const { error } = await supabase.auth.signInWithIdToken({ provider: 'google', token: idToken, nonce: rawNonce });
                       if (error) {
                         toast({ title: 'Google sign-in failed', description: error.message, variant: 'destructive' });
                         return;
