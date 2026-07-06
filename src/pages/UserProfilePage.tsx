@@ -271,6 +271,15 @@ export const PostsGrid = ({ posts, onOpen, isOwner = false }: { posts: PostThumb
                 )}
               </>
             )}
+            {isOwner && (
+              <div className={`absolute ${p.is_anonymous ? 'bottom-8' : 'bottom-1.5'} left-1.5 right-1.5 flex items-center justify-between gap-1 px-2 py-1 rounded-full bg-black/65 backdrop-blur-sm text-[10px] font-semibold text-white`}>
+                <span className="inline-flex items-center gap-0.5"><Eye className="w-3 h-3" />{formatCount(p.view_count || 0)}</span>
+                <span className="inline-flex items-center gap-0.5"><Heart className="w-3 h-3" />{formatCount(p.like_count || 0)}</span>
+                <span className="inline-flex items-center gap-0.5"><MessageCircle className="w-3 h-3" />{formatCount(p.comment_count || 0)}</span>
+                <span className="inline-flex items-center gap-0.5"><Bookmark className="w-3 h-3" />{formatCount(p.save_count || 0)}</span>
+              </div>
+            )}
+
           </div>
           {p.title && p.cover_url && (
             <div className="px-2.5 pt-2 pb-2.5">
