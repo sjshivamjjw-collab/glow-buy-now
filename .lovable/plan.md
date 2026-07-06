@@ -1,53 +1,45 @@
-## Apple resubmission — two blockers to fix
+# Add engagement metrics to your profile posts
 
-Both issues are iOS-native regressions caused by missing native config, not by app logic. Fixes are small and localized.
+Own-profile post tiles will show four metrics as a subtle overlay at the bottom of each thumbnail: views, likes, comments, saves. Other users' profiles remain unchanged.
 
----
+## 1. Track views (new)
 
-### Issue 1 — Crash on "Take Photo" (Guideline 2.1a)
+New table `post_views` with `post_id`, `viewer_id` (nullable for guests), `session_key` (for guest dedup), `created_at`. Unique index on `(post_id, viewer_id)` for signed-in users and `(post_id, session_key)` for guests — a viewer counts once per post.
 
-**Root cause:** `ios/App/App/Info.plist` has no camera / photo-library usage descriptions. When a user taps "Take Photo" in the native file picker, iOS terminates the app with `SIGABRT` because the required purpose strings are absent. This affects Profile avatar upload and every other `<input type="file" accept="image/*">` in the app (Create Post, Create Reel).
+Denormalized `view_count int` column on `posts` maintained by an `AFTER INSERT` trigger, mirroring how `like_count`/`comment_count` work.
 
-**Fix:** Add the four standard keys to `ios/App/App/Info.plist`:
+RLS:
+- Anyone (anon + authenticated) can INSERT a view row.
+- Authors can SELECT their own posts' view rows; nobody else needs to read the table (the count is exposed via `posts.view_count`).
 
-- `NSCameraUsageDescription` — "Ripple uses your camera so you can take a photo or video for your profile picture and posts."
-- `NSPhotoLibraryUsageDescription` — "Ripple accesses your photo library so you can choose photos and videos to share in posts and as your profile picture."
-- `NSPhotoLibraryAddUsageDescription` — "Ripple saves photos and videos you export back to your library."
-- `NSMicrophoneUsageDescription` — "Ripple uses your microphone when you record a video with sound for a post."
+Trigger fires from `PostDetailPage` on mount (dedupes via unique index → ignore duplicates). Guest session key = random id stored in `localStorage`.
 
-No JS changes needed. The existing `<input type="file">` pickers will now be allowed to open the camera without crashing.
+## 2. Add saves count per post
 
----
+`posts.save_count int` (default 0) maintained by trigger on `post_saves` insert/delete, same pattern as likes.
 
-### Issue 2 — "Continue with Google" unresponsive on iOS (Guideline 2.1a)
+Backfill both `view_count` (0) and `save_count` (from existing `post_saves`) in the migration.
 
-**Root cause:** `AuthPage.tsx` calls the web-only `lovable.auth.signInWithOAuth('google')` broker. That broker opens a popup + posts a `web_message` back — this does not work inside the iOS WKWebView (popup is blocked / message never reaches the parent), so the button appears unresponsive. Apple sign-in already works because we branched to the native `@capawesome/capacitor-apple-sign-in` SDK for iOS. Google needs the same treatment.
+## 3. Profile UI
 
-**Fix:** Mirror the Apple pattern for Google on native iOS.
+`ProfilePage` fetches `id, title, like_count, comment_count, view_count, save_count, is_anonymous` for own posts and passes them to `PostsGrid`.
 
-1. Add dependency `@codetrix-studio/capacitor-google-auth` (the standard Capacitor Google SDK, Swift-Package-Manager compatible — matches our no-CocoaPods setup).
-2. In `src/pages/AuthPage.tsx`, branch the Google button:
-   - **Native (`isNative()`):** dynamically import `GoogleAuth`, call `GoogleAuth.initialize({ clientId: <iOS client id>, scopes: ['profile','email'] })` on first use, then `GoogleAuth.signIn()` → take `authentication.idToken` → `supabase.auth.signInWithIdToken({ provider: 'google', token: idToken })` → navigate to `/`.
-   - **Web:** keep the existing `lovable.auth.signInWithOAuth('google')` path unchanged.
-3. Add the iOS OAuth client id to `ios/App/App/Info.plist` under keys `GIDClientID` and `CFBundleURLTypes` (reversed client id URL scheme). This is a one-time value the user needs to create in Google Cloud Console (iOS OAuth client bound to bundle id `in.myripple.app`). I'll leave a placeholder and give a short runbook.
+`PostsGrid` in `src/pages/UserProfilePage.tsx` gets a small overlay strip at the bottom of each tile **only when `isOwner` is true**:
 
----
+```text
+👁 1.2k · ♥ 34 · 💬 5 · 🔖 3
+```
 
-### Also — versioning + resubmit runbook (Windows/macOS steps for the user)
+Rendered as a translucent black pill row with lucide icons (`Eye`, `Heart`, `MessageCircle`, `Bookmark`), using `formatCount()` for compact numbers. Placed above the existing "Only visible to you" ribbon for anonymous posts so both remain readable.
 
-1. `git pull` → `npm install` → `npm run build` → `npx cap sync ios`.
-2. In Xcode, bump **Build** to `9` (Version stays `1.0.0`).
-3. Create the Google iOS OAuth client in Google Cloud Console (bundle id `in.myripple.app`), copy the Client ID + reversed client id into `Info.plist` where I've marked `<!-- REPLACE -->`.
-4. **Product → Archive → Distribute → App Store Connect.**
-5. Reply text for App Review (I'll draft when the build is up).
+Other users' `UserProfilePage` view stays as-is (no metrics overlay).
 
----
+## 4. View increment call
 
-### Technical details (implementation checklist)
+In `PostDetailPage`, after the post loads, fire-and-forget insert into `post_views` with the viewer's `auth.uid()` or the guest session key. Silently ignore unique-violation errors.
 
-- Edit `ios/App/App/Info.plist` — add 4 usage strings + `GIDClientID` + `CFBundleURLTypes` block.
-- `bun add @codetrix-studio/capacitor-google-auth`
-- Edit `src/pages/AuthPage.tsx` Google button `onClick` — split native vs web the same way the Apple button is split.
-- No DB, no edge-function changes. No changes for Android (Google button already works there via the broker; native Google SDK can be layered later if needed).
+## Technical notes
 
-Nothing else touched — this is scoped to unblocking Apple review.
+- Migration adds: `post_views` table + grants + RLS, `posts.view_count`, `posts.save_count`, two triggers, backfill.
+- No changes to feed, discover, or post detail visuals — counts are only surfaced on the owner's profile grid.
+- Realtime not needed; counts refresh on next profile load.

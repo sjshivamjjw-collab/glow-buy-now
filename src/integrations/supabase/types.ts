@@ -325,6 +325,45 @@ export type Database = {
         }
         Relationships: []
       }
+      post_views: {
+        Row: {
+          created_at: string
+          id: string
+          post_id: string
+          session_key: string | null
+          viewer_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          post_id: string
+          session_key?: string | null
+          viewer_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          post_id?: string
+          session_key?: string | null
+          viewer_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "post_views_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "posts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "post_views_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "posts_public"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       posts: {
         Row: {
           body: string | null
@@ -344,10 +383,12 @@ export type Database = {
           music_url: string | null
           review_recommendation: string | null
           review_subcategory: string | null
+          save_count: number
           search_tsv: unknown
           title: string | null
           updated_at: string
           user_id: string
+          view_count: number
         }
         Insert: {
           body?: string | null
@@ -367,10 +408,12 @@ export type Database = {
           music_url?: string | null
           review_recommendation?: string | null
           review_subcategory?: string | null
+          save_count?: number
           search_tsv?: unknown
           title?: string | null
           updated_at?: string
           user_id: string
+          view_count?: number
         }
         Update: {
           body?: string | null
@@ -390,10 +433,12 @@ export type Database = {
           music_url?: string | null
           review_recommendation?: string | null
           review_subcategory?: string | null
+          save_count?: number
           search_tsv?: unknown
           title?: string | null
           updated_at?: string
           user_id?: string
+          view_count?: number
         }
         Relationships: []
       }
