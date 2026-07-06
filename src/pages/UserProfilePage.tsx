@@ -17,7 +17,7 @@ import SEO from '@/components/SEO';
 
 
 interface Profile { id: string; name: string | null; username: string | null; avatar_url: string | null; }
-interface PostThumb { id: string; cover_url: string | null; cover_kind: string | null; like_count: number; is_anonymous?: boolean; title?: string | null; }
+interface PostThumb { id: string; cover_url: string | null; cover_kind: string | null; like_count: number; comment_count?: number; view_count?: number; save_count?: number; is_anonymous?: boolean; title?: string | null; }
 
 const UserProfilePage = () => {
   const { userId: pageUserId } = useParams<{ userId: string }>();
