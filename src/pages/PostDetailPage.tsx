@@ -235,6 +235,23 @@ const PostDetailPage = () => {
       setMedia(result.m);
       setLoading(false);
 
+      // Fire-and-forget view tracking (dedup via unique index; ignore errors).
+      (async () => {
+        try {
+          if (userId) {
+            await supabase.from('post_views' as any).insert({ post_id: id, viewer_id: userId });
+          } else {
+            let sk = localStorage.getItem('ripple_view_sk');
+            if (!sk) {
+              sk = (crypto as any).randomUUID?.() || Math.random().toString(36).slice(2) + Date.now().toString(36);
+              localStorage.setItem('ripple_view_sk', sk);
+            }
+            await supabase.from('post_views' as any).insert({ post_id: id, session_key: sk });
+          }
+        } catch { /* ignore */ }
+      })();
+
+
       // Resolve post author for cache, then write cache.
       let authorInfo: AuthorInfo | undefined;
       if (result.p.user_id && !result.p.is_anonymous) {
