@@ -10,7 +10,7 @@ import { formatCount } from '@/lib/utils';
 import { ImageCropperDialog } from '@/components/ImageCropperDialog';
 import Footer from '@/components/Footer';
 
-interface PostThumb { id: string; cover_url: string | null; cover_kind: string | null; like_count: number; title?: string | null; is_anonymous?: boolean; }
+interface PostThumb { id: string; cover_url: string | null; cover_kind: string | null; like_count: number; comment_count?: number; view_count?: number; save_count?: number; title?: string | null; is_anonymous?: boolean; }
 
 const ProfilePage = () => {
   const { userName, userAvatar, userId, isAdmin, phone, logout, updateProfile } = useAuth();
