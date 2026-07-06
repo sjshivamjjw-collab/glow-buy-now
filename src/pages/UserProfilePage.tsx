@@ -4,7 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useAuthGate } from '@/components/AuthGate';
 import { useToast } from '@/hooks/use-toast';
-import { ArrowLeft, Loader2, UserPlus, UserCheck, Eye, MoreHorizontal, Flag, Ban, ShieldOff } from 'lucide-react';
+import { ArrowLeft, Loader2, UserPlus, UserCheck, Eye, MoreHorizontal, Flag, Ban, ShieldOff, Heart, MessageCircle, Bookmark } from 'lucide-react';
 import { formatCount } from '@/lib/utils';
 import LazyVideoThumbnail from '@/components/LazyVideoThumbnail';
 import { optimizedImageUrl } from '@/lib/storageUrls';
@@ -17,7 +17,7 @@ import SEO from '@/components/SEO';
 
 
 interface Profile { id: string; name: string | null; username: string | null; avatar_url: string | null; }
-interface PostThumb { id: string; cover_url: string | null; cover_kind: string | null; like_count: number; is_anonymous?: boolean; title?: string | null; }
+interface PostThumb { id: string; cover_url: string | null; cover_kind: string | null; like_count: number; comment_count?: number; view_count?: number; save_count?: number; is_anonymous?: boolean; title?: string | null; }
 
 const UserProfilePage = () => {
   const { userId: pageUserId } = useParams<{ userId: string }>();
@@ -271,6 +271,15 @@ export const PostsGrid = ({ posts, onOpen, isOwner = false }: { posts: PostThumb
                 )}
               </>
             )}
+            {isOwner && (
+              <div className={`absolute ${p.is_anonymous ? 'bottom-8' : 'bottom-1.5'} left-1.5 right-1.5 flex items-center justify-between gap-1 px-2 py-1 rounded-full bg-black/65 backdrop-blur-sm text-[10px] font-semibold text-white`}>
+                <span className="inline-flex items-center gap-0.5"><Eye className="w-3 h-3" />{formatCount(p.view_count || 0)}</span>
+                <span className="inline-flex items-center gap-0.5"><Heart className="w-3 h-3" />{formatCount(p.like_count || 0)}</span>
+                <span className="inline-flex items-center gap-0.5"><MessageCircle className="w-3 h-3" />{formatCount(p.comment_count || 0)}</span>
+                <span className="inline-flex items-center gap-0.5"><Bookmark className="w-3 h-3" />{formatCount(p.save_count || 0)}</span>
+              </div>
+            )}
+
           </div>
           {p.title && p.cover_url && (
             <div className="px-2.5 pt-2 pb-2.5">
