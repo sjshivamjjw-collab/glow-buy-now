@@ -725,12 +725,6 @@
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://myripple.co.in/p/f6e6a898-c710-47ca-b89e-16e60a883c67</loc>
-    <lastmod>2026-05-25</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
     <loc>https://myripple.co.in/u/341c1202-f75c-456c-a377-b9d73c7c945c</loc>
     <changefreq>weekly</changefreq>
     <priority>0.6</priority>
@@ -921,7 +915,7 @@
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://myripple.co.in/u/244bb076-337b-41c3-8636-6abd52a56417</loc>
+    <loc>https://myripple.co.in/u/4306e483-5a4d-41b0-ac5d-0b86c5ca581d</loc>
     <changefreq>weekly</changefreq>
     <priority>0.6</priority>
   </url>
@@ -1051,7 +1045,7 @@
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://myripple.co.in/u/4306e483-5a4d-41b0-ac5d-0b86c5ca581d</loc>
+    <loc>https://myripple.co.in/u/244bb076-337b-41c3-8636-6abd52a56417</loc>
     <changefreq>weekly</changefreq>
     <priority>0.6</priority>
   </url>
@@ -1321,11 +1315,6 @@
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://myripple.co.in/u/56a43ee4-7969-4d5c-a788-d293b1454e6b</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
     <loc>https://myripple.co.in/u/5ceea761-722d-4053-92a6-0ca555401ea9</loc>
     <changefreq>weekly</changefreq>
     <priority>0.6</priority>
@@ -1417,6 +1406,11 @@
   </url>
   <url>
     <loc>https://myripple.co.in/u/eeedc476-e2ad-453c-9a8d-082384ff2344</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://myripple.co.in/u/56a43ee4-7969-4d5c-a788-d293b1454e6b</loc>
     <changefreq>weekly</changefreq>
     <priority>0.6</priority>
   </url>
@@ -1566,6 +1560,11 @@
     <priority>0.6</priority>
   </url>
   <url>
+    <loc>https://myripple.co.in/u/a9e57de7-eee8-49c9-8fe8-99595bbf881d</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
     <loc>https://myripple.co.in/u/fd58cbf0-b9e4-4789-8a66-69ffa2800d2e</loc>
     <changefreq>weekly</changefreq>
     <priority>0.6</priority>
@@ -1587,11 +1586,6 @@
   </url>
   <url>
     <loc>https://myripple.co.in/u/5ab6c919-7ce3-49c4-a70e-09eb4bf7697e</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
-    <loc>https://myripple.co.in/u/a9e57de7-eee8-49c9-8fe8-99595bbf881d</loc>
     <changefreq>weekly</changefreq>
     <priority>0.6</priority>
   </url>
