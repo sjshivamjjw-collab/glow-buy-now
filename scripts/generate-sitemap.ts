@@ -59,7 +59,7 @@ async function fetchDynamic(): Promise<SitemapEntry[]> {
     // for Google and account for most "Discovered - not indexed" reports.
     const { data: profiles, error: profErr } = await supabase
       .from('profiles')
-      .select('id, display_name, username, updated_at')
+      .select('id, name, username')
       .limit(5000);
     if (profErr) console.warn('sitemap: profiles query failed', profErr.message);
 
