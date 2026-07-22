@@ -47,7 +47,7 @@ async function fetchDynamic(): Promise<SitemapEntry[]> {
     // Public posts (exclude anonymous and hidden — same filters as PostDetailPage's loader).
     const { data: posts, error: postsErr } = await supabase
       .from('posts')
-      .select('id, title, body, created_at')
+      .select('id, title, body, created_at, user_id')
       .eq('is_anonymous', false)
       .eq('is_hidden', false)
       .order('created_at', { ascending: false })
