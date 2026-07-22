@@ -1,5 +1,7 @@
 // Runs before `vite dev` and `vite build` (predev/prebuild hooks); writes public/sitemap.xml.
 // Pulls public posts and profiles from Supabase so Google can crawl every page.
+// Only lists high-signal URLs — thin/utility routes are omitted so Google spends
+// crawl budget on content pages that can actually rank.
 
 import { writeFileSync } from 'fs';
 import { resolve } from 'path';
@@ -17,16 +19,24 @@ interface SitemapEntry {
   priority?: string;
 }
 
+// Only include content/marketing routes. /auth, /delete-account, /support are
+// utility pages with no unique indexable content — omitted so Google focuses on posts.
 const staticEntries: SitemapEntry[] = [
   { path: '/', changefreq: 'daily', priority: '1.0' },
-  { path: '/auth', changefreq: 'monthly', priority: '0.5' },
-  { path: '/about', changefreq: 'monthly', priority: '0.5' },
+  { path: '/about', changefreq: 'monthly', priority: '0.6' },
   { path: '/contact', changefreq: 'monthly', priority: '0.5' },
-  { path: '/support', changefreq: 'monthly', priority: '0.4' },
   { path: '/terms', changefreq: 'yearly', priority: '0.3' },
   { path: '/privacy', changefreq: 'yearly', priority: '0.3' },
-  { path: '/delete-account', changefreq: 'yearly', priority: '0.3' },
 ];
+
+// Minimum plain-text length for a post to be worth submitting.
+// Below this threshold Google typically flags "Crawled – currently not indexed".
+const MIN_POST_TEXT_LENGTH = 80;
+
+function stripHtml(s: string | null | undefined): string {
+  if (!s) return '';
+  return s.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+}
 
 async function fetchDynamic(): Promise<SitemapEntry[]> {
   try {
@@ -37,32 +47,51 @@ async function fetchDynamic(): Promise<SitemapEntry[]> {
     // Public posts (exclude anonymous and hidden — same filters as PostDetailPage's loader).
     const { data: posts, error: postsErr } = await supabase
       .from('posts')
-      .select('id, created_at')
+      .select('id, title, body, created_at')
       .eq('is_anonymous', false)
       .eq('is_hidden', false)
       .order('created_at', { ascending: false })
       .limit(5000);
     if (postsErr) console.warn('sitemap: posts query failed', postsErr.message);
 
-    // Public profiles (anyone with a row in profiles).
+    // Public profiles that actually have something to show — need a display name
+    // AND at least one non-hidden, non-anonymous post. Empty profiles are noise
+    // for Google and account for most "Discovered - not indexed" reports.
     const { data: profiles, error: profErr } = await supabase
       .from('profiles')
-      .select('id')
+      .select('id, display_name, username, updated_at')
       .limit(5000);
     if (profErr) console.warn('sitemap: profiles query failed', profErr.message);
 
-    const postEntries: SitemapEntry[] = (posts || []).map((p: any) => ({
-      path: `/p/${p.id}`,
-      lastmod: p.created_at ? new Date(p.created_at).toISOString().slice(0, 10) : undefined,
-      changefreq: 'weekly',
-      priority: '0.7',
-    }));
+    // Filter posts by content richness so Google sees indexable pages only.
+    const postEntries: SitemapEntry[] = (posts || [])
+      .filter((p: any) => {
+        const text = `${p.title || ''} ${stripHtml(p.body)}`.trim();
+        return text.length >= MIN_POST_TEXT_LENGTH;
+      })
+      .map((p: any) => ({
+        path: `/p/${p.id}`,
+        lastmod: p.created_at ? new Date(p.created_at).toISOString().slice(0, 10) : undefined,
+        changefreq: 'weekly',
+        priority: '0.7',
+      }));
 
-    const profileEntries: SitemapEntry[] = (profiles || []).map((u: any) => ({
-      path: `/u/${u.id}`,
-      changefreq: 'weekly',
-      priority: '0.6',
-    }));
+    // Only list profiles that authored at least one public post above threshold.
+    const authorIdsWithContent = new Set(
+      (posts || [])
+        .filter((p: any) => `${p.title || ''} ${stripHtml(p.body)}`.trim().length >= MIN_POST_TEXT_LENGTH)
+        .map((p: any) => p.user_id)
+        .filter(Boolean),
+    );
+
+    const profileEntries: SitemapEntry[] = (profiles || [])
+      .filter((u: any) => (u.display_name || u.username) && authorIdsWithContent.has(u.id))
+      .map((u: any) => ({
+        path: `/u/${u.id}`,
+        lastmod: u.updated_at ? new Date(u.updated_at).toISOString().slice(0, 10) : undefined,
+        changefreq: 'weekly',
+        priority: '0.5',
+      }));
 
     return [...postEntries, ...profileEntries];
   } catch (err) {
