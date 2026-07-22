@@ -85,10 +85,9 @@ async function fetchDynamic(): Promise<SitemapEntry[]> {
     );
 
     const profileEntries: SitemapEntry[] = (profiles || [])
-      .filter((u: any) => (u.display_name || u.username) && authorIdsWithContent.has(u.id))
+      .filter((u: any) => (u.name || u.username) && authorIdsWithContent.has(u.id))
       .map((u: any) => ({
         path: `/u/${u.id}`,
-        lastmod: u.updated_at ? new Date(u.updated_at).toISOString().slice(0, 10) : undefined,
         changefreq: 'weekly',
         priority: '0.5',
       }));
