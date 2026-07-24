@@ -503,7 +503,13 @@ const PostDetailPage = () => {
     headline: post.title || plainBody.slice(0, 110) || 'Post on Ripple',
     articleBody: plainBody || undefined,
     datePublished: post.created_at,
-    author: { '@type': 'Person', name: authorName },
+    author: {
+      '@type': 'Person',
+      name: authorName,
+      url: !isAnon && post.user_id
+        ? `https://myripple.co.in/u/${post.user_id}`
+        : 'https://myripple.co.in/',
+    },
     url: `https://myripple.co.in/p/${post.id}`,
     image: ogImage ? [ogImage] : undefined,
     interactionStatistic: [
