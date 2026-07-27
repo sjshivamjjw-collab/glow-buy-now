@@ -624,7 +624,7 @@ const PostDetailPage = () => {
           <PenguinAvatar size={40} />
           <div className="flex-1 min-w-0">
             <p className="font-[Outfit] font-bold text-[#fafafa] text-sm truncate">{RIPPLER_NAME}</p>
-            <p className="text-xs text-[#a0a0a0]">{formatDistanceToNow(new Date(post.created_at), { addSuffix: true })} · Anonymous</p>
+            <p className="text-xs text-[#a0a0a0]">Anonymous</p>
             {post.music_url && (
               <div className="mt-1.5">
                 <PostMusicPlayer url={post.music_url} title={post.music_title} />
@@ -646,7 +646,7 @@ const PostDetailPage = () => {
           />
           <div className="flex-1 min-w-0">
             <p className="font-[Outfit] font-bold text-[#fafafa] text-sm truncate">{author?.name || author?.username || 'User'}</p>
-            <p className="text-xs text-[#a0a0a0]">{formatDistanceToNow(new Date(post.created_at), { addSuffix: true })}</p>
+            {author?.username && <p className="text-xs text-[#a0a0a0]">@{author.username}</p>}
             {post.music_url && (
               <div className="mt-1.5" onClick={(e) => e.stopPropagation()}>
                 <PostMusicPlayer url={post.music_url} title={post.music_title} />

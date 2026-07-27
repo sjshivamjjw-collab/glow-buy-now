@@ -560,12 +560,6 @@
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://myripple.co.in/p/cb474642-28a6-4e31-b330-5679e7b43715</loc>
-    <lastmod>2026-05-31</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
     <loc>https://myripple.co.in/p/d23755d8-eb34-47ca-bfcf-0c6382537c8d</loc>
     <lastmod>2026-05-31</lastmod>
     <changefreq>weekly</changefreq>
@@ -710,19 +704,13 @@
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://myripple.co.in/p/6648e7bf-9fc6-44f9-a6de-ebc5858b920b</loc>
-    <lastmod>2026-05-25</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
     <loc>https://myripple.co.in/p/be2ce810-5c4f-4324-b558-5dac3501db9f</loc>
     <lastmod>2026-05-25</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://myripple.co.in/p/71c5ea7f-b02b-4134-9a35-756bf2946533</loc>
+    <loc>https://myripple.co.in/p/8872fab5-7db0-4506-ba09-9e97a7a1d7e9</loc>
     <lastmod>2026-05-25</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
@@ -835,11 +823,6 @@
   </url>
   <url>
     <loc>https://myripple.co.in/u/b9c6f042-18a2-4213-b602-d0c928374f5a</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  <url>
-    <loc>https://myripple.co.in/u/244bb076-337b-41c3-8636-6abd52a56417</loc>
     <changefreq>weekly</changefreq>
     <priority>0.5</priority>
   </url>
