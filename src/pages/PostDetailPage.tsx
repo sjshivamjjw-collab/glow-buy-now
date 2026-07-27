@@ -21,11 +21,13 @@ import {
   setPostDetailCache,
   invalidatePostDetail,
   invalidateTrending,
+  getTrendingCache,
 } from '@/lib/feedCache';
 import { optimizedImageUrl } from '@/lib/storageUrls';
 import { track } from '@/lib/analytics';
 import useEmblaCarousel from 'embla-carousel-react';
 import SEO from '@/components/SEO';
+
 
 
 
@@ -124,8 +126,21 @@ const PostDetailPage = () => {
 
   // Hydrate from cache for instant render when re-opening a post.
   const initialCache = id ? getPostDetailCache(id) : undefined;
+  // Fallback: if there's no post-detail cache but the feed cache has a cover
+  // image for this post, seed `media` with it so the image renders instantly
+  // (avoids the 200-500ms lag where text appears but the picture pops in).
+  const seedMediaFromTrending = (): MediaRow[] => {
+    if (!id) return [];
+    const t = getTrendingCache();
+    const hit = t?.posts.find(p => p.id === id);
+    if (hit?.cover_url && hit.cover_kind) {
+      return [{ id: `seed-${id}`, url: hit.cover_url, kind: hit.cover_kind, sort_order: 0 }];
+    }
+    return [];
+  };
   const [post, setPost] = useState<PostRow | null>((initialCache?.post as PostRow) || null);
-  const [media, setMedia] = useState<MediaRow[]>((initialCache?.media as MediaRow[]) || []);
+  const [media, setMedia] = useState<MediaRow[]>((initialCache?.media as MediaRow[]) || seedMediaFromTrending());
+
   const [comments, setComments] = useState<CommentRow[]>([]);
   const [authors, setAuthors] = useState<Record<string, AuthorInfo>>(
     initialCache?.author ? { [initialCache.author.id]: initialCache.author } : {}
@@ -679,10 +694,13 @@ const PostDetailPage = () => {
                       alt=""
                       className="w-full max-h-[60vh] object-contain cursor-pointer select-none"
                       loading={Math.abs(i - mediaIdx) <= 1 ? 'eager' : 'lazy'}
+                      // @ts-ignore - fetchpriority is a valid HTML attribute
+                      fetchpriority={i === 0 ? 'high' : 'auto'}
                       decoding="async"
                       draggable={false}
                       onClick={() => window.dispatchEvent(new Event('post-music-stop'))}
                     />
+
                   )}
                 </div>
               ))}
