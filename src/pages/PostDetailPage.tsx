@@ -21,11 +21,13 @@ import {
   setPostDetailCache,
   invalidatePostDetail,
   invalidateTrending,
+  getTrendingCache,
 } from '@/lib/feedCache';
 import { optimizedImageUrl } from '@/lib/storageUrls';
 import { track } from '@/lib/analytics';
 import useEmblaCarousel from 'embla-carousel-react';
 import SEO from '@/components/SEO';
+
 
 
 
