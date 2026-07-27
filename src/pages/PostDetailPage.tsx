@@ -694,10 +694,13 @@ const PostDetailPage = () => {
                       alt=""
                       className="w-full max-h-[60vh] object-contain cursor-pointer select-none"
                       loading={Math.abs(i - mediaIdx) <= 1 ? 'eager' : 'lazy'}
+                      // @ts-ignore - fetchpriority is a valid HTML attribute
+                      fetchpriority={i === 0 ? 'high' : 'auto'}
                       decoding="async"
                       draggable={false}
                       onClick={() => window.dispatchEvent(new Event('post-music-stop'))}
                     />
+
                   )}
                 </div>
               ))}
